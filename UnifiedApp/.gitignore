@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+dist-electron/
+dist-output/
+build/
+out/
+
+# Electron
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data files
+data/
+*.db
+*.sqlite
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Windows
+$RECYCLE.BIN/
+*.lnk
+*.exe
+*.msi
+
+# macOS
+*.dmg
+*.pkg
+
+# Linux
+*.AppImage
+*.deb
+*.rpm

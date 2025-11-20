@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" --version)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new classlib -n BusinessToolsSuite.Core -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new classlib -n BusinessToolsSuite.Shared -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new list)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new install Avalonia.Templates)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" nuget add source https://api.nuget.org/v3/index.json -n nuget.org)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new avalonia.mvvm -n BusinessToolsSuite.Desktop -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new classlib -n BusinessToolsSuite.Features.AllocationBuddy -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new classlib -n BusinessToolsSuite.Features.EssentialsBuddy -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new xunit -n BusinessToolsSuite.UnitTests -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" sln add src/BusinessToolsSuite.Core/BusinessToolsSuite.Core.csproj)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" sln add src/BusinessToolsSuite.Infrastructure/BusinessToolsSuite.Infrastructure.csproj)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" sln add:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" sln add src/BusinessToolsSuite.Desktop/BusinessToolsSuite.Desktop.csproj)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
