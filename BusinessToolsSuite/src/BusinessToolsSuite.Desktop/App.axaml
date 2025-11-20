@@ -2,13 +2,42 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="BusinessToolsSuite.Desktop.App"
              xmlns:local="using:BusinessToolsSuite.Desktop"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Light">
+             <!-- Theme is managed by ThemeService -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-  
+
+    <Application.Resources>
+        <!-- Light Theme Colors -->
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#667eea"/>
+                    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#5568d3"/>
+                    <SolidColorBrush x:Key="AccentBrush" Color="#764ba2"/>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#F5F5F5"/>
+                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#000000"/>
+                    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#666666"/>
+                    <SolidColorBrush x:Key="BorderBrush" Color="#E0E0E0"/>
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#667eea"/>
+                    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#5568d3"/>
+                    <SolidColorBrush x:Key="AccentBrush" Color="#9575cd"/>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="#1a1a1a"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#2a2a2a"/>
+                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#B0B0B0"/>
+                    <SolidColorBrush x:Key="BorderBrush" Color="#404040"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

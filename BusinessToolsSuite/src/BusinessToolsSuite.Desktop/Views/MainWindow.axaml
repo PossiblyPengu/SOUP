@@ -3,18 +3,256 @@
         xmlns:vm="using:BusinessToolsSuite.Desktop.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="BusinessToolsSuite.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="BusinessToolsSuite.Desktop">
+        Title="{Binding Title}"
+        Width="1200" Height="800"
+        MinWidth="900" MinHeight="600"
+        Background="#667eea">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Alt+1" Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}"/>
+        <KeyBinding Gesture="Alt+2" Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"/>
+        <KeyBinding Gesture="Alt+3" Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"/>
+        <KeyBinding Gesture="Escape" Command="{Binding BackToLauncherCommand}"/>
+    </Window.KeyBindings>
+
+    <Grid>
+        <!-- Main Launcher Content -->
+        <Grid IsVisible="{Binding IsLauncherVisible}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,80,0,0">
+                <TextBlock Text="Business Tools Suite"
+                           FontSize="48"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Select an application to begin"
+                           FontSize="20"
+                           Foreground="#E0E0E0"
+                           HorizontalAlignment="Center"
+                           Margin="0,16,0,0"/>
+            </StackPanel>
+
+            <!-- Module Cards -->
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="40">
+
+                <!-- ExpireWise Card -->
+                <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}"
+                        Background="White"
+                        CornerRadius="16"
+                        Padding="0"
+                        BorderThickness="0"
+                        Width="280"
+                        Height="320">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#F0F0F0"/>
+                            <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                        </Style>
+                    </Button.Styles>
+
+                    <StackPanel Spacing="16" Margin="24">
+                        <TextBlock Text="📦"
+                                   FontSize="64"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="ExpireWise"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Expiration tracking and inventory lifecycle management"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Foreground="#666666"
+                                   FontSize="14"/>
+                        <TextBlock Text="Alt+1"
+                                   FontSize="12"
+                                   Foreground="#999999"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Allocation Buddy Card -->
+                <Button Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"
+                        Background="White"
+                        CornerRadius="16"
+                        Padding="0"
+                        BorderThickness="0"
+                        Width="280"
+                        Height="320">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#F0F0F0"/>
+                            <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                        </Style>
+                    </Button.Styles>
+
+                    <StackPanel Spacing="16" Margin="24">
+                        <TextBlock Text="📊"
+                                   FontSize="64"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Allocation Buddy"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Store allocation management with smart categorization"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Foreground="#666666"
+                                   FontSize="14"/>
+                        <TextBlock Text="Alt+2"
+                                   FontSize="12"
+                                   Foreground="#999999"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Essentials Buddy Card -->
+                <Button Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"
+                        Background="White"
+                        CornerRadius="16"
+                        Padding="0"
+                        BorderThickness="0"
+                        Width="280"
+                        Height="320">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#F0F0F0"/>
+                            <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                        </Style>
+                    </Button.Styles>
+
+                    <StackPanel Spacing="16" Margin="24">
+                        <TextBlock Text="📋"
+                                   FontSize="64"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Essentials Buddy"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Business Central bin contents and inventory reporting"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Foreground="#666666"
+                                   FontSize="14"/>
+                        <TextBlock Text="Alt+3"
+                                   FontSize="12"
+                                   Foreground="#999999"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" Margin="0,0,0,40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left spacer -->
+                <Border Grid.Column="0"/>
+
+                <!-- Center text -->
+                <TextBlock Grid.Column="1"
+                           Text="v1.0.0 | All tools run 100% offline | Built with .NET 8 &amp; Avalonia"
+                           Foreground="White"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
+
+                <!-- Right side - Theme toggle -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8"
+                            Margin="0,0,40,0">
+                    <Button Command="{Binding LauncherViewModel.ToggleThemeCommand}"
+                            Background="Transparent"
+                            BorderThickness="1"
+                            BorderBrush="White"
+                            CornerRadius="8"
+                            Padding="12,6"
+                            Foreground="White">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding LauncherViewModel.IsDarkMode, Converter={x:Null}, StringFormat=\{0\}}"
+                                       IsVisible="False"/>
+                            <TextBlock Text="🌙" IsVisible="{Binding !LauncherViewModel.IsDarkMode}"/>
+                            <TextBlock Text="☀️" IsVisible="{Binding LauncherViewModel.IsDarkMode}"/>
+                            <TextBlock Text="Theme" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Module Content Area (hidden when launcher is visible) -->
+        <Grid IsVisible="{Binding !IsLauncherVisible}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Navigation Bar -->
+            <Border Grid.Row="0"
+                    Background="#667eea"
+                    Padding="16,12"
+                    BoxShadow="0 2 8 0 #40000000">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0"
+                            Command="{Binding BackToLauncherCommand}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="White"
+                            Padding="8,4"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="←" FontSize="20" FontWeight="Bold"/>
+                            <TextBlock Text="Back to Launcher" FontSize="14" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Title}"
+                               Foreground="White"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Module Content -->
+            <ContentControl Grid.Row="1"
+                            Content="{Binding CurrentViewModel}"
+                            Background="White"/>
+        </Grid>
+    </Grid>
 
 </Window>

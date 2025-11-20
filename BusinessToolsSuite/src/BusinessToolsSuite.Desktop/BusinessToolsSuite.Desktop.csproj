@@ -22,6 +22,18 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessToolsSuite.Core\BusinessToolsSuite.Core.csproj" />
+    <ProjectReference Include="..\BusinessToolsSuite.Infrastructure\BusinessToolsSuite.Infrastructure.csproj" />
+    <ProjectReference Include="..\BusinessToolsSuite.Shared\BusinessToolsSuite.Shared.csproj" />
+    <ProjectReference Include="..\Features\BusinessToolsSuite.Features.ExpireWise\BusinessToolsSuite.Features.ExpireWise.csproj" />
+    <ProjectReference Include="..\Features\BusinessToolsSuite.Features.AllocationBuddy\BusinessToolsSuite.Features.AllocationBuddy.csproj" />
+    <ProjectReference Include="..\Features\BusinessToolsSuite.Features.EssentialsBuddy\BusinessToolsSuite.Features.EssentialsBuddy.csproj" />
   </ItemGroup>
 </Project>
