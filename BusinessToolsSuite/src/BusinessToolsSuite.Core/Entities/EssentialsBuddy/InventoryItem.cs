@@ -7,8 +7,8 @@ namespace BusinessToolsSuite.Core.Entities.EssentialsBuddy;
 /// </summary>
 public class InventoryItem : BaseEntity
 {
-    public required string ItemNumber { get; set; }
-    public required string Description { get; set; }
+    public string ItemNumber { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public string? BinCode { get; set; }
     public int QuantityOnHand { get; set; }
     public int? MinimumThreshold { get; set; }

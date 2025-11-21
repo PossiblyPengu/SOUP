@@ -7,9 +7,9 @@ namespace BusinessToolsSuite.Core.Entities.AllocationBuddy;
 /// </summary>
 public class AllocationEntry : BaseEntity
 {
-    public required string ItemNumber { get; set; }
-    public required string Description { get; set; }
-    public required string StoreId { get; set; }
+    public string ItemNumber { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string StoreId { get; set; } = string.Empty;
     public string? StoreName { get; set; }
     public int Quantity { get; set; }
     public StoreRank Rank { get; set; }

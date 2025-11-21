@@ -45,7 +45,10 @@
       "Bash(find:*)",
       "Bash(dotnet remove reference:*)",
       "Bash(dotnet add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" run --project src/BusinessToolsSuite.Desktop/BusinessToolsSuite.Desktop.csproj)",
+      "Bash(git checkout:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

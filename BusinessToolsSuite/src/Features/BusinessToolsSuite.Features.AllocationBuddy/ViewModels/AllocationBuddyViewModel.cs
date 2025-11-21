@@ -9,6 +9,7 @@ using BusinessToolsSuite.Core.Entities.AllocationBuddy;
 using BusinessToolsSuite.Core.Interfaces;
 using BusinessToolsSuite.Shared.Services;
 using BusinessToolsSuite.Features.AllocationBuddy.Views;
+using BusinessToolsSuite.Infrastructure.Services.Parsers;
 
 namespace BusinessToolsSuite.Features.AllocationBuddy.ViewModels;
 
@@ -19,6 +20,7 @@ public partial class AllocationBuddyViewModel : ObservableObject
 {
     private readonly IAllocationBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
+    private readonly AllocationBuddyParser _parser;
     private readonly DialogService _dialogService;
     private readonly ILogger<AllocationBuddyViewModel>? _logger;
 
@@ -43,6 +45,12 @@ public partial class AllocationBuddyViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasData))]
+    private bool _hasNoData = true;
+
+    public bool HasData => !HasNoData;
+
     public ObservableCollection<string> RankFilters { get; } = new()
     {
         "All",
@@ -60,6 +68,7 @@ public partial class AllocationBuddyViewModel : ObservableObject
     {
         _repository = repository;
         _fileService = fileService;
+        _parser = new AllocationBuddyParser(null); // Uses specialized parser with exact JS logic
         _dialogService = dialogService;
         _logger = logger;
     }
@@ -92,6 +101,7 @@ public partial class AllocationBuddyViewModel : ObservableObject
             }
 
             ApplyFilters();
+            HasNoData = Entries.Count == 0;
             StatusMessage = $"Loaded {Entries.Count} allocation entries";
             _logger?.LogInformation("Loaded {Count} allocation entries", Entries.Count);
         }
@@ -107,35 +117,110 @@ public partial class AllocationBuddyViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task AddEntry()
+    private async Task ImportFromExcel()
     {
-        _logger?.LogInformation("Add entry clicked");
+        _logger?.LogInformation("Import from Excel clicked - using specialized parser");
 
         try
         {
-            var dialogViewModel = new AllocationEntryDialogViewModel();
-            dialogViewModel.InitializeForAdd();
+            var files = await _dialogService.ShowOpenFileDialogAsync(
+                "Select Excel file to import",
+                "Excel Files", "xlsx");
 
-            var dialog = new AllocationEntryDialog
+            if (files != null && files.Length > 0)
             {
-                DataContext = dialogViewModel
-            };
+                IsLoading = true;
+                StatusMessage = "Importing from Excel (smart column detection)...";
 
-            var result = await _dialogService.ShowDialogAsync<AllocationEntry?>(dialog);
+                // Use specialized parser with exact JS logic
+                var result = await _parser.ParseExcelAsync(files[0]);
 
-            if (result != null)
-            {
-                var addedEntry = await _repository.AddAsync(result);
-                Entries.Add(addedEntry);
-                ApplyFilters();
-                StatusMessage = $"Added entry for {addedEntry.ItemNumber}";
-                _logger?.LogInformation("Added new entry {ItemNumber}", addedEntry.ItemNumber);
+                if (result.IsSuccess && result.Value != null)
+                {
+                    // Clear existing and add new
+                    var existing = await _repository.GetAllAsync();
+                    foreach (var entry in existing)
+                    {
+                        await _repository.DeleteAsync(entry.Id);
+                    }
+
+                    foreach (var entry in result.Value)
+                    {
+                        await _repository.AddAsync(entry);
+                    }
+
+                    await LoadEntries();
+                    StatusMessage = $"Imported {result.Value.Count} allocation entries";
+                    _logger?.LogInformation("Imported {Count} entries from Excel using specialized parser", result.Value.Count);
+                }
+                else
+                {
+                    StatusMessage = $"Import failed: {result.ErrorMessage}";
+                    _logger?.LogError("Failed to import from Excel: {Error}", result.ErrorMessage);
+                }
+
+                IsLoading = false;
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error adding entry: {ex.Message}";
-            _logger?.LogError(ex, "Exception while adding entry");
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during Excel import");
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportFromCsv()
+    {
+        _logger?.LogInformation("Import from CSV clicked - using specialized parser");
+
+        try
+        {
+            var files = await _dialogService.ShowOpenFileDialogAsync(
+                "Select CSV file to import",
+                "CSV Files", "csv");
+
+            if (files != null && files.Length > 0)
+            {
+                IsLoading = true;
+                StatusMessage = "Importing from CSV (smart column detection)...";
+
+                // Use specialized parser with exact JS logic
+                var result = await _parser.ParseCsvAsync(files[0]);
+
+                if (result.IsSuccess && result.Value != null)
+                {
+                    // Clear existing and add new
+                    var existing = await _repository.GetAllAsync();
+                    foreach (var entry in existing)
+                    {
+                        await _repository.DeleteAsync(entry.Id);
+                    }
+
+                    foreach (var entry in result.Value)
+                    {
+                        await _repository.AddAsync(entry);
+                    }
+
+                    await LoadEntries();
+                    StatusMessage = $"Imported {result.Value.Count} allocation entries";
+                    _logger?.LogInformation("Imported {Count} entries from CSV using specialized parser", result.Value.Count);
+                }
+                else
+                {
+                    StatusMessage = $"Import failed: {result.ErrorMessage}";
+                    _logger?.LogError("Failed to import from CSV: {Error}", result.ErrorMessage);
+                }
+
+                IsLoading = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during CSV import");
+            IsLoading = false;
         }
     }
 

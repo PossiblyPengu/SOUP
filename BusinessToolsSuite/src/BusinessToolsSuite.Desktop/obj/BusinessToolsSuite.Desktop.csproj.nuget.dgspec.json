@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj": {}
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj": {}
   },
   "projects": {
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
         "projectName": "BusinessToolsSuite.Core",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -68,21 +68,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj",
         "projectName": "BusinessToolsSuite.Desktop",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\BusinessToolsSuite.Desktop.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Desktop\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -94,23 +94,23 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj"
               }
             }
           }
@@ -191,21 +191,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
         "projectName": "BusinessToolsSuite.Infrastructure",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -217,8 +217,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
               }
             }
           }
@@ -275,21 +275,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj",
         "projectName": "BusinessToolsSuite.Shared",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -347,21 +347,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj",
         "projectName": "BusinessToolsSuite.Features.AllocationBuddy",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\BusinessToolsSuite.Features.AllocationBuddy.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.AllocationBuddy\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -373,11 +373,14 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
+              },
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
               }
             }
           }
@@ -434,21 +437,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
         "projectName": "BusinessToolsSuite.Features.EssentialsBuddy",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -460,11 +463,14 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
+              },
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
               }
             }
           }
@@ -521,21 +527,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
+    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
+        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
         "projectName": "BusinessToolsSuite.Features.ExpireWise",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\obj\\",
+        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -547,11 +553,14 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
+              },
+              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
+                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
               }
             }
           }
@@ -608,7 +617,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

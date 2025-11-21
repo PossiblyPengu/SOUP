@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\BusinessToolsSuite.Core\BusinessToolsSuite.Core.csproj" />
     <ProjectReference Include="..\..\BusinessToolsSuite.Shared\BusinessToolsSuite.Shared.csproj" />
+    <ProjectReference Include="..\..\BusinessToolsSuite.Infrastructure\BusinessToolsSuite.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

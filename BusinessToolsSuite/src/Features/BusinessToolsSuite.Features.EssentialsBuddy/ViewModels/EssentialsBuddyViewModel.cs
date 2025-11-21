@@ -9,6 +9,7 @@ using BusinessToolsSuite.Core.Entities.EssentialsBuddy;
 using BusinessToolsSuite.Core.Interfaces;
 using BusinessToolsSuite.Shared.Services;
 using BusinessToolsSuite.Features.EssentialsBuddy.Views;
+using BusinessToolsSuite.Infrastructure.Services.Parsers;
 
 namespace BusinessToolsSuite.Features.EssentialsBuddy.ViewModels;
 
@@ -16,6 +17,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 {
     private readonly IEssentialsBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
+    private readonly EssentialsBuddyParser _parser;
     private readonly DialogService _dialogService;
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
 
@@ -43,6 +45,12 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     [ObservableProperty]
     private decimal _totalInventoryValue;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasData))]
+    private bool _hasNoData = true;
+
+    public bool HasData => !HasNoData;
+
     public ObservableCollection<string> StatusFilters { get; } = new()
     {
         "All",
@@ -60,6 +68,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     {
         _repository = repository;
         _fileService = fileService;
+        _parser = new EssentialsBuddyParser(null); // Uses specialized parser with exact JS logic
         _dialogService = dialogService;
         _logger = logger;
     }
@@ -88,6 +97,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 
             TotalInventoryValue = await _repository.GetTotalInventoryValueAsync();
             ApplyFilters();
+            HasNoData = Items.Count == 0;
             StatusMessage = $"Loaded {Items.Count} items | Total Value: {TotalInventoryValue:C2}";
             _logger?.LogInformation("Loaded {Count} inventory items", Items.Count);
         }
@@ -103,36 +113,110 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task AddItem()
+    private async Task ImportFromExcel()
     {
-        _logger?.LogInformation("Add item clicked");
+        _logger?.LogInformation("Import from Excel clicked - using specialized parser (9-90* bins, aggregation)");
 
         try
         {
-            var dialogViewModel = new InventoryItemDialogViewModel();
-            dialogViewModel.InitializeForAdd();
+            var files = await _dialogService.ShowOpenFileDialogAsync(
+                "Select Excel file to import",
+                "Excel Files", "xlsx");
 
-            var dialog = new InventoryItemDialog
+            if (files != null && files.Length > 0)
             {
-                DataContext = dialogViewModel
-            };
+                IsLoading = true;
+                StatusMessage = "Importing from Excel (filtering 9-90* bins)...";
 
-            var result = await _dialogService.ShowDialogAsync<InventoryItem?>(dialog);
+                // Use specialized parser with exact JS logic
+                var result = await _parser.ParseExcelAsync(files[0]);
 
-            if (result != null)
-            {
-                var addedItem = await _repository.AddAsync(result);
-                Items.Add(addedItem);
-                TotalInventoryValue = await _repository.GetTotalInventoryValueAsync();
-                ApplyFilters();
-                StatusMessage = $"Added item {addedItem.ItemNumber}";
-                _logger?.LogInformation("Added new item {ItemNumber}", addedItem.ItemNumber);
+                if (result.IsSuccess && result.Value != null)
+                {
+                    // Clear existing and add new (replacing data like JS version)
+                    var existing = await _repository.GetAllAsync();
+                    foreach (var item in existing)
+                    {
+                        await _repository.DeleteAsync(item.Id);
+                    }
+
+                    foreach (var item in result.Value)
+                    {
+                        await _repository.AddAsync(item);
+                    }
+
+                    await LoadItems();
+                    StatusMessage = $"Imported {result.Value.Count} unique items (9-90* bins aggregated)";
+                    _logger?.LogInformation("Imported {Count} items from Excel using specialized parser", result.Value.Count);
+                }
+                else
+                {
+                    StatusMessage = $"Import failed: {result.ErrorMessage}";
+                    _logger?.LogError("Failed to import from Excel: {Error}", result.ErrorMessage);
+                }
+
+                IsLoading = false;
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error adding item: {ex.Message}";
-            _logger?.LogError(ex, "Exception while adding item");
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during Excel import");
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportFromCsv()
+    {
+        _logger?.LogInformation("Import from CSV clicked - using specialized parser (9-90* bins, aggregation)");
+
+        try
+        {
+            var files = await _dialogService.ShowOpenFileDialogAsync(
+                "Select CSV file to import",
+                "CSV Files", "csv");
+
+            if (files != null && files.Length > 0)
+            {
+                IsLoading = true;
+                StatusMessage = "Importing from CSV (filtering 9-90* bins)...";
+
+                // Use specialized parser with exact JS logic
+                var result = await _parser.ParseCsvAsync(files[0]);
+
+                if (result.IsSuccess && result.Value != null)
+                {
+                    // Clear existing and add new
+                    var existing = await _repository.GetAllAsync();
+                    foreach (var item in existing)
+                    {
+                        await _repository.DeleteAsync(item.Id);
+                    }
+
+                    foreach (var item in result.Value)
+                    {
+                        await _repository.AddAsync(item);
+                    }
+
+                    await LoadItems();
+                    StatusMessage = $"Imported {result.Value.Count} unique items (9-90* bins aggregated)";
+                    _logger?.LogInformation("Imported {Count} items from CSV using specialized parser", result.Value.Count);
+                }
+                else
+                {
+                    StatusMessage = $"Import failed: {result.ErrorMessage}";
+                    _logger?.LogError("Failed to import from CSV: {Error}", result.ErrorMessage);
+                }
+
+                IsLoading = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during CSV import");
+            IsLoading = false;
         }
     }
 

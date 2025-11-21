@@ -22,16 +22,27 @@
             <Grid ColumnDefinitions="*,Auto">
                 <!-- Left side buttons -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                    <Button Command="{Binding AddItemCommand}"
+                    <Button Command="{Binding ImportFromExcelCommand}"
                             Background="{DynamicResource PrimaryBrush}"
                             Foreground="White"
                             Padding="12,6"
                             CornerRadius="4">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="+" FontSize="18" FontWeight="Bold"/>
-                            <TextBlock Text="Add Item"/>
+                            <TextBlock Text="📥"/>
+                            <TextBlock Text="Import Excel"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Command="{Binding ImportFromCsvCommand}"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="📥"/>
+                            <TextBlock Text="Import CSV"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="24" Margin="8,0"/>
 
                     <Button Command="{Binding EditItemCommand}"
                             Padding="12,6"
@@ -138,16 +149,19 @@
             </Grid>
         </Border>
 
-        <!-- Data Grid -->
-        <DataGrid Grid.Row="2"
-                  ItemsSource="{Binding FilteredItems}"
-                  SelectedItem="{Binding SelectedItem}"
-                  IsReadOnly="True"
-                  GridLinesVisibility="All"
-                  BorderThickness="0"
-                  AutoGenerateColumns="False"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True">
+        <!-- Content Area - Panel to manage welcome/data display -->
+        <Panel Grid.Row="2">
+            <!-- Data Grid (shown when has data) -->
+            <DataGrid IsVisible="{Binding HasData}"
+                      ItemsSource="{Binding FilteredItems}"
+                      SelectedItem="{Binding SelectedItem}"
+                      IsReadOnly="True"
+                      GridLinesVisibility="All"
+                      BorderThickness="0"
+                      AutoGenerateColumns="False"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      Background="White">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Item Number"
@@ -224,7 +238,58 @@
                                     Width="140"
                                     IsReadOnly="True"/>
             </DataGrid.Columns>
-        </DataGrid>
+            </DataGrid>
+
+            <!-- Welcome Screen (shown when no data) -->
+            <Border IsVisible="{Binding HasNoData}"
+                    Background="{DynamicResource BackgroundBrush}">
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Spacing="24">
+                    <TextBlock Text="📋"
+                               FontSize="64"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Welcome to Essentials Buddy"
+                               FontSize="28"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Import your inventory data to track essentials (9-90* bins)"
+                               FontSize="16"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="16"
+                                Margin="0,16,0,0">
+                        <Button Command="{Binding ImportFromExcelCommand}"
+                                Background="{DynamicResource PrimaryBrush}"
+                                Foreground="White"
+                                Padding="24,12"
+                                CornerRadius="6"
+                                FontSize="16">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📥" FontSize="18"/>
+                                <TextBlock Text="Import Excel File" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ImportFromCsvCommand}"
+                                Padding="24,12"
+                                CornerRadius="6"
+                                FontSize="16">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📄" FontSize="18"/>
+                                <TextBlock Text="Import CSV File" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="Only items from 9-90* bins will be imported and aggregated"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Panel>
 
         <!-- Status Bar -->
         <Border Grid.Row="3"

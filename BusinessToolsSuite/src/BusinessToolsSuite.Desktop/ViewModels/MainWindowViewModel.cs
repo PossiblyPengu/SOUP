@@ -13,7 +13,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly NavigationService _navigationService;
 
     [ObservableProperty]
-    private ViewModelBase _currentViewModel;
+    private object? _currentViewModel;
 
     [ObservableProperty]
     private string _title = "Business Tools Suite";
@@ -36,6 +36,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnModuleChanged(object? sender, string moduleName)
     {
         IsLauncherVisible = moduleName == "Launcher";
+
+        // Update the current view from navigation service
+        if (moduleName != "Launcher")
+        {
+            CurrentViewModel = _navigationService.CurrentView;
+        }
+        else
+        {
+            CurrentViewModel = null;
+        }
 
         Title = moduleName switch
         {

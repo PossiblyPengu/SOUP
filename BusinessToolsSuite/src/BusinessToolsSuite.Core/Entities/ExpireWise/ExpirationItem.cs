@@ -7,8 +7,8 @@ namespace BusinessToolsSuite.Core.Entities.ExpireWise;
 /// </summary>
 public class ExpirationItem : BaseEntity
 {
-    public required string ItemNumber { get; set; }
-    public required string Description { get; set; }
+    public string ItemNumber { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public string? Location { get; set; }
     public int Units { get; set; }
     public DateTime ExpiryDate { get; set; }

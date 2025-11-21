@@ -9,11 +9,11 @@ public interface IFileImportExportService
 {
     Task<Result<IReadOnlyList<T>>> ImportFromExcelAsync<T>(
         string filePath,
-        CancellationToken cancellationToken = default) where T : class;
+        CancellationToken cancellationToken = default) where T : class, new();
 
     Task<Result<IReadOnlyList<T>>> ImportFromCsvAsync<T>(
         string filePath,
-        CancellationToken cancellationToken = default) where T : class;
+        CancellationToken cancellationToken = default) where T : class, new();
 
     Task<Result> ExportToExcelAsync<T>(
         IEnumerable<T> data,

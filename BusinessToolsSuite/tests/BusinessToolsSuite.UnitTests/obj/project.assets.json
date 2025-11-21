@@ -5867,19 +5867,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\andre\\.nuget\\packages\\": {}
+    "C:\\Users\\acalabrese\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\tests\\BusinessToolsSuite.UnitTests\\BusinessToolsSuite.UnitTests.csproj",
+      "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\tests\\BusinessToolsSuite.UnitTests\\BusinessToolsSuite.UnitTests.csproj",
       "projectName": "BusinessToolsSuite.UnitTests",
-      "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\tests\\BusinessToolsSuite.UnitTests\\BusinessToolsSuite.UnitTests.csproj",
-      "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-      "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\tests\\BusinessToolsSuite.UnitTests\\obj\\",
+      "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\tests\\BusinessToolsSuite.UnitTests\\BusinessToolsSuite.UnitTests.csproj",
+      "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+      "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\tests\\BusinessToolsSuite.UnitTests\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -5949,7 +5949,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

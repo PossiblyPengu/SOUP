@@ -9,6 +9,7 @@ using BusinessToolsSuite.Core.Entities.ExpireWise;
 using BusinessToolsSuite.Core.Interfaces;
 using BusinessToolsSuite.Shared.Services;
 using BusinessToolsSuite.Features.ExpireWise.Views;
+using BusinessToolsSuite.Infrastructure.Services.Parsers;
 
 namespace BusinessToolsSuite.Features.ExpireWise.ViewModels;
 
@@ -19,6 +20,7 @@ public partial class ExpireWiseViewModel : ObservableObject
 {
     private readonly IExpireWiseRepository _repository;
     private readonly IFileImportExportService _fileService;
+    private readonly ExpireWiseParser _parser;
     private readonly DialogService _dialogService;
     private readonly ILogger<ExpireWiseViewModel>? _logger;
 
@@ -60,6 +62,7 @@ public partial class ExpireWiseViewModel : ObservableObject
     {
         _repository = repository;
         _fileService = fileService;
+        _parser = new ExpireWiseParser(null); // Uses specialized parser with exact JS logic
         _dialogService = dialogService;
         _logger = logger;
     }
@@ -223,7 +226,7 @@ public partial class ExpireWiseViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFromExcel()
     {
-        _logger?.LogInformation("Import from Excel clicked");
+        _logger?.LogInformation("Import from Excel clicked - using specialized parser (Excel date conversion)");
 
         try
         {
@@ -234,20 +237,28 @@ public partial class ExpireWiseViewModel : ObservableObject
             if (files != null && files.Length > 0)
             {
                 IsLoading = true;
-                StatusMessage = "Importing from Excel...";
+                StatusMessage = "Importing from Excel (smart date detection)...";
 
-                var result = await _fileService.ImportFromExcelAsync<ExpirationItem>(files[0]);
+                // Use specialized parser with exact JS logic
+                var result = await _parser.ParseExcelAsync(files[0]);
 
                 if (result.IsSuccess && result.Value != null)
                 {
+                    // Clear existing and add new (replacing data like JS version)
+                    var existing = await _repository.GetAllAsync();
+                    foreach (var item in existing)
+                    {
+                        await _repository.DeleteAsync(item.Id);
+                    }
+
                     foreach (var item in result.Value)
                     {
                         await _repository.AddAsync(item);
                     }
 
                     await LoadItems();
-                    StatusMessage = $"Imported {result.Value.Count} items from Excel";
-                    _logger?.LogInformation("Imported {Count} items from Excel", result.Value.Count);
+                    StatusMessage = $"Imported {result.Value.Count} expiration items";
+                    _logger?.LogInformation("Imported {Count} items from Excel using specialized parser", result.Value.Count);
                 }
                 else
                 {
@@ -269,7 +280,7 @@ public partial class ExpireWiseViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFromCsv()
     {
-        _logger?.LogInformation("Import from CSV clicked");
+        _logger?.LogInformation("Import from CSV clicked - using specialized parser");
 
         try
         {
@@ -282,18 +293,26 @@ public partial class ExpireWiseViewModel : ObservableObject
                 IsLoading = true;
                 StatusMessage = "Importing from CSV...";
 
-                var result = await _fileService.ImportFromCsvAsync<ExpirationItem>(files[0]);
+                // Use specialized parser with exact JS logic
+                var result = await _parser.ParseCsvAsync(files[0]);
 
                 if (result.IsSuccess && result.Value != null)
                 {
+                    // Clear existing and add new
+                    var existing = await _repository.GetAllAsync();
+                    foreach (var item in existing)
+                    {
+                        await _repository.DeleteAsync(item.Id);
+                    }
+
                     foreach (var item in result.Value)
                     {
                         await _repository.AddAsync(item);
                     }
 
                     await LoadItems();
-                    StatusMessage = $"Imported {result.Value.Count} items from CSV";
-                    _logger?.LogInformation("Imported {Count} items from CSV", result.Value.Count);
+                    StatusMessage = $"Imported {result.Value.Count} expiration items";
+                    _logger?.LogInformation("Imported {Count} items from CSV using specialized parser", result.Value.Count);
                 }
                 else
                 {
