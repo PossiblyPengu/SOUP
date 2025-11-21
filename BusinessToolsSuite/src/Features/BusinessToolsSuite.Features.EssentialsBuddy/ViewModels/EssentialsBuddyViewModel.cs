@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using BusinessToolsSuite.Core.Entities.EssentialsBuddy;
 using BusinessToolsSuite.Core.Interfaces;
+using BusinessToolsSuite.Shared.Services;
+using BusinessToolsSuite.Features.EssentialsBuddy.Views;
 
 namespace BusinessToolsSuite.Features.EssentialsBuddy.ViewModels;
 
@@ -14,6 +16,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 {
     private readonly IEssentialsBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
+    private readonly DialogService _dialogService;
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
 
     [ObservableProperty]
@@ -52,10 +55,12 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     public EssentialsBuddyViewModel(
         IEssentialsBuddyRepository repository,
         IFileImportExportService fileService,
+        DialogService dialogService,
         ILogger<EssentialsBuddyViewModel>? logger = null)
     {
         _repository = repository;
         _fileService = fileService;
+        _dialogService = dialogService;
         _logger = logger;
     }
 
@@ -98,22 +103,84 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AddItem()
+    private async Task AddItem()
     {
         _logger?.LogInformation("Add item clicked");
-        StatusMessage = "Add item dialog coming soon...";
+
+        try
+        {
+            var dialogViewModel = new InventoryItemDialogViewModel();
+            dialogViewModel.InitializeForAdd();
+
+            var dialog = new InventoryItemDialog
+            {
+                DataContext = dialogViewModel
+            };
+
+            var result = await _dialogService.ShowDialogAsync<InventoryItem?>(dialog);
+
+            if (result != null)
+            {
+                var addedItem = await _repository.AddAsync(result);
+                Items.Add(addedItem);
+                TotalInventoryValue = await _repository.GetTotalInventoryValueAsync();
+                ApplyFilters();
+                StatusMessage = $"Added item {addedItem.ItemNumber}";
+                _logger?.LogInformation("Added new item {ItemNumber}", addedItem.ItemNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error adding item: {ex.Message}";
+            _logger?.LogError(ex, "Exception while adding item");
+        }
     }
 
     [RelayCommand]
-    private void EditItem()
+    private async Task EditItem()
     {
         if (SelectedItem == null)
         {
             StatusMessage = "Please select an item to edit";
             return;
         }
+
         _logger?.LogInformation("Edit item clicked for {ItemNumber}", SelectedItem.ItemNumber);
-        StatusMessage = "Edit item dialog coming soon...";
+
+        try
+        {
+            var dialogViewModel = new InventoryItemDialogViewModel();
+            dialogViewModel.InitializeForEdit(SelectedItem);
+
+            var dialog = new InventoryItemDialog
+            {
+                DataContext = dialogViewModel
+            };
+
+            var result = await _dialogService.ShowDialogAsync<InventoryItem?>(dialog);
+
+            if (result != null)
+            {
+                var updatedItem = await _repository.UpdateAsync(result);
+
+                // Update the item in the collection
+                var index = Items.IndexOf(SelectedItem);
+                if (index >= 0)
+                {
+                    Items[index] = updatedItem;
+                }
+
+                TotalInventoryValue = await _repository.GetTotalInventoryValueAsync();
+                ApplyFilters();
+                StatusMessage = $"Updated item {updatedItem.ItemNumber}";
+                _logger?.LogInformation("Updated item {ItemNumber}", updatedItem.ItemNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error updating item: {ex.Message}";
+            _logger?.LogError(ex, "Exception while updating item");
+        }
     }
 
     [RelayCommand]

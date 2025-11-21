@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using BusinessToolsSuite.Core.Entities.ExpireWise;
 using BusinessToolsSuite.Core.Interfaces;
+using BusinessToolsSuite.Shared.Services;
+using BusinessToolsSuite.Features.ExpireWise.Views;
 
 namespace BusinessToolsSuite.Features.ExpireWise.ViewModels;
 
@@ -17,6 +19,7 @@ public partial class ExpireWiseViewModel : ObservableObject
 {
     private readonly IExpireWiseRepository _repository;
     private readonly IFileImportExportService _fileService;
+    private readonly DialogService _dialogService;
     private readonly ILogger<ExpireWiseViewModel>? _logger;
 
     [ObservableProperty]
@@ -52,10 +55,12 @@ public partial class ExpireWiseViewModel : ObservableObject
     public ExpireWiseViewModel(
         IExpireWiseRepository repository,
         IFileImportExportService fileService,
+        DialogService dialogService,
         ILogger<ExpireWiseViewModel>? logger = null)
     {
         _repository = repository;
         _fileService = fileService;
+        _dialogService = dialogService;
         _logger = logger;
     }
 
@@ -102,14 +107,40 @@ public partial class ExpireWiseViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AddItem()
+    private async Task AddItem()
     {
-        // TODO: Open add item dialog
         _logger?.LogInformation("Add item clicked");
+
+        try
+        {
+            var dialogViewModel = new ExpirationItemDialogViewModel();
+            dialogViewModel.InitializeForAdd();
+
+            var dialog = new ExpirationItemDialog
+            {
+                DataContext = dialogViewModel
+            };
+
+            var result = await _dialogService.ShowDialogAsync<ExpirationItem?>(dialog);
+
+            if (result != null)
+            {
+                var addedItem = await _repository.AddAsync(result);
+                Items.Add(addedItem);
+                ApplyFilters();
+                StatusMessage = $"Added item {addedItem.ItemNumber}";
+                _logger?.LogInformation("Added new item {ItemNumber}", addedItem.ItemNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error adding item: {ex.Message}";
+            _logger?.LogError(ex, "Exception while adding item");
+        }
     }
 
     [RelayCommand]
-    private void EditItem()
+    private async Task EditItem()
     {
         if (SelectedItem == null)
         {
@@ -117,8 +148,41 @@ public partial class ExpireWiseViewModel : ObservableObject
             return;
         }
 
-        // TODO: Open edit item dialog
         _logger?.LogInformation("Edit item clicked for {ItemNumber}", SelectedItem.ItemNumber);
+
+        try
+        {
+            var dialogViewModel = new ExpirationItemDialogViewModel();
+            dialogViewModel.InitializeForEdit(SelectedItem);
+
+            var dialog = new ExpirationItemDialog
+            {
+                DataContext = dialogViewModel
+            };
+
+            var result = await _dialogService.ShowDialogAsync<ExpirationItem?>(dialog);
+
+            if (result != null)
+            {
+                var updatedItem = await _repository.UpdateAsync(result);
+
+                // Update the item in the collection
+                var index = Items.IndexOf(SelectedItem);
+                if (index >= 0)
+                {
+                    Items[index] = updatedItem;
+                }
+
+                ApplyFilters();
+                StatusMessage = $"Updated item {updatedItem.ItemNumber}";
+                _logger?.LogInformation("Updated item {ItemNumber}", updatedItem.ItemNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error updating item: {ex.Message}";
+            _logger?.LogError(ex, "Exception while updating item");
+        }
     }
 
     [RelayCommand]
@@ -159,17 +223,93 @@ public partial class ExpireWiseViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFromExcel()
     {
-        // TODO: Open file picker and import
         _logger?.LogInformation("Import from Excel clicked");
-        StatusMessage = "Excel import coming soon...";
+
+        try
+        {
+            var files = await _dialogService.ShowOpenFileDialogAsync(
+                "Select Excel file to import",
+                "Excel Files", "xlsx");
+
+            if (files != null && files.Length > 0)
+            {
+                IsLoading = true;
+                StatusMessage = "Importing from Excel...";
+
+                var result = await _fileService.ImportFromExcelAsync<ExpirationItem>(files[0]);
+
+                if (result.IsSuccess && result.Value != null)
+                {
+                    foreach (var item in result.Value)
+                    {
+                        await _repository.AddAsync(item);
+                    }
+
+                    await LoadItems();
+                    StatusMessage = $"Imported {result.Value.Count} items from Excel";
+                    _logger?.LogInformation("Imported {Count} items from Excel", result.Value.Count);
+                }
+                else
+                {
+                    StatusMessage = $"Import failed: {result.ErrorMessage}";
+                    _logger?.LogError("Failed to import from Excel: {Error}", result.ErrorMessage);
+                }
+
+                IsLoading = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during Excel import");
+            IsLoading = false;
+        }
     }
 
     [RelayCommand]
     private async Task ImportFromCsv()
     {
-        // TODO: Open file picker and import
         _logger?.LogInformation("Import from CSV clicked");
-        StatusMessage = "CSV import coming soon...";
+
+        try
+        {
+            var files = await _dialogService.ShowOpenFileDialogAsync(
+                "Select CSV file to import",
+                "CSV Files", "csv");
+
+            if (files != null && files.Length > 0)
+            {
+                IsLoading = true;
+                StatusMessage = "Importing from CSV...";
+
+                var result = await _fileService.ImportFromCsvAsync<ExpirationItem>(files[0]);
+
+                if (result.IsSuccess && result.Value != null)
+                {
+                    foreach (var item in result.Value)
+                    {
+                        await _repository.AddAsync(item);
+                    }
+
+                    await LoadItems();
+                    StatusMessage = $"Imported {result.Value.Count} items from CSV";
+                    _logger?.LogInformation("Imported {Count} items from CSV", result.Value.Count);
+                }
+                else
+                {
+                    StatusMessage = $"Import failed: {result.ErrorMessage}";
+                    _logger?.LogError("Failed to import from CSV: {Error}", result.ErrorMessage);
+                }
+
+                IsLoading = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during CSV import");
+            IsLoading = false;
+        }
     }
 
     [RelayCommand]

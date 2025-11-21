@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using BusinessToolsSuite.Desktop.Services;
 
 namespace BusinessToolsSuite.Desktop.Views;
 

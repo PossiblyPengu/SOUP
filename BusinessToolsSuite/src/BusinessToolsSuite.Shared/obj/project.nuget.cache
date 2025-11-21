@@ -1,15 +1,19 @@
 {
   "version": 2,
-  "dgSpecHash": "5A5taod5JhQ=",
+  "dgSpecHash": "K+cNSRrplO8=",
   "success": true,
-  "projectFilePath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj",
+  "projectFilePath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\acalabrese\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\8.0.1\\microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
-    "C:\\Users\\acalabrese\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
-    "C:\\Users\\acalabrese\\.nuget\\packages\\microsoft.extensions.logging\\8.0.1\\microsoft.extensions.logging.8.0.1.nupkg.sha512",
-    "C:\\Users\\acalabrese\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
-    "C:\\Users\\acalabrese\\.nuget\\packages\\microsoft.extensions.options\\8.0.2\\microsoft.extensions.options.8.0.2.nupkg.sha512",
-    "C:\\Users\\acalabrese\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512"
+    "C:\\Users\\andre\\.nuget\\packages\\avalonia\\11.2.2\\avalonia.11.2.2.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\avalonia.buildservices\\0.0.29\\avalonia.buildservices.0.0.29.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\avalonia.remote.protocol\\11.2.2\\avalonia.remote.protocol.11.2.2.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\8.0.1\\microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.extensions.logging\\8.0.1\\microsoft.extensions.logging.8.0.1.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.extensions.options\\8.0.2\\microsoft.extensions.options.8.0.2.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512"
   ],
   "logs": []
 }

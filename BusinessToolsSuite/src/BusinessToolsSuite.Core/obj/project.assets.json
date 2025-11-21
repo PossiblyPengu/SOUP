@@ -370,19 +370,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\acalabrese\\.nuget\\packages\\": {}
+    "C:\\Users\\andre\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
+      "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
       "projectName": "BusinessToolsSuite.Core",
-      "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
-      "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-      "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\obj\\",
+      "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj",
+      "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+      "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -436,7 +436,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

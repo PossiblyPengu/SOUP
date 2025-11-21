@@ -1,4 +1,5 @@
 using Avalonia;
+using BusinessToolsSuite.Desktop.Services;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;

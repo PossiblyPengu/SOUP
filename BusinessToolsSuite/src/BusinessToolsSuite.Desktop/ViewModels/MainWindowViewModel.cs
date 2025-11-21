@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using BusinessToolsSuite.Desktop.Services;
+using CommunityToolkit.Mvvm.Input;
+using BusinessToolsSuite.Shared.Services;
 
 namespace BusinessToolsSuite.Desktop.ViewModels;
 

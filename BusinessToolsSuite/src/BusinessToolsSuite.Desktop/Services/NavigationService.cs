@@ -1,4 +1,5 @@
 using System;
+using BusinessToolsSuite.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BusinessToolsSuite.Desktop.Services;

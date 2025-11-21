@@ -1,4 +1,5 @@
 ﻿using System;
+using BusinessToolsSuite.Desktop.Services;
 using System.IO;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ using BusinessToolsSuite.Infrastructure.Repositories;
 using BusinessToolsSuite.Infrastructure.Services;
 using BusinessToolsSuite.Core.Interfaces;
 using BusinessToolsSuite.Desktop.Services;
+using BusinessToolsSuite.Shared.Services;
 using BusinessToolsSuite.Desktop.ViewModels;
 
 namespace BusinessToolsSuite.Desktop;
@@ -87,17 +89,20 @@ sealed class Program
                 // Repositories
                 services.AddSingleton<IExpireWiseRepository, ExpireWiseRepository>();
                 services.AddSingleton<IAllocationBuddyRepository, AllocationBuddyRepository>();
+                services.AddSingleton<IEssentialsBuddyRepository, EssentialsBuddyRepository>();
                 services.AddSingleton<IFileImportExportService, FileImportExportService>();
 
                 // Services
                 services.AddSingleton<NavigationService>();
                 services.AddSingleton<ThemeService>();
+                services.AddSingleton<DialogService>();
 
                 // ViewModels
                 services.AddTransient<MainWindowViewModel>();
                 services.AddTransient<LauncherViewModel>();
                 services.AddTransient<Features.ExpireWise.ViewModels.ExpireWiseViewModel>();
                 services.AddTransient<Features.AllocationBuddy.ViewModels.AllocationBuddyViewModel>();
+                services.AddTransient<Features.EssentialsBuddy.ViewModels.EssentialsBuddyViewModel>();
             })
             .Build();
     }

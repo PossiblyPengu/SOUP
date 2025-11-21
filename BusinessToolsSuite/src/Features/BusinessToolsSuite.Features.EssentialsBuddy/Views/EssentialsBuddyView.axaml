@@ -1,1 +1,252 @@
-test
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:BusinessToolsSuite.Features.EssentialsBuddy.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="BusinessToolsSuite.Features.EssentialsBuddy.Views.EssentialsBuddyView"
+             x:DataType="vm:EssentialsBuddyViewModel">
+
+    <Design.DataContext>
+        <vm:EssentialsBuddyViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="16,12">
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- Left side buttons -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <Button Command="{Binding AddItemCommand}"
+                            Background="{DynamicResource PrimaryBrush}"
+                            Foreground="White"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="+" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="Add Item"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding EditItemCommand}"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="✏️"/>
+                            <TextBlock Text="Edit"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding DeleteItemCommand}"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🗑️"/>
+                            <TextBlock Text="Delete"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="24" Margin="8,0"/>
+
+                    <Button Command="{Binding LoadItemsCommand}"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🔄"/>
+                            <TextBlock Text="Refresh"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Right side buttons -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <Button Command="{Binding ExportToExcelCommand}"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="📊"/>
+                            <TextBlock Text="Export Excel"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ExportToCsvCommand}"
+                            Padding="12,6"
+                            CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="📄"/>
+                            <TextBlock Text="Export CSV"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Search and Filter Bar -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource BackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="16,12">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                <!-- Search Box -->
+                <TextBox Grid.Column="0"
+                         Text="{Binding SearchText}"
+                         Watermark="Search by item number, description, bin code, or category..."
+                         Padding="8"
+                         VerticalAlignment="Center"/>
+
+                <!-- Status Filter -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            Margin="16,0,0,0"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Status:" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding StatusFilters}"
+                              SelectedItem="{Binding StatusFilter}"
+                              Width="150"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Total Value Display -->
+                <Border Grid.Column="2"
+                        Background="#4CAF50"
+                        CornerRadius="4"
+                        Padding="12,6"
+                        Margin="16,0,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="💰" FontSize="14"/>
+                        <TextBlock Text="{Binding TotalInventoryValue, StringFormat='Total Value: {0:C2}'}"
+                                   Foreground="White"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Item Count -->
+                <TextBlock Grid.Column="3"
+                           Text="{Binding FilteredItems.Count, StringFormat='Items: {0}'}"
+                           VerticalAlignment="Center"
+                           Margin="16,0,0,0"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </Grid>
+        </Border>
+
+        <!-- Data Grid -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding FilteredItems}"
+                  SelectedItem="{Binding SelectedItem}"
+                  IsReadOnly="True"
+                  GridLinesVisibility="All"
+                  BorderThickness="0"
+                  AutoGenerateColumns="False"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Item Number"
+                                    Binding="{Binding ItemNumber}"
+                                    Width="150"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Description"
+                                    Binding="{Binding Description}"
+                                    Width="*"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Bin Code"
+                                    Binding="{Binding BinCode}"
+                                    Width="120"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Quantity"
+                                    Binding="{Binding QuantityOnHand}"
+                                    Width="100"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Min"
+                                    Binding="{Binding MinimumThreshold}"
+                                    Width="80"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Max"
+                                    Binding="{Binding MaximumThreshold}"
+                                    Width="80"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Unit Cost"
+                                    Binding="{Binding UnitCost, StringFormat='{}{0:C2}'}"
+                                    Width="110"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Unit Price"
+                                    Binding="{Binding UnitPrice, StringFormat='{}{0:C2}'}"
+                                    Width="110"
+                                    IsReadOnly="True"/>
+
+                <DataGridTextColumn Header="Category"
+                                    Binding="{Binding Category}"
+                                    Width="150"
+                                    IsReadOnly="True"/>
+
+                <DataGridTemplateColumn Header="Status" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Padding="6,3"
+                                    CornerRadius="4"
+                                    HorizontalAlignment="Center">
+                                <Border.Background>
+                                    <SolidColorBrush>
+                                        <SolidColorBrush.Color>
+                                            <MultiBinding>
+                                                <Binding Path="Status"/>
+                                            </MultiBinding>
+                                        </SolidColorBrush.Color>
+                                    </SolidColorBrush>
+                                </Border.Background>
+                                <TextBlock Text="{Binding Status}"
+                                           FontWeight="SemiBold"
+                                           Foreground="White"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Last Updated"
+                                    Binding="{Binding LastUpdated, StringFormat='{}{0:MMM dd, yyyy}'}"
+                                    Width="140"
+                                    IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="3"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            IsVisible="{Binding IsLoading}">
+                    <TextBlock Text="⏳" FontSize="14"/>
+                    <TextBlock Text="Loading..." VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</UserControl>

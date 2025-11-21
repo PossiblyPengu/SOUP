@@ -1,9 +1,11 @@
 using System;
+using BusinessToolsSuite.Desktop.Services;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Avalonia.Styling;
 using BusinessToolsSuite.Desktop.Services;
+using BusinessToolsSuite.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -96,11 +98,29 @@ public partial class LauncherViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void LaunchEssentialsBuddy()
+    private async Task LaunchEssentialsBuddy()
     {
         _logger?.LogInformation("Launching Essentials Buddy module");
-        // TODO: Create Essentials Buddy ViewModel and navigate
-        // _navigationService.NavigateToModule("EssentialsBuddy", essentialsBuddyViewModel);
+
+        try
+        {
+            var essentialsBuddyViewModel = _serviceProvider.GetRequiredService<Features.EssentialsBuddy.ViewModels.EssentialsBuddyViewModel>();
+
+            // Initialize the view model
+            await essentialsBuddyViewModel.InitializeAsync();
+
+            // Create the view and set DataContext
+            var essentialsBuddyView = new Features.EssentialsBuddy.Views.EssentialsBuddyView
+            {
+                DataContext = essentialsBuddyViewModel
+            };
+
+            _navigationService.NavigateToModule("EssentialsBuddy", essentialsBuddyView);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to launch Essentials Buddy module");
+        }
     }
 
     [RelayCommand]

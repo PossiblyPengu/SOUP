@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using BusinessToolsSuite.Core.Entities.AllocationBuddy;
 using BusinessToolsSuite.Core.Interfaces;
+using BusinessToolsSuite.Shared.Services;
+using BusinessToolsSuite.Features.AllocationBuddy.Views;
 
 namespace BusinessToolsSuite.Features.AllocationBuddy.ViewModels;
 
@@ -17,6 +19,7 @@ public partial class AllocationBuddyViewModel : ObservableObject
 {
     private readonly IAllocationBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
+    private readonly DialogService _dialogService;
     private readonly ILogger<AllocationBuddyViewModel>? _logger;
 
     [ObservableProperty]
@@ -52,10 +55,12 @@ public partial class AllocationBuddyViewModel : ObservableObject
     public AllocationBuddyViewModel(
         IAllocationBuddyRepository repository,
         IFileImportExportService fileService,
+        DialogService dialogService,
         ILogger<AllocationBuddyViewModel>? logger = null)
     {
         _repository = repository;
         _fileService = fileService;
+        _dialogService = dialogService;
         _logger = logger;
     }
 
@@ -102,15 +107,40 @@ public partial class AllocationBuddyViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AddEntry()
+    private async Task AddEntry()
     {
-        // TODO: Open add entry dialog
         _logger?.LogInformation("Add entry clicked");
-        StatusMessage = "Add entry dialog coming soon...";
+
+        try
+        {
+            var dialogViewModel = new AllocationEntryDialogViewModel();
+            dialogViewModel.InitializeForAdd();
+
+            var dialog = new AllocationEntryDialog
+            {
+                DataContext = dialogViewModel
+            };
+
+            var result = await _dialogService.ShowDialogAsync<AllocationEntry?>(dialog);
+
+            if (result != null)
+            {
+                var addedEntry = await _repository.AddAsync(result);
+                Entries.Add(addedEntry);
+                ApplyFilters();
+                StatusMessage = $"Added entry for {addedEntry.ItemNumber}";
+                _logger?.LogInformation("Added new entry {ItemNumber}", addedEntry.ItemNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error adding entry: {ex.Message}";
+            _logger?.LogError(ex, "Exception while adding entry");
+        }
     }
 
     [RelayCommand]
-    private void EditEntry()
+    private async Task EditEntry()
     {
         if (SelectedEntry == null)
         {
@@ -118,9 +148,41 @@ public partial class AllocationBuddyViewModel : ObservableObject
             return;
         }
 
-        // TODO: Open edit entry dialog
         _logger?.LogInformation("Edit entry clicked for {ItemNumber}", SelectedEntry.ItemNumber);
-        StatusMessage = "Edit entry dialog coming soon...";
+
+        try
+        {
+            var dialogViewModel = new AllocationEntryDialogViewModel();
+            dialogViewModel.InitializeForEdit(SelectedEntry);
+
+            var dialog = new AllocationEntryDialog
+            {
+                DataContext = dialogViewModel
+            };
+
+            var result = await _dialogService.ShowDialogAsync<AllocationEntry?>(dialog);
+
+            if (result != null)
+            {
+                var updatedEntry = await _repository.UpdateAsync(result);
+
+                // Update the entry in the collection
+                var index = Entries.IndexOf(SelectedEntry);
+                if (index >= 0)
+                {
+                    Entries[index] = updatedEntry;
+                }
+
+                ApplyFilters();
+                StatusMessage = $"Updated entry {updatedEntry.ItemNumber}";
+                _logger?.LogInformation("Updated entry {ItemNumber}", updatedEntry.ItemNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error updating entry: {ex.Message}";
+            _logger?.LogError(ex, "Exception while updating entry");
+        }
     }
 
     [RelayCommand]

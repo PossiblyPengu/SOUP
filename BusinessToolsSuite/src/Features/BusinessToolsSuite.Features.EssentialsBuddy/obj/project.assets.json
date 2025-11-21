@@ -255,6 +255,35 @@
         "build": {
           "buildTransitive/net6.0/_._": {}
         }
+      },
+      "BusinessToolsSuite.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "8.0.1",
+          "Microsoft.Extensions.Logging": "8.0.1"
+        },
+        "compile": {
+          "bin/placeholder/BusinessToolsSuite.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BusinessToolsSuite.Core.dll": {}
+        }
+      },
+      "BusinessToolsSuite.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Avalonia": "11.2.2",
+          "Microsoft.Extensions.DependencyInjection": "8.0.1",
+          "Microsoft.Extensions.Logging": "8.0.1"
+        },
+        "compile": {
+          "bin/placeholder/BusinessToolsSuite.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BusinessToolsSuite.Shared.dll": {}
+        }
       }
     }
   },
@@ -780,31 +809,43 @@
         "microsoft.extensions.primitives.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "BusinessToolsSuite.Core/1.0.0": {
+      "type": "project",
+      "path": "../../BusinessToolsSuite.Core/BusinessToolsSuite.Core.csproj",
+      "msbuildProject": "../../BusinessToolsSuite.Core/BusinessToolsSuite.Core.csproj"
+    },
+    "BusinessToolsSuite.Shared/1.0.0": {
+      "type": "project",
+      "path": "../../BusinessToolsSuite.Shared/BusinessToolsSuite.Shared.csproj",
+      "msbuildProject": "../../BusinessToolsSuite.Shared/BusinessToolsSuite.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "Avalonia >= 11.2.2",
       "Avalonia.Controls.DataGrid >= 11.2.2",
+      "BusinessToolsSuite.Core >= 1.0.0",
+      "BusinessToolsSuite.Shared >= 1.0.0",
       "CommunityToolkit.Mvvm >= 8.3.2",
       "Microsoft.Extensions.DependencyInjection >= 8.0.1",
       "Microsoft.Extensions.Logging >= 8.0.1"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\acalabrese\\.nuget\\packages\\": {}
+    "C:\\Users\\andre\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
+      "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
       "projectName": "BusinessToolsSuite.Features.EssentialsBuddy",
-      "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
-      "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-      "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\obj\\",
+      "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj",
+      "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+      "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -815,7 +856,14 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
+              "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
+            },
+            "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj": {
+              "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Shared\\BusinessToolsSuite.Shared.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -870,7 +918,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

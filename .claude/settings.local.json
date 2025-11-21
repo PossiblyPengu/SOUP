@@ -37,7 +37,15 @@
       "Bash(IEssentialsBuddyRepository.cs)",
       "Bash(EssentialsBuddyRepository.cs)",
       "Bash(EssentialsBuddyViewModel.cs)",
-      "Bash(EssentialsBuddyView.axaml)"
+      "Bash(EssentialsBuddyView.axaml)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build)",
+      "Bash(dotnet build:*)",
+      "Bash(tree:*)",
+      "Bash(dotnet add reference:*)",
+      "Bash(find:*)",
+      "Bash(dotnet remove reference:*)",
+      "Bash(dotnet add:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
