@@ -1,4 +1,10 @@
+using System;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using ClosedXML.Excel;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -8,6 +14,14 @@ using Microsoft.Extensions.Logging;
 
 namespace BusinessToolsSuite.Infrastructure.Services.Parsers;
 
+// Simple dictionary item model (fallback if separate model not present)
+public class DictionaryItem
+{
+    public string Number { get; set; } = "";
+    public string Description { get; set; } = "";
+    public List<string> Skus { get; set; } = new();
+}
+
 /// <summary>
 /// Specialized parser for AllocationBuddy that matches the exact JavaScript logic:
 /// - Smart column detection
@@ -16,6 +30,22 @@ namespace BusinessToolsSuite.Infrastructure.Services.Parsers;
 /// </summary>
 public class AllocationBuddyParser
 {
+    // Dictionary data for matching
+    public List<DictionaryItem> DictionaryItems { get; set; } = new();
+
+    public void SetDictionaryItems(List<DictionaryItem> items)
+    {
+        DictionaryItems = items ?? new List<DictionaryItem>();
+    }
+
+    // Add: Dictionary-based column mapping support
+    public Dictionary<string, string> HeaderMappings { get; set; } = new(); // e.g. { "SKU": "ItemNumber", "Qty": "Quantity" }
+
+    public void SetHeaderMappings(Dictionary<string, string> mappings)
+    {
+        HeaderMappings = mappings ?? new Dictionary<string, string>();
+    }
+
     private readonly ILogger<AllocationBuddyParser>? _logger;
 
     public AllocationBuddyParser(ILogger<AllocationBuddyParser>? logger = null)
@@ -43,7 +73,22 @@ public class AllocationBuddyParser
             _logger?.LogInformation("AllocationBuddy: Excel columns found: {Columns}", string.Join(", ", headers));
 
             // Detect columns using the JS logic
-            var (storeCol, itemCol, qtyCol) = DetectColumns(worksheet, headers);
+            // Use dictionary-based mapping if available
+            string storeCol = null, itemCol = null, qtyCol = null, descCol = null;
+            if (HeaderMappings.Count > 0)
+            {
+                storeCol = HeaderMappings.FirstOrDefault(x => x.Value == "StoreId").Key;
+                itemCol = HeaderMappings.FirstOrDefault(x => x.Value == "ItemNumber").Key;
+                qtyCol = HeaderMappings.FirstOrDefault(x => x.Value == "Quantity").Key;
+                descCol = HeaderMappings.FirstOrDefault(x => x.Value == "Description").Key;
+            }
+            else
+            {
+                var detected = DetectColumns(worksheet, headers);
+                storeCol = detected.StoreCol;
+                itemCol = detected.ItemCol;
+                qtyCol = detected.QtyCol;
+            }
 
             _logger?.LogInformation("AllocationBuddy: Detected columns - Store: {Store}, Item: {Item}, Qty: {Qty}",
                 storeCol, itemCol, qtyCol);
@@ -63,6 +108,7 @@ public class AllocationBuddyParser
                 var storeValue = GetCellValue(row, headers, storeCol);
                 var itemValue = GetCellValue(row, headers, itemCol);
                 var qtyValue = GetCellValue(row, headers, qtyCol);
+                var descValue = descCol != null ? GetCellValue(row, headers, descCol) : GetDescription(row, headers);
 
                 var quantity = ParseQuantity(qtyValue);
 
@@ -78,7 +124,7 @@ public class AllocationBuddyParser
                     StoreId = storeValue.Trim(),
                     StoreName = storeValue.Trim(),
                     ItemNumber = NormalizeItemNo(itemValue),
-                    Description = GetDescription(row, headers),
+                    Description = descValue,
                     Quantity = quantity,
                     Rank = ParseRank(row, headers)
                 };
@@ -86,14 +132,28 @@ public class AllocationBuddyParser
                 entries.Add(entry);
             }
 
-            _logger?.LogInformation("AllocationBuddy: Parsed {Count} entries, Skipped {Skipped}",
-                entries.Count, skippedCount);
+            _logger?.LogInformation("AllocationBuddy: Parsed {Count} entries, Skipped {Skipped}", entries.Count, skippedCount);
+
+            // Use dictionary to enrich entries (match by number or SKU)
+            if (DictionaryItems != null && DictionaryItems.Count > 0)
+            {
+                foreach (var entry in entries)
+                {
+                    var dictMatch = DictionaryItems.FirstOrDefault(d =>
+                        string.Equals(d.Number, entry.ItemNumber, StringComparison.OrdinalIgnoreCase) ||
+                        (d.Skus != null && d.Skus.Contains(entry.ItemNumber, StringComparer.OrdinalIgnoreCase)) ||
+                        (d.Skus != null && d.Skus.Contains(entry.SKU ?? "", StringComparer.OrdinalIgnoreCase)));
+                    if (dictMatch != null)
+                    {
+                        entry.Description = string.IsNullOrWhiteSpace(entry.Description) ? dictMatch.Description : entry.Description;
+                        entry.ItemNumber = dictMatch.Number;
+                        entry.SKU = dictMatch.Skus?.FirstOrDefault() ?? entry.SKU;
+                    }
+                }
+            }
 
             // Sort by store, then by item (exact JS logic)
-            entries = entries
-                .OrderBy(e => e.StoreId)
-                .ThenBy(e => e.ItemNumber)
-                .ToList();
+            entries = entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList();
 
             return Result<IReadOnlyList<AllocationEntry>>.Success(entries);
         }
@@ -123,11 +183,26 @@ public class AllocationBuddyParser
             csv.Read();
             csv.ReadHeader();
 
-            var headers = csv.HeaderRecord?.ToList() ?? [];
+            var headers = csv.HeaderRecord?.ToList() ?? new List<string>();
             var entries = new List<AllocationEntry>();
 
             // Detect columns
-            var (storeCol, itemCol, qtyCol) = DetectColumnsCsv(headers);
+            // Use dictionary-based mapping if available
+            string storeCol = null, itemCol = null, qtyCol = null, descCol = null;
+            if (HeaderMappings.Count > 0)
+            {
+                storeCol = HeaderMappings.FirstOrDefault(x => x.Value == "StoreId").Key;
+                itemCol = HeaderMappings.FirstOrDefault(x => x.Value == "ItemNumber").Key;
+                qtyCol = HeaderMappings.FirstOrDefault(x => x.Value == "Quantity").Key;
+                descCol = HeaderMappings.FirstOrDefault(x => x.Value == "Description").Key;
+            }
+            else
+            {
+                var detected = DetectColumnsCsv(headers);
+                storeCol = detected.StoreCol;
+                itemCol = detected.ItemCol;
+                qtyCol = detected.QtyCol;
+            }
 
             _logger?.LogInformation("AllocationBuddy: CSV columns - Store: {Store}, Item: {Item}, Qty: {Qty}",
                 storeCol, itemCol, qtyCol);
@@ -139,6 +214,7 @@ public class AllocationBuddyParser
                 var storeValue = GetField(csv, storeCol);
                 var itemValue = GetField(csv, itemCol);
                 var qtyValue = GetField(csv, qtyCol);
+                var descValue = descCol != null ? GetField(csv, descCol) : GetFieldByNames(csv, headers, "Description", "Desc", "Item Description");
 
                 var quantity = ParseQuantity(qtyValue);
 
@@ -154,7 +230,7 @@ public class AllocationBuddyParser
                     StoreId = storeValue.Trim(),
                     StoreName = storeValue.Trim(),
                     ItemNumber = NormalizeItemNo(itemValue),
-                    Description = GetFieldByNames(csv, headers, "Description", "Desc", "Item Description"),
+                    Description = descValue,
                     Quantity = quantity,
                     Rank = ParseRankCsv(csv, headers)
                 };
@@ -164,8 +240,25 @@ public class AllocationBuddyParser
 
             _logger?.LogInformation("AllocationBuddy: Parsed {Count} entries from CSV", entries.Count);
 
-            return await Task.FromResult(Result<IReadOnlyList<AllocationEntry>>.Success(
-                entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList()));
+            // Enrich with dictionary matches
+            if (DictionaryItems != null && DictionaryItems.Count > 0)
+            {
+                foreach (var entry in entries)
+                {
+                    var dictMatch = DictionaryItems.FirstOrDefault(d =>
+                        string.Equals(d.Number, entry.ItemNumber, StringComparison.OrdinalIgnoreCase) ||
+                        (d.Skus != null && d.Skus.Contains(entry.ItemNumber, StringComparer.OrdinalIgnoreCase)) ||
+                        (d.Skus != null && d.Skus.Contains(entry.SKU ?? "", StringComparer.OrdinalIgnoreCase)));
+                    if (dictMatch != null)
+                    {
+                        entry.Description = string.IsNullOrWhiteSpace(entry.Description) ? dictMatch.Description : entry.Description;
+                        entry.ItemNumber = dictMatch.Number;
+                        entry.SKU = dictMatch.Skus?.FirstOrDefault() ?? entry.SKU;
+                    }
+                }
+            }
+
+            return await Task.FromResult(Result<IReadOnlyList<AllocationEntry>>.Success(entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList()));
         }
         catch (Exception ex)
         {

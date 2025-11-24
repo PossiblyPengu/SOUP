@@ -78,13 +78,13 @@ public partial class LauncherViewModel : ViewModelBase
 
         try
         {
-            var allocationBuddyViewModel = _serviceProvider.GetRequiredService<Features.AllocationBuddy.ViewModels.AllocationBuddyViewModel>();
+            var allocationBuddyViewModel = _serviceProvider.GetRequiredService<Features.AllocationBuddy.ViewModels.AllocationBuddyRPGViewModel>();
 
-            // Initialize the view model
-            await allocationBuddyViewModel.InitializeAsync();
+            // Initialize the view model (if it exposes InitializeAsync)
+            try { await (allocationBuddyViewModel as dynamic).InitializeAsync(); } catch { }
 
-            // Create the view and set DataContext
-            var allocationBuddyView = new Features.AllocationBuddy.Views.AllocationBuddyView
+            // Create the RPG view and set DataContext
+            var allocationBuddyView = new Features.AllocationBuddy.Views.AllocationBuddyRPGView
             {
                 DataContext = allocationBuddyViewModel
             };
@@ -93,7 +93,7 @@ public partial class LauncherViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to launch Allocation Buddy module");
+            _logger?.LogError(ex, "Failed to launch Allocation Buddy module (RPG)");
         }
     }
 

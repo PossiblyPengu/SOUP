@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run UnifiedSettingsApp",
+			"type": "shell",
+			"command": "dotnet run --project src/UnifiedSettingsApp/UnifiedSettingsApp.csproj",
+			"group": "build"
+		}
+	]
+}

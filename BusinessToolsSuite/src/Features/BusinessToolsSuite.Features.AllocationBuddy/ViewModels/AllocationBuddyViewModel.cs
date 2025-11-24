@@ -71,6 +71,11 @@ public partial class AllocationBuddyViewModel : ObservableObject
         _parser = new AllocationBuddyParser(null); // Uses specialized parser with exact JS logic
         _dialogService = dialogService;
         _logger = logger;
+
+        // Load dictionary data from JS file
+        var dictPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "UnifiedApp", "src", "renderer", "modules", "allocation-buddy", "src", "js", "dictionaries.js");
+        var items = Helpers.DictionaryLoader.LoadFromJs(dictPath);
+        _parser.SetDictionaryItems(items);
     }
 
     /// <summary>
@@ -245,7 +250,7 @@ public partial class AllocationBuddyViewModel : ObservableObject
                 DataContext = dialogViewModel
             };
 
-            var result = await _dialogService.ShowDialogAsync<AllocationEntry?>(dialog);
+            var result = await _dialogService.ShowContentDialogAsync<AllocationEntry?>(dialog);
 
             if (result != null)
             {

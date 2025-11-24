@@ -1,17 +1,12 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:BusinessToolsSuite.Features.AllocationBuddy.ViewModels"
-        xmlns:entities="using:BusinessToolsSuite.Core.Entities.AllocationBuddy"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="650"
-        x:Class="BusinessToolsSuite.Features.AllocationBuddy.Views.AllocationEntryDialog"
-        x:DataType="vm:AllocationEntryDialogViewModel"
-        Title="{Binding DialogTitle}"
-        Width="600" Height="650"
-        MinWidth="500" MinHeight="600"
-        WindowStartupLocation="CenterOwner"
-        CanResize="False">
+<UserControl xmlns="https://github.com/avaloniaui"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:vm="using:BusinessToolsSuite.Features.AllocationBuddy.ViewModels"
+         xmlns:entities="using:BusinessToolsSuite.Core.Entities.AllocationBuddy"
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="650"
+         x:Class="BusinessToolsSuite.Features.AllocationBuddy.Views.AllocationEntryDialog"
+         x:DataType="vm:AllocationEntryDialogViewModel">
 
     <Design.DataContext>
         <vm:AllocationEntryDialogViewModel/>
@@ -134,4 +129,4 @@
         </Border>
 
     </Grid>
-</Window>
+</UserControl>

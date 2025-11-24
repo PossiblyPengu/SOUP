@@ -124,7 +124,7 @@ public partial class ExpireWiseViewModel : ObservableObject
                 DataContext = dialogViewModel
             };
 
-            var result = await _dialogService.ShowDialogAsync<ExpirationItem?>(dialog);
+            var result = await _dialogService.ShowContentDialogAsync<ExpirationItem?>(dialog);
 
             if (result != null)
             {
@@ -163,7 +163,7 @@ public partial class ExpireWiseViewModel : ObservableObject
                 DataContext = dialogViewModel
             };
 
-            var result = await _dialogService.ShowDialogAsync<ExpirationItem?>(dialog);
+            var result = await _dialogService.ShowContentDialogAsync<ExpirationItem?>(dialog);
 
             if (result != null)
             {

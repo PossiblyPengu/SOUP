@@ -241,7 +241,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
                 DataContext = dialogViewModel
             };
 
-            var result = await _dialogService.ShowDialogAsync<InventoryItem?>(dialog);
+            var result = await _dialogService.ShowContentDialogAsync<InventoryItem?>(dialog);
 
             if (result != null)
             {

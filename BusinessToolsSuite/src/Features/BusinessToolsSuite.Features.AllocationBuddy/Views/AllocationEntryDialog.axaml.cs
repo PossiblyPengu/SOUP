@@ -1,10 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using BusinessToolsSuite.Features.AllocationBuddy.ViewModels;
+using BusinessToolsSuite.Shared.Controls;
 
 namespace BusinessToolsSuite.Features.AllocationBuddy.Views;
 
-public partial class AllocationEntryDialog : Window
+public partial class AllocationEntryDialog : UserControl
 {
     public AllocationEntryDialog()
     {
@@ -13,7 +14,7 @@ public partial class AllocationEntryDialog : Window
 
     private void Cancel_Click(object? sender, RoutedEventArgs e)
     {
-        Close(null);
+        InAppDialogHost.Instance?.CloseDialog(null);
     }
 
     private void Save_Click(object? sender, RoutedEventArgs e)
@@ -23,7 +24,7 @@ public partial class AllocationEntryDialog : Window
             if (viewModel.IsValid())
             {
                 var entry = viewModel.ToEntity();
-                Close(entry);
+                InAppDialogHost.Instance?.CloseDialog(entry);
             }
         }
     }

@@ -1,10 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using BusinessToolsSuite.Features.ExpireWise.ViewModels;
+using BusinessToolsSuite.Shared.Controls;
 
 namespace BusinessToolsSuite.Features.ExpireWise.Views;
 
-public partial class ExpirationItemDialog : Window
+public partial class ExpirationItemDialog : UserControl
 {
     public ExpirationItemDialog()
     {
@@ -13,7 +14,7 @@ public partial class ExpirationItemDialog : Window
 
     private void Cancel_Click(object? sender, RoutedEventArgs e)
     {
-        Close(null);
+        InAppDialogHost.Instance?.CloseDialog(null);
     }
 
     private void Save_Click(object? sender, RoutedEventArgs e)
@@ -23,7 +24,7 @@ public partial class ExpirationItemDialog : Window
             if (viewModel.IsValid())
             {
                 var item = viewModel.ToEntity();
-                Close(item);
+                InAppDialogHost.Instance?.CloseDialog(item);
             }
         }
     }

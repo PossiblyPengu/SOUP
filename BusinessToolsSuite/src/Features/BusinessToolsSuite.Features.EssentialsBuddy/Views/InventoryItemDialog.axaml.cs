@@ -1,10 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using BusinessToolsSuite.Features.EssentialsBuddy.ViewModels;
+using BusinessToolsSuite.Shared.Controls;
 
 namespace BusinessToolsSuite.Features.EssentialsBuddy.Views;
 
-public partial class InventoryItemDialog : Window
+public partial class InventoryItemDialog : UserControl
 {
     public InventoryItemDialog()
     {
@@ -13,7 +14,7 @@ public partial class InventoryItemDialog : Window
 
     private void Cancel_Click(object? sender, RoutedEventArgs e)
     {
-        Close(null);
+        InAppDialogHost.Instance?.CloseDialog(null);
     }
 
     private void Save_Click(object? sender, RoutedEventArgs e)
@@ -23,7 +24,7 @@ public partial class InventoryItemDialog : Window
             if (viewModel.IsValid())
             {
                 var item = viewModel.ToEntity();
-                Close(item);
+                InAppDialogHost.Instance?.CloseDialog(item);
             }
         }
     }

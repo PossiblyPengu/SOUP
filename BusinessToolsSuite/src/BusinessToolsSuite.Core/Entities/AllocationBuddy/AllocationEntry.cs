@@ -11,6 +11,8 @@ public class AllocationEntry : BaseEntity
     public string Description { get; set; } = string.Empty;
     public string StoreId { get; set; } = string.Empty;
     public string? StoreName { get; set; }
+    // Optional SKU value (some dictionaries identify by SKU)
+    public string? SKU { get; set; }
     public int Quantity { get; set; }
     public StoreRank Rank { get; set; }
     public string? Category { get; set; }
