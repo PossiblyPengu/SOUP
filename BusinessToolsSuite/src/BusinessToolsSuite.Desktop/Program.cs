@@ -100,6 +100,7 @@ sealed class Program
                 // ViewModels
                 services.AddTransient<MainWindowViewModel>();
                 services.AddTransient<LauncherViewModel>();
+                services.AddTransient<WelcomeViewModel>();
                 services.AddTransient<Features.ExpireWise.ViewModels.ExpireWiseViewModel>();
                 // Allocation Buddy - use the new RPG-style viewmodel
                 services.AddTransient<BusinessToolsSuite.Infrastructure.Services.Parsers.AllocationBuddyParser>();

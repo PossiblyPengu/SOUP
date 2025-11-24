@@ -21,13 +21,22 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLauncherVisible = true;
 
+    [ObservableProperty]
+    private bool _isWelcomeVisible = true;
+
+    public WelcomeViewModel WelcomeViewModel { get; }
+
     public LauncherViewModel LauncherViewModel { get; }
 
-    public MainWindowViewModel(NavigationService navigationService, LauncherViewModel launcherViewModel)
+    public MainWindowViewModel(NavigationService navigationService, LauncherViewModel launcherViewModel, WelcomeViewModel welcomeViewModel)
     {
         _navigationService = navigationService;
         LauncherViewModel = launcherViewModel;
         _currentViewModel = launcherViewModel;
+        WelcomeViewModel = welcomeViewModel;
+
+        // Show welcome screen on startup
+        _isWelcomeVisible = true;
 
         // Subscribe to navigation changes
         _navigationService.ModuleChanged += OnModuleChanged;
@@ -55,6 +64,9 @@ public partial class MainWindowViewModel : ViewModelBase
             "EssentialsBuddy" => "Business Tools Suite - Essentials Buddy",
             _ => "Business Tools Suite"
         };
+
+        // Hide the welcome screen once we've navigated away (or to any module)
+        IsWelcomeVisible = false;
     }
 
     [RelayCommand]

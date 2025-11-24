@@ -97,6 +97,43 @@ public partial class LauncherViewModel : ViewModelBase
         }
     }
 
+    public async Task LaunchAllocationBuddyWithFiles(string[] files)
+    {
+        _logger?.LogInformation("Launching Allocation Buddy module with files");
+
+        try
+        {
+            var allocationBuddyViewModel = _serviceProvider.GetRequiredService<Features.AllocationBuddy.ViewModels.AllocationBuddyRPGViewModel>();
+
+            // Initialize the view model (if it exposes InitializeAsync)
+            try { await (allocationBuddyViewModel as dynamic).InitializeAsync(); } catch { }
+
+            // Create the RPG view and set DataContext
+            var allocationBuddyView = new Features.AllocationBuddy.Views.AllocationBuddyRPGView
+            {
+                DataContext = allocationBuddyViewModel
+            };
+
+            _navigationService.NavigateToModule("AllocationBuddy", allocationBuddyView);
+
+            // If the view model supports importing multiple files, call it
+            try
+            {
+                var importMethod = allocationBuddyViewModel.GetType().GetMethod("ImportFilesAsync");
+                if (importMethod != null)
+                {
+                    var task = (System.Threading.Tasks.Task)importMethod.Invoke(allocationBuddyViewModel, new object[] { files })!;
+                    await task;
+                }
+            }
+            catch { }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to launch Allocation Buddy module (RPG) with files");
+        }
+    }
+
     [RelayCommand]
     private async Task LaunchEssentialsBuddy()
     {

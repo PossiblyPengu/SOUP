@@ -1,0 +1,8 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="BusinessToolsSuite.Shared.Controls.InAppDialogHost">
+  <Grid IsVisible="{Binding IsOpen, Mode=TwoWay}">
+    <Border Background="#80000000" />
+    <ContentControl x:Name="PART_DialogHost" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  </Grid>
+</UserControl>

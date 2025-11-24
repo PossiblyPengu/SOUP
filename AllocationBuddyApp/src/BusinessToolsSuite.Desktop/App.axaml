@@ -1,0 +1,7 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="BusinessToolsSuite.Desktop.App">
+    <Application.Styles>
+        <!-- No explicit theme here; features provide required styles or use defaults -->
+    </Application.Styles>
+</Application>

@@ -4,6 +4,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="clr-namespace:BusinessToolsSuite.Shared.Controls;assembly=BusinessToolsSuite.Shared"
+    xmlns:views="using:BusinessToolsSuite.Desktop.Views"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="BusinessToolsSuite.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -257,6 +258,15 @@
     
     <!-- In-app dialog host (overlays content when a dialog is shown) -->
     <controls:InAppDialogHost />
+
+    <!-- Welcome overlay (shown on first run to import files) -->
+    <ContentControl IsVisible="{Binding IsWelcomeVisible}" Content="{Binding WelcomeViewModel}">
+        <ContentControl.ContentTemplate>
+            <DataTemplate DataType="vm:WelcomeViewModel">
+                <views:WelcomeView DataContext="{Binding}" />
+            </DataTemplate>
+        </ContentControl.ContentTemplate>
+    </ContentControl>
 
     </Grid>
 

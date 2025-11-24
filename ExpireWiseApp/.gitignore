@@ -1,0 +1,10 @@
+bin/
+obj/
+.vscode/
+*.user
+*.suo
+*.sln
+*.swp
+*.db
+*.log
+/publish/
