@@ -48,7 +48,20 @@
       "Bash(cat:*)",
       "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" run --project src/BusinessToolsSuite.Desktop/BusinessToolsSuite.Desktop.csproj)",
       "Bash(git checkout:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build AllocationBuddyApp/AllocationBuddyApp.sln)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build ExpireWiseApp/ExpireWiseApp.sln)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build AllocationBuddyApp/AllocationBuddyApp.sln)",
+      "Bash(pwsh build-all.ps1)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File build-all.ps1)",
+      "Bash(dotnet sln:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File test-launcher.ps1)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-allocationbuddy.ps1)",
+      "Bash(dotnet run)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd AllocationBuddyApp; & ''D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe'' build\")",
+      "Bash(./BusinessToolsSuite.Desktop.exe)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-launcher.ps1)"
     ],
     "deny": [],
     "ask": []

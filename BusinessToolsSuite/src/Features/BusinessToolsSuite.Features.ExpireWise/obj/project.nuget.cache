@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WgfyS2MNmWg=",
+  "dgSpecHash": "eiEubJrZqGw=",
   "success": true,
-  "projectFilePath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
+  "projectFilePath": "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\andre\\.nuget\\packages\\avalonia\\11.2.2\\avalonia.11.2.2.nupkg.sha512",
     "C:\\Users\\andre\\.nuget\\packages\\avalonia.buildservices\\0.0.29\\avalonia.buildservices.0.0.29.nupkg.sha512",

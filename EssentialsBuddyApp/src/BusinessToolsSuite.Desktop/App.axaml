@@ -1,7 +1,24 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="BusinessToolsSuite.Desktop.App">
+             x:Class="BusinessToolsSuite.Desktop.App"
+             RequestedThemeVariant="Default">
     <Application.Styles>
-        <FluentTheme Mode="Light" />
+        <FluentTheme />
     </Application.Styles>
+
+    <Application.Resources>
+        <!-- Modern Color Palette for Essentials Buddy -->
+        <SolidColorBrush x:Key="PrimaryBrush">#10b981</SolidColorBrush>
+        <SolidColorBrush x:Key="PrimaryHoverBrush">#059669</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentBrush">#14b8a6</SolidColorBrush>
+        <SolidColorBrush x:Key="SuccessBrush">#10b981</SolidColorBrush>
+        <SolidColorBrush x:Key="WarningBrush">#f59e0b</SolidColorBrush>
+        <SolidColorBrush x:Key="DangerBrush">#ef4444</SolidColorBrush>
+        <SolidColorBrush x:Key="InfoBrush">#3b82f6</SolidColorBrush>
+        <SolidColorBrush x:Key="SurfaceBrush">#f0fdf4</SolidColorBrush>
+        <SolidColorBrush x:Key="BackgroundBrush">#ffffff</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderBrush">#d1fae5</SolidColorBrush>
+        <SolidColorBrush x:Key="TextPrimaryBrush">#1e293b</SolidColorBrush>
+        <SolidColorBrush x:Key="TextSecondaryBrush">#64748b</SolidColorBrush>
+    </Application.Resources>
 </Application>

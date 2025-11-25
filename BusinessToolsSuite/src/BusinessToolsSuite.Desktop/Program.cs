@@ -1,17 +1,11 @@
 ﻿using System;
-using BusinessToolsSuite.Desktop.Services;
 using System.IO;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using BusinessToolsSuite.Infrastructure.Data;
-using BusinessToolsSuite.Infrastructure.Repositories;
-using BusinessToolsSuite.Infrastructure.Services;
-using BusinessToolsSuite.Core.Interfaces;
 using BusinessToolsSuite.Desktop.Services;
-using BusinessToolsSuite.Shared.Services;
 using BusinessToolsSuite.Desktop.ViewModels;
 
 namespace BusinessToolsSuite.Desktop;
@@ -76,36 +70,12 @@ sealed class Program
             .UseSerilog()
             .ConfigureServices((context, services) =>
             {
-                // Database
-                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var dbDir = Path.Combine(appDataPath, "BusinessToolsSuite");
-                Directory.CreateDirectory(dbDir);
-                var dbPath = Path.Combine(dbDir, "businesstools.db");
-                var connectionString = $"Filename={dbPath};Connection=shared";
-
-                services.AddSingleton(new LiteDbContext(connectionString));
-                services.AddSingleton<IUnitOfWork, LiteDbUnitOfWork>();
-
-                // Repositories
-                services.AddSingleton<IExpireWiseRepository, ExpireWiseRepository>();
-                services.AddSingleton<IAllocationBuddyRepository, AllocationBuddyRepository>();
-                services.AddSingleton<IEssentialsBuddyRepository, EssentialsBuddyRepository>();
-                services.AddSingleton<IFileImportExportService, FileImportExportService>();
-
                 // Services
-                services.AddSingleton<NavigationService>();
                 services.AddSingleton<ThemeService>();
-                services.AddSingleton<DialogService>();
 
                 // ViewModels
                 services.AddTransient<MainWindowViewModel>();
                 services.AddTransient<LauncherViewModel>();
-                services.AddTransient<WelcomeViewModel>();
-                services.AddTransient<Features.ExpireWise.ViewModels.ExpireWiseViewModel>();
-                // Allocation Buddy - use the new RPG-style viewmodel
-                services.AddTransient<BusinessToolsSuite.Infrastructure.Services.Parsers.AllocationBuddyParser>();
-                services.AddTransient<Features.AllocationBuddy.ViewModels.AllocationBuddyRPGViewModel>();
-                services.AddTransient<Features.EssentialsBuddy.ViewModels.EssentialsBuddyViewModel>();
             })
             .Build();
     }

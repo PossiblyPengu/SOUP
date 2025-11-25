@@ -1,38 +1,31 @@
 using System;
-using BusinessToolsSuite.Desktop.Services;
-using System.Windows.Input;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Avalonia.Styling;
 using BusinessToolsSuite.Desktop.Services;
-using BusinessToolsSuite.Shared.Services;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace BusinessToolsSuite.Desktop.ViewModels;
 
 /// <summary>
-/// Launcher ViewModel for module selection
+/// Launcher ViewModel for launching standalone applications
 /// </summary>
 public partial class LauncherViewModel : ViewModelBase
 {
-    private readonly NavigationService _navigationService;
     private readonly ThemeService _themeService;
-    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<LauncherViewModel>? _logger;
 
     [ObservableProperty]
     private bool _isDarkMode;
 
     public LauncherViewModel(
-        NavigationService navigationService,
         ThemeService themeService,
-        IServiceProvider serviceProvider,
         ILogger<LauncherViewModel>? logger = null)
     {
-        _navigationService = navigationService;
         _themeService = themeService;
-        _serviceProvider = serviceProvider;
         _logger = logger;
 
         // Initialize dark mode state
@@ -46,118 +39,86 @@ public partial class LauncherViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task LaunchExpireWise()
+    private void LaunchExpireWise()
     {
-        _logger?.LogInformation("Launching ExpireWise module");
-
-        try
-        {
-            var expireWiseViewModel = _serviceProvider.GetRequiredService<Features.ExpireWise.ViewModels.ExpireWiseViewModel>();
-
-            // Initialize the view model
-            await expireWiseViewModel.InitializeAsync();
-
-            // Create the view and set DataContext
-            var expireWiseView = new Features.ExpireWise.Views.ExpireWiseView
-            {
-                DataContext = expireWiseViewModel
-            };
-
-            _navigationService.NavigateToModule("ExpireWise", expireWiseView);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to launch ExpireWise module");
-        }
+        _logger?.LogInformation("Launching ExpireWise standalone app");
+        LaunchStandaloneApp("ExpireWise", "ExpireWiseApp");
     }
 
     [RelayCommand]
-    private async Task LaunchAllocationBuddy()
+    private void LaunchAllocationBuddy()
     {
-        _logger?.LogInformation("Launching Allocation Buddy module");
-
-        try
-        {
-            var allocationBuddyViewModel = _serviceProvider.GetRequiredService<Features.AllocationBuddy.ViewModels.AllocationBuddyRPGViewModel>();
-
-            // Initialize the view model (if it exposes InitializeAsync)
-            try { await (allocationBuddyViewModel as dynamic).InitializeAsync(); } catch { }
-
-            // Create the RPG view and set DataContext
-            var allocationBuddyView = new Features.AllocationBuddy.Views.AllocationBuddyRPGView
-            {
-                DataContext = allocationBuddyViewModel
-            };
-
-            _navigationService.NavigateToModule("AllocationBuddy", allocationBuddyView);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to launch Allocation Buddy module (RPG)");
-        }
+        _logger?.LogInformation("Launching AllocationBuddy standalone app");
+        LaunchStandaloneApp("AllocationBuddy", "AllocationBuddyApp");
     }
 
-    public async Task LaunchAllocationBuddyWithFiles(string[] files)
+    [RelayCommand]
+    private void LaunchEssentialsBuddy()
     {
-        _logger?.LogInformation("Launching Allocation Buddy module with files");
+        _logger?.LogInformation("Launching EssentialsBuddy standalone app");
+        LaunchStandaloneApp("EssentialsBuddy", "EssentialsBuddyApp");
+    }
 
+    private async void LaunchStandaloneApp(string appName, string directoryName)
+    {
         try
         {
-            var allocationBuddyViewModel = _serviceProvider.GetRequiredService<Features.AllocationBuddy.ViewModels.AllocationBuddyRPGViewModel>();
+            // Get the current executable's directory
+            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // Initialize the view model (if it exposes InitializeAsync)
-            try { await (allocationBuddyViewModel as dynamic).InitializeAsync(); } catch { }
+            // Navigate up to find the standalone app
+            // From: BusinessToolsSuite/src/BusinessToolsSuite.Desktop/bin/Debug/net8.0
+            // To: {directoryName}/src/BusinessToolsSuite.Desktop/bin/Debug/net8.0/BusinessToolsSuite.Desktop.exe
+            var baseDir = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..", "..", "..", ".."));
+            var appPath = Path.Combine(baseDir, directoryName, "src", "BusinessToolsSuite.Desktop", "bin", "Debug", "net8.0", "BusinessToolsSuite.Desktop.exe");
 
-            // Create the RPG view and set DataContext
-            var allocationBuddyView = new Features.AllocationBuddy.Views.AllocationBuddyRPGView
+            _logger?.LogInformation("Looking for {AppName} at: {AppPath}", appName, appPath);
+
+            if (!File.Exists(appPath))
             {
-                DataContext = allocationBuddyViewModel
-            };
-
-            _navigationService.NavigateToModule("AllocationBuddy", allocationBuddyView);
-
-            // If the view model supports importing multiple files, call it
-            try
-            {
-                var importMethod = allocationBuddyViewModel.GetType().GetMethod("ImportFilesAsync");
-                if (importMethod != null)
-                {
-                    var task = (System.Threading.Tasks.Task)importMethod.Invoke(allocationBuddyViewModel, new object[] { files })!;
-                    await task;
-                }
+                var errorMsg = $"Cannot find {appName} executable.\n\nExpected location:\n{appPath}\n\nPlease build the standalone app first using:\ndotnet build {directoryName}/{directoryName}.sln";
+                _logger?.LogError(errorMsg);
+                await ShowErrorDialog(appName, errorMsg);
+                return;
             }
-            catch { }
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = appPath,
+                UseShellExecute = true,
+                WorkingDirectory = Path.GetDirectoryName(appPath)
+            };
+
+            var process = Process.Start(startInfo);
+            if (process != null)
+            {
+                _logger?.LogInformation("Successfully launched {AppName} from {AppPath}", appName, appPath);
+            }
+            else
+            {
+                var errorMsg = $"Failed to start {appName}.\nThe process did not start.";
+                _logger?.LogError(errorMsg);
+                await ShowErrorDialog(appName, errorMsg);
+            }
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to launch Allocation Buddy module (RPG) with files");
+            var errorMsg = $"Error launching {appName}:\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}";
+            _logger?.LogError(ex, "Failed to launch {AppName} standalone app", appName);
+            await ShowErrorDialog(appName, errorMsg);
         }
     }
 
-    [RelayCommand]
-    private async Task LaunchEssentialsBuddy()
+    private async Task ShowErrorDialog(string appName, string message)
     {
-        _logger?.LogInformation("Launching Essentials Buddy module");
+        // Write error to console and log
+        Console.WriteLine($"\n========== ERROR LAUNCHING {appName.ToUpper()} ==========");
+        Console.WriteLine(message);
+        Console.WriteLine("============================================\n");
 
-        try
-        {
-            var essentialsBuddyViewModel = _serviceProvider.GetRequiredService<Features.EssentialsBuddy.ViewModels.EssentialsBuddyViewModel>();
+        _logger?.LogError("Error launching {AppName}: {Message}", appName, message);
 
-            // Initialize the view model
-            await essentialsBuddyViewModel.InitializeAsync();
-
-            // Create the view and set DataContext
-            var essentialsBuddyView = new Features.EssentialsBuddy.Views.EssentialsBuddyView
-            {
-                DataContext = essentialsBuddyViewModel
-            };
-
-            _navigationService.NavigateToModule("EssentialsBuddy", essentialsBuddyView);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to launch Essentials Buddy module");
-        }
+        await Task.CompletedTask;
     }
 
     [RelayCommand]

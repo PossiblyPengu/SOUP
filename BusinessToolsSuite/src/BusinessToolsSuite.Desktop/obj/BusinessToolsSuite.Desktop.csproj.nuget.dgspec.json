@@ -109,8 +109,8 @@
               "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj": {
                 "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.EssentialsBuddy\\BusinessToolsSuite.Features.EssentialsBuddy.csproj"
               },
-              "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
-                "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj"
+              "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
+                "projectPath": "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj"
               }
             }
           }
@@ -531,14 +531,14 @@
         }
       }
     },
-    "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
+    "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
+        "projectUniqueName": "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
         "projectName": "BusinessToolsSuite.Features.ExpireWise",
-        "projectPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
+        "projectPath": "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\BusinessToolsSuite.Features.ExpireWise.csproj",
         "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\obj\\",
+        "outputPath": "e:\\CODE\\Cshp\\BusinessToolsSuite\\src\\Features\\BusinessToolsSuite.Features.ExpireWise\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
