@@ -61,7 +61,11 @@
       "Bash(dotnet run)",
       "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd AllocationBuddyApp; & ''D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe'' build\")",
       "Bash(./BusinessToolsSuite.Desktop.exe)",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-launcher.ps1)"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-launcher.ps1)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd ExpireWiseApp; & 'D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe' build ExpireWiseApp.sln\":*)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build ExpireWiseApp/ExpireWiseApp.sln)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-expirewise.ps1)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-essentialsbuddy.ps1)"
     ],
     "deny": [],
     "ask": []
