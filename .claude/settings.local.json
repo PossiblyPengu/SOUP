@@ -65,7 +65,17 @@
       "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd ExpireWiseApp; & 'D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe' build ExpireWiseApp.sln\":*)",
       "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build ExpireWiseApp/ExpireWiseApp.sln)",
       "Bash(powershell.exe -ExecutionPolicy Bypass -File run-expirewise.ps1)",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-essentialsbuddy.ps1)"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-essentialsbuddy.ps1)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new install Microsoft.WindowsAppSDK.Templates)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new install Microsoft.WindowsAppSDK.Cs.Templates)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" add reference ../../../BusinessToolsSuite/src/BusinessToolsSuite.Infrastructure/BusinessToolsSuite.Infrastructure.csproj)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build -c Debug)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" clean)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build -c Debug -p:Platform=x64)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new sln -n BusinessToolsSuite.WPF)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" new wpf -n BusinessToolsSuite.WPF -f net8.0)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" add package Microsoft.Extensions.Hosting --version 8.0.1)",
+      "Bash(ls -la \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\ViewModels\"\" | grep -i \"essentials|inventory \")"
     ],
     "deny": [],
     "ask": []

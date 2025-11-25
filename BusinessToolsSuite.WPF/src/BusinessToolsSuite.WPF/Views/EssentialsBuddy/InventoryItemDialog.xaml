@@ -1,0 +1,164 @@
+<UserControl x:Class="BusinessToolsSuite.WPF.Views.EssentialsBuddy.InventoryItemDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:BusinessToolsSuite.WPF.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="600"
+             d:DataContext="{d:DesignInstance Type=vm:InventoryItemDialogViewModel}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Form Fields -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Item Number -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Item Number *" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="Enter item number" Foreground="Gray" Margin="4,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </StackPanel>
+
+                <!-- Description -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Description *" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="Enter description" Foreground="Gray" Margin="4,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </StackPanel>
+
+                <!-- Bin Code -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Bin Code" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding BinCode, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="Enter bin code (optional)" Foreground="Gray" Margin="4,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </StackPanel>
+
+                <!-- Quantity On Hand -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Quantity On Hand *" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding QuantityOnHand, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <!-- Minimum Threshold -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Minimum Threshold" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding MinimumThreshold, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <!-- Maximum Threshold -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Maximum Threshold" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding MaximumThreshold, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <!-- Unit Cost -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Unit Cost" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat=C2}"/>
+                </StackPanel>
+
+                <!-- Unit Price -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Unit Price" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged, StringFormat=C2}"/>
+                </StackPanel>
+
+                <!-- Category -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="Enter category (optional)" Foreground="Gray" Margin="4,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </StackPanel>
+
+                <!-- Last Updated -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Last Updated" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <DatePicker SelectedDate="{Binding LastUpdated}"/>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="0,16,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel" Width="100" Padding="12,8" Click="Cancel_Click" Margin="0,0,12,0"/>
+                <Button Content="Save" Width="100" Padding="12,8" Background="#007ACC" Foreground="White" Click="Save_Click"/>
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</UserControl>
