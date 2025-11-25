@@ -1,3 +1,0 @@
-@echo off
-echo Creating Windows ICO file from PNG...
-node scripts\png-to-ico.js

@@ -1,3 +1,0 @@
-@echo off
-echo Installing icon generation package...
-node node_modules\npm\bin\npm-cli.js install --save-dev png-to-ico
