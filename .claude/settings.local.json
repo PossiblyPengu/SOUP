@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" run:*)"
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" run:*)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" run --project \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\ExpireWise.Standalone\\ExpireWise.Standalone.csproj\")",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj\")",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build:*)",
+      "Bash(\"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\ExpireWise.Standalone\\bin\\Debug\\net8.0-windows\\ExpireWise.exe\")",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build src/BusinessToolsSuite.WPF/BusinessToolsSuite.WPF.csproj)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build src/BusinessToolsSuite.WPF/BusinessToolsSuite.WPF.csproj)"
     ],
     "deny": [],
     "ask": []
