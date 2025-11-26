@@ -8,7 +8,7 @@
              d:DesignHeight="800" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}">
 
-    <Grid>
+    <Grid Background="{StaticResource BackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="16,12">
+        <Border Grid.Row="0" Style="{StaticResource ModernToolbar}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -26,46 +26,50 @@
 
                 <!-- Left side buttons -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Command="{Binding AddItemCommand}" Padding="12,6" Margin="0,0,8,0"
-                            Background="#007ACC" Foreground="White">
+                    <Button Command="{Binding AddItemCommand}" Style="{StaticResource ModernButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="+" FontSize="18" FontWeight="Bold"/>
-                            <TextBlock Text="Add Item" Margin="6,0,0,0"/>
+                            <TextBlock Text="➕" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Add Item"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding EditItemCommand}" Padding="12,6" Margin="0,0,8,0">
+                    <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Edit" Margin="6,0,0,0"/>
+                            <TextBlock Text="✏️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Edit"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding DeleteItemCommand}" Padding="12,6" Margin="0,0,8,0">
+                    <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Delete" Margin="6,0,0,0"/>
+                            <TextBlock Text="🗑️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Delete"/>
                         </StackPanel>
                     </Button>
 
-                    <Separator Width="1" Margin="8,0"/>
+                    <Separator Width="1" Margin="8,0" Background="{StaticResource DividerBrush}"/>
 
-                    <Button Command="{Binding LoadItemsCommand}" Padding="12,6" Margin="8,0,0,0">
+                    <Button Command="{Binding LoadItemsCommand}" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Refresh" Margin="6,0,0,0"/>
+                            <TextBlock Text="🔄" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Refresh"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
                 <!-- Right side buttons -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Command="{Binding ExportToExcelCommand}" Padding="12,6" Margin="0,0,8,0">
+                    <Button Command="{Binding ExportToExcelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Export Excel" Margin="6,0,0,0"/>
+                            <TextBlock Text="📤" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Export Excel"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ExportToCsvCommand}" Padding="12,6">
+                    <Button Command="{Binding ExportToCsvCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Export CSV" Margin="6,0,0,0"/>
+                            <TextBlock Text="💾" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Export CSV"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -73,7 +77,8 @@
         </Border>
 
         <!-- Search and Filter Bar -->
-        <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="16,12">
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1" Padding="16,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -83,17 +88,17 @@
 
                 <!-- Search Box -->
                 <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         Padding="8" VerticalAlignment="Center">
+                         VerticalAlignment="Center">
                     <TextBox.Style>
-                        <Style TargetType="TextBox">
+                        <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
                             <Style.Triggers>
                                 <Trigger Property="Text" Value="">
                                     <Setter Property="Background">
                                         <Setter.Value>
                                             <VisualBrush Stretch="None" AlignmentX="Left">
                                                 <VisualBrush.Visual>
-                                                    <TextBlock Text="Search by item number, description, or location..."
-                                                             Foreground="Gray" Margin="4,0,0,0"/>
+                                                    <TextBlock Text="🔍 Search by item number, description, or location..."
+                                                             Foreground="{StaticResource TextTertiaryBrush}" Margin="12,0,0,0"/>
                                                 </VisualBrush.Visual>
                                             </VisualBrush>
                                         </Setter.Value>
@@ -106,25 +111,27 @@
 
                 <!-- Status Filter -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="Status:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                    <Label Content="Status:" Style="{StaticResource ModernLabel}" VerticalAlignment="Center" Margin="0"/>
                     <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
-                              Width="150" VerticalAlignment="Center"/>
+                              Style="{StaticResource ModernComboBox}" Width="150" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Item Count -->
-                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="16,0,0,0"
-                           FontWeight="SemiBold" Foreground="#666666">
-                    <Run Text="Items: "/>
-                    <Run Text="{Binding FilteredItems.Count, Mode=OneWay}"/>
-                </TextBlock>
+                <!-- Item Count Badge -->
+                <Border Grid.Column="2" Background="{StaticResource PrimaryBrush}" CornerRadius="12"
+                        Padding="12,6" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding FilteredItems.Count, StringFormat='📦 {0} items'}"
+                               Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                </Border>
             </Grid>
         </Border>
 
         <!-- Data Grid -->
         <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
-                  IsReadOnly="True" GridLinesVisibility="All" BorderThickness="0"
-                  AutoGenerateColumns="False" CanUserReorderColumns="True" CanUserResizeColumns="True"
-                  CanUserSortColumns="True" SelectionMode="Single">
+                  Style="{StaticResource ModernDataGrid}"
+                  ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                  CellStyle="{StaticResource ModernDataGridCell}"
+                  RowStyle="{StaticResource ModernDataGridRow}"
+                  CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True"/>
@@ -137,18 +144,16 @@
                 <DataGridTemplateColumn Header="Status" Width="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Border Padding="6,3" CornerRadius="4" HorizontalAlignment="Center">
+                            <Border Padding="8,4" CornerRadius="6" HorizontalAlignment="Center">
                                 <Border.Style>
                                     <Style TargetType="Border">
+                                        <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Status}" Value="Good">
-                                                <Setter Property="Background" Value="#4CAF50"/>
-                                            </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                <Setter Property="Background" Value="#FF9800"/>
+                                                <Setter Property="Background" Value="{StaticResource WarningBrush}"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                <Setter Property="Background" Value="#F44336"/>
+                                                <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Status}" Value="Expired">
                                                 <Setter Property="Background" Value="#9E9E9E"/>
@@ -157,7 +162,7 @@
                                     </Style>
                                 </Border.Style>
                                 <TextBlock Text="{Binding Status}" FontWeight="SemiBold" Foreground="White"
-                                         HorizontalAlignment="Center"/>
+                                         HorizontalAlignment="Center" FontSize="12"/>
                             </Border>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -166,30 +171,29 @@
         </DataGrid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="16,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <StatusBar Grid.Row="3" Style="{StaticResource ModernStatusBar}">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
 
-                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="#666666"/>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+            </StatusBarItem>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <TextBlock Text="Loading..." VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <StatusBarItem Grid.Column="1" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⏳" FontSize="14" Margin="0,0,8,0"/>
+                    <TextBlock Text="Loading..." VerticalAlignment="Center"/>
                 </StackPanel>
-            </Grid>
-        </Border>
+            </StatusBarItem>
+        </StatusBar>
 
     </Grid>
 </UserControl>

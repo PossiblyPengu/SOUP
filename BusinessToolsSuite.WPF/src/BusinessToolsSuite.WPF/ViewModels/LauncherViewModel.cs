@@ -1,20 +1,20 @@
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using BusinessToolsSuite.WPF.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BusinessToolsSuite.WPF.ViewModels;
 
 /// <summary>
-/// Launcher ViewModel for launching standalone applications
+/// Launcher ViewModel for navigating to different modules
 /// </summary>
 public partial class LauncherViewModel : ViewModelBase
 {
     private readonly ThemeService _themeService;
+    private readonly NavigationService _navigationService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<LauncherViewModel>? _logger;
 
     [ObservableProperty]
@@ -22,9 +22,13 @@ public partial class LauncherViewModel : ViewModelBase
 
     public LauncherViewModel(
         ThemeService themeService,
+        NavigationService navigationService,
+        IServiceProvider serviceProvider,
         ILogger<LauncherViewModel>? logger = null)
     {
         _themeService = themeService;
+        _navigationService = navigationService;
+        _serviceProvider = serviceProvider;
         _logger = logger;
 
         // Initialize dark mode state
@@ -40,84 +44,25 @@ public partial class LauncherViewModel : ViewModelBase
     [RelayCommand]
     private void LaunchExpireWise()
     {
-        _logger?.LogInformation("Launching ExpireWise standalone app");
-        LaunchStandaloneApp("ExpireWise", "ExpireWiseApp");
+        _logger?.LogInformation("Navigating to ExpireWise module");
+        var viewModel = _serviceProvider.GetRequiredService<ExpireWiseViewModel>();
+        _navigationService.NavigateToModule("ExpireWise", viewModel);
     }
 
     [RelayCommand]
     private void LaunchAllocationBuddy()
     {
-        _logger?.LogInformation("Launching AllocationBuddy standalone app");
-        LaunchStandaloneApp("AllocationBuddy", "AllocationBuddyApp");
+        _logger?.LogInformation("Navigating to AllocationBuddy module");
+        var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyViewModel>();
+        _navigationService.NavigateToModule("AllocationBuddy", viewModel);
     }
 
     [RelayCommand]
     private void LaunchEssentialsBuddy()
     {
-        _logger?.LogInformation("Launching EssentialsBuddy standalone app");
-        LaunchStandaloneApp("EssentialsBuddy", "EssentialsBuddyApp");
-    }
-
-    private async void LaunchStandaloneApp(string appName, string directoryName)
-    {
-        try
-        {
-            // Get the current executable's directory
-            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
-
-            // Navigate up to find the standalone app
-            // From: BusinessToolsSuite.WPF/src/BusinessToolsSuite.WPF/bin/Debug/net8.0-windows
-            // To: {directoryName}/src/BusinessToolsSuite.Desktop/bin/Debug/net8.0/BusinessToolsSuite.Desktop.exe
-            var baseDir = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..", "..", "..", ".."));
-            var appPath = Path.Combine(baseDir, directoryName, "src", "BusinessToolsSuite.Desktop", "bin", "Debug", "net8.0", "BusinessToolsSuite.Desktop.exe");
-
-            _logger?.LogInformation("Looking for {AppName} at: {AppPath}", appName, appPath);
-
-            if (!File.Exists(appPath))
-            {
-                var errorMsg = $"Cannot find {appName} executable.\n\nExpected location:\n{appPath}\n\nPlease build the standalone app first using:\ndotnet build {directoryName}/{directoryName}.sln";
-                _logger?.LogError(errorMsg);
-                await ShowErrorDialog(appName, errorMsg);
-                return;
-            }
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = appPath,
-                UseShellExecute = true,
-                WorkingDirectory = Path.GetDirectoryName(appPath)
-            };
-
-            var process = Process.Start(startInfo);
-            if (process != null)
-            {
-                _logger?.LogInformation("Successfully launched {AppName} from {AppPath}", appName, appPath);
-            }
-            else
-            {
-                var errorMsg = $"Failed to start {appName}.\nThe process did not start.";
-                _logger?.LogError(errorMsg);
-                await ShowErrorDialog(appName, errorMsg);
-            }
-        }
-        catch (Exception ex)
-        {
-            var errorMsg = $"Error launching {appName}:\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}";
-            _logger?.LogError(ex, "Failed to launch {AppName} standalone app", appName);
-            await ShowErrorDialog(appName, errorMsg);
-        }
-    }
-
-    private async Task ShowErrorDialog(string appName, string message)
-    {
-        // Write error to console and log
-        Console.WriteLine($"\n========== ERROR LAUNCHING {appName.ToUpper()} ==========");
-        Console.WriteLine(message);
-        Console.WriteLine("============================================\n");
-
-        _logger?.LogError("Error launching {AppName}: {Message}", appName, message);
-
-        await Task.CompletedTask;
+        _logger?.LogInformation("Navigating to EssentialsBuddy module");
+        var viewModel = _serviceProvider.GetRequiredService<EssentialsBuddyViewModel>();
+        _navigationService.NavigateToModule("EssentialsBuddy", viewModel);
     }
 
     [RelayCommand]
@@ -125,5 +70,33 @@ public partial class LauncherViewModel : ViewModelBase
     {
         _logger?.LogInformation("Toggling theme. Current: {IsDarkMode}", _themeService.IsDarkMode);
         _themeService.ToggleTheme();
+    }
+
+    // Pop-out commands to open modules in separate windows
+    [RelayCommand]
+    private void PopOutExpireWise()
+    {
+        _logger?.LogInformation("Opening ExpireWise in new window");
+        var viewModel = _serviceProvider.GetRequiredService<ExpireWiseViewModel>();
+        var window = new Windows.ExpireWiseWindow(viewModel);
+        window.Show();
+    }
+
+    [RelayCommand]
+    private void PopOutAllocationBuddy()
+    {
+        _logger?.LogInformation("Opening AllocationBuddy in new window");
+        var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyViewModel>();
+        var window = new Windows.AllocationBuddyWindow(viewModel);
+        window.Show();
+    }
+
+    [RelayCommand]
+    private void PopOutEssentialsBuddy()
+    {
+        _logger?.LogInformation("Opening EssentialsBuddy in new window");
+        var viewModel = _serviceProvider.GetRequiredService<EssentialsBuddyViewModel>();
+        var window = new Windows.EssentialsBuddyWindow(viewModel);
+        window.Show();
     }
 }

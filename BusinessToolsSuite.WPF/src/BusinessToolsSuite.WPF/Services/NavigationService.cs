@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
 
 namespace BusinessToolsSuite.WPF.Services;
@@ -30,7 +31,8 @@ public partial class NavigationService : ObservableObject
         ModuleChanged?.Invoke(this, moduleName);
     }
 
-    public void GoBack()
+    [RelayCommand]
+    private void NavigateBack()
     {
         NavigateToLauncher();
     }

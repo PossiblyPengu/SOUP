@@ -32,9 +32,6 @@ public partial class AllocationEntryDialogViewModel : ObservableObject
     private string _category = string.Empty;
 
     [ObservableProperty]
-    private decimal _unitPrice;
-
-    [ObservableProperty]
     private DateTime _allocationDate = DateTime.Today;
 
     [ObservableProperty]
@@ -67,7 +64,6 @@ public partial class AllocationEntryDialogViewModel : ObservableObject
         Quantity = 1;
         Rank = StoreRank.B;
         Category = string.Empty;
-        UnitPrice = 0;
         AllocationDate = DateTime.Today;
         Notes = string.Empty;
     }
@@ -87,7 +83,6 @@ public partial class AllocationEntryDialogViewModel : ObservableObject
         Quantity = entry.Quantity;
         Rank = entry.Rank;
         Category = entry.Category ?? string.Empty;
-        UnitPrice = entry.UnitPrice ?? 0;
         AllocationDate = entry.AllocationDate ?? DateTime.Today;
         Notes = entry.Notes ?? string.Empty;
     }
@@ -106,7 +101,6 @@ public partial class AllocationEntryDialogViewModel : ObservableObject
             Quantity = Quantity,
             Rank = Rank,
             Category = string.IsNullOrWhiteSpace(Category) ? null : Category,
-            UnitPrice = UnitPrice > 0 ? UnitPrice : null,
             AllocationDate = AllocationDate,
             Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes,
             Id = EntryId ?? Guid.NewGuid()

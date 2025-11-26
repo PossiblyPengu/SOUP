@@ -155,12 +155,6 @@
                     </TextBox>
                 </StackPanel>
 
-                <!-- Unit Price -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Unit Price" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged, StringFormat=C2}"/>
-                </StackPanel>
-
                 <!-- Allocation Date -->
                 <StackPanel Margin="0,0,0,16">
                     <TextBlock Text="Allocation Date" FontWeight="SemiBold" Margin="0,0,0,4"/>

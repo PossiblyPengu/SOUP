@@ -1,5 +1,5 @@
 ﻿
-
+FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\App.xaml;;
 FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\MainWindow.xaml;;
 FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Views\AllocationBuddy\AllocationBuddyRPGView.xaml;;
 FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Views\AllocationBuddy\AllocationBuddyView.xaml;;
@@ -9,4 +9,7 @@ FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Views\Essentials
 FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Views\EssentialsBuddy\InventoryItemDialog.xaml;;
 FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Views\ExpireWise\ExpirationItemDialog.xaml;;
 FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Views\ExpireWise\ExpireWiseView.xaml;;
+FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Windows\AllocationBuddyWindow.xaml;;
+FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Windows\EssentialsBuddyWindow.xaml;;
+FD:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\Windows\ExpireWiseWindow.xaml;;
 

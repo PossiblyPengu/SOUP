@@ -29,12 +29,6 @@ public partial class InventoryItemDialogViewModel : ObservableObject
     private int? _maximumThreshold;
 
     [ObservableProperty]
-    private decimal? _unitCost;
-
-    [ObservableProperty]
-    private decimal? _unitPrice;
-
-    [ObservableProperty]
     private string _category = string.Empty;
 
     [ObservableProperty]
@@ -66,8 +60,6 @@ public partial class InventoryItemDialogViewModel : ObservableObject
         QuantityOnHand = 0;
         MinimumThreshold = null;
         MaximumThreshold = null;
-        UnitCost = null;
-        UnitPrice = null;
         Category = string.Empty;
         LastUpdated = DateTime.Today;
     }
@@ -86,8 +78,6 @@ public partial class InventoryItemDialogViewModel : ObservableObject
         QuantityOnHand = item.QuantityOnHand;
         MinimumThreshold = item.MinimumThreshold;
         MaximumThreshold = item.MaximumThreshold;
-        UnitCost = item.UnitCost;
-        UnitPrice = item.UnitPrice;
         Category = item.Category ?? string.Empty;
         LastUpdated = item.LastUpdated ?? DateTime.Today;
     }
@@ -105,8 +95,6 @@ public partial class InventoryItemDialogViewModel : ObservableObject
             QuantityOnHand = QuantityOnHand,
             MinimumThreshold = MinimumThreshold,
             MaximumThreshold = MaximumThreshold,
-            UnitCost = UnitCost,
-            UnitPrice = UnitPrice,
             Category = string.IsNullOrWhiteSpace(Category) ? null : Category,
             LastUpdated = LastUpdated,
             Id = ItemId ?? Guid.NewGuid()

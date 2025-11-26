@@ -107,18 +107,6 @@
                     <TextBox Text="{Binding MaximumThreshold, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
 
-                <!-- Unit Cost -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Unit Cost" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat=C2}"/>
-                </StackPanel>
-
-                <!-- Unit Price -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Unit Price" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged, StringFormat=C2}"/>
-                </StackPanel>
-
                 <!-- Category -->
                 <StackPanel Margin="0,0,0,16">
                     <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,4"/>

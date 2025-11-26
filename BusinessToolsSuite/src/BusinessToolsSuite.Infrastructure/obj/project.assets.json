@@ -800,11 +800,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+      "projectUniqueName": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
       "projectName": "BusinessToolsSuite.Infrastructure",
-      "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+      "projectPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-      "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
+      "outputPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"

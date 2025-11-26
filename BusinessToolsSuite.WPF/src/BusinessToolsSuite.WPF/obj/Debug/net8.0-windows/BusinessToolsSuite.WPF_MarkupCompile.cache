@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\App.xaml
-10-1761096679
+14-1618468794
 
-2887322112
+35538885434
 2411057420753
-MainWindow.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\AllocationBuddyView.xaml;Views\AllocationBuddy\AllocationEntryDialog.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseView.xaml;
+MainWindow.xaml;Themes\ModernStyles.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\AllocationBuddyView.xaml;Views\AllocationBuddy\AllocationEntryDialog.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseView.xaml;Windows\AllocationBuddyWindow.xaml;Windows\EssentialsBuddyWindow.xaml;Windows\ExpireWiseWindow.xaml;
 
 False
 

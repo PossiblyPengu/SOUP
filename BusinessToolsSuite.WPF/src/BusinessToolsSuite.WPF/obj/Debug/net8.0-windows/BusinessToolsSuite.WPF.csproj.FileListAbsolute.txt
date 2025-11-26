@@ -87,3 +87,13 @@ D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-
 D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\EssentialsBuddy\InventoryItemDialog.baml
 D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\ExpireWise\ExpirationItemDialog.baml
 D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\ExpireWise\ExpireWiseView.baml
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Themes\ModernStyles.baml
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\App.baml
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Windows\AllocationBuddyWindow.g.cs
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Windows\EssentialsBuddyWindow.g.cs
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Windows\ExpireWiseWindow.g.cs
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Windows\AllocationBuddyWindow.baml
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Windows\EssentialsBuddyWindow.baml
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Windows\ExpireWiseWindow.baml
+D:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\bin\Debug\net8.0-windows\Assets\dictionaries.js

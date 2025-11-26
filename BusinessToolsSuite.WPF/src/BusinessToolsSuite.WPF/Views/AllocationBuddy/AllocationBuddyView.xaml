@@ -8,7 +8,7 @@
              d:DesignHeight="800" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:AllocationBuddyViewModel}">
 
-    <Grid>
+    <Grid Background="{StaticResource BackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="16,12">
+        <Border Grid.Row="0" Style="{StaticResource ModernToolbar}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -26,53 +26,50 @@
 
                 <!-- Left side buttons -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Command="{Binding ImportFromExcelCommand}" Padding="12,6" Margin="0,0,8,0"
-                            Background="#007ACC" Foreground="White">
+                    <Button Command="{Binding EditEntryCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Import Excel" Margin="6,0,0,0"/>
+                            <TextBlock Text="✏️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Edit"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ImportFromCsvCommand}" Padding="12,6" Margin="0,0,8,0">
+                    <Button Command="{Binding DeleteEntryCommand}" Style="{StaticResource DangerButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Import CSV" Margin="6,0,0,0"/>
+                            <TextBlock Text="🗑️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Delete"/>
                         </StackPanel>
                     </Button>
 
-                    <Separator Width="1" Margin="8,0"/>
+                    <Separator Width="1" Margin="8,0" Background="{StaticResource DividerBrush}"/>
 
-                    <Button Command="{Binding EditEntryCommand}" Padding="12,6" Margin="8,0,8,0">
+                    <Button Command="{Binding LoadEntriesCommand}" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Edit" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding DeleteEntryCommand}" Padding="12,6" Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Delete" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Separator Width="1" Margin="8,0"/>
-
-                    <Button Command="{Binding LoadEntriesCommand}" Padding="12,6" Margin="8,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Refresh" Margin="6,0,0,0"/>
+                            <TextBlock Text="🔄" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Refresh"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
                 <!-- Right side buttons -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Command="{Binding ExportToExcelCommand}" Padding="12,6" Margin="0,0,8,0">
+                    <Button Command="{Binding ExportToExcelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Export Excel" Margin="6,0,0,0"/>
+                            <TextBlock Text="📤" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Export Excel"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ExportToCsvCommand}" Padding="12,6">
+                    <Button Command="{Binding ExportToCsvCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Export CSV" Margin="6,0,0,0"/>
+                            <TextBlock Text="💾" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Export CSV"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ClearDataCommand}" Style="{StaticResource DangerButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🗑️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Clear Data"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -80,7 +77,8 @@
         </Border>
 
         <!-- Search and Filter Bar -->
-        <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="16,12">
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1" Padding="16,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -90,17 +88,17 @@
 
                 <!-- Search Box -->
                 <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         Padding="8" VerticalAlignment="Center">
+                         VerticalAlignment="Center">
                     <TextBox.Style>
-                        <Style TargetType="TextBox">
+                        <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
                             <Style.Triggers>
                                 <Trigger Property="Text" Value="">
                                     <Setter Property="Background">
                                         <Setter.Value>
                                             <VisualBrush Stretch="None" AlignmentX="Left">
                                                 <VisualBrush.Visual>
-                                                    <TextBlock Text="Search by item number, description, store, or category..."
-                                                             Foreground="Gray" Margin="8,0,0,0"/>
+                                                    <TextBlock Text="🔍 Search by item number, description, store, or category..."
+                                                             Foreground="{StaticResource TextTertiaryBrush}" Margin="12,0,0,0"/>
                                                 </VisualBrush.Visual>
                                             </VisualBrush>
                                         </Setter.Value>
@@ -113,14 +111,17 @@
 
                 <!-- Rank Filter -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="Store Rank:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                    <Label Content="Store Rank:" Style="{StaticResource ModernLabel}" VerticalAlignment="Center" Margin="0"/>
                     <ComboBox ItemsSource="{Binding RankFilters}" SelectedItem="{Binding RankFilter}"
-                              Width="100" VerticalAlignment="Center"/>
+                              Style="{StaticResource ModernComboBox}" Width="120" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Entry Count -->
-                <TextBlock Grid.Column="2" Text="{Binding FilteredEntries.Count, StringFormat='Entries: {0}'}"
-                           VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="SemiBold" Foreground="#666"/>
+                <!-- Entry Count Badge -->
+                <Border Grid.Column="2" Background="{StaticResource PrimaryBrush}" CornerRadius="12"
+                        Padding="12,6" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding FilteredEntries.Count, StringFormat='📊 {0} entries'}"
+                               Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                </Border>
             </Grid>
         </Border>
 
@@ -131,28 +132,25 @@
                            HorizontalAlignment="Center" Margin="0,0,0,16"/>
                 <TextBlock Text="Import your store allocation data to get started" FontSize="16" Foreground="#666"
                            HorizontalAlignment="Center" Margin="0,0,0,24"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Command="{Binding ImportFromExcelCommand}" Background="#007ACC" Foreground="White"
-                            Padding="24,12" Margin="0,0,16,0" FontSize="16">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Import Excel File" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding ImportFromCsvCommand}" Padding="24,12" FontSize="16">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Import CSV File" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-                <TextBlock Text="Supported formats: Excel (.xlsx), CSV (.csv)" FontSize="12" Foreground="#666"
+                <Button Command="{Binding ImportFromExcelCommand}" Background="#007ACC" Foreground="White"
+                        Padding="24,12" FontSize="16" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📥" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Import Excel File" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Text="Supported format: Excel (.xlsx)" FontSize="12" Foreground="#666"
                            HorizontalAlignment="Center" Margin="0,16,0,0"/>
             </StackPanel>
         </Border>
 
         <!-- Data Grid (shown when has data) -->
         <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredEntries}" SelectedItem="{Binding SelectedItem}"
-                  IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="All"
-                  Background="White" CanUserReorderColumns="True" CanUserResizeColumns="True"
+                  Style="{StaticResource ModernDataGrid}"
+                  ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                  CellStyle="{StaticResource ModernDataGridCell}"
+                  RowStyle="{StaticResource ModernDataGridRow}"
+                  CanUserReorderColumns="True" CanUserResizeColumns="True"
                   Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
 
             <DataGrid.Columns>
@@ -163,26 +161,34 @@
                 <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="100" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Rank" Binding="{Binding Rank}" Width="80" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice, StringFormat='{}{0:C2}'}" Width="120" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Allocation Date" Binding="{Binding AllocationDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="150" IsReadOnly="True"/>
             </DataGrid.Columns>
         </DataGrid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="16,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <StatusBar Grid.Row="3" Style="{StaticResource ModernStatusBar}">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
 
-                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="#666"/>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+            </StatusBarItem>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <TextBlock Text="Loading..." VerticalAlignment="Center" Margin="8,0,0,0"/>
+            <StatusBarItem Grid.Column="1" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⏳" FontSize="14" Margin="0,0,8,0"/>
+                    <TextBlock Text="Loading..." VerticalAlignment="Center"/>
                 </StackPanel>
-            </Grid>
-        </Border>
+            </StatusBarItem>
+        </StatusBar>
 
     </Grid>
 </UserControl>

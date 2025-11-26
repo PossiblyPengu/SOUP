@@ -43,9 +43,6 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
-    private decimal _totalInventoryValue;
-
-    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasData))]
     private bool _hasNoData = true;
 
@@ -95,10 +92,9 @@ public partial class EssentialsBuddyViewModel : ObservableObject
                 Items.Add(item);
             }
 
-            TotalInventoryValue = await _repository.GetTotalInventoryValueAsync();
             ApplyFilters();
             HasNoData = Items.Count == 0;
-            StatusMessage = $"Loaded {Items.Count} items | Total Value: {TotalInventoryValue:C2}";
+            StatusMessage = $"Loaded {Items.Count} items";
             _logger?.LogInformation("Loaded {Count} inventory items", Items.Count);
         }
         catch (Exception ex)
@@ -254,7 +250,6 @@ public partial class EssentialsBuddyViewModel : ObservableObject
                     Items[index] = updatedItem;
                 }
 
-                TotalInventoryValue = await _repository.GetTotalInventoryValueAsync();
                 ApplyFilters();
                 StatusMessage = $"Updated item {updatedItem.ItemNumber}";
                 _logger?.LogInformation("Updated item {ItemNumber}", updatedItem.ItemNumber);
@@ -373,6 +368,25 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private void ClearData()
+    {
+        try
+        {
+            Items.Clear();
+            FilteredItems.Clear();
+            SearchText = string.Empty;
+            StatusFilter = "All";
+            StatusMessage = "All data cleared";
+            _logger?.LogInformation("Cleared all EssentialsBuddy data");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Clear error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during data clear");
         }
     }
 

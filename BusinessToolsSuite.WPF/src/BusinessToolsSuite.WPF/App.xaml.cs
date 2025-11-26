@@ -77,7 +77,7 @@ public partial class App : Application
         services.AddScoped<IExpireWiseRepository, ExpireWiseRepository>();
 
         // Application services
-        services.AddSingleton<FileImportExportService>();
+        services.AddSingleton<IFileImportExportService, FileImportExportService>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<ThemeService>();
@@ -86,18 +86,18 @@ public partial class App : Application
         services.AddSingleton<LauncherViewModel>();
         services.AddSingleton<MainWindowViewModel>();
 
-        // ViewModels - AllocationBuddy
-        services.AddTransient<AllocationBuddyViewModel>();
-        services.AddTransient<AllocationBuddyRPGViewModel>();
+        // ViewModels - AllocationBuddy (Singletons persist data across navigation)
+        services.AddSingleton<AllocationBuddyViewModel>();
+        services.AddSingleton<AllocationBuddyRPGViewModel>();
         services.AddTransient<AllocationEntryDialogViewModel>();
         services.AddTransient<SelectLocationDialogViewModel>();
 
-        // ViewModels - EssentialsBuddy
-        services.AddTransient<EssentialsBuddyViewModel>();
+        // ViewModels - EssentialsBuddy (Singleton persists data across navigation)
+        services.AddSingleton<EssentialsBuddyViewModel>();
         services.AddTransient<InventoryItemDialogViewModel>();
 
-        // ViewModels - ExpireWise
-        services.AddTransient<ExpireWiseViewModel>();
+        // ViewModels - ExpireWise (Singleton persists data across navigation)
+        services.AddSingleton<ExpireWiseViewModel>();
         services.AddTransient<ExpirationItemDialogViewModel>();
 
         // Windows

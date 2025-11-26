@@ -69,14 +69,24 @@ public partial class AllocationBuddyViewModel : ObservableObject
     {
         _repository = repository;
         _fileService = fileService;
-        _parser = new AllocationBuddyParser(null); // Uses specialized parser with exact JS logic
+        _parser = new AllocationBuddyParser(null);
         _dialogService = dialogService;
         _logger = logger;
 
-        // Load dictionary data from JS file
-        var dictPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "UnifiedApp", "src", "renderer", "modules", "allocation-buddy", "src", "js", "dictionaries.js");
-        var items = Helpers.DictionaryLoader.LoadFromJs(dictPath);
-        _parser.SetDictionaryItems(items);
+        // Load dictionary data from Assets folder
+        var dictPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "dictionaries.js");
+        if (File.Exists(dictPath))
+        {
+            var items = Helpers.DictionaryLoader.LoadItemsFromJs(dictPath);
+            var stores = Helpers.DictionaryLoader.LoadStoresFromJs(dictPath);
+            _parser.SetDictionaryItems(items);
+            _parser.SetStoreDictionary(stores);
+            _logger?.LogInformation("Loaded {ItemCount} items and {StoreCount} stores from dictionary", items.Count, stores.Count);
+        }
+        else
+        {
+            _logger?.LogWarning("Dictionary file not found at {Path}, using heuristic detection", dictPath);
+        }
     }
 
     /// <summary>
@@ -383,6 +393,25 @@ public partial class AllocationBuddyViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private void ClearData()
+    {
+        try
+        {
+            Entries.Clear();
+            FilteredEntries.Clear();
+            SearchText = string.Empty;
+            RankFilter = "All";
+            StatusMessage = "All data cleared";
+            _logger?.LogInformation("Cleared all AllocationBuddy data");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Clear error: {ex.Message}";
+            _logger?.LogError(ex, "Exception during data clear");
         }
     }
 
