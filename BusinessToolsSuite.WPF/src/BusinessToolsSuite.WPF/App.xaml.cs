@@ -81,24 +81,29 @@ public partial class App : Application
         services.AddSingleton<DialogService>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<ThemeService>();
+        services.AddSingleton<BusinessToolsSuite.Infrastructure.Services.SettingsService>();
+        services.AddSingleton<BusinessToolsSuite.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp => new BusinessToolsSuite.Infrastructure.Services.Parsers.AllocationBuddyParser(null));
 
         // ViewModels - Shell
         services.AddSingleton<LauncherViewModel>();
         services.AddSingleton<MainWindowViewModel>();
+        services.AddTransient<UnifiedSettingsViewModel>();
+        services.AddTransient<DictionaryManagementViewModel>();
 
         // ViewModels - AllocationBuddy (Singletons persist data across navigation)
-        services.AddSingleton<AllocationBuddyViewModel>();
         services.AddSingleton<AllocationBuddyRPGViewModel>();
-        services.AddTransient<AllocationEntryDialogViewModel>();
         services.AddTransient<SelectLocationDialogViewModel>();
+        services.AddTransient<AllocationBuddySettingsViewModel>();
 
         // ViewModels - EssentialsBuddy (Singleton persists data across navigation)
         services.AddSingleton<EssentialsBuddyViewModel>();
         services.AddTransient<InventoryItemDialogViewModel>();
+        services.AddTransient<EssentialsBuddySettingsViewModel>();
 
         // ViewModels - ExpireWise (Singleton persists data across navigation)
         services.AddSingleton<ExpireWiseViewModel>();
         services.AddTransient<ExpirationItemDialogViewModel>();
+        services.AddTransient<ExpireWiseSettingsViewModel>();
 
         // Windows
         services.AddSingleton<MainWindow>();

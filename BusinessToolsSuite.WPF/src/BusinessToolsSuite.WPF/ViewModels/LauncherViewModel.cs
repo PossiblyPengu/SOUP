@@ -52,8 +52,8 @@ public partial class LauncherViewModel : ViewModelBase
     [RelayCommand]
     private void LaunchAllocationBuddy()
     {
-        _logger?.LogInformation("Navigating to AllocationBuddy module");
-        var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyViewModel>();
+        _logger?.LogInformation("Navigating to AllocationBuddy RPG module");
+        var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyRPGViewModel>();
         _navigationService.NavigateToModule("AllocationBuddy", viewModel);
     }
 
@@ -85,8 +85,8 @@ public partial class LauncherViewModel : ViewModelBase
     [RelayCommand]
     private void PopOutAllocationBuddy()
     {
-        _logger?.LogInformation("Opening AllocationBuddy in new window");
-        var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyViewModel>();
+        _logger?.LogInformation("Opening AllocationBuddy RPG in new window");
+        var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyRPGViewModel>();
         var window = new Windows.AllocationBuddyWindow(viewModel);
         window.Show();
     }

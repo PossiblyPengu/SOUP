@@ -94,8 +94,8 @@
               "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj": {
                 "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Core\\BusinessToolsSuite.Core.csproj"
               },
-              "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
-                "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
+              "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+                "projectPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj"
               }
             }
           }
@@ -117,7 +117,7 @@
           "dependencies": {
             "CommunityToolkit.Mvvm": {
               "target": "Package",
-              "version": "[8.3.2, )"
+              "version": "[8.4.0, )"
             },
             "Microsoft.Extensions.Hosting": {
               "target": "Package",
@@ -223,14 +223,14 @@
         }
       }
     },
-    "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
+    "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+        "projectUniqueName": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
         "projectName": "BusinessToolsSuite.Infrastructure",
-        "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+        "projectPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-        "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
+        "outputPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -269,6 +269,10 @@
             "ClosedXML": {
               "target": "Package",
               "version": "[0.104.2, )"
+            },
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.4.0, )"
             },
             "CsvHelper": {
               "target": "Package",

@@ -51,6 +51,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     public IRelayCommand MoveFromPoolCommand { get; }
     public IAsyncRelayCommand<LocationAllocation> DeactivateStoreCommand { get; }
     public IRelayCommand UndoDeactivateCommand { get; }
+    public IAsyncRelayCommand ClearDataCommand { get; }
 
     public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
@@ -67,6 +68,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         MoveFromPoolCommand = new RelayCommand<ItemAllocation>(MoveFromPool);
         DeactivateStoreCommand = new AsyncRelayCommand<LocationAllocation>(DeactivateStoreAsync);
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
+        ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
 
         // Load dictionary into parser if available
         try
@@ -99,15 +101,20 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         foreach (var it in items)
         {
             if (it == null) continue;
-            var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == it.ItemNumber && p.SKU == it.SKU);
+
+            var itemNumber = GetCanonicalItemNumber(it.ItemNumber);
+            var description = string.IsNullOrWhiteSpace(it.Description) ? GetDescription(itemNumber) : it.Description;
+            var sku = it.SKU ?? GetSKU(itemNumber);
+
+            var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == itemNumber && p.SKU == sku);
             if (poolItem == null)
             {
                 ItemPool.Add(new ItemAllocation
                 {
-                    ItemNumber = it.ItemNumber,
-                    Description = it.Description,
+                    ItemNumber = itemNumber,
+                    Description = description,
                     Quantity = it.Quantity,
-                    SKU = it.SKU
+                    SKU = sku
                 });
             }
             else
@@ -224,7 +231,17 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             var loc = new LocationAllocation { Location = g.Key };
             foreach (var e in g)
             {
-                loc.Items.Add(new ItemAllocation { ItemNumber = e.ItemNumber, Description = e.Description ?? "", Quantity = e.Quantity, SKU = GetSKU(e) });
+                var itemNumber = GetCanonicalItemNumber(e.ItemNumber ?? "");
+                var description = string.IsNullOrWhiteSpace(e.Description) ? GetDescription(itemNumber) : e.Description;
+                var sku = e.SKU ?? GetSKU(itemNumber);
+
+                loc.Items.Add(new ItemAllocation
+                {
+                    ItemNumber = itemNumber,
+                    Description = description,
+                    Quantity = e.Quantity,
+                    SKU = sku
+                });
             }
             LocationAllocations.Add(loc);
         }
@@ -255,6 +272,10 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             var qtyToMove = Math.Max(1, result.SelectedQuantity);
             qtyToMove = Math.Min(qtyToMove, poolItem.Quantity);
 
+            var itemNumber = GetCanonicalItemNumber(item.ItemNumber);
+            var description = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(itemNumber) : item.Description;
+            var sku = item.SKU ?? GetSKU(itemNumber);
+
             var loc = LocationAllocations.FirstOrDefault(l => l.Location == result.SelectedLocation);
             if (loc == null)
             {
@@ -262,8 +283,20 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
                 LocationAllocations.Add(loc);
             }
             var target = loc.Items.FirstOrDefault(i => i.ItemNumber == item.ItemNumber);
-            if (target == null) loc.Items.Add(new ItemAllocation { ItemNumber = item.ItemNumber, Description = item.Description, Quantity = qtyToMove, SKU = item.SKU });
-            else target.Quantity += qtyToMove;
+            if (target == null)
+            {
+                loc.Items.Add(new ItemAllocation
+                {
+                    ItemNumber = itemNumber,
+                    Description = description,
+                    Quantity = qtyToMove,
+                    SKU = sku
+                });
+            }
+            else
+            {
+                target.Quantity += qtyToMove;
+            }
 
             poolItem.Quantity -= qtyToMove;
             if (poolItem.Quantity == 0) ItemPool.Remove(poolItem);
@@ -273,10 +306,28 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         }
     }
 
-    private string? GetSKU(AllocationEntry e)
+    private string? GetSKU(string itemNumber)
     {
-        // try to find in parser dictionary
-        return null;
+        var dictItem = _parser.DictionaryItems?.FirstOrDefault(d =>
+            string.Equals(d.Number, itemNumber, StringComparison.OrdinalIgnoreCase) ||
+            (d.Skus != null && d.Skus.Contains(itemNumber, StringComparer.OrdinalIgnoreCase)));
+        return dictItem?.Skus?.FirstOrDefault();
+    }
+
+    private string GetDescription(string itemNumber)
+    {
+        var dictItem = _parser.DictionaryItems?.FirstOrDefault(d =>
+            string.Equals(d.Number, itemNumber, StringComparison.OrdinalIgnoreCase) ||
+            (d.Skus != null && d.Skus.Contains(itemNumber, StringComparer.OrdinalIgnoreCase)));
+        return dictItem?.Description ?? "";
+    }
+
+    private string GetCanonicalItemNumber(string itemNumber)
+    {
+        var dictItem = _parser.DictionaryItems?.FirstOrDefault(d =>
+            string.Equals(d.Number, itemNumber, StringComparison.OrdinalIgnoreCase) ||
+            (d.Skus != null && d.Skus.Contains(itemNumber, StringComparer.OrdinalIgnoreCase)));
+        return dictItem?.Number ?? itemNumber;
     }
 
     private void RemoveOne(ItemAllocation item)
@@ -292,7 +343,17 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == target.ItemNumber);
         if (poolItem == null)
         {
-            ItemPool.Add(new ItemAllocation { ItemNumber = target.ItemNumber, Description = target.Description, Quantity = 1, SKU = target.SKU });
+            var itemNumber = GetCanonicalItemNumber(target.ItemNumber);
+            var description = string.IsNullOrWhiteSpace(target.Description) ? GetDescription(itemNumber) : target.Description;
+            var sku = target.SKU ?? GetSKU(itemNumber);
+
+            ItemPool.Add(new ItemAllocation
+            {
+                ItemNumber = itemNumber,
+                Description = description,
+                Quantity = 1,
+                SKU = sku
+            });
         }
         else
         {
@@ -319,16 +380,32 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         if (loc == null)
         {
             // add to first location
+            var itemNumber = GetCanonicalItemNumber(item.ItemNumber);
+            var description = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(itemNumber) : item.Description;
+            var sku = item.SKU ?? GetSKU(itemNumber);
+
             if (LocationAllocations.Count == 0)
             {
                 // create default location
                 var newLoc = new LocationAllocation { Location = "Unassigned" };
-                newLoc.Items.Add(new ItemAllocation { ItemNumber = item.ItemNumber, Description = item.Description, Quantity = 1, SKU = item.SKU });
+                newLoc.Items.Add(new ItemAllocation
+                {
+                    ItemNumber = itemNumber,
+                    Description = description,
+                    Quantity = 1,
+                    SKU = sku
+                });
                 LocationAllocations.Add(newLoc);
             }
             else
             {
-                LocationAllocations[0].Items.Add(new ItemAllocation { ItemNumber = item.ItemNumber, Description = item.Description, Quantity = 1, SKU = item.SKU });
+                LocationAllocations[0].Items.Add(new ItemAllocation
+                {
+                    ItemNumber = itemNumber,
+                    Description = description,
+                    Quantity = 1,
+                    SKU = sku
+                });
             }
         }
         else
@@ -352,18 +429,41 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         if (item == null) return;
         var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == item.ItemNumber);
         if (poolItem == null) return;
+
+        var itemNumber = GetCanonicalItemNumber(item.ItemNumber);
+        var description = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(itemNumber) : item.Description;
+        var sku = item.SKU ?? GetSKU(itemNumber);
+
         if (LocationAllocations.Count == 0)
         {
             var newLoc = new LocationAllocation { Location = "Unassigned" };
-            newLoc.Items.Add(new ItemAllocation { ItemNumber = item.ItemNumber, Description = item.Description, Quantity = 1, SKU = item.SKU });
+            newLoc.Items.Add(new ItemAllocation
+            {
+                ItemNumber = itemNumber,
+                Description = description,
+                Quantity = 1,
+                SKU = sku
+            });
             LocationAllocations.Add(newLoc);
         }
         else
         {
             var loc = LocationAllocations[0];
             var target = loc.Items.FirstOrDefault(i => i.ItemNumber == item.ItemNumber);
-            if (target == null) loc.Items.Add(new ItemAllocation { ItemNumber = item.ItemNumber, Description = item.Description, Quantity = 1, SKU = item.SKU });
-            else target.Quantity += 1;
+            if (target == null)
+            {
+                loc.Items.Add(new ItemAllocation
+                {
+                    ItemNumber = itemNumber,
+                    Description = description,
+                    Quantity = 1,
+                    SKU = sku
+                });
+            }
+            else
+            {
+                target.Quantity += 1;
+            }
         }
 
         poolItem.Quantity -= 1;
@@ -394,10 +494,20 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             var qtyToRestore = Math.Min(snap.Quantity, qtyAvailable);
             if (qtyToRestore <= 0) continue;
 
-            var existing = loc.Items.FirstOrDefault(i => i.ItemNumber == snap.ItemNumber && i.SKU == snap.SKU);
+            var itemNumber = GetCanonicalItemNumber(snap.ItemNumber);
+            var description = string.IsNullOrWhiteSpace(snap.Description) ? GetDescription(itemNumber) : snap.Description;
+            var sku = snap.SKU ?? GetSKU(itemNumber);
+
+            var existing = loc.Items.FirstOrDefault(i => i.ItemNumber == itemNumber && i.SKU == sku);
             if (existing == null)
             {
-                loc.Items.Add(new ItemAllocation { ItemNumber = snap.ItemNumber, Description = snap.Description, Quantity = qtyToRestore, SKU = snap.SKU });
+                loc.Items.Add(new ItemAllocation
+                {
+                    ItemNumber = itemNumber,
+                    Description = description,
+                    Quantity = qtyToRestore,
+                    SKU = sku
+                });
             }
             else
             {
@@ -416,6 +526,30 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         OnPropertyChanged(nameof(TotalEntries));
         OnPropertyChanged(nameof(ItemPoolCount));
         OnPropertyChanged(nameof(LocationsCount));
+    }
+
+    private async Task ClearDataAsync()
+    {
+        // Confirm before clearing all data
+        var confirm = new BusinessToolsSuite.WPF.Views.AllocationBuddy.ConfirmDialog();
+        confirm.SetMessage("Clear all locations and items? This action cannot be undone.");
+        var ok = await _dialogService.ShowContentDialogAsync<bool?>(confirm);
+        if (ok != true) return;
+
+        // Clear all collections
+        LocationAllocations.Clear();
+        ItemPool.Clear();
+        FileImportResults.Clear();
+        _lastDeactivation = null;
+        SearchText = string.Empty;
+
+        // Update all computed properties
+        OnPropertyChanged(nameof(TotalEntries));
+        OnPropertyChanged(nameof(ItemPoolCount));
+        OnPropertyChanged(nameof(LocationsCount));
+
+        StatusMessage = "All data cleared";
+        _logger?.LogInformation("All allocation data cleared by user");
     }
 
     public class LocationAllocation

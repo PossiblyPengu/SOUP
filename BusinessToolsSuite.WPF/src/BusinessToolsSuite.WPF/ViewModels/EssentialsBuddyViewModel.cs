@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using BusinessToolsSuite.Core.Entities.EssentialsBuddy;
 using BusinessToolsSuite.Core.Interfaces;
 using BusinessToolsSuite.WPF.Services;
 using BusinessToolsSuite.WPF.Views.EssentialsBuddy;
+using BusinessToolsSuite.WPF.Views;
 using BusinessToolsSuite.Infrastructure.Services.Parsers;
 
 namespace BusinessToolsSuite.WPF.ViewModels;
@@ -19,6 +21,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     private readonly IFileImportExportService _fileService;
     private readonly EssentialsBuddyParser _parser;
     private readonly DialogService _dialogService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
 
     [ObservableProperty]
@@ -61,12 +64,14 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         IEssentialsBuddyRepository repository,
         IFileImportExportService fileService,
         DialogService dialogService,
+        IServiceProvider serviceProvider,
         ILogger<EssentialsBuddyViewModel>? logger = null)
     {
         _repository = repository;
         _fileService = fileService;
         _parser = new EssentialsBuddyParser(null); // Uses specialized parser with exact JS logic
         _dialogService = dialogService;
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
@@ -426,6 +431,22 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         foreach (var item in filtered.OrderBy(i => i.ItemNumber))
         {
             FilteredItems.Add(item);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenSettings()
+    {
+        try
+        {
+            var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
+            var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
+            settingsWindow.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to open settings window");
+            StatusMessage = "Failed to open settings";
         }
     }
 }

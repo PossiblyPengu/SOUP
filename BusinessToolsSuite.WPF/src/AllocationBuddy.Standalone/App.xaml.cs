@@ -78,20 +78,20 @@ public partial class App : Application
         // Application services
         services.AddSingleton<IFileImportExportService, FileImportExportService>();
         services.AddSingleton<DialogService>();
+        services.AddSingleton<SettingsService>();
 
         // ViewModels (Singletons persist data within standalone app)
-        services.AddSingleton<AllocationBuddyViewModel>();
         services.AddSingleton<AllocationBuddyRPGViewModel>();
-        services.AddTransient<AllocationEntryDialogViewModel>();
         services.AddTransient<SelectLocationDialogViewModel>();
+        services.AddTransient<AllocationBuddySettingsViewModel>();
     }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         await _host.StartAsync();
 
-        // Create and show Allocation Buddy window
-        var viewModel = _host.Services.GetRequiredService<AllocationBuddyViewModel>();
+        // Create and show Allocation Buddy window using RPG viewmodel
+        var viewModel = _host.Services.GetRequiredService<AllocationBuddyRPGViewModel>();
         var window = new AllocationBuddyWindow(viewModel);
         window.Show();
 

@@ -1,0 +1,257 @@
+<UserControl x:Class="BusinessToolsSuite.WPF.Views.DictionaryManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:BusinessToolsSuite.WPF.ViewModels"
+             xmlns:converters="clr-namespace:BusinessToolsSuite.WPF.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance Type=vm:DictionaryManagementViewModel}">
+
+    <UserControl.Resources>
+        <converters:ListToCommaStringConverter x:Key="ListToCommaStringConverter"/>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,10,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Description -->
+            <Border Grid.Row="0" Background="White" Padding="15" CornerRadius="5" Margin="0,0,0,15">
+                <StackPanel>
+                    <TextBlock Text="Dictionary Management" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    <TextBlock Text="Manage item and store dictionaries used for import accuracy across AllocationBuddy, ExpireWise, and EssentialsBuddy."
+                               FontSize="12"
+                               Foreground="#666"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,5"/>
+                    <TextBlock Text="Changes are saved to: Assets/dictionaries.js"
+                               FontSize="11"
+                               Foreground="#999"
+                               FontStyle="Italic"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Items and Stores Side-by-Side -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Items Section -->
+                <Border Grid.Column="0" Background="White" Padding="15" CornerRadius="5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <TextBlock Grid.Row="0" Text="Items" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <!-- Search -->
+                        <TextBox Grid.Row="1" Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,10" Padding="8">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <VisualBrush Stretch="None" AlignmentX="Left">
+                                                        <VisualBrush.Visual>
+                                                            <TextBlock Text="🔍 Search items..." Foreground="#999" Margin="8,0,0,0"/>
+                                                        </VisualBrush.Visual>
+                                                    </VisualBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <!-- Add Item Form -->
+                        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="Add/Edit Item" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                                <Label Content="Item Number:" Margin="0,0,0,2" Padding="0"/>
+                                <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
+
+                                <Label Content="Description:" Margin="0,0,0,2" Padding="0"/>
+                                <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
+
+                                <Label Content="SKUs (comma-separated):" Margin="0,0,0,2" Padding="0"/>
+                                <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,10"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Column="0" Content="Add" Command="{Binding AddItemCommand}"
+                                            Background="#4CAF50" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
+                                    <Button Grid.Column="1" Content="Update" Command="{Binding UpdateItemCommand}"
+                                            Background="#2196F3" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
+                                    <Button Grid.Column="2" Content="Delete" Command="{Binding DeleteItemCommand}"
+                                            Background="#FF6B6B" Foreground="White" BorderThickness="0" Padding="8,6"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Items List -->
+                        <Border Grid.Row="3" BorderBrush="#DDD" BorderThickness="1">
+                            <DataGrid ItemsSource="{Binding FilteredItems}"
+                                      SelectedItem="{Binding SelectedItem}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      Background="White"
+                                      SelectionMode="Single">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Number" Binding="{Binding Number, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                    <DataGridTemplateColumn Header="SKUs (comma-separated)" Width="200">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Skus, Converter={StaticResource ListToCommaStringConverter}}" TextWrapping="Wrap" Padding="4"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                        <DataGridTemplateColumn.CellEditingTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Skus, Converter={StaticResource ListToCommaStringConverter}, UpdateSourceTrigger=LostFocus}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellEditingTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Border>
+
+                        <!-- Item Count -->
+                        <TextBlock Grid.Row="4" Text="{Binding FilteredItems.Count, StringFormat='Total: {0} items'}"
+                                   FontSize="11" Foreground="#666" Margin="0,5,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Stores Section -->
+                <Border Grid.Column="2" Background="White" Padding="15" CornerRadius="5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <TextBlock Grid.Row="0" Text="Stores" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <!-- Search -->
+                        <TextBox Grid.Row="1" Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,10" Padding="8">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <VisualBrush Stretch="None" AlignmentX="Left">
+                                                        <VisualBrush.Visual>
+                                                            <TextBlock Text="🔍 Search stores..." Foreground="#999" Margin="8,0,0,0"/>
+                                                        </VisualBrush.Visual>
+                                                    </VisualBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <!-- Add Store Form -->
+                        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="Add/Edit Store" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                                <Label Content="Store ID:" Margin="0,0,0,2" Padding="0"/>
+                                <TextBox Text="{Binding NewStoreId, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
+
+                                <Label Content="Store Name:" Margin="0,0,0,2" Padding="0"/>
+                                <TextBox Text="{Binding NewStoreName, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
+
+                                <Label Content="Rank:" Margin="0,0,0,2" Padding="0"/>
+                                <ComboBox ItemsSource="{Binding StoreRanks}" SelectedItem="{Binding NewStoreRank}" Padding="6" Margin="0,0,0,10"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Column="0" Content="Add" Command="{Binding AddStoreCommand}"
+                                            Background="#4CAF50" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
+                                    <Button Grid.Column="1" Content="Update" Command="{Binding UpdateStoreCommand}"
+                                            Background="#2196F3" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
+                                    <Button Grid.Column="2" Content="Delete" Command="{Binding DeleteStoreCommand}"
+                                            Background="#FF6B6B" Foreground="White" BorderThickness="0" Padding="8,6"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Stores List -->
+                        <Border Grid.Row="3" BorderBrush="#DDD" BorderThickness="1">
+                            <DataGrid ItemsSource="{Binding FilteredStores}"
+                                      SelectedItem="{Binding SelectedStore}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      Background="White"
+                                      SelectionMode="Single">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding Code, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                    <DataGridComboBoxColumn Header="Rank"
+                                                           SelectedItemBinding="{Binding Rank, UpdateSourceTrigger=PropertyChanged}"
+                                                           Width="60">
+                                        <DataGridComboBoxColumn.ElementStyle>
+                                            <Style TargetType="ComboBox">
+                                                <Setter Property="ItemsSource" Value="{Binding DataContext.StoreRanks, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                            </Style>
+                                        </DataGridComboBoxColumn.ElementStyle>
+                                        <DataGridComboBoxColumn.EditingElementStyle>
+                                            <Style TargetType="ComboBox">
+                                                <Setter Property="ItemsSource" Value="{Binding DataContext.StoreRanks, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                            </Style>
+                                        </DataGridComboBoxColumn.EditingElementStyle>
+                                    </DataGridComboBoxColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Border>
+
+                        <!-- Store Count -->
+                        <TextBlock Grid.Row="4" Text="{Binding FilteredStores.Count, StringFormat='Total: {0} stores'}"
+                                   FontSize="11" Foreground="#666" Margin="0,5,0,0"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

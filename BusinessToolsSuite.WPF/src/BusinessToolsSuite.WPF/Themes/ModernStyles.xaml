@@ -71,6 +71,9 @@
         </Setter>
     </Style>
 
+    <!-- Primary Button Style (alias for ModernButton) -->
+    <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}"/>
+
     <!-- Secondary Button Style -->
     <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>

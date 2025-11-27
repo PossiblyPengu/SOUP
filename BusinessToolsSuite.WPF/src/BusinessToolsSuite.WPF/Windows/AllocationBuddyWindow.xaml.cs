@@ -6,7 +6,7 @@ namespace BusinessToolsSuite.WPF.Windows;
 
 public partial class AllocationBuddyWindow : Window
 {
-    public AllocationBuddyWindow(AllocationBuddyViewModel viewModel)
+    public AllocationBuddyWindow(object viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;

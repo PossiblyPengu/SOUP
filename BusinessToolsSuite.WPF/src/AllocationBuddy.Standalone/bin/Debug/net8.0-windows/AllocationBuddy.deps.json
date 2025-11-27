@@ -37,11 +37,11 @@
           }
         }
       },
-      "CommunityToolkit.Mvvm/8.3.2": {
+      "CommunityToolkit.Mvvm/8.4.0": {
         "runtime": {
           "lib/net8.0/CommunityToolkit.Mvvm.dll": {
-            "assemblyVersion": "8.3.0.0",
-            "fileVersion": "8.3.2.1"
+            "assemblyVersion": "8.4.0.0",
+            "fileVersion": "8.4.0.1"
           }
         }
       },
@@ -556,6 +556,7 @@
         "dependencies": {
           "BusinessToolsSuite.Core": "1.0.0",
           "ClosedXML": "0.104.2",
+          "CommunityToolkit.Mvvm": "8.4.0",
           "CsvHelper": "33.0.1",
           "LiteDB": "5.0.21",
           "Microsoft.Extensions.DependencyInjection": "8.0.1",
@@ -572,7 +573,7 @@
         "dependencies": {
           "BusinessToolsSuite.Core": "1.0.0",
           "BusinessToolsSuite.Infrastructure": "1.0.0",
-          "CommunityToolkit.Mvvm": "8.3.2",
+          "CommunityToolkit.Mvvm": "8.4.0",
           "Microsoft.Extensions.Hosting": "8.0.1",
           "Serilog.Extensions.Hosting": "8.0.0",
           "Serilog.Sinks.File": "6.0.0"
@@ -606,12 +607,12 @@
       "path": "closedxml.parser/1.2.0",
       "hashPath": "closedxml.parser.1.2.0.nupkg.sha512"
     },
-    "CommunityToolkit.Mvvm/8.3.2": {
+    "CommunityToolkit.Mvvm/8.4.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-m8EolE1A0Updj68WTsZSGI6VWb6mUqHPh7QFo0kt7+JPhYMNXRS1ch8TS/oITAdcxTLrwMOp3ku1KjeG1/Zdpg==",
-      "path": "communitytoolkit.mvvm/8.3.2",
-      "hashPath": "communitytoolkit.mvvm.8.3.2.nupkg.sha512"
+      "sha512": "sha512-tqVU8yc/ADO9oiTRyTnwhFN68hCwvkliMierptWOudIAvWY1mWCh5VFh+guwHJmpMwfg0J0rY+yyd5Oy7ty9Uw==",
+      "path": "communitytoolkit.mvvm/8.4.0",
+      "hashPath": "communitytoolkit.mvvm.8.4.0.nupkg.sha512"
     },
     "CsvHelper/33.0.1": {
       "type": "package",

@@ -72,6 +72,13 @@
                             <TextBlock Text="Export CSV"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Command="{Binding OpenSettingsCommand}" Style="{StaticResource SecondaryButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="Settings"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>

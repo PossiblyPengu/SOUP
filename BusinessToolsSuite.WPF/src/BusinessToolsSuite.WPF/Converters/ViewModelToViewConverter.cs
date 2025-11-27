@@ -18,7 +18,7 @@ public class ViewModelToViewConverter : IValueConverter
     {
         return value switch
         {
-            AllocationBuddyViewModel vm => new AllocationBuddyView { DataContext = vm },
+            AllocationBuddyRPGViewModel vm => new AllocationBuddyRPGView { DataContext = vm },
             EssentialsBuddyViewModel vm => new EssentialsBuddyView { DataContext = vm },
             ExpireWiseViewModel vm => new ExpireWiseView { DataContext = vm },
             null => null,

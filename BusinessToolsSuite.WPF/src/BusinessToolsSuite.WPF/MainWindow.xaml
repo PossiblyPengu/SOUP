@@ -457,11 +457,19 @@
                            HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <!-- Right side - Theme toggle -->
+            <!-- Right side - Settings and Theme toggle -->
             <StackPanel Grid.Column="2"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Margin="0,0,48,0">
+                <Button Command="{Binding OpenSettingsCommand}"
+                        Style="{StaticResource ThemeToggleButtonStyle}"
+                        Margin="0,0,10,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙️" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
                 <Button Command="{Binding LauncherViewModel.ToggleThemeCommand}"
                         Style="{StaticResource ThemeToggleButtonStyle}">
                     <StackPanel Orientation="Horizontal">

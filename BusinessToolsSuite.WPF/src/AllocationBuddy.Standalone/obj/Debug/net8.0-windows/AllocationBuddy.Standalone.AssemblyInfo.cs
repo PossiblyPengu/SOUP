@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AllocationBuddy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e07606cf1cafec3d09152dbf8ad72dc2a5ba3898")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74b56855790f6d74e511bebb800dccf2dd56ee77")]
 [assembly: System.Reflection.AssemblyProductAttribute("AllocationBuddy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AllocationBuddy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

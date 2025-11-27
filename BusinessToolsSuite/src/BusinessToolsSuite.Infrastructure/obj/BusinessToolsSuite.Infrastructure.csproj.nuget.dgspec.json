@@ -119,6 +119,10 @@
               "target": "Package",
               "version": "[0.104.2, )"
             },
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
             "CsvHelper": {
               "target": "Package",
               "version": "[33.0.1, )"

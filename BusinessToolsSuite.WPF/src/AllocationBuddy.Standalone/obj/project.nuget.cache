@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "IxqwR45j5GQ=",
+  "dgSpecHash": "AuJA5HH4sSs=",
   "success": true,
   "projectFilePath": "D:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\acalabrese\\.nuget\\packages\\closedxml\\0.104.2\\closedxml.0.104.2.nupkg.sha512",
     "C:\\Users\\acalabrese\\.nuget\\packages\\closedxml.parser\\1.2.0\\closedxml.parser.1.2.0.nupkg.sha512",
-    "C:\\Users\\acalabrese\\.nuget\\packages\\communitytoolkit.mvvm\\8.3.2\\communitytoolkit.mvvm.8.3.2.nupkg.sha512",
+    "C:\\Users\\acalabrese\\.nuget\\packages\\communitytoolkit.mvvm\\8.4.0\\communitytoolkit.mvvm.8.4.0.nupkg.sha512",
     "C:\\Users\\acalabrese\\.nuget\\packages\\csvhelper\\33.0.1\\csvhelper.33.0.1.nupkg.sha512",
     "C:\\Users\\acalabrese\\.nuget\\packages\\documentformat.openxml\\3.1.1\\documentformat.openxml.3.1.1.nupkg.sha512",
     "C:\\Users\\acalabrese\\.nuget\\packages\\documentformat.openxml.framework\\3.1.1\\documentformat.openxml.framework.3.1.1.nupkg.sha512",
