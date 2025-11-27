@@ -13,7 +13,17 @@
       "Bash(timeout /t 5 /nobreak)",
       "Bash(\"/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe\" build src/BusinessToolsSuite.WPF/BusinessToolsSuite.WPF.csproj)",
       "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build:*)",
-      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build src/BusinessToolsSuite.WPF/BusinessToolsSuite.WPF.csproj)"
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build src/BusinessToolsSuite.WPF/BusinessToolsSuite.WPF.csproj)",
+      "Bash(powershell.exe -Command:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"$dotnet = ''D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe''; & $dotnet build BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File run-allocationbuddy.ps1)",
+      "Bash(dotnet build:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" run --project \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" add:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" add \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\" package CommunityToolkit.Mvvm --version 8.4.0)",
+      "Bash(D:CODEimportant filesdotnet-sdk-8.0.404-win-x64dotnet.exe build \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe build:*)"
     ],
     "deny": [],
     "ask": []
