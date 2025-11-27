@@ -1,0 +1,25 @@
+# ExpireWise - Standalone Application
+Write-Host "Building and running ExpireWise..." -ForegroundColor Cyan
+Write-Host ""
+
+$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptPath
+
+$dotnet = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
+$project = "BusinessToolsSuite.WPF\src\ExpireWise.Standalone\ExpireWise.Standalone.csproj"
+$exe = "BusinessToolsSuite.WPF\src\ExpireWise.Standalone\bin\Debug\net8.0-windows\ExpireWise.exe"
+
+Write-Host "Building project..." -ForegroundColor Yellow
+& $dotnet build $project
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host ""
+    Write-Host "Build successful! Starting ExpireWise..." -ForegroundColor Green
+    Write-Host ""
+    & $exe
+} else {
+    Write-Host ""
+    Write-Host "Build failed!" -ForegroundColor Red
+    Write-Host "Press any key to exit..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+}

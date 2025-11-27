@@ -1,0 +1,96 @@
+using System;
+using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using BusinessToolsSuite.Core.Entities.Settings;
+
+namespace BusinessToolsSuite.Infrastructure.Services;
+
+/// <summary>
+/// Service for loading and saving application settings
+/// </summary>
+public class SettingsService
+{
+    private readonly string _settingsDirectory;
+    private readonly JsonSerializerOptions _jsonOptions;
+
+    public SettingsService()
+    {
+        _settingsDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "BusinessToolsSuite",
+            "Settings"
+        );
+
+        // Ensure the settings directory exists
+        Directory.CreateDirectory(_settingsDirectory);
+
+        _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true
+        };
+    }
+
+    /// <summary>
+    /// Load settings from file. Returns default settings if file doesn't exist.
+    /// </summary>
+    public async Task<T> LoadSettingsAsync<T>(string appName) where T : new()
+    {
+        var filePath = GetSettingsFilePath(appName);
+
+        if (!File.Exists(filePath))
+        {
+            return new T();
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            return System.Text.Json.JsonSerializer.Deserialize<T>(json, _jsonOptions) ?? new T();
+        }
+        catch (Exception)
+        {
+            // If there's an error reading/deserializing, return default settings
+            return new T();
+        }
+    }
+
+    /// <summary>
+    /// Save settings to file
+    /// </summary>
+    public async Task SaveSettingsAsync<T>(string appName, T settings)
+    {
+        var filePath = GetSettingsFilePath(appName);
+
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(settings, _jsonOptions);
+            await File.WriteAllTextAsync(filePath, json);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to save settings for {appName}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Get the full file path for settings file
+    /// </summary>
+    private string GetSettingsFilePath(string appName)
+    {
+        return Path.Combine(_settingsDirectory, $"{appName}.settings.json");
+    }
+
+    /// <summary>
+    /// Delete settings file for an app (reset to defaults)
+    /// </summary>
+    public void ResetSettings(string appName)
+    {
+        var filePath = GetSettingsFilePath(appName);
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+    }
+}
