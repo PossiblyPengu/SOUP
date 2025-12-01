@@ -5,21 +5,63 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:BusinessToolsSuite.WPF.ViewModels"
              mc:Ignorable="d"
-             Width="400" Height="200"
+             Width="420" Height="240"
              d:DataContext="{d:DesignInstance Type=vm:SelectLocationDialogViewModel}">
 
-    <StackPanel Margin="12">
-        <TextBlock Text="Select a target location to move the item to:" Margin="0,0,0,12"/>
-        <ComboBox ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" Margin="0,0,0,12"/>
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,12">
-            <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-            <TextBox Width="90" Text="{Binding SelectedQuantity, UpdateSourceTrigger=PropertyChanged}"/>
-        </StackPanel>
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="📍 Move Item to Location" 
+                           FontSize="18" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Select a target location and quantity to move"
+                           FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="CancelBtn" Content="Cancel" Click="Cancel_Click" Width="80" Margin="0,0,8,0"/>
-            <Button x:Name="OkBtn" Content="OK" Click="Ok_Click" Width="80"/>
-        </StackPanel>
-    </StackPanel>
+            <!-- Form -->
+            <StackPanel Grid.Row="1">
+                <!-- Location Selection -->
+                <TextBlock Text="Target Location" FontWeight="SemiBold" FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding Locations}" 
+                          SelectedItem="{Binding SelectedLocation}"
+                          Style="{StaticResource ModernComboBox}"
+                          Margin="0,0,0,16"/>
+
+                <!-- Quantity -->
+                <TextBlock Text="Quantity" FontWeight="SemiBold" FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                <TextBox Text="{Binding SelectedQuantity, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource ModernTextBox}"
+                         Width="120" HorizontalAlignment="Left"/>
+            </StackPanel>
+
+            <!-- Buttons -->
+            <Grid Grid.Row="2" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="CancelBtn" Grid.Column="1" Content="Cancel" 
+                        Click="Cancel_Click" 
+                        Style="{StaticResource SecondaryButton}"
+                        Padding="20,10" Margin="0,0,10,0"/>
+                <Button x:Name="OkBtn" Grid.Column="2" Content="Move Item" 
+                        Click="Ok_Click" 
+                        Style="{StaticResource PrimaryButton}"
+                        Padding="20,10"/>
+            </Grid>
+        </Grid>
+    </Border>
 </UserControl>

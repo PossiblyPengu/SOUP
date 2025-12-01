@@ -4,13 +4,56 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             Width="420" Height="160">
+             Width="440" Height="200">
 
-    <StackPanel Margin="12">
-        <TextBlock x:Name="MessageText" Text="Are you sure?" TextWrapping="Wrap" Margin="0,0,0,12"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Cancel" Click="Cancel_Click" Width="80" Margin="0,0,8,0"/>
-            <Button Content="OK" Click="Ok_Click" Width="80"/>
-        </StackPanel>
-    </StackPanel>
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Background="{StaticResource WarningBrush}" 
+                        CornerRadius="20" Width="40" Height="40"
+                        VerticalAlignment="Center" Margin="0,0,12,0">
+                    <TextBlock Text="⚠" FontSize="20" 
+                               Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Confirm Action" 
+                           FontSize="18" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Message -->
+            <TextBlock x:Name="MessageText" Grid.Row="1"
+                       Text="Are you sure you want to proceed?" 
+                       TextWrapping="Wrap"
+                       FontSize="14"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       VerticalAlignment="Center"/>
+
+            <!-- Buttons -->
+            <Grid Grid.Row="2" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="1" Content="Cancel" 
+                        Click="Cancel_Click" 
+                        Style="{StaticResource SecondaryButton}"
+                        Padding="20,10" Margin="0,0,10,0"/>
+                <Button Grid.Column="2" Content="Confirm" 
+                        Click="Ok_Click" 
+                        Style="{StaticResource PrimaryButton}"
+                        Padding="20,10"/>
+            </Grid>
+        </Grid>
+    </Border>
 </UserControl>

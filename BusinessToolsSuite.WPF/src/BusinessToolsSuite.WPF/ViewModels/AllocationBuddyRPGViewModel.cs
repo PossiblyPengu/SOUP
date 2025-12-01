@@ -83,6 +83,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     public IAsyncRelayCommand<LocationAllocation> DeactivateStoreCommand { get; }
     public IRelayCommand UndoDeactivateCommand { get; }
     public IAsyncRelayCommand ClearDataCommand { get; }
+    public IRelayCommand<LocationAllocation> CopyLocationToClipboardCommand { get; }
 
     public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
@@ -100,6 +101,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         DeactivateStoreCommand = new AsyncRelayCommand<LocationAllocation>(DeactivateStoreAsync);
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
+        CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
 
         // Load dictionaries on a background task to avoid blocking the UI during startup
         _ = Task.Run(() =>
@@ -126,6 +128,37 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
                 try { Serilog.Log.Error(ex, "Failed to load dictionaries for AllocationBuddy"); } catch { }
             }
         });
+    }
+
+    /// <summary>
+    /// Copies the items from a location to the clipboard in a tab-separated format
+    /// suitable for pasting into Business Central transfer orders.
+    /// Format: ItemNumber[TAB]Quantity per line
+    /// </summary>
+    private void CopyLocationToClipboard(LocationAllocation? loc)
+    {
+        if (loc == null || loc.Items.Count == 0)
+        {
+            StatusMessage = "No items to copy";
+            return;
+        }
+
+        var sb = new System.Text.StringBuilder();
+        foreach (var item in loc.Items)
+        {
+            // Tab-separated: Item Number, Quantity
+            sb.AppendLine($"{item.ItemNumber}\t{item.Quantity}");
+        }
+
+        try
+        {
+            System.Windows.Clipboard.SetText(sb.ToString());
+            StatusMessage = $"Copied {loc.Items.Count} items for '{loc.Location}' to clipboard";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to copy: {ex.Message}";
+        }
     }
 
     private async Task DeactivateStoreAsync(LocationAllocation loc)

@@ -5,162 +5,133 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:BusinessToolsSuite.WPF.ViewModels"
              mc:Ignorable="d"
-             d:DesignHeight="550" d:DesignWidth="600"
+             d:DesignHeight="580" d:DesignWidth="500"
              d:DataContext="{d:DesignInstance Type=vm:ExpirationItemDialogViewModel}">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Form Fields -->
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-
-                <!-- Item Number -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Item Number *" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Style.Triggers>
-                                    <Trigger Property="Text" Value="">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <VisualBrush Stretch="None" AlignmentX="Left">
-                                                    <VisualBrush.Visual>
-                                                        <TextBlock Text="Enter item number" Foreground="Gray" Margin="4,0,0,0"/>
-                                                    </VisualBrush.Visual>
-                                                </VisualBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📅" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="Expiration Item" 
+                               FontSize="20" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               VerticalAlignment="Center"/>
                 </StackPanel>
-
-                <!-- Description -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Description *" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Style.Triggers>
-                                    <Trigger Property="Text" Value="">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <VisualBrush Stretch="None" AlignmentX="Left">
-                                                    <VisualBrush.Visual>
-                                                        <TextBlock Text="Enter description" Foreground="Gray" Margin="4,0,0,0"/>
-                                                    </VisualBrush.Visual>
-                                                </VisualBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-                </StackPanel>
-
-                <!-- Location -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Location" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Style.Triggers>
-                                    <Trigger Property="Text" Value="">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <VisualBrush Stretch="None" AlignmentX="Left">
-                                                    <VisualBrush.Visual>
-                                                        <TextBlock Text="Enter location (optional)" Foreground="Gray" Margin="4,0,0,0"/>
-                                                    </VisualBrush.Visual>
-                                                </VisualBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-                </StackPanel>
-
-                <!-- Units -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Units *" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
-
-                <!-- Expiry Date -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Expiry Date *" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <DatePicker SelectedDate="{Binding ExpiryDate}"/>
-                </StackPanel>
-
-                <!-- Category -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Style.Triggers>
-                                    <Trigger Property="Text" Value="">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <VisualBrush Stretch="None" AlignmentX="Left">
-                                                    <VisualBrush.Visual>
-                                                        <TextBlock Text="Enter category (optional)" Foreground="Gray" Margin="4,0,0,0"/>
-                                                    </VisualBrush.Visual>
-                                                </VisualBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-                </StackPanel>
-
-                <!-- Notes -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="Notes" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
-                             Height="80" TextWrapping="Wrap" AcceptsReturn="True">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Style.Triggers>
-                                    <Trigger Property="Text" Value="">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <VisualBrush Stretch="None" AlignmentX="Left">
-                                                    <VisualBrush.Visual>
-                                                        <TextBlock Text="Enter notes (optional)" Foreground="Gray" Margin="4,0,0,0"/>
-                                                    </VisualBrush.Visual>
-                                                </VisualBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-                </StackPanel>
-
+                <TextBlock Text="Track item expiration dates and details"
+                           FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,6,0,0"/>
             </StackPanel>
-        </ScrollViewer>
 
-        <!-- Buttons -->
-        <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="0,16,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Cancel" Width="100" Padding="12,8" Click="Cancel_Click" Margin="0,0,12,0"/>
-                <Button Content="Save" Width="100" Padding="12,8" Background="#007ACC" Foreground="White" Click="Save_Click"/>
-            </StackPanel>
-        </Border>
+            <!-- Form Fields -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Item Number -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="Item Number" FontWeight="SemiBold" FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
 
-    </Grid>
+                    <!-- Description -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="Description" FontWeight="SemiBold" FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <!-- Two Column Layout -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Location -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Location" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+
+                        <!-- Units -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Units" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Two Column Layout -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Expiry Date -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Expiry Date" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <DatePicker SelectedDate="{Binding ExpiryDate}"
+                                        Style="{StaticResource ModernDatePicker}"/>
+                        </StackPanel>
+
+                        <!-- Category -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Category" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Notes -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Height="80" TextWrapping="Wrap" AcceptsReturn="True"
+                                 VerticalContentAlignment="Top"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Buttons -->
+            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" 
+                    BorderThickness="0,1,0,0" Padding="0,20,0,0" Margin="0,16,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="1" Content="Cancel" 
+                            Click="Cancel_Click" 
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="24,10" Margin="0,0,12,0"/>
+                    <Button Grid.Column="2" Content="💾 Save" 
+                            Click="Save_Click" 
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="24,10"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>

@@ -164,6 +164,16 @@
         <Setter Property="FontSize" Value="14"/>
     </Style>
 
+    <!-- Modern DatePicker Style -->
+    <Style x:Key="ModernDatePicker" TargetType="DatePicker">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+
     <!-- Modern DataGrid Style -->
     <Style x:Key="ModernDataGrid" TargetType="DataGrid">
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>

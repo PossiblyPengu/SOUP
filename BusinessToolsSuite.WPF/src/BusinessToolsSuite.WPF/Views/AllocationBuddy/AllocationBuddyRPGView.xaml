@@ -114,48 +114,46 @@
                     <TextBlock DockPanel.Dock="Left" Text="📊 Item Totals:" 
                                FontWeight="SemiBold" FontSize="13"
                                Foreground="{StaticResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                        <ItemsControl ItemsSource="{Binding ItemTotals}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{StaticResource SurfaceBrush}"
-                                            BorderBrush="{StaticResource BorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="4"
-                                            Padding="8,4"
-                                            Margin="0,0,8,0">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Description}" 
-                                                       FontSize="12"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       MaxWidth="120"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding ItemNumber, StringFormat=' ({0})'}" 
-                                                       FontSize="10"
-                                                       Foreground="{StaticResource TextTertiaryBrush}"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0,0,6,0"/>
-                                            <Border Background="{StaticResource PrimaryBrush}"
-                                                    CornerRadius="3"
-                                                    Padding="6,2">
-                                                <TextBlock Text="{Binding TotalQuantity, StringFormat='×{0}'}"
-                                                           FontWeight="Bold"
-                                                           FontSize="11"
-                                                           Foreground="White"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                               VerticalAlignment="Top" Margin="0,4,12,0"/>
+                    <ItemsControl ItemsSource="{Binding ItemTotals}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="8,4"
+                                        Margin="0,0,8,6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Description}" 
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   MaxWidth="120"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ItemNumber, StringFormat=' ({0})'}" 
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,6,0"/>
+                                        <Border Background="{StaticResource PrimaryBrush}"
+                                                CornerRadius="3"
+                                                Padding="6,2">
+                                            <TextBlock Text="{Binding TotalQuantity, StringFormat='×{0}'}"
+                                                       FontWeight="Bold"
+                                                       FontSize="11"
+                                                       Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </DockPanel>
             </Border>
 
@@ -325,6 +323,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Orientation="Horizontal" Grid.Column="0">
@@ -338,6 +337,19 @@
                                         </StackPanel>
 
                                         <Button Grid.Column="1"
+                                                Command="{Binding DataContext.CopyLocationToClipboardCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource SecondaryButton}"
+                                                Padding="8,4"
+                                                Margin="0,0,8,0"
+                                                ToolTip="Copy items for Business Central transfer order">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📋" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock Text="Copy for BC" FontSize="11"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button Grid.Column="2"
                                                 Command="{Binding DataContext.DeactivateStoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource DangerButton}"
