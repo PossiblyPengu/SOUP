@@ -42,6 +42,37 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
     public string FooterMessage => _statusMessage;
 
+    /// <summary>
+    /// Gets a summary of total quantities per unique item across all locations.
+    /// </summary>
+    public ObservableCollection<ItemTotalSummary> ItemTotals { get; } = new();
+
+    /// <summary>
+    /// Recalculates the ItemTotals collection from all locations.
+    /// </summary>
+    private void RefreshItemTotals()
+    {
+        var totals = LocationAllocations
+            .SelectMany(l => l.Items)
+            .GroupBy(i => i.ItemNumber)
+            .Select(g => new ItemTotalSummary
+            {
+                ItemNumber = g.Key,
+                Description = g.First().Description,
+                TotalQuantity = g.Sum(i => i.Quantity),
+                LocationCount = g.Select(i => i).Count()
+            })
+            .OrderByDescending(t => t.TotalQuantity)
+            .ToList();
+
+        ItemTotals.Clear();
+        foreach (var t in totals)
+        {
+            ItemTotals.Add(t);
+        }
+        OnPropertyChanged(nameof(ItemTotals));
+    }
+
     public IRelayCommand ImportCommand { get; }
     public IAsyncRelayCommand<string[]> ImportFilesCommand { get; }
     public IRelayCommand RefreshCommand { get; }
@@ -70,19 +101,29 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
 
-        // Load internal store dictionary on a background task to avoid blocking the UI during startup
+        // Load dictionaries on a background task to avoid blocking the UI during startup
         _ = Task.Run(() =>
         {
             try
             {
+                // Load store dictionary
                 var stores = BusinessToolsSuite.WPF.Data.InternalStoreDictionary.GetStores();
-                var mapped = stores.Select(s => new BusinessToolsSuite.Infrastructure.Services.Parsers.StoreEntry { Code = s.Code, Name = s.Name, Rank = s.Rank }).ToList();
-                _parser.SetStoreDictionary(mapped);
+                var mappedStores = stores.Select(s => new BusinessToolsSuite.Infrastructure.Services.Parsers.StoreEntry { Code = s.Code, Name = s.Name, Rank = s.Rank }).ToList();
+                _parser.SetStoreDictionary(mappedStores);
+
+                // Load item dictionary for descriptions and SKU matching
+                var dictionaryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "dictionaries.js");
+                if (File.Exists(dictionaryPath))
+                {
+                    var items = BusinessToolsSuite.WPF.Helpers.DictionaryLoader.LoadItemsFromJs(dictionaryPath);
+                    _parser.SetDictionaryItems(items);
+                    Serilog.Log.Information("Loaded {Count} dictionary items for AllocationBuddy matching", items.Count);
+                }
             }
             catch (Exception ex)
             {
                 // Log via Serilog if available; otherwise ignore to avoid throwing from ctor
-                try { Serilog.Log.Error(ex, "Failed to load internal store dictionary"); } catch { }
+                try { Serilog.Log.Error(ex, "Failed to load dictionaries for AllocationBuddy"); } catch { }
             }
         });
     }
@@ -224,6 +265,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     {
         // simple refresh - recompute totals
         OnPropertyChanged(nameof(TotalEntries));
+        RefreshItemTotals();
         return Task.CompletedTask;
     }
 
@@ -254,6 +296,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             }
             LocationAllocations.Add(loc);
         }
+
+        RefreshItemTotals();
     }
 
     // Command to open selection dialog and move from pool to chosen location
@@ -606,5 +650,16 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
         [ObservableProperty]
         private bool _isUpdated;
+    }
+
+    /// <summary>
+    /// Summary of total quantity for a unique item across all locations.
+    /// </summary>
+    public class ItemTotalSummary
+    {
+        public string ItemNumber { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int TotalQuantity { get; set; }
+        public int LocationCount { get; set; }
     }
 }

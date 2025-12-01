@@ -28,21 +28,11 @@
                    Margin="0,0,0,20"/>
 
         <!-- TabControl for different app settings -->
-        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0"
+                    SelectionChanged="OnTabSelectionChanged">
 
-            <!-- Dictionary Management Tab -->
-            <TabItem Header="Dictionary Management" FontSize="14" Padding="15,8">
-                <ContentControl Content="{Binding DictionaryManagement}">
-                    <ContentControl.ContentTemplate>
-                        <DataTemplate>
-                            <local:DictionaryManagementView DataContext="{Binding}"/>
-                        </DataTemplate>
-                    </ContentControl.ContentTemplate>
-                </ContentControl>
-            </TabItem>
-
-            <!-- AllocationBuddy Tab -->
-            <TabItem Header="AllocationBuddy" FontSize="14" Padding="15,8">
+            <!-- AllocationBuddy Tab (default) -->
+            <TabItem Header="AllocationBuddy" FontSize="14" Padding="15,8" IsSelected="True">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
                     <StackPanel DataContext="{Binding AllocationBuddySettings}">
 
@@ -250,6 +240,11 @@
 
                     </StackPanel>
                 </ScrollViewer>
+            </TabItem>
+
+            <!-- Dictionary Management Tab (load on demand) -->
+            <TabItem Header="Dictionary Management" FontSize="14" Padding="15,8">
+                <local:DictionaryManagementView DataContext="{Binding DictionaryManagement}"/>
             </TabItem>
 
         </TabControl>

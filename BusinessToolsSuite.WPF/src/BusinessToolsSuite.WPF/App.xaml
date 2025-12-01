@@ -1,7 +1,8 @@
 ﻿<Application x:Class="BusinessToolsSuite.WPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:BusinessToolsSuite.WPF">
+             xmlns:local="clr-namespace:BusinessToolsSuite.WPF"
+             xmlns:converters="clr-namespace:BusinessToolsSuite.WPF.Converters">
     <Application.Resources>
         <!-- Merge Modern Styles -->
         <ResourceDictionary>
@@ -11,6 +12,7 @@
 
             <!-- Converters -->
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

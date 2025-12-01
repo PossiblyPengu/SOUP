@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,10 @@ public partial class DictionaryManagementViewModel : ObservableObject
     private readonly ILogger<DictionaryManagementViewModel>? _logger;
     private readonly string _dictionaryPath;
 
+    // Backing lists for fast access (not bound to UI)
+    private List<DictionaryItem> _allItems = new();
+    private List<StoreEntry> _allStores = new();
+
     [ObservableProperty]
     private ObservableCollection<DictionaryItem> _items = new();
 
@@ -37,6 +42,30 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
     [ObservableProperty]
     private StoreEntry? _selectedStore;
+
+    partial void OnSelectedItemChanged(DictionaryItem? value)
+    {
+        if (value != null)
+        {
+            // Auto-populate form fields when an item is selected
+            NewItemNumber = value.Number;
+            NewItemDescription = value.Description;
+            NewItemSkus = value.Skus != null ? string.Join(", ", value.Skus) : string.Empty;
+            StatusMessage = $"Selected item {value.Number}. Modify and click Update, or click Delete.";
+        }
+    }
+
+    partial void OnSelectedStoreChanged(StoreEntry? value)
+    {
+        if (value != null)
+        {
+            // Auto-populate form fields when a store is selected
+            NewStoreId = value.Code;
+            NewStoreName = value.Name;
+            NewStoreRank = value.Rank;
+            StatusMessage = $"Selected store {value.Code}. Modify and click Update, or click Delete.";
+        }
+    }
 
     [ObservableProperty]
     private string _itemSearchText = string.Empty;
@@ -68,7 +97,23 @@ public partial class DictionaryManagementViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    [ObservableProperty]
+    private bool _showAllItems;
+
+    [ObservableProperty]
+    private int _currentPage = 1;
+
+    [ObservableProperty]
+    private int _totalPages = 1;
+
+    private const int PageSize = 100;
+
     public ObservableCollection<string> StoreRanks { get; } = new() { "A", "B", "C", "D" };
+
+    [ObservableProperty]
+    private bool _isInitialized;
+
+    public int TotalItemCount => _allItems.Count;
 
     public DictionaryManagementViewModel(ILogger<DictionaryManagementViewModel>? logger = null)
     {
@@ -76,18 +121,25 @@ public partial class DictionaryManagementViewModel : ObservableObject
         _dictionaryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "dictionaries.js");
     }
 
-    public async Task InitializeAsync()
+    /// <summary>
+    /// Called when the settings window opens. We skip heavy loading here to avoid UI freeze.
+    /// </summary>
+    public Task InitializeAsync()
     {
-        await LoadDictionaryAsync();
+        // Don't load dictionary on window open - defer to LoadDictionaryAsync when tab is selected
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
-    private async Task LoadDictionaryAsync()
+    public async Task LoadDictionaryAsync()
     {
+        if (IsLoading) return;
+        
         try
         {
             IsLoading = true;
             StatusMessage = "Loading dictionary data...";
+            _logger?.LogInformation("DictionaryManagement: Starting LoadDictionaryAsync");
 
             if (!File.Exists(_dictionaryPath))
             {
@@ -97,23 +149,55 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 return;
             }
 
-            // Run file I/O on background thread to avoid blocking UI
-            var (items, stores) = await Task.Run(() =>
+            // Run file I/O and sorting on background thread to avoid blocking UI
+            var (sortedItems, sortedStores) = await Task.Run(() =>
             {
                 var loadedItems = DictionaryLoader.LoadItemsFromJs(_dictionaryPath);
                 var loadedStores = DictionaryLoader.LoadStoresFromJs(_dictionaryPath);
-                return (loadedItems, loadedStores);
-            });
+                // Sort on background thread
+                var sorted = loadedItems.OrderBy(i => i.Number).ToList();
+                var sortedS = loadedStores.OrderBy(s => s.Code).ToList();
+                return (sorted, sortedS);
+            }).ConfigureAwait(false);
 
-            // Replace collections in one operation to avoid per-item UI notifications
-            Items = new ObservableCollection<DictionaryItem>(items.OrderBy(i => i.Number));
-            Stores = new ObservableCollection<StoreEntry>(stores.OrderBy(s => s.Code));
+            _logger?.LogInformation("DictionaryManagement: Loaded {ItemCount} items, {StoreCount} stores from file", sortedItems.Count, sortedStores.Count);
 
-            ApplyItemFilters();
-            ApplyStoreFilters();
+            // Store in backing lists (fast, not bound to UI)
+            _allItems = sortedItems;
+            _allStores = sortedStores;
 
-            StatusMessage = $"Loaded {Items.Count} items and {Stores.Count} stores";
-            _logger?.LogInformation("Loaded {ItemCount} items and {StoreCount} stores from dictionary", Items.Count, Stores.Count);
+            // Update on UI thread with pagination
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                _logger?.LogInformation("DictionaryManagement: Updating UI collections");
+                
+                // Also keep Items/Stores synced for save operations
+                Items.Clear();
+                foreach (var item in _allItems) Items.Add(item);
+                
+                Stores.Clear();
+                foreach (var store in _allStores) Stores.Add(store);
+
+                // Calculate pages
+                TotalPages = Math.Max(1, (int)Math.Ceiling(_allItems.Count / (double)PageSize));
+                CurrentPage = 1;
+
+                // Show first page of items
+                UpdateDisplayedItems();
+                
+                // Show all stores (clear and add to existing collection)
+                FilteredStores.Clear();
+                foreach (var store in _allStores) FilteredStores.Add(store);
+                
+                _logger?.LogInformation("DictionaryManagement: FilteredItems count = {Count}, FilteredStores count = {StoreCount}", 
+                    FilteredItems.Count, FilteredStores.Count);
+            }, System.Windows.Threading.DispatcherPriority.Normal);
+
+            IsInitialized = true;
+            OnPropertyChanged(nameof(TotalItemCount));
+            StatusMessage = $"Loaded {_allItems.Count} items and {_allStores.Count} stores";
+
+            _logger?.LogInformation("DictionaryManagement: LoadDictionaryAsync complete");
         }
         catch (Exception ex)
         {
@@ -235,7 +319,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
             }
 
             // Check if item already exists
-            if (Items.Any(i => i.Number.Equals(NewItemNumber.Trim(), StringComparison.OrdinalIgnoreCase)))
+            if (_allItems.Any(i => i.Number.Equals(NewItemNumber.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
                 StatusMessage = $"Item {NewItemNumber} already exists";
                 return;
@@ -254,8 +338,10 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 Skus = skus
             };
 
-            Items.Add(newItem);
-            ApplyItemFilters();
+            _allItems.Add(newItem);
+            _allItems = _allItems.OrderBy(i => i.Number).ToList();
+            SyncItemsFromAllItems();
+            UpdateDisplayedItems();
 
             StatusMessage = $"Added item {newItem.Number}";
             _logger?.LogInformation("Added item {Number}", newItem.Number);
@@ -315,7 +401,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
             SelectedItem.Description = NewItemDescription.Trim();
             SelectedItem.Skus = skus;
 
-            ApplyItemFilters();
+            UpdateDisplayedItems();
             StatusMessage = $"Updated item {SelectedItem.Number}";
             _logger?.LogInformation("Updated item {Number}", SelectedItem.Number);
 
@@ -344,19 +430,30 @@ public partial class DictionaryManagementViewModel : ObservableObject
             }
 
             var itemNumber = SelectedItem.Number;
-            Items.Remove(SelectedItem);
-            ApplyItemFilters();
+            _allItems.RemoveAll(i => i.Number == itemNumber);
+            SyncItemsFromAllItems();
+            UpdateDisplayedItems();
 
             StatusMessage = $"Deleted item {itemNumber}";
             _logger?.LogInformation("Deleted item {Number}", itemNumber);
 
-            SelectedItem = null;
+            ClearItemForm();
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error deleting item: {ex.Message}";
             _logger?.LogError(ex, "Failed to delete item");
         }
+    }
+
+    [RelayCommand]
+    private void ClearItemForm()
+    {
+        NewItemNumber = string.Empty;
+        NewItemDescription = string.Empty;
+        NewItemSkus = string.Empty;
+        SelectedItem = null;
+        StatusMessage = "Form cleared. Ready to add a new item.";
     }
 
     [RelayCommand]
@@ -377,7 +474,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
             }
 
             // Check if store already exists
-            if (Stores.Any(s => s.Code.Equals(NewStoreId.Trim(), StringComparison.OrdinalIgnoreCase)))
+            if (_allStores.Any(s => s.Code.Equals(NewStoreId.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
                 StatusMessage = $"Store {NewStoreId} already exists";
                 return;
@@ -390,7 +487,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 Rank = NewStoreRank
             };
 
-            Stores.Add(newStore);
+            _allStores.Add(newStore);
+            _allStores = _allStores.OrderBy(s => s.Code).ToList();
+            Stores = new ObservableCollection<StoreEntry>(_allStores);
             ApplyStoreFilters();
 
             StatusMessage = $"Added store {newStore.Code} - {newStore.Name}";
@@ -474,13 +573,14 @@ public partial class DictionaryManagementViewModel : ObservableObject
             }
 
             var storeCode = SelectedStore.Code;
+            _allStores.RemoveAll(s => s.Code == storeCode);
             Stores.Remove(SelectedStore);
             ApplyStoreFilters();
 
             StatusMessage = $"Deleted store {storeCode}";
             _logger?.LogInformation("Deleted store {Code}", storeCode);
 
-            SelectedStore = null;
+            ClearStoreForm();
         }
         catch (Exception ex)
         {
@@ -489,9 +589,20 @@ public partial class DictionaryManagementViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void ClearStoreForm()
+    {
+        NewStoreId = string.Empty;
+        NewStoreName = string.Empty;
+        NewStoreRank = "A";
+        SelectedStore = null;
+        StatusMessage = "Form cleared. Ready to add a new store.";
+    }
+
     partial void OnItemSearchTextChanged(string value)
     {
-        ApplyItemFilters();
+        CurrentPage = 1;
+        UpdateDisplayedItems();
     }
 
     partial void OnStoreSearchTextChanged(string value)
@@ -499,26 +610,80 @@ public partial class DictionaryManagementViewModel : ObservableObject
         ApplyStoreFilters();
     }
 
-    private void ApplyItemFilters()
+    private void UpdateDisplayedItems()
     {
-        var filtered = Items.AsEnumerable();
+        IEnumerable<DictionaryItem> filtered = _allItems;
 
         if (!string.IsNullOrWhiteSpace(ItemSearchText))
         {
             var search = ItemSearchText.ToLower();
-            filtered = filtered.Where(i =>
+            filtered = _allItems.Where(i =>
                 i.Number.ToLower().Contains(search) ||
                 i.Description.ToLower().Contains(search) ||
                 (i.Skus != null && i.Skus.Any(s => s.ToLower().Contains(search))));
         }
 
-        // Assign a new collection to avoid many individual collection changed events
-        FilteredItems = new ObservableCollection<DictionaryItem>(filtered.OrderBy(i => i.Number));
+        var filteredList = filtered.ToList();
+        TotalPages = Math.Max(1, (int)Math.Ceiling(filteredList.Count / (double)PageSize));
+        
+        if (CurrentPage > TotalPages) CurrentPage = TotalPages;
+        if (CurrentPage < 1) CurrentPage = 1;
+
+        var pageItems = filteredList
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+
+        // Clear and repopulate instead of replacing the collection
+        FilteredItems.Clear();
+        foreach (var item in pageItems)
+        {
+            FilteredItems.Add(item);
+        }
+
+        var searchInfo = string.IsNullOrWhiteSpace(ItemSearchText) 
+            ? "" 
+            : $" matching '{ItemSearchText}'";
+        StatusMessage = $"Page {CurrentPage} of {TotalPages} ({filteredList.Count} items{searchInfo})";
+    }
+
+    [RelayCommand]
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+            UpdateDisplayedItems();
+        }
+    }
+
+    [RelayCommand]
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+            UpdateDisplayedItems();
+        }
+    }
+
+    [RelayCommand]
+    private void FirstPage()
+    {
+        CurrentPage = 1;
+        UpdateDisplayedItems();
+    }
+
+    [RelayCommand]
+    private void LastPage()
+    {
+        CurrentPage = TotalPages;
+        UpdateDisplayedItems();
     }
 
     private void ApplyStoreFilters()
     {
-        var filtered = Stores.AsEnumerable();
+        var filtered = _allStores.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(StoreSearchText))
         {
@@ -529,8 +694,14 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 s.Rank.ToLower().Contains(search));
         }
 
-        // Assign a new collection to avoid many individual collection changed events
+        // Stores are typically small, show all
         FilteredStores = new ObservableCollection<StoreEntry>(filtered.OrderBy(s => s.Code));
+    }
+
+    private void SyncItemsFromAllItems()
+    {
+        Items = new ObservableCollection<DictionaryItem>(_allItems);
+        OnPropertyChanged(nameof(TotalItemCount));
     }
 
     private static string EscapeJson(string text)

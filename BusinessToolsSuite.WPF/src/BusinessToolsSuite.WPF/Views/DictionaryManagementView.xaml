@@ -11,255 +11,372 @@
 
     <UserControl.Resources>
         <converters:ListToCommaStringConverter x:Key="ListToCommaStringConverter"/>
+        
+        <!-- Item Template for Items ListView -->
+        <DataTemplate x:Key="ItemTemplate">
+            <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="8,6" Background="White">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Number}" FontWeight="SemiBold" Foreground="#333" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Description}" Foreground="#555" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="10,0"/>
+                    <TextBlock Grid.Column="2" Text="{Binding Skus, Converter={StaticResource ListToCommaStringConverter}}" 
+                               Foreground="#777" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+        
+        <!-- Item Template for Stores ListView -->
+        <DataTemplate x:Key="StoreTemplate">
+            <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="8,6" Background="White">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Code}" FontWeight="SemiBold" Foreground="#333" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="#555" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="10,0"/>
+                    <Border Grid.Column="2" Background="#E8F5E9" CornerRadius="3" Padding="6,2" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding Rank}" Foreground="#2E7D32" FontWeight="SemiBold" FontSize="11"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="0,10,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <!-- Description -->
-            <Border Grid.Row="0" Background="White" Padding="15" CornerRadius="5" Margin="0,0,0,15">
-                <StackPanel>
-                    <TextBlock Text="Dictionary Management" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                    <TextBlock Text="Manage item and store dictionaries used for import accuracy across AllocationBuddy, ExpireWise, and EssentialsBuddy."
-                               FontSize="12"
-                               Foreground="#666"
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,5"/>
-                    <TextBlock Text="Changes are saved to: Assets/dictionaries.js"
-                               FontSize="11"
-                               Foreground="#999"
-                               FontStyle="Italic"/>
-                </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,10,0,0">
+            
+            <!-- Header Card -->
+            <Border Background="White" Padding="20" CornerRadius="8" Margin="0,0,0,15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Dictionary Management" FontSize="18" FontWeight="SemiBold" Foreground="#1976D2" Margin="0,0,0,8"/>
+                        <TextBlock Text="Manage item and store dictionaries used for import accuracy across AllocationBuddy, ExpireWise, and EssentialsBuddy."
+                                   FontSize="13" Foreground="#666" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#1976D2" FontWeight="Medium" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    
+                    <Button Grid.Column="1" Content="💾 Save All Changes" Command="{Binding SaveDictionaryCommand}"
+                            Background="#4CAF50" Foreground="White" BorderThickness="0" 
+                            Padding="20,12" FontSize="13" FontWeight="SemiBold" Cursor="Hand" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
 
             <!-- Items and Stores Side-by-Side -->
-            <Grid Grid.Row="1">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Items Section -->
-                <Border Grid.Column="0" Background="White" Padding="15" CornerRadius="5">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="0">
+                    <StackPanel>
+                        <!-- Items Header -->
+                        <Border Background="#1976D2" CornerRadius="8,8,0,0" Padding="15,12">
+                            <TextBlock Text="Items" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                        
+                        <StackPanel Margin="15">
+                            <!-- Search -->
+                            <TextBox Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="10,8" FontSize="13" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,0,12"/>
 
-                        <!-- Header -->
-                        <TextBlock Grid.Row="0" Text="Items" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            <!-- Add/Edit Form -->
+                            <Border Background="#FAFAFA" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Add/Edit Item" FontSize="12" FontWeight="SemiBold" Foreground="#555" Margin="0,0,0,10"/>
+                                    
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="2*"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Item Number" FontSize="11" Foreground="#666" Margin="0,0,0,4"/>
+                                            <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Padding="8,6" FontSize="12" BorderBrush="#DDD"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Description" FontSize="11" Foreground="#666" Margin="0,0,0,4"/>
+                                            <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Padding="8,6" FontSize="12" BorderBrush="#DDD"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    
+                                    <TextBlock Text="SKUs (comma-separated)" FontSize="11" Foreground="#666" Margin="0,10,0,4"/>
+                                    <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" 
+                                             Padding="8,6" FontSize="12" BorderBrush="#DDD"/>
+                                    
+                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Button Content="Add New" Command="{Binding AddItemCommand}"
+                                                Background="#4CAF50" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
+                                        <Button Content="Update Selected" Command="{Binding UpdateItemCommand}"
+                                                Background="#2196F3" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
+                                        <Button Content="Delete Selected" Command="{Binding DeleteItemCommand}"
+                                                Background="#F44336" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
+                                        <Button Content="Clear Form" Command="{Binding ClearItemFormCommand}"
+                                                Background="#757575" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
 
-                        <!-- Search -->
-                        <TextBox Grid.Row="1" Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,0,10" Padding="8">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox">
-                                    <Setter Property="Foreground" Value="Black"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="Text" Value="">
-                                            <Setter Property="Background">
-                                                <Setter.Value>
-                                                    <VisualBrush Stretch="None" AlignmentX="Left">
-                                                        <VisualBrush.Visual>
-                                                            <TextBlock Text="🔍 Search items..." Foreground="#999" Margin="8,0,0,0"/>
-                                                        </VisualBrush.Visual>
-                                                    </VisualBrush>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
-
-                        <!-- Add Item Form -->
-                        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" Padding="10" Margin="0,0,0,10">
-                            <StackPanel>
-                                <TextBlock Text="Add/Edit Item" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
-
-                                <Label Content="Item Number:" Margin="0,0,0,2" Padding="0"/>
-                                <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
-
-                                <Label Content="Description:" Margin="0,0,0,2" Padding="0"/>
-                                <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
-
-                                <Label Content="SKUs (comma-separated):" Margin="0,0,0,2" Padding="0"/>
-                                <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,10"/>
-
+                            <!-- Items List Header -->
+                            <Border Background="#F5F5F5" CornerRadius="4,4,0,0" Padding="8,6" BorderBrush="#E0E0E0" BorderThickness="1,1,1,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="150"/>
                                     </Grid.ColumnDefinitions>
-
-                                    <Button Grid.Column="0" Content="Add" Command="{Binding AddItemCommand}"
-                                            Background="#4CAF50" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
-                                    <Button Grid.Column="1" Content="Update" Command="{Binding UpdateItemCommand}"
-                                            Background="#2196F3" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
-                                    <Button Grid.Column="2" Content="Delete" Command="{Binding DeleteItemCommand}"
-                                            Background="#FF6B6B" Foreground="White" BorderThickness="0" Padding="8,6"/>
+                                    <TextBlock Grid.Column="0" Text="Number" FontWeight="SemiBold" FontSize="11" Foreground="#666"/>
+                                    <TextBlock Grid.Column="1" Text="Description" FontWeight="SemiBold" FontSize="11" Foreground="#666" Margin="10,0"/>
+                                    <TextBlock Grid.Column="2" Text="SKUs" FontWeight="SemiBold" FontSize="11" Foreground="#666"/>
                                 </Grid>
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                            
+                            <!-- Items List -->
+                            <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
+                                <ListView ItemsSource="{Binding FilteredItems}"
+                                          SelectedItem="{Binding SelectedItem}"
+                                          ItemTemplate="{StaticResource ItemTemplate}"
+                                          Height="250"
+                                          BorderThickness="0"
+                                          Background="White"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Margin" Value="0"/>
+                                            <Setter Property="BorderThickness" Value="2"/>
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListViewItem">
+                                                        <Border x:Name="Bd" 
+                                                                Background="{TemplateBinding Background}" 
+                                                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#BBDEFB"/>
+                                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#1976D2"/>
+                                                            </Trigger>
+                                                            <MultiTrigger>
+                                                                <MultiTrigger.Conditions>
+                                                                    <Condition Property="IsMouseOver" Value="True"/>
+                                                                    <Condition Property="IsSelected" Value="False"/>
+                                                                </MultiTrigger.Conditions>
+                                                                <Setter TargetName="Bd" Property="Background" Value="#F5F5F5"/>
+                                                            </MultiTrigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </Border>
 
-                        <!-- Items List -->
-                        <Border Grid.Row="3" BorderBrush="#DDD" BorderThickness="1">
-                            <DataGrid ItemsSource="{Binding FilteredItems}"
-                                      SelectedItem="{Binding SelectedItem}"
-                                      AutoGenerateColumns="False"
-                                      CanUserAddRows="False"
-                                      HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
-                                      Background="White"
-                                      SelectionMode="Single"
-                                      VirtualizingPanel.IsVirtualizing="True"
-                                      VirtualizingPanel.VirtualizationMode="Standard"
-                                      EnableRowVirtualization="True"
-                                      EnableColumnVirtualization="True">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Number" Binding="{Binding Number, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
-                                    <DataGridTextColumn Header="Description" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                    <DataGridTemplateColumn Header="SKUs (comma-separated)" Width="200">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Skus, Converter={StaticResource ListToCommaStringConverter}}" TextWrapping="Wrap" Padding="4"/>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                        <DataGridTemplateColumn.CellEditingTemplate>
-                                            <DataTemplate>
-                                                <TextBox Text="{Binding Skus, Converter={StaticResource ListToCommaStringConverter}, UpdateSourceTrigger=LostFocus}" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellEditingTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Border>
-
-                        <!-- Item Count -->
-                        <TextBlock Grid.Row="4" Text="{Binding FilteredItems.Count, StringFormat='Total: {0} items'}"
-                                   FontSize="11" Foreground="#666" Margin="0,5,0,0"/>
-                    </Grid>
+                            <!-- Pagination -->
+                            <Border Background="#FAFAFA" CornerRadius="4" Padding="10,8" Margin="0,10,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <Button Content="⏮" Command="{Binding FirstPageCommand}" 
+                                                Padding="8,4" Margin="0,0,4,0" FontSize="12"
+                                                Background="White" BorderBrush="#DDD" Cursor="Hand"/>
+                                        <Button Content="◀" Command="{Binding PreviousPageCommand}" 
+                                                Padding="10,4" FontSize="12"
+                                                Background="White" BorderBrush="#DDD" Cursor="Hand"/>
+                                    </StackPanel>
+                                    
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontSize="12" Foreground="#555">
+                                        <Run Text="Page "/>
+                                        <Run Text="{Binding CurrentPage, Mode=OneWay}" FontWeight="SemiBold"/>
+                                        <Run Text=" of "/>
+                                        <Run Text="{Binding TotalPages, Mode=OneWay}" FontWeight="SemiBold"/>
+                                        <Run Text=" ("/>
+                                        <Run Text="{Binding TotalItemCount, Mode=OneWay}"/>
+                                        <Run Text=" items)"/>
+                                    </TextBlock>
+                                    
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                        <Button Content="▶" Command="{Binding NextPageCommand}" 
+                                                Padding="10,4" Margin="0,0,4,0" FontSize="12"
+                                                Background="White" BorderBrush="#DDD" Cursor="Hand"/>
+                                        <Button Content="⏭" Command="{Binding LastPageCommand}" 
+                                                Padding="8,4" FontSize="12"
+                                                Background="White" BorderBrush="#DDD" Cursor="Hand"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
 
                 <!-- Stores Section -->
-                <Border Grid.Column="2" Background="White" Padding="15" CornerRadius="5">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="0">
+                    <StackPanel>
+                        <!-- Stores Header -->
+                        <Border Background="#43A047" CornerRadius="8,8,0,0" Padding="15,12">
+                            <TextBlock Text="Stores" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                        
+                        <StackPanel Margin="15">
+                            <!-- Search -->
+                            <TextBox Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="10,8" FontSize="13" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,0,12"/>
 
-                        <!-- Header -->
-                        <TextBlock Grid.Row="0" Text="Stores" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            <!-- Add/Edit Form -->
+                            <Border Background="#FAFAFA" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Add/Edit Store" FontSize="12" FontWeight="SemiBold" Foreground="#555" Margin="0,0,0,10"/>
+                                    
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="70"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Store ID" FontSize="11" Foreground="#666" Margin="0,0,0,4"/>
+                                            <TextBox Text="{Binding NewStoreId, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Padding="8,6" FontSize="12" BorderBrush="#DDD"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Store Name" FontSize="11" Foreground="#666" Margin="0,0,0,4"/>
+                                            <TextBox Text="{Binding NewStoreName, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Padding="8,6" FontSize="12" BorderBrush="#DDD"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Text="Rank" FontSize="11" Foreground="#666" Margin="0,0,0,4"/>
+                                            <ComboBox ItemsSource="{Binding StoreRanks}" 
+                                                      SelectedItem="{Binding NewStoreRank}" 
+                                                      Padding="8,6" FontSize="12" BorderBrush="#DDD"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    
+                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Button Content="Add New" Command="{Binding AddStoreCommand}"
+                                                Background="#4CAF50" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
+                                        <Button Content="Update Selected" Command="{Binding UpdateStoreCommand}"
+                                                Background="#2196F3" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
+                                        <Button Content="Delete Selected" Command="{Binding DeleteStoreCommand}"
+                                                Background="#F44336" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
+                                        <Button Content="Clear Form" Command="{Binding ClearStoreFormCommand}"
+                                                Background="#757575" Foreground="White" BorderThickness="0" 
+                                                Padding="16,8" FontSize="12" Cursor="Hand"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
 
-                        <!-- Search -->
-                        <TextBox Grid.Row="1" Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,0,10" Padding="8">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox">
-                                    <Setter Property="Foreground" Value="Black"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="Text" Value="">
-                                            <Setter Property="Background">
-                                                <Setter.Value>
-                                                    <VisualBrush Stretch="None" AlignmentX="Left">
-                                                        <VisualBrush.Visual>
-                                                            <TextBlock Text="🔍 Search stores..." Foreground="#999" Margin="8,0,0,0"/>
-                                                        </VisualBrush.Visual>
-                                                    </VisualBrush>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
-
-                        <!-- Add Store Form -->
-                        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" Padding="10" Margin="0,0,0,10">
-                            <StackPanel>
-                                <TextBlock Text="Add/Edit Store" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
-
-                                <Label Content="Store ID:" Margin="0,0,0,2" Padding="0"/>
-                                <TextBox Text="{Binding NewStoreId, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
-
-                                <Label Content="Store Name:" Margin="0,0,0,2" Padding="0"/>
-                                <TextBox Text="{Binding NewStoreName, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,0,0,8"/>
-
-                                <Label Content="Rank:" Margin="0,0,0,2" Padding="0"/>
-                                <ComboBox ItemsSource="{Binding StoreRanks}" SelectedItem="{Binding NewStoreRank}" Padding="6" Margin="0,0,0,10"/>
-
+                            <!-- Stores List Header -->
+                            <Border Background="#F5F5F5" CornerRadius="4,4,0,0" Padding="8,6" BorderBrush="#E0E0E0" BorderThickness="1,1,1,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="60"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
                                     </Grid.ColumnDefinitions>
-
-                                    <Button Grid.Column="0" Content="Add" Command="{Binding AddStoreCommand}"
-                                            Background="#4CAF50" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
-                                    <Button Grid.Column="1" Content="Update" Command="{Binding UpdateStoreCommand}"
-                                            Background="#2196F3" Foreground="White" BorderThickness="0" Padding="8,6" Margin="0,0,5,0"/>
-                                    <Button Grid.Column="2" Content="Delete" Command="{Binding DeleteStoreCommand}"
-                                            Background="#FF6B6B" Foreground="White" BorderThickness="0" Padding="8,6"/>
+                                    <TextBlock Grid.Column="0" Text="ID" FontWeight="SemiBold" FontSize="11" Foreground="#666"/>
+                                    <TextBlock Grid.Column="1" Text="Name" FontWeight="SemiBold" FontSize="11" Foreground="#666" Margin="10,0"/>
+                                    <TextBlock Grid.Column="2" Text="Rank" FontWeight="SemiBold" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
                                 </Grid>
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                            
+                            <!-- Stores List -->
+                            <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
+                                <ListView ItemsSource="{Binding FilteredStores}"
+                                          SelectedItem="{Binding SelectedStore}"
+                                          ItemTemplate="{StaticResource StoreTemplate}"
+                                          Height="250"
+                                          BorderThickness="0"
+                                          Background="White"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Margin" Value="0"/>
+                                            <Setter Property="BorderThickness" Value="2"/>
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListViewItem">
+                                                        <Border x:Name="Bd" 
+                                                                Background="{TemplateBinding Background}" 
+                                                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#C8E6C9"/>
+                                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#43A047"/>
+                                                            </Trigger>
+                                                            <MultiTrigger>
+                                                                <MultiTrigger.Conditions>
+                                                                    <Condition Property="IsMouseOver" Value="True"/>
+                                                                    <Condition Property="IsSelected" Value="False"/>
+                                                                </MultiTrigger.Conditions>
+                                                                <Setter TargetName="Bd" Property="Background" Value="#F5F5F5"/>
+                                                            </MultiTrigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </Border>
 
-                        <!-- Stores List -->
-                        <Border Grid.Row="3" BorderBrush="#DDD" BorderThickness="1">
-                            <DataGrid ItemsSource="{Binding FilteredStores}"
-                                      SelectedItem="{Binding SelectedStore}"
-                                      AutoGenerateColumns="False"
-                                      CanUserAddRows="False"
-                                      HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
-                                      Background="White"
-                                      SelectionMode="Single"
-                                      VirtualizingPanel.IsVirtualizing="True"
-                                      VirtualizingPanel.VirtualizationMode="Standard"
-                                      EnableRowVirtualization="True"
-                                      EnableColumnVirtualization="True">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="ID" Binding="{Binding Code, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
-                                    <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                    <DataGridComboBoxColumn Header="Rank"
-                                                           SelectedItemBinding="{Binding Rank, UpdateSourceTrigger=PropertyChanged}"
-                                                           Width="60">
-                                        <DataGridComboBoxColumn.ElementStyle>
-                                            <Style TargetType="ComboBox">
-                                                <Setter Property="ItemsSource" Value="{Binding DataContext.StoreRanks, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                            </Style>
-                                        </DataGridComboBoxColumn.ElementStyle>
-                                        <DataGridComboBoxColumn.EditingElementStyle>
-                                            <Style TargetType="ComboBox">
-                                                <Setter Property="ItemsSource" Value="{Binding DataContext.StoreRanks, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                            </Style>
-                                        </DataGridComboBoxColumn.EditingElementStyle>
-                                    </DataGridComboBoxColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Border>
-
-                        <!-- Store Count -->
-                        <TextBlock Grid.Row="4" Text="{Binding FilteredStores.Count, StringFormat='Total: {0} stores'}"
-                                   FontSize="11" Foreground="#666" Margin="0,5,0,0"/>
-                    </Grid>
+                            <!-- Store Count -->
+                            <TextBlock Text="{Binding FilteredStores.Count, StringFormat='Total: {0} stores'}"
+                                       FontSize="12" Foreground="#666" Margin="0,10,0,0" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </Grid>
-        </Grid>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>
