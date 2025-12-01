@@ -83,7 +83,8 @@ public partial class App : Application
         // ViewModels (Singletons persist data within standalone app)
         services.AddSingleton<AllocationBuddyRPGViewModel>();
         services.AddTransient<SelectLocationDialogViewModel>();
-        services.AddTransient<AllocationBuddySettingsViewModel>();
+        // AllocationBuddy settings are managed in the unified settings window now —
+        // do not register the standalone AllocationBuddySettingsViewModel here.
     }
 
     protected override async void OnStartup(StartupEventArgs e)

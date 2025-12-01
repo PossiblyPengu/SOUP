@@ -101,8 +101,6 @@ e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\ConfirmDialog.baml
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\MainWindow.g.cs
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\AllocationBuddyRPGView.g.cs
-e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\AllocationBuddyView.g.cs
-e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\AllocationEntryDialog.g.cs
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\ConfirmDialog.g.cs
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\SelectLocationDialog.g.cs
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\EssentialsBuddy\EssentialsBuddyView.g.cs
@@ -176,8 +174,6 @@ e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\bin\Debug\net8.0-
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\App.baml
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\MainWindow.baml
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\AllocationBuddyRPGView.baml
-e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\AllocationBuddyView.baml
-e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\AllocationEntryDialog.baml
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\SelectLocationDialog.baml
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\AllocationBuddy\SettingsWindow.baml
 e:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\EssentialsBuddy\EssentialsBuddyView.baml
@@ -208,3 +204,7 @@ d:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-
 d:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\UnifiedSettingsWindow.baml
 d:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\DictionaryManagementView.g.cs
 d:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\DictionaryManagementView.baml
+E:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\DictionaryManagementView.g.cs
+E:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\UnifiedSettingsWindow.g.cs
+E:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\DictionaryManagementView.baml
+E:\CODE\Cshp\BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\obj\Debug\net8.0-windows\Views\UnifiedSettingsWindow.baml

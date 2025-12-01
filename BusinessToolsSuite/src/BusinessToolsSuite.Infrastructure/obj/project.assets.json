@@ -859,11 +859,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+      "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
       "projectName": "BusinessToolsSuite.Infrastructure",
-      "projectPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
+      "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\BusinessToolsSuite.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-      "outputPath": "d:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
+      "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite\\src\\BusinessToolsSuite.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -940,7 +940,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "d:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

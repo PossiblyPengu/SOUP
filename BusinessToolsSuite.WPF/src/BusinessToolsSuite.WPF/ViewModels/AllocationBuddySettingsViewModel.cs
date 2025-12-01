@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using BusinessToolsSuite.Core.Entities.Settings;
 using BusinessToolsSuite.Infrastructure.Services;
 using BusinessToolsSuite.Infrastructure.Services.Parsers;
+using Serilog;
 
 namespace BusinessToolsSuite.WPF.ViewModels;
 
@@ -52,14 +53,101 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
     [ObservableProperty]
     private DictionaryItem? _selectedDictionaryItem;
 
+    [ObservableProperty]
+    private string _newStoreCode = string.Empty;
+
+    [ObservableProperty]
+    private string _newStoreName = string.Empty;
+
+    [ObservableProperty]
+    private string _newStoreRank = "B";
+
+    [ObservableProperty]
+    private ObservableCollection<StoreEntry> _stores = new();
+
+    [ObservableProperty]
+    private StoreEntry? _selectedStore;
+
     public AllocationBuddySettingsViewModel(SettingsService settingsService)
     {
         _settingsService = settingsService;
+        // Initialize with empty collection - will be loaded async in InitializeAsync
+        Stores = new ObservableCollection<StoreEntry>();
+    }
+
+    private async Task LoadStoresFromDictionaryAsync()
+    {
+        try
+        {
+            var storesPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "BusinessToolsSuite",
+                "AllocationBuddy",
+                "stores.json"
+            );
+
+            if (System.IO.File.Exists(storesPath))
+            {
+                // Load from saved file asynchronously
+                var json = await System.IO.File.ReadAllTextAsync(storesPath);
+                var savedStores = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<StoreEntry>>(json);
+                if (savedStores != null && savedStores.Count > 0)
+                {
+                    Stores = new ObservableCollection<StoreEntry>(savedStores);
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but continue to load defaults
+            StatusMessage = $"Warning: Could not load custom stores ({ex.Message}), using defaults";
+        }
+
+        // Load stores from internal dictionary (defaults)
+        try
+        {
+            // Run on background thread to avoid UI freeze
+            var internalStores = await Task.Run(() => BusinessToolsSuite.WPF.Data.InternalStoreDictionary.GetDefaultStores());
+            Stores = new ObservableCollection<StoreEntry>(internalStores);
+        }
+        catch (Exception ex)
+        {
+            // Last resort - empty collection
+            Stores = new ObservableCollection<StoreEntry>();
+            StatusMessage = $"Error: Could not load stores ({ex.Message})";
+        }
     }
 
     public async Task InitializeAsync()
     {
-        await LoadSettingsAsync();
+        try
+        {
+            StatusMessage = "Loading stores...";
+            Log.Information("AllocationBuddySettings: Starting LoadStoresFromDictionaryAsync");
+            await LoadStoresFromDictionaryAsync();
+            StatusMessage = "Stores loaded";
+            Log.Information("AllocationBuddySettings: LoadStoresFromDictionaryAsync completed successfully");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading stores: {ex.Message}";
+            Log.Error(ex, "AllocationBuddySettings: LoadStoresFromDictionaryAsync failed");
+        }
+
+        try
+        {
+            StatusMessage = "Loading settings...";
+            Log.Information("AllocationBuddySettings: Starting LoadSettingsAsync");
+            await LoadSettingsAsync();
+            StatusMessage = "Settings loaded";
+            Log.Information("AllocationBuddySettings: LoadSettingsAsync completed successfully");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading settings: {ex.Message}";
+            Log.Error(ex, "AllocationBuddySettings: LoadSettingsAsync failed");
+        }
     }
 
     [RelayCommand]
@@ -102,11 +190,45 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
             };
 
             await _settingsService.SaveSettingsAsync(_appName, settings);
+
+            // Save stores to a separate file
+            await SaveStoresToFileAsync();
+
             StatusMessage = "Settings saved successfully";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error saving settings: {ex.Message}";
+        }
+    }
+
+    private async Task SaveStoresToFileAsync()
+    {
+        try
+        {
+            var storesPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "BusinessToolsSuite",
+                "AllocationBuddy",
+                "stores.json"
+            );
+
+            var directory = System.IO.Path.GetDirectoryName(storesPath);
+            if (!System.IO.Directory.Exists(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory!);
+            }
+
+            var json = System.Text.Json.JsonSerializer.Serialize(Stores.ToList(), new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            await System.IO.File.WriteAllTextAsync(storesPath, json);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving stores: {ex.Message}";
         }
     }
 
@@ -178,6 +300,54 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         {
             CustomDictionaryItems.Remove(item);
             StatusMessage = $"Removed item {item.Number}";
+        }
+    }
+
+    [RelayCommand]
+    private void AddStore()
+    {
+        if (string.IsNullOrWhiteSpace(NewStoreCode))
+        {
+            StatusMessage = "Please enter a store code";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(NewStoreName))
+        {
+            StatusMessage = "Please enter a store name";
+            return;
+        }
+
+        // Check if store code already exists
+        if (Stores.Any(s => s.Code.Equals(NewStoreCode, StringComparison.OrdinalIgnoreCase)))
+        {
+            StatusMessage = $"Store code {NewStoreCode} already exists";
+            return;
+        }
+
+        var newStore = new StoreEntry
+        {
+            Code = NewStoreCode.Trim(),
+            Name = NewStoreName.Trim(),
+            Rank = NewStoreRank
+        };
+
+        Stores.Add(newStore);
+        StatusMessage = $"Added store {newStore.Code} - {newStore.Name}";
+
+        // Clear input fields
+        NewStoreCode = string.Empty;
+        NewStoreName = string.Empty;
+        NewStoreRank = "B";
+    }
+
+    [RelayCommand]
+    private void RemoveStore(StoreEntry store)
+    {
+        if (store != null && Stores.Contains(store))
+        {
+            Stores.Remove(store);
+            StatusMessage = $"Removed store {store.Code}";
         }
     }
 }

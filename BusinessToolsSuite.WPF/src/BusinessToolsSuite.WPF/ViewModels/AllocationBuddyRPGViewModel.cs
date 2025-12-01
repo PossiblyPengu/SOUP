@@ -70,14 +70,21 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
 
-        // Load dictionary into parser if available
-        try
+        // Load internal store dictionary on a background task to avoid blocking the UI during startup
+        _ = Task.Run(() =>
         {
-            var dictPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "UnifiedApp", "src", "renderer", "modules", "allocation-buddy", "src", "js", "dictionaries.js");
-            var dict = DictionaryLoader.LoadFromJs(dictPath);
-            _parser.SetDictionaryItems(dict.Select(d => new BusinessToolsSuite.Infrastructure.Services.Parsers.DictionaryItem { Number = d.Number, Description = d.Description, Skus = d.Skus }).ToList());
-        }
-        catch { }
+            try
+            {
+                var stores = BusinessToolsSuite.WPF.Data.InternalStoreDictionary.GetStores();
+                var mapped = stores.Select(s => new BusinessToolsSuite.Infrastructure.Services.Parsers.StoreEntry { Code = s.Code, Name = s.Name, Rank = s.Rank }).ToList();
+                _parser.SetStoreDictionary(mapped);
+            }
+            catch (Exception ex)
+            {
+                // Log via Serilog if available; otherwise ignore to avoid throwing from ctor
+                try { Serilog.Log.Error(ex, "Failed to load internal store dictionary"); } catch { }
+            }
+        });
     }
 
     private async Task DeactivateStoreAsync(LocationAllocation loc)
@@ -228,7 +235,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         var grouped = entries.GroupBy(e => e.StoreId ?? "Unknown");
         foreach (var g in grouped.OrderBy(x => x.Key))
         {
-            var loc = new LocationAllocation { Location = g.Key };
+            // Use StoreName for display (e.g., "Main Street Store" instead of "101")
+            var storeName = g.FirstOrDefault()?.StoreName ?? g.Key;
+            var loc = new LocationAllocation { Location = storeName };
             foreach (var e in g)
             {
                 var itemNumber = GetCanonicalItemNumber(e.ItemNumber ?? "");

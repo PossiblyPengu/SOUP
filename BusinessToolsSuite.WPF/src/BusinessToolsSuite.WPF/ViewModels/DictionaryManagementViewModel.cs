@@ -105,17 +105,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 return (loadedItems, loadedStores);
             });
 
-            Items.Clear();
-            foreach (var item in items.OrderBy(i => i.Number))
-            {
-                Items.Add(item);
-            }
-
-            Stores.Clear();
-            foreach (var store in stores.OrderBy(s => s.Code))
-            {
-                Stores.Add(store);
-            }
+            // Replace collections in one operation to avoid per-item UI notifications
+            Items = new ObservableCollection<DictionaryItem>(items.OrderBy(i => i.Number));
+            Stores = new ObservableCollection<StoreEntry>(stores.OrderBy(s => s.Code));
 
             ApplyItemFilters();
             ApplyStoreFilters();
@@ -520,11 +512,8 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 (i.Skus != null && i.Skus.Any(s => s.ToLower().Contains(search))));
         }
 
-        FilteredItems.Clear();
-        foreach (var item in filtered.OrderBy(i => i.Number))
-        {
-            FilteredItems.Add(item);
-        }
+        // Assign a new collection to avoid many individual collection changed events
+        FilteredItems = new ObservableCollection<DictionaryItem>(filtered.OrderBy(i => i.Number));
     }
 
     private void ApplyStoreFilters()
@@ -540,11 +529,8 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 s.Rank.ToLower().Contains(search));
         }
 
-        FilteredStores.Clear();
-        foreach (var store in filtered.OrderBy(s => s.Code))
-        {
-            FilteredStores.Add(store);
-        }
+        // Assign a new collection to avoid many individual collection changed events
+        FilteredStores = new ObservableCollection<StoreEntry>(filtered.OrderBy(s => s.Code));
     }
 
     private static string EscapeJson(string text)

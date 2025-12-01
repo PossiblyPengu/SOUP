@@ -2232,19 +2232,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\acalabrese\\.nuget\\packages\\": {}
+    "C:\\Users\\andre\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj",
+      "projectUniqueName": "e:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj",
       "projectName": "AllocationBuddy",
-      "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj",
-      "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-      "outputPath": "D:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\obj\\",
+      "projectPath": "e:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\AllocationBuddy.Standalone.csproj",
+      "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+      "outputPath": "e:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\AllocationBuddy.Standalone\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows"
@@ -2256,8 +2256,8 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "projectReferences": {
-            "D:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj": {
-              "projectPath": "D:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj"
+            "e:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj": {
+              "projectPath": "e:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj"
             }
           }
         }
@@ -2295,7 +2295,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

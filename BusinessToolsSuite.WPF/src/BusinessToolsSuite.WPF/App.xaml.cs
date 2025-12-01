@@ -42,6 +42,38 @@ public partial class App : Application
         {
             Log.Information("Starting Business Tools Suite - WPF");
 
+            // Global exception handlers to catch and report unhandled errors during startup/runtime
+            AppDomain.CurrentDomain.UnhandledException += (s, ev) =>
+            {
+                try
+                {
+                    var ex = ev.ExceptionObject as Exception;
+                    Log.Fatal(ex, "Unhandled exception in AppDomain");
+                }
+                catch { }
+            };
+
+            TaskScheduler.UnobservedTaskException += (s, ev) =>
+            {
+                try
+                {
+                    Log.Fatal(ev.Exception, "Unobserved task exception");
+                    ev.SetObserved();
+                }
+                catch { }
+            };
+
+            this.DispatcherUnhandledException += (s, ev) =>
+            {
+                try
+                {
+                    Log.Fatal(ev.Exception, "Dispatcher unhandled exception");
+                    MessageBox.Show($"An unexpected error occurred:\n{ev.Exception.Message}", "Unhandled Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ev.Handled = true;
+                }
+                catch { }
+            };
+
             // Build host with dependency injection
             _host = Host.CreateDefaultBuilder()
                 .UseSerilog()
@@ -115,6 +147,10 @@ public partial class App : Application
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
+
+        // Note: AllocationBuddy settings are available inside the unified settings window.
+        // The previous debug helper that auto-opened the AllocationBuddy standalone settings
+        // window has been removed to avoid maintaining an independent settings UI.
 
         base.OnStartup(e);
     }

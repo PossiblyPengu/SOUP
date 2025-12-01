@@ -121,7 +121,11 @@
                                       HeadersVisibility="Column"
                                       GridLinesVisibility="Horizontal"
                                       Background="White"
-                                      SelectionMode="Single">
+                                      SelectionMode="Single"
+                                      VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Standard"
+                                      EnableRowVirtualization="True"
+                                      EnableColumnVirtualization="True">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Number" Binding="{Binding Number, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
                                     <DataGridTextColumn Header="Description" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
@@ -224,7 +228,11 @@
                                       HeadersVisibility="Column"
                                       GridLinesVisibility="Horizontal"
                                       Background="White"
-                                      SelectionMode="Single">
+                                      SelectionMode="Single"
+                                      VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Standard"
+                                      EnableRowVirtualization="True"
+                                      EnableColumnVirtualization="True">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID" Binding="{Binding Code, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
                                     <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*"/>

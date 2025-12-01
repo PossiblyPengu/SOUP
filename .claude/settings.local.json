@@ -23,7 +23,12 @@
       "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" add:*)",
       "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" add \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\" package CommunityToolkit.Mvvm --version 8.4.0)",
       "Bash(D:CODEimportant filesdotnet-sdk-8.0.404-win-x64dotnet.exe build \"d:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
-      "Bash(/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe build:*)"
+      "Bash(/d/CODE/important files/dotnet-sdk-8.0.404-win-x64/dotnet.exe build:*)",
+      "Bash(Test-Path \"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"e:\\CODE\\Cshp\\read-excel-temp.ps1\")",
+      "Bash(\"E:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"E:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(\"E:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" run --project \"E:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

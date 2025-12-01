@@ -13,6 +13,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = AllocationBuddy.Standalone
-build_property.ProjectDir = D:\CODE\Cshp\BusinessToolsSuite.WPF\src\AllocationBuddy.Standalone\
+build_property.ProjectDir = e:\CODE\Cshp\BusinessToolsSuite.WPF\src\AllocationBuddy.Standalone\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

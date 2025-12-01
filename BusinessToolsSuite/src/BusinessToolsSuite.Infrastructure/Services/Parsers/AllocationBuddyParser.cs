@@ -73,14 +73,29 @@ public class AllocationBuddyParser
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheet(1);
 
-            var headers = worksheet.Row(1).CellsUsed()
-                .Select(c => c.Value.ToString() ?? "")
-                .ToList();
+            // Find first non-empty row as headers (skip initial empty rows)
+            int headerRowNum = 1;
+            List<string> headers = new List<string>();
 
-            _logger?.LogInformation("AllocationBuddy: Excel columns found: {Columns}", string.Join(", ", headers));
+            for (int rowNum = 1; rowNum <= Math.Min(10, worksheet.LastRowUsed()?.RowNumber() ?? 1); rowNum++)
+            {
+                var row = worksheet.Row(rowNum);
+                headers = row.CellsUsed()
+                    .Select(c => c.Value.ToString()?.Trim() ?? "")
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .ToList();
+
+                if (headers.Count > 0)
+                {
+                    headerRowNum = rowNum;
+                    break;
+                }
+            }
+
+            _logger?.LogInformation("AllocationBuddy: Excel headers found at row {Row}: {Columns}", headerRowNum, string.Join(", ", headers));
 
             // Detect columns using content-based detection (dictionary-driven when available)
-            var detected = DetectColumns(worksheet, headers);
+            var detected = DetectColumns(worksheet, headers, headerRowNum);
             var storeCol = detected.StoreCol;
             var itemCol = detected.ItemCol;
             var qtyCol = detected.QtyCol;
@@ -92,7 +107,7 @@ public class AllocationBuddyParser
             var entries = new List<AllocationEntry>();
             int skippedCount = 0;
 
-            foreach (var row in worksheet.RowsUsed().Skip(1))
+            foreach (var row in worksheet.RowsUsed().Where(r => r.RowNumber() > headerRowNum))
             {
                 // Skip header-like rows
                 if (IsHeaderRow(row, headers))
@@ -149,22 +164,33 @@ public class AllocationBuddyParser
             }
 
             // Map stores to StoreDictionary if available (exact match by code or name)
+            // This ensures store codes (like "101") are displayed as store names
             if (StoreDictionary != null && StoreDictionary.Count > 0)
             {
-                var storesByCode = StoreDictionary.ToDictionary(s => s.Code, StringComparer.OrdinalIgnoreCase);
-                var storesByName = StoreDictionary.ToDictionary(s => s.Name.ToUpperInvariant(), StringComparer.OrdinalIgnoreCase);
+                var storesByCode = StoreDictionary.ToDictionary(s => s.Code.Trim(), StringComparer.OrdinalIgnoreCase);
+                var storesByName = StoreDictionary.ToDictionary(s => s.Name.Trim().ToUpperInvariant(), StringComparer.OrdinalIgnoreCase);
+
                 foreach (var entry in entries)
                 {
                     var key = entry.StoreId?.Trim() ?? "";
-                    if (storesByCode.TryGetValue(key, out var s))
+                    if (string.IsNullOrEmpty(key)) continue;
+
+                    // Try matching by code first (e.g., "101" -> "Store Name")
+                    if (storesByCode.TryGetValue(key, out var store))
                     {
-                        entry.StoreId = s.Code;
-                        entry.StoreName = s.Name;
+                        entry.StoreId = store.Code;
+                        entry.StoreName = store.Name;
                     }
-                    else if (storesByName.TryGetValue(key.ToUpperInvariant(), out s))
+                    // Try matching by name (e.g., "Store Name" -> "101")
+                    else if (storesByName.TryGetValue(key.ToUpperInvariant(), out store))
                     {
-                        entry.StoreId = s.Code;
-                        entry.StoreName = s.Name;
+                        entry.StoreId = store.Code;
+                        entry.StoreName = store.Name;
+                    }
+                    // No match found - keep original value but log it
+                    else
+                    {
+                        _logger?.LogWarning("AllocationBuddy: Store '{Store}' not found in dictionary", key);
                     }
                 }
             }
@@ -217,88 +243,96 @@ public class AllocationBuddyParser
 
             var entries = new List<AllocationEntry>();
 
-            // Detect columns - prefer content-based detection when dictionaries are available
+            // ALWAYS use content-based detection (not just when dictionaries are available)
             string storeCol = null, itemCol = null, qtyCol = null, descCol = null;
-            if ((DictionaryItems != null && DictionaryItems.Count > 0) || (StoreDictionary != null && StoreDictionary.Count > 0))
+
+            // ALWAYS detect quantity column by analyzing numeric content
+            int bestQtyMatches = 0; int bestQtyIdx = -1;
+            for (int col = 0; col < headers.Count; col++)
             {
-                // Item detection (dictionary exact or SKU match)
-                if (DictionaryItems != null && DictionaryItems.Count > 0)
+                int qtyMatches = 0;
+                foreach (var r in rows.Take(500))
                 {
-                    var dictNumbers = new HashSet<string>(DictionaryItems.Select(d => NormalizeItemNo(d.Number)), StringComparer.OrdinalIgnoreCase);
-                    var dictSkus = new HashSet<string>(DictionaryItems.SelectMany(d => d.Skus ?? new List<string>()).Select(s => NormalizeItemNo(s)), StringComparer.OrdinalIgnoreCase);
-
-                    int bestMatchCount = 0; int bestIdx = -1;
-                    for (int col = 0; col < headers.Count; col++)
-                    {
-                        int matchCount = 0;
-                        foreach (var r in rows.Take(500))
-                        {
-                            var n = NormalizeItemNo(r[col]);
-                            if (dictNumbers.Contains(n) || dictSkus.Contains(n)) matchCount++;
-                        }
-                        if (matchCount > bestMatchCount) { bestMatchCount = matchCount; bestIdx = col; }
-                    }
-                    if (bestIdx >= 0 && bestMatchCount > 0) itemCol = headers[bestIdx];
+                    if (int.TryParse((r[col] ?? "").Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedQty) && parsedQty > 0)
+                        qtyMatches++;
                 }
+                if (qtyMatches > bestQtyMatches) { bestQtyMatches = qtyMatches; bestQtyIdx = col; }
+            }
+            if (bestQtyIdx >= 0 && bestQtyMatches > 0) qtyCol = headers[bestQtyIdx];
 
-                // Qty detection by numeric prevalence
-                int bestQtyMatches = 0; int bestQtyIdx = -1;
+            // Item detection (dictionary exact or SKU match if available)
+            if (DictionaryItems != null && DictionaryItems.Count > 0)
+            {
+                var dictNumbers = new HashSet<string>(DictionaryItems.Select(d => NormalizeItemNo(d.Number)), StringComparer.OrdinalIgnoreCase);
+                var dictSkus = new HashSet<string>(DictionaryItems.SelectMany(d => d.Skus ?? new List<string>()).Select(s => NormalizeItemNo(s)), StringComparer.OrdinalIgnoreCase);
+
+                int bestMatchCount = 0; int bestIdx = -1;
                 for (int col = 0; col < headers.Count; col++)
                 {
-                    int qtyMatches = 0;
+                    int matchCount = 0;
                     foreach (var r in rows.Take(500))
                     {
-                        if (int.TryParse((r[col] ?? "").Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out _)) qtyMatches++;
+                        var n = NormalizeItemNo(r[col]);
+                        if (dictNumbers.Contains(n) || dictSkus.Contains(n)) matchCount++;
                     }
-                    if (qtyMatches > bestQtyMatches) { bestQtyMatches = qtyMatches; bestQtyIdx = col; }
+                    if (matchCount > bestMatchCount) { bestMatchCount = matchCount; bestIdx = col; }
                 }
-                if (bestQtyIdx >= 0 && bestQtyMatches > 0) qtyCol = headers[bestQtyIdx];
+                if (bestIdx >= 0 && bestMatchCount > 0) itemCol = headers[bestIdx];
+            }
 
-                // Store detection using exact store dictionary if present, otherwise heuristics
-                if (StoreDictionary != null && StoreDictionary.Count > 0)
+            // Store detection using exact store dictionary if present, otherwise heuristics
+            if (StoreDictionary != null && StoreDictionary.Count > 0)
+            {
+                int bestStoreMatches = 0; int bestStoreIdx = -1;
+                var storeCodes = new HashSet<string>(StoreDictionary.Select(s => s.Code), StringComparer.OrdinalIgnoreCase);
+                var storeNames = new HashSet<string>(StoreDictionary.Select(s => s.Name.ToUpperInvariant()), StringComparer.OrdinalIgnoreCase);
+                for (int col = 0; col < headers.Count; col++)
                 {
-                    int bestStoreMatches = 0; int bestStoreIdx = -1;
-                    var storeCodes = new HashSet<string>(StoreDictionary.Select(s => s.Code), StringComparer.OrdinalIgnoreCase);
-                    var storeNames = new HashSet<string>(StoreDictionary.Select(s => s.Name.ToUpperInvariant()), StringComparer.OrdinalIgnoreCase);
-                    for (int col = 0; col < headers.Count; col++)
+                    int matches = 0;
+                    foreach (var r in rows.Take(500))
                     {
-                        int matches = 0;
-                        foreach (var r in rows.Take(500))
-                        {
-                            var v = (r[col] ?? "").Trim();
-                            if (string.IsNullOrEmpty(v)) continue;
-                            if (storeCodes.Contains(v) || storeNames.Contains(v.ToUpperInvariant())) matches++;
-                        }
-                        if (matches > bestStoreMatches) { bestStoreMatches = matches; bestStoreIdx = col; }
+                        var v = (r[col] ?? "").Trim();
+                        if (string.IsNullOrEmpty(v)) continue;
+                        if (storeCodes.Contains(v) || storeNames.Contains(v.ToUpperInvariant())) matches++;
                     }
-                    if (bestStoreIdx >= 0 && bestStoreMatches > 0) storeCol = headers[bestStoreIdx];
+                    if (matches > bestStoreMatches) { bestStoreMatches = matches; bestStoreIdx = col; }
                 }
-                else
-                {
-                    int bestStoreScore = 0; int bestStoreIdx = -1;
-                    for (int col = 0; col < headers.Count; col++)
-                    {
-                        var vals = rows.Select(r => (r[col] ?? "").Trim()).Where(s => !string.IsNullOrEmpty(s)).Take(200).ToList();
-                        if (vals.Count == 0) continue;
-                        int codeMatches = vals.Count(v => System.Text.RegularExpressions.Regex.IsMatch(v, "^\\d{1,4}$"));
-                        int nameMatches = vals.Count(v => System.Text.RegularExpressions.Regex.IsMatch(v, "[A-Za-z]"));
-                        int distinct = vals.Distinct(StringComparer.OrdinalIgnoreCase).Count();
-                        int score = codeMatches * 3 + nameMatches * 1 + Math.Min(distinct, 10);
-                        if (score > bestStoreScore) { bestStoreScore = score; bestStoreIdx = col; }
-                    }
-                    if (bestStoreIdx >= 0 && bestStoreScore > 0) storeCol = headers[bestStoreIdx];
-                }
-
-                // Desc column heuristic
-                descCol = FindColumnName(headers, "Description", "Desc", "Item Description", "ItemDescription");
+                if (bestStoreIdx >= 0 && bestStoreMatches > 0) storeCol = headers[bestStoreIdx];
             }
             else
             {
-                var detected = DetectColumnsCsv(headers);
-                storeCol = detected.StoreCol;
-                itemCol = detected.ItemCol;
-                qtyCol = detected.QtyCol;
+                // Use heuristics to detect store column based on content patterns
+                int bestStoreScore = 0; int bestStoreIdx = -1;
+                for (int col = 0; col < headers.Count; col++)
+                {
+                    var vals = rows.Select(r => (r[col] ?? "").Trim()).Where(s => !string.IsNullOrEmpty(s)).Take(200).ToList();
+                    if (vals.Count == 0) continue;
+                    int codeMatches = vals.Count(v => System.Text.RegularExpressions.Regex.IsMatch(v, "^\\d{1,4}$"));
+                    int nameMatches = vals.Count(v => System.Text.RegularExpressions.Regex.IsMatch(v, "[A-Za-z]"));
+                    int distinct = vals.Distinct(StringComparer.OrdinalIgnoreCase).Count();
+                    int score = codeMatches * 3 + nameMatches * 1 + Math.Min(distinct, 10);
+                    if (score > bestStoreScore) { bestStoreScore = score; bestStoreIdx = col; }
+                }
+                if (bestStoreIdx >= 0 && bestStoreScore > 0) storeCol = headers[bestStoreIdx];
             }
+
+            // Fallback to header-based detection if content-based didn't find columns
+            if (string.IsNullOrEmpty(storeCol))
+                storeCol = FindColumnName(headers, "Store Name", "Shop Name", "Loc Name", "Location Code", "Store Code", "Store", "Shop", "Location", "Loc");
+            if (string.IsNullOrEmpty(itemCol))
+                itemCol = FindColumnName(headers, "Item", "Item No", "Item No.", "Item Number", "Product", "SKU");
+            if (string.IsNullOrEmpty(qtyCol))
+                qtyCol = FindColumnName(headers, "Qty", "Quantity", "Amount", "Allocation", "Units", "Maximum Inventory", "Max Inv", "Reorder Point");
+
+            descCol = FindColumnName(headers, "Description", "Desc", "Item Description", "ItemDescription");
+
+            // Final fallback: position-based detection if still empty
+            if (string.IsNullOrEmpty(storeCol) && headers.Count > 0)
+                storeCol = headers[0];
+            if (string.IsNullOrEmpty(itemCol) && headers.Count > 1)
+                itemCol = headers[1];
+            if (string.IsNullOrEmpty(qtyCol) && headers.Count > 2)
+                qtyCol = headers[2];
 
             _logger?.LogInformation("AllocationBuddy: CSV columns - Store: {Store}, Item: {Item}, Qty: {Qty}", storeCol, itemCol, qtyCol);
 
@@ -353,22 +387,33 @@ public class AllocationBuddyParser
             }
 
             // Map stores using StoreDictionary if available
+            // This ensures store codes (like "101") are displayed as store names
             if (StoreDictionary != null && StoreDictionary.Count > 0)
             {
-                var storesByCode = StoreDictionary.ToDictionary(s => s.Code, StringComparer.OrdinalIgnoreCase);
-                var storesByName = StoreDictionary.ToDictionary(s => s.Name.ToUpperInvariant(), StringComparer.OrdinalIgnoreCase);
+                var storesByCode = StoreDictionary.ToDictionary(s => s.Code.Trim(), StringComparer.OrdinalIgnoreCase);
+                var storesByName = StoreDictionary.ToDictionary(s => s.Name.Trim().ToUpperInvariant(), StringComparer.OrdinalIgnoreCase);
+
                 foreach (var entry in entries)
                 {
                     var key = entry.StoreId?.Trim() ?? "";
-                    if (storesByCode.TryGetValue(key, out var s))
+                    if (string.IsNullOrEmpty(key)) continue;
+
+                    // Try matching by code first (e.g., "101" -> "Store Name")
+                    if (storesByCode.TryGetValue(key, out var store))
                     {
-                        entry.StoreId = s.Code;
-                        entry.StoreName = s.Name;
+                        entry.StoreId = store.Code;
+                        entry.StoreName = store.Name;
                     }
-                    else if (storesByName.TryGetValue(key.ToUpperInvariant(), out s))
+                    // Try matching by name (e.g., "Store Name" -> "101")
+                    else if (storesByName.TryGetValue(key.ToUpperInvariant(), out store))
                     {
-                        entry.StoreId = s.Code;
-                        entry.StoreName = s.Name;
+                        entry.StoreId = store.Code;
+                        entry.StoreName = store.Name;
+                    }
+                    // No match found - keep original value but log it
+                    else
+                    {
+                        _logger?.LogWarning("AllocationBuddy: Store '{Store}' not found in dictionary (CSV)", key);
                     }
                 }
             }
@@ -383,13 +428,13 @@ public class AllocationBuddyParser
     }
 
     /// <summary>
-    /// Detect columns using smart detection: prefer dictionary-based scanning across rows,
+    /// Detect columns using smart detection: always use content-based scanning first,
     /// fallback to header-name heuristics and position-based guesses.
     /// Returns column names for store, item, qty and description.
     /// </summary>
-    private (string StoreCol, string ItemCol, string QtyCol, string DescCol) DetectColumns(IXLWorksheet worksheet, List<string> headers)
+    private (string StoreCol, string ItemCol, string QtyCol, string DescCol) DetectColumns(IXLWorksheet worksheet, List<string> headers, int headerRowNum)
     {
-        // Initial header-name heuristics
+        // Start with header-name heuristics as hints
         var storeCol = FindColumnName(headers,
             "Store Name", "Shop Name", "Loc Name", "Location Code", "Store Code", "Store", "Shop", "Location", "Loc");
 
@@ -401,10 +446,32 @@ public class AllocationBuddyParser
 
         var descCol = FindColumnName(headers, "Description", "Desc", "Item Description", "ItemDescription");
 
+        // ALWAYS scan columns based on data content (not just when dictionaries are available)
+        var rows = worksheet.RowsUsed().Where(r => r.RowNumber() > headerRowNum).Take(500).ToList();
+
+        // ALWAYS detect quantity column by analyzing numeric content
+        int bestQtyMatches = 0; int bestQtyIdx = -1;
+        for (int col = 1; col <= headers.Count; col++)
+        {
+            int qtyMatches = 0;
+            foreach (var r in rows)
+            {
+                var cell = r.Cell(col).GetString();
+                if (int.TryParse(cell?.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedQty) && parsedQty > 0)
+                    qtyMatches++;
+            }
+            if (qtyMatches > bestQtyMatches)
+            {
+                bestQtyMatches = qtyMatches;
+                bestQtyIdx = col - 1;
+            }
+        }
+        if (bestQtyIdx >= 0 && bestQtyMatches > 0)
+            qtyCol = headers[bestQtyIdx];
+
         // If dictionary items are available, scan columns to find the best item column
         if (DictionaryItems != null && DictionaryItems.Count > 0)
         {
-            var rows = worksheet.RowsUsed().Skip(1).Take(500).ToList();
             var dictNumbers = new HashSet<string>(DictionaryItems.Select(d => NormalizeItemNo(d.Number)), StringComparer.OrdinalIgnoreCase);
             var dictSkus = new HashSet<string>(DictionaryItems.SelectMany(d => d.Skus ?? new List<string>()).Select(s => NormalizeItemNo(s)), StringComparer.OrdinalIgnoreCase);
 
@@ -429,27 +496,11 @@ public class AllocationBuddyParser
 
             if (bestIdx >= 0 && bestMatchCount > 0)
                 itemCol = headers[bestIdx];
+        }
 
-            // Detect qty column by numeric prevalence
-            int bestQtyMatches = 0; int bestQtyIdx = -1;
-            for (int col = 1; col <= headers.Count; col++)
-            {
-                int qtyMatches = 0;
-                foreach (var r in rows)
-                {
-                    var cell = r.Cell(col).GetString();
-                    if (int.TryParse(cell?.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out _))
-                        qtyMatches++;
-                }
-                if (qtyMatches > bestQtyMatches)
-                {
-                    bestQtyMatches = qtyMatches;
-                    bestQtyIdx = col - 1;
-                }
-            }
-            if (bestQtyIdx >= 0 && bestQtyMatches > 0)
-                qtyCol = headers[bestQtyIdx];
-
+        // Detect store column: prefer exact matches against StoreDictionary if available
+        if (DictionaryItems != null && DictionaryItems.Count > 0 || StoreDictionary != null && StoreDictionary.Count > 0)
+        {
             // Detect store column: prefer exact matches against StoreDictionary if available
             if (StoreDictionary != null && StoreDictionary.Count > 0)
             {
