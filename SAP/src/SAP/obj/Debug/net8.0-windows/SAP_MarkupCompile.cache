@@ -12,7 +12,7 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 D:\CODE\Cshp\SAP\src\SAP\App.xaml
 201925191915
 
-82-1091910631
+84-857576537
 239-1047370978
 MainWindow.xaml;Themes\ModernStyles.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\AllocationBuddy\SettingsWindow.xaml;Views\DictionaryManagementView.xaml;Views\EssentialsBuddy\AddToDictionaryDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\EssentialsBuddy\SettingsWindow.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseView.xaml;Views\ExpireWise\SettingsWindow.xaml;Views\SwiftLabel\SwiftLabelView.xaml;Views\UnifiedSettingsWindow.xaml;Windows\AllocationBuddyWindow.xaml;Windows\EssentialsBuddyWindow.xaml;Windows\ExpireWiseWindow.xaml;Windows\SwiftLabelWindow.xaml;
 

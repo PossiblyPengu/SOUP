@@ -48,6 +48,22 @@ public partial class ExpireWiseViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    // Summary statistics
+    [ObservableProperty]
+    private int _totalItems;
+
+    [ObservableProperty]
+    private int _goodCount;
+
+    [ObservableProperty]
+    private int _warningCount;
+
+    [ObservableProperty]
+    private int _criticalCount;
+
+    [ObservableProperty]
+    private int _expiredCount;
+
     public ObservableCollection<string> StatusFilters { get; } = new()
     {
         "All",
@@ -451,6 +467,21 @@ public partial class ExpireWiseViewModel : ObservableObject
         {
             FilteredItems.Add(item);
         }
+
+        // Update summary statistics
+        UpdateSummaryStats();
+    }
+
+    /// <summary>
+    /// Update summary statistics based on all items (not filtered)
+    /// </summary>
+    private void UpdateSummaryStats()
+    {
+        TotalItems = Items.Count;
+        GoodCount = Items.Count(i => i.Status == ExpirationStatus.Good);
+        WarningCount = Items.Count(i => i.Status == ExpirationStatus.Warning);
+        CriticalCount = Items.Count(i => i.Status == ExpirationStatus.Critical);
+        ExpiredCount = Items.Count(i => i.Status == ExpirationStatus.Expired);
     }
 
     [RelayCommand]

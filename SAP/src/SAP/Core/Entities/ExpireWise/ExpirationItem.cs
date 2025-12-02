@@ -27,19 +27,38 @@ public class ExpirationItem : BaseEntity
         return daysUntilExpiry switch
         {
             < 0 => ExpirationStatus.Expired,
-            <= 7 => ExpirationStatus.ExpiringSoon,
-            <= 30 => ExpirationStatus.ExpiringMonth,
-            _ => ExpirationStatus.Fresh
+            <= 7 => ExpirationStatus.Critical,
+            <= 30 => ExpirationStatus.Warning,
+            _ => ExpirationStatus.Good
         };
     }
 
     public int DaysUntilExpiry => (ExpiryDate - DateTime.UtcNow).Days;
+    
+    /// <summary>
+    /// Get a human-readable status description
+    /// </summary>
+    public string StatusDescription => Status switch
+    {
+        ExpirationStatus.Expired => "Expired",
+        ExpirationStatus.Critical => $"Expires in {DaysUntilExpiry} days",
+        ExpirationStatus.Warning => $"Expires in {DaysUntilExpiry} days",
+        ExpirationStatus.Good => $"{DaysUntilExpiry} days remaining",
+        _ => "Unknown"
+    };
 }
 
+/// <summary>
+/// Status indicating how soon an item expires
+/// </summary>
 public enum ExpirationStatus
 {
-    Fresh,
-    ExpiringMonth,
-    ExpiringSoon,
+    /// <summary>More than 30 days until expiration</summary>
+    Good,
+    /// <summary>Between 8-30 days until expiration</summary>
+    Warning,
+    /// <summary>7 days or less until expiration</summary>
+    Critical,
+    /// <summary>Already expired</summary>
     Expired
 }

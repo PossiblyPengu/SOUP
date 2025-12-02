@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SAP")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2d940e6047f28962f9d40f7cf3c50545ab830102")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+240845b17629ff67c2ab736e3598219bb23d7734")]
 [assembly: System.Reflection.AssemblyProductAttribute("SAP")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SAP")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

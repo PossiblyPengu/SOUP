@@ -38,6 +38,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -46,71 +47,162 @@
         <Border Grid.Row="0" Style="{StaticResource ModernToolbar}">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Left side buttons -->
+                <!-- Left side - Primary actions -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Command="{Binding AddItemCommand}" Style="{StaticResource ModernButton}" Margin="0,0,8,0">
+                    <Button Command="{Binding AddItemCommand}" Style="{StaticResource ModernButton}" Margin="0,0,6,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="➕" FontSize="16" Margin="0,0,8,0"/>
-                            <TextBlock Text="Add Item"/>
+                            <TextBlock Text="➕" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Add"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
+                    <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="✏️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="✏️" FontSize="14" Margin="0,0,6,0"/>
                             <TextBlock Text="Edit"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}" Margin="0,0,8,0">
+                    <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🗑️" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
                             <TextBlock Text="Delete"/>
                         </StackPanel>
                     </Button>
+                </StackPanel>
 
-                    <Separator Width="1" Margin="8,0" Background="{StaticResource DividerBrush}"/>
+                <!-- Center - Import/Export with menu -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <!-- Import Menu -->
+                    <Menu Background="Transparent" VerticalAlignment="Center">
+                        <MenuItem Style="{StaticResource {x:Type MenuItem}}">
+                            <MenuItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📥" FontSize="14" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Import" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" ▾" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </MenuItem.Header>
+                            <MenuItem Header="📊 Import from Excel" Command="{Binding ImportFromExcelCommand}"/>
+                            <MenuItem Header="📄 Import from CSV" Command="{Binding ImportFromCsvCommand}"/>
+                        </MenuItem>
+                    </Menu>
 
-                    <Button Command="{Binding LoadItemsCommand}" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0">
+                    <!-- Export Menu -->
+                    <Menu Background="Transparent" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <MenuItem Style="{StaticResource {x:Type MenuItem}}">
+                            <MenuItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📤" FontSize="14" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Export" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" ▾" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </MenuItem.Header>
+                            <MenuItem Header="📊 Export to Excel" Command="{Binding ExportToExcelCommand}"/>
+                            <MenuItem Header="📄 Export to CSV" Command="{Binding ExportToCsvCommand}"/>
+                        </MenuItem>
+                    </Menu>
+
+                    <Button Command="{Binding LoadItemsCommand}" Style="{StaticResource SecondaryButton}" Margin="16,0,0,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🔄" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="🔄" FontSize="14" Margin="0,0,6,0"/>
                             <TextBlock Text="Refresh"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <!-- Right side buttons -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Command="{Binding ExportToExcelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📤" FontSize="16" Margin="0,0,8,0"/>
-                            <TextBlock Text="Export Excel"/>
-                        </StackPanel>
-                    </Button>
+                <!-- Right side - Settings -->
+                <Button Grid.Column="2" Command="{Binding OpenSettingsCommand}" Style="{StaticResource SecondaryButton}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙️" FontSize="14" Margin="0,0,6,0"/>
+                        <TextBlock Text="Settings"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
 
-                    <Button Command="{Binding ExportToCsvCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="💾" FontSize="16" Margin="0,0,8,0"/>
-                            <TextBlock Text="Export CSV"/>
-                        </StackPanel>
-                    </Button>
+        <!-- Summary Dashboard -->
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" 
+                Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <Button Command="{Binding OpenSettingsCommand}" Style="{StaticResource SecondaryButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⚙️" FontSize="16" Margin="0,0,8,0"/>
-                            <TextBlock Text="Settings"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                <!-- Total Items -->
+                <Border Grid.Column="0" Background="{StaticResource BackgroundBrush}" 
+                        CornerRadius="8" Padding="16,12" Margin="0,0,8,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="📦" FontSize="20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding TotalItems}" FontSize="24" FontWeight="Bold" 
+                                   HorizontalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Total Items" FontSize="11" 
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Good Items -->
+                <Border Grid.Column="1" Background="#E8F5E9" 
+                        CornerRadius="8" Padding="16,12" Margin="4,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="✅" FontSize="20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding GoodCount}" FontSize="24" FontWeight="Bold" 
+                                   HorizontalAlignment="Center" Foreground="#2E7D32"/>
+                        <TextBlock Text="Good (30+ days)" FontSize="11" 
+                                   Foreground="#2E7D32" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Warning Items -->
+                <Border Grid.Column="2" Background="#FFF3E0" 
+                        CornerRadius="8" Padding="16,12" Margin="4,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="⚠️" FontSize="20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding WarningCount}" FontSize="24" FontWeight="Bold" 
+                                   HorizontalAlignment="Center" Foreground="#E65100"/>
+                        <TextBlock Text="Warning (8-30 days)" FontSize="11" 
+                                   Foreground="#E65100" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Critical Items -->
+                <Border Grid.Column="3" Background="#FFEBEE" 
+                        CornerRadius="8" Padding="16,12" Margin="4,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🚨" FontSize="20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding CriticalCount}" FontSize="24" FontWeight="Bold" 
+                                   HorizontalAlignment="Center" Foreground="#C62828"/>
+                        <TextBlock Text="Critical (≤7 days)" FontSize="11" 
+                                   Foreground="#C62828" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Expired Items -->
+                <Border Grid.Column="4" Background="#ECEFF1" 
+                        CornerRadius="8" Padding="16,12" Margin="8,0,0,0">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="❌" FontSize="20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ExpiredCount}" FontSize="24" FontWeight="Bold" 
+                                   HorizontalAlignment="Center" Foreground="#546E7A"/>
+                        <TextBlock Text="Expired" FontSize="11" 
+                                   Foreground="#546E7A" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
 
         <!-- Search and Filter Bar -->
-        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,0,0,1" Padding="16,12">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -159,7 +251,7 @@
         </Border>
 
         <!-- Data Grid -->
-        <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
+        <DataGrid Grid.Row="3" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
                   Style="{StaticResource ModernDataGrid}"
                   ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
                   CellStyle="{StaticResource ModernDataGridCell}"
@@ -167,14 +259,41 @@
                   CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
+                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="130" IsReadOnly="True" SortMemberPath="ItemNumber"/>
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True" SortMemberPath="Description"/>
-                <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="150" IsReadOnly="True" SortMemberPath="Location"/>
-                <DataGridTextColumn Header="Units" Binding="{Binding Units}" Width="100" IsReadOnly="True" SortMemberPath="Units"/>
+                <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="120" IsReadOnly="True" SortMemberPath="Location"/>
+                <DataGridTextColumn Header="Units" Binding="{Binding Units}" Width="80" IsReadOnly="True" SortMemberPath="Units"/>
                 <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat='MMM dd, yyyy'}"
-                                  Width="150" IsReadOnly="True" SortMemberPath="ExpiryDate"/>
+                                  Width="130" IsReadOnly="True" SortMemberPath="ExpiryDate"/>
 
-                <DataGridTemplateColumn Header="Status" Width="120" SortMemberPath="Status">
+                <DataGridTemplateColumn Header="Days Left" Width="100" SortMemberPath="DaysUntilExpiry">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="12">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="{Binding DaysUntilExpiry, StringFormat='{}{0} days'}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Expired">
+                                                <Setter Property="Foreground" Value="#9E9E9E"/>
+                                                <Setter Property="Text" Value="Expired"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Status" Width="100" SortMemberPath="Status">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Border Padding="8,4" CornerRadius="6" HorizontalAlignment="Center">
@@ -195,16 +314,18 @@
                                     </Style>
                                 </Border.Style>
                                 <TextBlock Text="{Binding Status}" FontWeight="SemiBold" Foreground="White"
-                                         HorizontalAlignment="Center" FontSize="12"/>
+                                         HorizontalAlignment="Center" FontSize="11"/>
                             </Border>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100" IsReadOnly="True" SortMemberPath="Category"/>
             </DataGrid.Columns>
         </DataGrid>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="3" Style="{StaticResource ModernStatusBar}">
+        <StatusBar Grid.Row="4" Style="{StaticResource ModernStatusBar}">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>

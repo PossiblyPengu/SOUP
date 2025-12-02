@@ -13,6 +13,10 @@
             <!-- Converters -->
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <converters:BoolToSuccessColorConverter x:Key="BoolToSuccessColorConverter"/>
+            <converters:BoolToAccentColorConverter x:Key="BoolToAccentColorConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -123,6 +123,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     public IRelayCommand UndoDeactivateCommand { get; }
     public IAsyncRelayCommand ClearDataCommand { get; }
     public IRelayCommand<LocationAllocation> CopyLocationToClipboardCommand { get; }
+    public IAsyncRelayCommand ExportToExcelCommand { get; }
+    public IAsyncRelayCommand ExportToCsvCommand { get; }
 
     public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
@@ -141,6 +143,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
         CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
+        ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
+        ExportToCsvCommand = new AsyncRelayCommand(ExportToCsvAsync);
 
         // Load dictionaries on a background task to avoid blocking the UI during startup
         _ = Task.Run(() =>
@@ -709,6 +713,122 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
         StatusMessage = "All data cleared";
         _logger?.LogInformation("All allocation data cleared by user");
+    }
+
+    private Task ExportToExcelAsync()
+    {
+        try
+        {
+            if (LocationAllocations.Count == 0)
+            {
+                StatusMessage = "No data to export";
+                return Task.CompletedTask;
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var fileName = $"AllocationBuddy_Export_{timestamp}.xlsx";
+            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var filePath = Path.Combine(desktopPath, fileName);
+
+            // Create Excel file using ClosedXML
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Allocations");
+
+            // Headers
+            worksheet.Cell(1, 1).Value = "Location";
+            worksheet.Cell(1, 2).Value = "Location Name";
+            worksheet.Cell(1, 3).Value = "Item Number";
+            worksheet.Cell(1, 4).Value = "Description";
+            worksheet.Cell(1, 5).Value = "Quantity";
+            worksheet.Cell(1, 6).Value = "SKU";
+
+            // Style headers
+            var headerRange = worksheet.Range(1, 1, 1, 6);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+
+            // Data
+            int row = 2;
+            foreach (var location in LocationAllocations)
+            {
+                foreach (var item in location.Items)
+                {
+                    worksheet.Cell(row, 1).Value = location.Location;
+                    worksheet.Cell(row, 2).Value = location.LocationName ?? "";
+                    worksheet.Cell(row, 3).Value = item.ItemNumber;
+                    worksheet.Cell(row, 4).Value = item.Description;
+                    worksheet.Cell(row, 5).Value = item.Quantity;
+                    worksheet.Cell(row, 6).Value = item.SKU ?? "";
+                    row++;
+                }
+            }
+
+            // Auto-fit columns
+            worksheet.Columns().AdjustToContents();
+
+            workbook.SaveAs(filePath);
+
+            StatusMessage = $"Exported to {fileName}";
+            _logger?.LogInformation("Exported allocations to Excel: {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export failed: {ex.Message}";
+            _logger?.LogError(ex, "Failed to export allocations to Excel");
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task ExportToCsvAsync()
+    {
+        try
+        {
+            if (LocationAllocations.Count == 0)
+            {
+                StatusMessage = "No data to export";
+                return;
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var fileName = $"AllocationBuddy_Export_{timestamp}.csv";
+            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var filePath = Path.Combine(desktopPath, fileName);
+
+            using var writer = new StreamWriter(filePath);
+            
+            // Headers
+            await writer.WriteLineAsync("Location,Location Name,Item Number,Description,Quantity,SKU");
+
+            // Data
+            foreach (var location in LocationAllocations)
+            {
+                foreach (var item in location.Items)
+                {
+                    var locationName = EscapeCsvField(location.LocationName ?? "");
+                    var description = EscapeCsvField(item.Description);
+                    var sku = EscapeCsvField(item.SKU ?? "");
+                    await writer.WriteLineAsync($"{location.Location},{locationName},{item.ItemNumber},{description},{item.Quantity},{sku}");
+                }
+            }
+
+            StatusMessage = $"Exported to {fileName}";
+            _logger?.LogInformation("Exported allocations to CSV: {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export failed: {ex.Message}";
+            _logger?.LogError(ex, "Failed to export allocations to CSV");
+        }
+    }
+
+    private static string EscapeCsvField(string field)
+    {
+        if (string.IsNullOrEmpty(field)) return "";
+        if (field.Contains(',') || field.Contains('"') || field.Contains('\n'))
+        {
+            return $"\"{field.Replace("\"", "\"\"")}\"";
+        }
+        return field;
     }
 
     public class LocationAllocation

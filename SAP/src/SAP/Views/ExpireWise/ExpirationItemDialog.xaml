@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SAP.ViewModels"
              mc:Ignorable="d"
-             d:DesignHeight="580" d:DesignWidth="500"
+             d:DesignHeight="650" d:DesignWidth="550"
              d:DataContext="{d:DesignInstance Type=vm:ExpirationItemDialogViewModel}">
 
     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
@@ -20,12 +20,12 @@
             <StackPanel Grid.Row="0" Margin="0,0,0,20">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="📅" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBlock Text="Expiration Item" 
+                    <TextBlock Text="{Binding DialogTitle}" 
                                FontSize="20" FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock Text="Track item expiration dates and details"
+                <TextBlock Text="Search the dictionary or enter item details manually"
                            FontSize="13"
                            Foreground="{StaticResource TextSecondaryBrush}"
                            Margin="0,6,0,0"/>
@@ -34,20 +34,101 @@
             <!-- Form Fields -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <!-- Item Number -->
+                    <!-- Dictionary Search Section (Only show when not in edit mode) -->
+                    <Border Background="{StaticResource BackgroundBrush}" 
+                            CornerRadius="8" Padding="16" Margin="0,0,0,20"
+                            Visibility="{Binding IsEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Search Item Dictionary" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBox Grid.Column="0" 
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource ModernTextBox}"
+                                         x:Name="SearchTextBox"/>
+                                <Button Grid.Column="1" Content="🔎 Lookup" 
+                                        Command="{Binding LookupItemCommand}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Padding="12,8" Margin="8,0,0,0"/>
+                            </Grid>
+                            
+                            <!-- Lookup Status -->
+                            <TextBlock Text="{Binding LookupStatus}" 
+                                       FontSize="12" Margin="0,8,0,0"
+                                       Foreground="{Binding ItemFoundInDictionary, Converter={StaticResource BoolToSuccessColorConverter}}"/>
+                            
+                            <!-- Suggestions Popup -->
+                            <Border Visibility="{Binding ShowSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="6"
+                                    MaxHeight="200" Margin="0,8,0,0">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding Suggestions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border x:Name="SuggestionBorder" 
+                                                        Padding="12,10" Cursor="Hand"
+                                                        Background="Transparent"
+                                                        BorderBrush="{StaticResource BorderBrush}"
+                                                        BorderThickness="0,0,0,1">
+                                                    <Border.InputBindings>
+                                                        <MouseBinding MouseAction="LeftClick" 
+                                                                      Command="{Binding DataContext.SelectSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                    </Border.InputBindings>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding Number}" 
+                                                                   FontWeight="SemiBold" FontSize="13"
+                                                                   Foreground="{StaticResource AccentBrush}"
+                                                                   Margin="0,0,12,0"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Description}" 
+                                                                   FontSize="12" TextTrimming="CharacterEllipsis"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </Grid>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="SuggestionBorder" Property="Background" Value="{StaticResource HoverBrush}"/>
+                                                    </Trigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Item Number (Read-only display when set from dictionary) -->
                     <StackPanel Margin="0,0,0,16">
-                        <TextBlock Text="Item Number" FontWeight="SemiBold" FontSize="13"
+                        <TextBlock Text="Item Number *" FontWeight="SemiBold" FontSize="13"
                                    Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}"/>
+                                 Style="{StaticResource ModernTextBox}"
+                                 IsReadOnly="{Binding ItemFoundInDictionary}"/>
                     </StackPanel>
 
                     <!-- Description -->
                     <StackPanel Margin="0,0,0,16">
-                        <TextBlock Text="Description" FontWeight="SemiBold" FontSize="13"
+                        <TextBlock Text="Description *" FontWeight="SemiBold" FontSize="13"
                                    Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}"/>
+                                 Style="{StaticResource ModernTextBox}"
+                                 IsReadOnly="{Binding ItemFoundInDictionary}"/>
                     </StackPanel>
 
                     <!-- Two Column Layout -->
@@ -85,7 +166,7 @@
 
                         <!-- Expiry Date -->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Expiry Date" FontWeight="SemiBold" FontSize="13"
+                            <TextBlock Text="Expiry Date *" FontWeight="SemiBold" FontSize="13"
                                        Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                             <DatePicker SelectedDate="{Binding ExpiryDate}"
                                         Style="{StaticResource ModernDatePicker}"/>
@@ -117,16 +198,23 @@
                     BorderThickness="0,1,0,0" Padding="0,20,0,0" Margin="0,16,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="1" Content="Cancel" 
+                    <Button Grid.Column="0" Content="🗑️ Clear" 
+                            Command="{Binding ClearFormCommand}" 
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="16,10"
+                            Visibility="{Binding IsEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                    
+                    <Button Grid.Column="2" Content="Cancel" 
                             Click="Cancel_Click" 
                             Style="{StaticResource SecondaryButton}"
                             Padding="24,10" Margin="0,0,12,0"/>
-                    <Button Grid.Column="2" Content="💾 Save" 
+                    <Button Grid.Column="3" Content="💾 Save" 
                             Click="Save_Click" 
                             Style="{StaticResource PrimaryButton}"
                             Padding="24,10"/>
