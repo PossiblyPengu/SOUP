@@ -79,7 +79,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
     public int ItemPoolCount => ItemPool.Count;
 
-    public string FooterMessage => _statusMessage;
+    public string FooterMessage => StatusMessage;
 
     /// <summary>
     /// Gets a summary of total quantities per unique item across all locations.
@@ -131,13 +131,13 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         _logger = logger;
 
         ImportCommand = new RelayCommand(async () => await ImportAsync());
-        ImportFilesCommand = new AsyncRelayCommand<string[]>(ImportFilesAsync);
+        ImportFilesCommand = new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); });
         RefreshCommand = new RelayCommand(async () => await RefreshAsync());
         ClearCommand = new RelayCommand(ClearSearch);
-        RemoveOneCommand = new RelayCommand<ItemAllocation>(RemoveOne);
-        AddOneCommand = new RelayCommand<ItemAllocation>(AddOne);
-        MoveFromPoolCommand = new RelayCommand<ItemAllocation>(MoveFromPool);
-        DeactivateStoreCommand = new AsyncRelayCommand<LocationAllocation>(DeactivateStoreAsync);
+        RemoveOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) RemoveOne(item); });
+        AddOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) AddOne(item); });
+        MoveFromPoolCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) MoveFromPool(item); });
+        DeactivateStoreCommand = new AsyncRelayCommand<LocationAllocation?>(async loc => { if (loc != null) await DeactivateStoreAsync(loc); });
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
         CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
@@ -403,7 +403,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     }
 
     // Command to open selection dialog and move from pool to chosen location
-    public IRelayCommand<ItemAllocation> SelectAndMoveFromPoolCommand => new RelayCommand<ItemAllocation>(async (item) => await SelectAndMoveAsync(item));
+    public IRelayCommand<ItemAllocation?> SelectAndMoveFromPoolCommand => new RelayCommand<ItemAllocation?>(async (item) => { if (item != null) await SelectAndMoveAsync(item); });
 
     private async Task SelectAndMoveAsync(ItemAllocation item)
     {

@@ -51,7 +51,10 @@ public partial class App : Application
                     var ex = ev.ExceptionObject as Exception;
                     Log.Fatal(ex, "Unhandled exception in AppDomain");
                 }
-                catch { }
+                catch (Exception logEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to log AppDomain exception: {logEx.Message}");
+                }
             };
 
             TaskScheduler.UnobservedTaskException += (s, ev) =>
@@ -61,7 +64,10 @@ public partial class App : Application
                     Log.Fatal(ev.Exception, "Unobserved task exception");
                     ev.SetObserved();
                 }
-                catch { }
+                catch (Exception logEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to log task exception: {logEx.Message}");
+                }
             };
 
             this.DispatcherUnhandledException += (s, ev) =>
@@ -72,7 +78,10 @@ public partial class App : Application
                     MessageBox.Show($"An unexpected error occurred:\n{ev.Exception.Message}", "Unhandled Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     ev.Handled = true;
                 }
-                catch { }
+                catch (Exception logEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to handle dispatcher exception: {logEx.Message}");
+                }
             };
 
             // Build host with dependency injection
@@ -150,57 +159,71 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        await _host.StartAsync();
-
-        // Initialize the shared dictionary database at startup
-        // This loads items and stores that are used across multiple modules
         try
         {
-            var dictDb = DictionaryDbContext.Instance;
-            var itemCount = dictDb.Items.Count();
-            var storeCount = dictDb.Stores.Count();
-            Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
-            
-            if (itemCount == 0)
+            await _host.StartAsync().ConfigureAwait(false);
+
+            // Initialize the shared dictionary database at startup
+            // This loads items and stores that are used across multiple modules
+            try
             {
-                Log.Warning("Dictionary database is empty. Run the ImportDictionary tool to populate it.");
+                var dictDb = DictionaryDbContext.Instance;
+                var itemCount = dictDb.Items.Count();
+                var storeCount = dictDb.Stores.Count();
+                Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
+                
+                if (itemCount == 0)
+                {
+                    Log.Warning("Dictionary database is empty. Run the ImportDictionary tool to populate it.");
+                }
             }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to initialize dictionary database");
+            }
+
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+
+            base.OnStartup(e);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to initialize dictionary database");
+            Log.Fatal(ex, "Failed during application startup");
+            MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
         }
-
-        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
-
-        // Note: AllocationBuddy settings are available inside the unified settings window.
-        // The previous debug helper that auto-opened the AllocationBuddy standalone settings
-        // window has been removed to avoid maintaining an independent settings UI.
-
-        base.OnStartup(e);
     }
 
     protected override async void OnExit(ExitEventArgs e)
     {
-        // Dispose dictionary database
         try
         {
-            DictionaryDbContext.Instance.Dispose();
-            Log.Information("Dictionary database closed");
+            // Dispose dictionary database
+            try
+            {
+                DictionaryDbContext.Instance.Dispose();
+                Log.Information("Dictionary database closed");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error closing dictionary database");
+            }
+
+            using (_host)
+            {
+                await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Error closing dictionary database");
+            Log.Error(ex, "Error during application shutdown");
         }
-
-        using (_host)
+        finally
         {
-            await _host.StopAsync(TimeSpan.FromSeconds(5));
+            Log.CloseAndFlush();
+            base.OnExit(e);
         }
-
-        Log.CloseAndFlush();
-        base.OnExit(e);
     }
 
     public static T GetService<T>() where T : class

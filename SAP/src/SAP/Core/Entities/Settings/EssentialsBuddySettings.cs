@@ -16,4 +16,14 @@ public class EssentialsBuddySettings : BaseEntity
     public string Theme { get; set; } = "System";
     public bool ShowLowStockNotifications { get; set; } = true;
     public bool AutoLoadLastSession { get; set; } = true;
+    
+    /// <summary>
+    /// Default status filter when opening: "All", "Normal", "Low", "OutOfStock", "Overstocked"
+    /// </summary>
+    public string DefaultStatusFilter { get; set; } = "All";
+    
+    /// <summary>
+    /// Start with "Essentials Only" filter enabled
+    /// </summary>
+    public bool DefaultEssentialsOnly { get; set; } = false;
 }

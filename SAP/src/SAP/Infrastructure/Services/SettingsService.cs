@@ -45,12 +45,13 @@ public class SettingsService
 
         try
         {
-            var json = await File.ReadAllTextAsync(filePath);
+            var json = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
             return JsonSerializer.Deserialize<T>(json, _jsonOptions) ?? new T();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // If there's an error reading/deserializing, return default settings
+            // Log the exception instead of swallowing it
+            System.Diagnostics.Debug.WriteLine($"Error loading settings for {appName}: {ex.Message}");
             return new T();
         }
     }
@@ -65,7 +66,7 @@ public class SettingsService
         try
         {
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
-            await File.WriteAllTextAsync(filePath, json);
+            await File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -78,7 +79,13 @@ public class SettingsService
     /// </summary>
     private string GetSettingsFilePath(string appName)
     {
-        return Path.Combine(_settingsDirectory, $"{appName}.settings.json");
+        // Sanitize the app name to prevent path injection
+        var sanitized = string.Concat(appName.Split(Path.GetInvalidFileNameChars()));
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            sanitized = "default";
+        }
+        return Path.Combine(_settingsDirectory, $"{sanitized}.settings.json");
     }
 
     /// <summary>

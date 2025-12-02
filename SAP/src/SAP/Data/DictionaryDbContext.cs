@@ -8,10 +8,12 @@ namespace SAP.Data;
 /// <summary>
 /// Shared LiteDB context for dictionary data (items and stores).
 /// Uses a separate database from the main app data for clean separation.
+/// Thread-safe for concurrent access.
 /// </summary>
 public sealed class DictionaryDbContext : IDisposable
 {
     private static readonly Lazy<DictionaryDbContext> _instance = new(() => new DictionaryDbContext());
+    private static readonly object _lock = new();
     private readonly LiteDatabase _database;
     private bool _disposed;
 
@@ -51,14 +53,32 @@ public sealed class DictionaryDbContext : IDisposable
     }
 
     /// <summary>
-    /// Get the items collection
+    /// Get the items collection (thread-safe)
     /// </summary>
-    public ILiteCollection<DictionaryItemEntity> Items => _database.GetCollection<DictionaryItemEntity>("items");
+    public ILiteCollection<DictionaryItemEntity> Items
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _database.GetCollection<DictionaryItemEntity>("items");
+            }
+        }
+    }
 
     /// <summary>
-    /// Get the stores collection
+    /// Get the stores collection (thread-safe)
     /// </summary>
-    public ILiteCollection<StoreEntity> Stores => _database.GetCollection<StoreEntity>("stores");
+    public ILiteCollection<StoreEntity> Stores
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _database.GetCollection<StoreEntity>("stores");
+            }
+        }
+    }
 
     /// <summary>
     /// Get the underlying database for advanced operations

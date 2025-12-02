@@ -135,7 +135,7 @@ public partial class SwiftLabelViewModel : ObservableObject
             var filePath = saveDialog.FileName;
 
             // Generate the Word document
-            await Task.Run(() => CreateLabelDocument(filePath));
+            await Task.Run(() => CreateLabelDocument(filePath)).ConfigureAwait(false);
 
             StatusMessage = $"Successfully created {TotalBoxes} labels!";
             _logger?.LogInformation("Generated {Count} labels for store {Store}, transfer {Transfer}",

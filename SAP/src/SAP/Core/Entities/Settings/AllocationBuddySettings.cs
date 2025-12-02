@@ -14,4 +14,14 @@ public class AllocationBuddySettings : BaseEntity
     public bool ShowConfirmationDialogs { get; set; } = true;
     public string Theme { get; set; } = "System";
     public bool AutoLoadLastSession { get; set; } = false;
+    
+    /// <summary>
+    /// Include item descriptions when copying to clipboard
+    /// </summary>
+    public bool IncludeDescriptionsInCopy { get; set; } = false;
+    
+    /// <summary>
+    /// Clipboard format: "TabSeparated" or "CommaSeparated"
+    /// </summary>
+    public string ClipboardFormat { get; set; } = "TabSeparated";
 }

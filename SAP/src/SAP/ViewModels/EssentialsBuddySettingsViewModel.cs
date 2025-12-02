@@ -40,6 +40,12 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
     private bool _autoLoadLastSession = true;
 
     [ObservableProperty]
+    private string _defaultStatusFilter = "All";
+
+    [ObservableProperty]
+    private bool _defaultEssentialsOnly = false;
+
+    [ObservableProperty]
     private string _statusMessage = string.Empty;
 
     public EssentialsBuddySettingsViewModel(SettingsService settingsService)
@@ -49,7 +55,7 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
-        await LoadSettingsAsync();
+        await LoadSettingsAsync().ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -68,6 +74,8 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
             Theme = settings.Theme;
             ShowLowStockNotifications = settings.ShowLowStockNotifications;
             AutoLoadLastSession = settings.AutoLoadLastSession;
+            DefaultStatusFilter = settings.DefaultStatusFilter;
+            DefaultEssentialsOnly = settings.DefaultEssentialsOnly;
 
             StatusMessage = "Settings loaded successfully";
         }
@@ -92,7 +100,9 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
                 AutoRefreshIntervalMinutes = AutoRefreshIntervalMinutes,
                 Theme = Theme,
                 ShowLowStockNotifications = ShowLowStockNotifications,
-                AutoLoadLastSession = AutoLoadLastSession
+                AutoLoadLastSession = AutoLoadLastSession,
+                DefaultStatusFilter = DefaultStatusFilter,
+                DefaultEssentialsOnly = DefaultEssentialsOnly
             };
 
             await _settingsService.SaveSettingsAsync(_appName, settings);

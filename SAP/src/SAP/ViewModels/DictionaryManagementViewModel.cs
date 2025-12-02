@@ -216,7 +216,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 
                 // Save stores to LiteDB
                 InternalStoreDictionary.SaveStores(_allStores);
-            });
+            }).ConfigureAwait(false);
 
             StatusMessage = $"Saved {_allItems.Count} items and {_allStores.Count} stores to database";
             _logger?.LogInformation("Saved dictionary to LiteDB: {ItemCount} items, {StoreCount} stores", _allItems.Count, _allStores.Count);
@@ -743,7 +743,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
                         imported++;
                     }
                 }
-            });
+            }).ConfigureAwait(false);
 
             _allItems = _allItems.OrderBy(i => i.Number).ToList();
             SyncItemsFromAllItems();
@@ -845,7 +845,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
                         imported++;
                     }
                 }
-            });
+            }).ConfigureAwait(false);
 
             _allStores = _allStores.OrderBy(s => s.Code).ToList();
             Stores = new ObservableCollection<StoreEntry>(_allStores);

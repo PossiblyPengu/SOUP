@@ -15,4 +15,14 @@ public class ExpireWiseSettings : BaseEntity
     public string Theme { get; set; } = "System";
     public bool ShowExpirationNotifications { get; set; } = true;
     public bool AutoLoadLastSession { get; set; } = true;
+    
+    /// <summary>
+    /// Default status filter when opening: "All", "Good", "Warning", "Critical", "Expired"
+    /// </summary>
+    public string DefaultStatusFilter { get; set; } = "All";
+    
+    /// <summary>
+    /// Date format for displaying expiration dates: "Short" (MM/dd/yyyy) or "Long" (MMMM dd, yyyy)
+    /// </summary>
+    public string DateDisplayFormat { get; set; } = "Short";
 }

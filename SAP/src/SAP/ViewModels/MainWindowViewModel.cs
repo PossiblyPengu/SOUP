@@ -11,10 +11,11 @@ namespace SAP.ViewModels;
 /// <summary>
 /// Main window ViewModel - Launcher with module navigation
 /// </summary>
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainWindowViewModel>? _logger;
+    private bool _disposed;
 
     [ObservableProperty]
     private string _title = "S.A.P";
@@ -34,12 +35,14 @@ public partial class MainWindowViewModel : ViewModelBase
         _logger = logger;
 
         // Update title when navigating to modules
-        NavigationService.ModuleChanged += (_, moduleName) =>
-        {
-            Title = moduleName == "Launcher"
-                ? "S.A.P"
-                : $"S.A.P - {moduleName}";
-        };
+        NavigationService.ModuleChanged += OnModuleChanged;
+    }
+
+    private void OnModuleChanged(object? sender, string moduleName)
+    {
+        Title = moduleName == "Launcher"
+            ? "S.A.P"
+            : $"S.A.P - {moduleName}";
     }
 
     [RelayCommand]
@@ -55,6 +58,25 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to open unified settings window");
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // Unsubscribe from events to prevent memory leaks
+                NavigationService.ModuleChanged -= OnModuleChanged;
+            }
+            _disposed = true;
         }
     }
 }

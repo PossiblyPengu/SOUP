@@ -37,6 +37,12 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
     private bool _autoLoadLastSession = true;
 
     [ObservableProperty]
+    private string _defaultStatusFilter = "All";
+
+    [ObservableProperty]
+    private string _dateDisplayFormat = "Short";
+
+    [ObservableProperty]
     private string _statusMessage = string.Empty;
 
     public ExpireWiseSettingsViewModel(SettingsService settingsService)
@@ -46,7 +52,7 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
-        await LoadSettingsAsync();
+        await LoadSettingsAsync().ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -64,6 +70,8 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
             Theme = settings.Theme;
             ShowExpirationNotifications = settings.ShowExpirationNotifications;
             AutoLoadLastSession = settings.AutoLoadLastSession;
+            DefaultStatusFilter = settings.DefaultStatusFilter;
+            DateDisplayFormat = settings.DateDisplayFormat;
 
             StatusMessage = "Settings loaded successfully";
         }
@@ -87,7 +95,9 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
                 AutoRefreshIntervalMinutes = AutoRefreshIntervalMinutes,
                 Theme = Theme,
                 ShowExpirationNotifications = ShowExpirationNotifications,
-                AutoLoadLastSession = AutoLoadLastSession
+                AutoLoadLastSession = AutoLoadLastSession,
+                DefaultStatusFilter = DefaultStatusFilter,
+                DateDisplayFormat = DateDisplayFormat
             };
 
             await _settingsService.SaveSettingsAsync(_appName, settings);

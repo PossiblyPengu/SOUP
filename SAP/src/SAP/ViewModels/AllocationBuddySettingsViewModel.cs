@@ -40,6 +40,12 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
     private bool _autoLoadLastSession = false;
 
     [ObservableProperty]
+    private bool _includeDescriptionsInCopy = false;
+
+    [ObservableProperty]
+    private string _clipboardFormat = "TabSeparated";
+
+    [ObservableProperty]
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
@@ -81,7 +87,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         try
         {
             // Load stores from shared dictionary (checks saved file first, then defaults)
-            var stores = await Task.Run(() => InternalStoreDictionary.GetStores());
+            var stores = await Task.Run(() => InternalStoreDictionary.GetStores()).ConfigureAwait(false);
             Stores = new ObservableCollection<StoreEntry>(stores);
         }
         catch (Exception ex)
@@ -98,7 +104,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         {
             StatusMessage = "Loading stores...";
             Log.Information("AllocationBuddySettings: Starting LoadStoresFromDictionaryAsync");
-            await LoadStoresFromDictionaryAsync();
+            await LoadStoresFromDictionaryAsync().ConfigureAwait(false);
             StatusMessage = "Stores loaded";
             Log.Information("AllocationBuddySettings: LoadStoresFromDictionaryAsync completed successfully");
         }
@@ -112,7 +118,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         {
             StatusMessage = "Loading settings...";
             Log.Information("AllocationBuddySettings: Starting LoadSettingsAsync");
-            await LoadSettingsAsync();
+            await LoadSettingsAsync().ConfigureAwait(false);
             StatusMessage = "Settings loaded";
             Log.Information("AllocationBuddySettings: LoadSettingsAsync completed successfully");
         }
@@ -137,6 +143,8 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
             ShowConfirmationDialogs = settings.ShowConfirmationDialogs;
             Theme = settings.Theme;
             AutoLoadLastSession = settings.AutoLoadLastSession;
+            IncludeDescriptionsInCopy = settings.IncludeDescriptionsInCopy;
+            ClipboardFormat = settings.ClipboardFormat;
 
             StatusMessage = "Settings loaded successfully";
         }
@@ -159,7 +167,9 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
                 AutoSaveIntervalMinutes = AutoSaveIntervalMinutes,
                 ShowConfirmationDialogs = ShowConfirmationDialogs,
                 Theme = Theme,
-                AutoLoadLastSession = AutoLoadLastSession
+                AutoLoadLastSession = AutoLoadLastSession,
+                IncludeDescriptionsInCopy = IncludeDescriptionsInCopy,
+                ClipboardFormat = ClipboardFormat
             };
 
             await _settingsService.SaveSettingsAsync(_appName, settings);
@@ -180,7 +190,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         try
         {
             // Save to shared location used by all apps
-            await Task.Run(() => InternalStoreDictionary.SaveStores(Stores.ToList()));
+            await Task.Run(() => InternalStoreDictionary.SaveStores(Stores.ToList())).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
