@@ -6,6 +6,7 @@ using System.Windows;
 using Serilog;
 using Serilog.Events;
 using SAP.Core.Interfaces;
+using SAP.Data;
 using SAP.Infrastructure.Data;
 using SAP.Infrastructure.Repositories;
 using SAP.Infrastructure.Services;
@@ -102,6 +103,9 @@ public partial class App : Application
         services.AddSingleton(sp => new LiteDbContext(dbPath));
         services.AddScoped<IUnitOfWork, LiteDbUnitOfWork>();
 
+        // Shared dictionary database (items and stores for matching across modules)
+        services.AddSingleton(_ => DictionaryDbContext.Instance);
+
         // Repositories
         services.AddScoped(typeof(IRepository<>), typeof(LiteDbRepository<>));
         services.AddScoped<IAllocationBuddyRepository, AllocationBuddyRepository>();
@@ -148,6 +152,25 @@ public partial class App : Application
     {
         await _host.StartAsync();
 
+        // Initialize the shared dictionary database at startup
+        // This loads items and stores that are used across multiple modules
+        try
+        {
+            var dictDb = DictionaryDbContext.Instance;
+            var itemCount = dictDb.Items.Count();
+            var storeCount = dictDb.Stores.Count();
+            Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
+            
+            if (itemCount == 0)
+            {
+                Log.Warning("Dictionary database is empty. Run the ImportDictionary tool to populate it.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to initialize dictionary database");
+        }
+
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
@@ -160,6 +183,17 @@ public partial class App : Application
 
     protected override async void OnExit(ExitEventArgs e)
     {
+        // Dispose dictionary database
+        try
+        {
+            DictionaryDbContext.Instance.Dispose();
+            Log.Information("Dictionary database closed");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error closing dictionary database");
+        }
+
         using (_host)
         {
             await _host.StopAsync(TimeSpan.FromSeconds(5));

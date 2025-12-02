@@ -14,4 +14,14 @@ public class DictionaryItemEntity
     public string Description { get; set; } = "";
     
     public List<string> Skus { get; set; } = new();
+    
+    /// <summary>
+    /// Whether this item is marked as an essential (for EssentialsBuddy filtering)
+    /// </summary>
+    public bool IsEssential { get; set; }
+    
+    /// <summary>
+    /// Optional tags for categorization (e.g., "essential", "seasonal", "new")
+    /// </summary>
+    public List<string> Tags { get; set; } = new();
 }

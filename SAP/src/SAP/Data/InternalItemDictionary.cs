@@ -194,4 +194,88 @@ public static class InternalItemDictionary
         var item = FindItem(itemNumberOrSku);
         return item?.Description ?? itemNumberOrSku;
     }
+
+    /// <summary>
+    /// Get all items marked as essential
+    /// </summary>
+    public static List<DictionaryItemEntity> GetEssentialItems()
+    {
+        return DictionaryDbContext.Instance.Items
+            .Find(x => x.IsEssential)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get all essential items as DictionaryItem objects
+    /// </summary>
+    public static List<DictionaryItem> GetAllEssentialItems()
+    {
+        return DictionaryDbContext.Instance.Items
+            .Find(x => x.IsEssential)
+            .Select(e => new DictionaryItem
+            {
+                Number = e.Number,
+                Description = e.Description,
+                Skus = e.Skus
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Check if an item is marked as essential
+    /// </summary>
+    public static bool IsItemEssential(string itemNumber)
+    {
+        if (string.IsNullOrWhiteSpace(itemNumber)) return false;
+        
+        var entity = DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+        return entity?.IsEssential ?? false;
+    }
+
+    /// <summary>
+    /// Get the full entity with all fields (including IsEssential, Tags)
+    /// </summary>
+    public static DictionaryItemEntity? GetEntity(string itemNumber)
+    {
+        if (string.IsNullOrWhiteSpace(itemNumber)) return null;
+        return DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+    }
+
+    /// <summary>
+    /// Mark an item as essential
+    /// </summary>
+    public static void SetEssential(string itemNumber, bool isEssential)
+    {
+        var entity = DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+        if (entity != null)
+        {
+            entity.IsEssential = isEssential;
+            DictionaryDbContext.Instance.Items.Update(entity);
+        }
+    }
+
+    /// <summary>
+    /// Bulk update essential status for multiple items
+    /// </summary>
+    public static void SetEssentialBulk(IEnumerable<string> itemNumbers, bool isEssential)
+    {
+        var db = DictionaryDbContext.Instance;
+        foreach (var number in itemNumbers)
+        {
+            var entity = db.Items.FindById(number.Trim());
+            if (entity != null)
+            {
+                entity.IsEssential = isEssential;
+                db.Items.Update(entity);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Get count of essential items
+    /// </summary>
+    public static int GetEssentialCount()
+    {
+        return DictionaryDbContext.Instance.Items.Count(x => x.IsEssential);
+    }
 }

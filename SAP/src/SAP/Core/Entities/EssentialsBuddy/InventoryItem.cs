@@ -11,6 +11,27 @@ public class InventoryItem : BaseEntity
     public string ItemNumber { get; set; } = string.Empty;
     public string Upc { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Description from the dictionary database (if matched)
+    /// </summary>
+    public string? DictionaryDescription { get; set; }
+    
+    /// <summary>
+    /// Whether this item is marked as essential in the dictionary
+    /// </summary>
+    public bool IsEssential { get; set; }
+    
+    /// <summary>
+    /// Whether this item was matched against the dictionary
+    /// </summary>
+    public bool DictionaryMatched { get; set; }
+    
+    /// <summary>
+    /// Whether this is a non-essential item in a 9-90 bin (shouldn't be there)
+    /// </summary>
+    public bool IsNonEssentialIn990Bin => !IsEssential && (BinCode?.StartsWith("9-90", StringComparison.OrdinalIgnoreCase) ?? false);
+    
     public string? BinCode { get; set; }
     public string? Location { get; set; }
     public string? Category { get; set; }
@@ -23,6 +44,13 @@ public class InventoryItem : BaseEntity
     public decimal? UnitPrice { get; set; }
     public DateTime? LastUpdated { get; set; }
     public bool IsBelowThreshold => QuantityOnHand < (MinimumThreshold ?? 0);
+    
+    /// <summary>
+    /// Display description - prefers dictionary description if available
+    /// </summary>
+    public string DisplayDescription => !string.IsNullOrEmpty(DictionaryDescription) 
+        ? DictionaryDescription 
+        : Description;
     
     public InventoryStatus Status => CalculateStatus();
 

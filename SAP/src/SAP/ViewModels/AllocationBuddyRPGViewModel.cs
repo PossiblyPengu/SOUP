@@ -36,6 +36,16 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     private string _searchText = string.Empty;
 
     /// <summary>
+    /// True when there is no data loaded (for welcome screen)
+    /// </summary>
+    public bool HasNoData => LocationAllocations.Count == 0 && ItemPool.Count == 0;
+    
+    /// <summary>
+    /// True when there is data loaded
+    /// </summary>
+    public bool HasData => !HasNoData;
+
+    /// <summary>
     /// Called when SearchText changes to filter the displayed locations.
     /// </summary>
     partial void OnSearchTextChanged(string value)
@@ -56,6 +66,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             var search = SearchText.Trim().ToLowerInvariant();
             return LocationAllocations.Where(loc =>
                 loc.Location.ToLowerInvariant().Contains(search) ||
+                (loc.LocationName?.ToLowerInvariant().Contains(search) ?? false) ||
                 loc.Items.Any(i =>
                     i.ItemNumber.ToLowerInvariant().Contains(search) ||
                     (i.Description?.ToLowerInvariant().Contains(search) ?? false)));
@@ -337,9 +348,38 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         var grouped = entries.GroupBy(e => e.StoreId ?? "Unknown");
         foreach (var g in grouped.OrderBy(x => x.Key))
         {
-            // Use StoreName for display (e.g., "Main Street Store" instead of "101")
-            var storeName = g.FirstOrDefault()?.StoreName ?? g.Key;
-            var loc = new LocationAllocation { Location = storeName };
+            // Store both code and name for display
+            var storeCode = g.Key;
+            var storeName = g.FirstOrDefault()?.StoreName;
+            
+            // Try to resolve both code and name from dictionary
+            var storeFromDict = InternalStoreDictionary.FindByCode(storeCode);
+            
+            if (storeFromDict != null)
+            {
+                // Found by code - use the name from dictionary
+                if (string.IsNullOrWhiteSpace(storeName) || storeName.Equals(storeCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    storeName = storeFromDict.Name;
+                }
+            }
+            else
+            {
+                // Not found by code - maybe the "code" is actually a name, try searching by name
+                var storesByName = InternalStoreDictionary.SearchByName(storeCode, 1);
+                if (storesByName.Count > 0)
+                {
+                    var matchedStore = storesByName[0];
+                    // Check if it's an exact match (case-insensitive)
+                    if (matchedStore.Name.Equals(storeCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        storeCode = matchedStore.Code;
+                        storeName = matchedStore.Name;
+                    }
+                }
+            }
+            
+            var loc = new LocationAllocation { Location = storeCode, LocationName = storeName };
             foreach (var e in g)
             {
                 var itemNumber = GetCanonicalItemNumber(e.ItemNumber ?? "");
@@ -358,6 +398,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         }
 
         RefreshItemTotals();
+        OnPropertyChanged(nameof(HasNoData));
+        OnPropertyChanged(nameof(HasData));
     }
 
     // Command to open selection dialog and move from pool to chosen location
@@ -662,6 +704,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         OnPropertyChanged(nameof(ItemPoolCount));
         OnPropertyChanged(nameof(LocationsCount));
         OnPropertyChanged(nameof(FilteredLocationAllocations));
+        OnPropertyChanged(nameof(HasNoData));
+        OnPropertyChanged(nameof(HasData));
 
         StatusMessage = "All data cleared";
         _logger?.LogInformation("All allocation data cleared by user");
@@ -670,6 +714,21 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     public class LocationAllocation
     {
         public string Location { get; set; } = string.Empty;
+        public string? LocationName { get; set; }
+        public string DisplayLocation
+        {
+            get
+            {
+                // If no name or name equals code, just show code
+                if (string.IsNullOrWhiteSpace(LocationName) || 
+                    LocationName.Equals(Location, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Location;
+                }
+                // Show both: "101 - Downtown Store"
+                return $"{Location} - {LocationName}";
+            }
+        }
         public ObservableCollection<ItemAllocation> Items { get; } = new();
         public bool IsActive { get; set; } = true;
     }

@@ -26,7 +26,7 @@ public partial class App : Application
     {
         // Configure Serilog
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var logDir = Path.Combine(appDataPath, "BusinessToolsSuite", "Logs");
+        var logDir = Path.Combine(appDataPath, "SAP", "Logs");
         Directory.CreateDirectory(logDir);
         var logPath = Path.Combine(logDir, "expirewise-.log");
 
@@ -63,9 +63,9 @@ public partial class App : Application
     {
         // Database configuration
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dbDir = Path.Combine(appDataPath, "BusinessToolsSuite", "Data");
+        var dbDir = Path.Combine(appDataPath, "SAP", "Data");
         Directory.CreateDirectory(dbDir);
-        var dbPath = Path.Combine(dbDir, "BusinessToolsSuite.db");
+        var dbPath = Path.Combine(dbDir, "SAP.db");
 
         // Infrastructure services
         services.AddSingleton(sp => new LiteDbContext(dbPath));

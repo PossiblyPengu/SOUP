@@ -208,3 +208,5 @@ E:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\refint\SAP.dll
 E:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\SAP.pdb
 E:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\SAP.genruntimeconfig.cache
 E:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\ref\SAP.dll
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Views\EssentialsBuddy\AddToDictionaryDialog.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Views\EssentialsBuddy\AddToDictionaryDialog.g.cs

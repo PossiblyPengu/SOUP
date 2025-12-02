@@ -202,17 +202,22 @@
             </Border>
         </StackPanel>
 
-        <!-- Module Cards with enhanced design -->
+        <!-- Module Cards in a Grid Layout -->
         <ScrollViewer Grid.Row="1"
-                      HorizontalScrollBarVisibility="Auto"
-                      VerticalScrollBarVisibility="Disabled"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
                       Margin="0,20,0,20">
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
+            <ItemsControl HorizontalAlignment="Center"
+                          VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2" HorizontalAlignment="Center"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
             <!-- ExpireWise Card -->
-            <Grid Margin="0,0,16,0">
+            <Grid Margin="16"
+                  Visibility="{Binding LauncherViewModel.IsExpireWiseEnabled, Converter={StaticResource BoolToVisibility}}">
                 <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}"
                         Style="{StaticResource CardButtonStyle}">
                     <StackPanel Margin="28">
@@ -286,7 +291,8 @@
             </Grid>
 
             <!-- Allocation Buddy Card -->
-            <Grid Margin="16,0,16,0">
+            <Grid Margin="16"
+                  Visibility="{Binding LauncherViewModel.IsAllocationBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
                 <Button Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"
                         Style="{StaticResource CardButtonStyle}">
                     <StackPanel Margin="28">
@@ -360,7 +366,8 @@
             </Grid>
 
             <!-- Essentials Buddy Card -->
-            <Grid Margin="16,0,0,0">
+            <Grid Margin="16"
+                  Visibility="{Binding LauncherViewModel.IsEssentialsBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
                 <Button Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"
                         Style="{StaticResource CardButtonStyle}">
                     <StackPanel Margin="28">
@@ -434,7 +441,7 @@
             </Grid>
 
             <!-- Swift Label Card -->
-            <Grid Margin="16,0,0,0">
+            <Grid Margin="16">
                 <Button Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}"
                         Style="{StaticResource CardButtonStyle}">
                     <StackPanel Margin="28">
@@ -507,7 +514,7 @@
                 </Button>
             </Grid>
 
-        </StackPanel>
+            </ItemsControl>
         </ScrollViewer>
 
         <!-- Footer with improved design -->

@@ -114,12 +114,14 @@ public class EssentialsBuddyParser
                 "Required columns not found. Need: Item No and Quantity columns");
         }
 
-        var itemMap = new Dictionary<string, (string Description, int Quantity, int Threshold)>(
+        // Track item data including all bin codes
+        var itemMap = new Dictionary<string, (string Description, int Quantity, int Threshold, HashSet<string> BinCodes)>(
             StringComparer.OrdinalIgnoreCase);
 
         foreach (var row in rows)
         {
-            var itemNo = getCellValue(row, itemNoCol).Trim().ToUpperInvariant();
+            var itemNo = getCellValue(row, itemNoCol).Trim();
+            
             var binCode = binCodeCol >= 0 ? getCellValue(row, binCodeCol).Trim() : "N/A";
             var qtyText = getCellValue(row, qtyCol);
             var description = descCol >= 0 ? getCellValue(row, descCol).Trim() : "";
@@ -135,22 +137,25 @@ public class EssentialsBuddyParser
 
             if (itemMap.TryGetValue(itemNo, out var existing))
             {
-                itemMap[itemNo] = (existing.Description, existing.Quantity + qty, existing.Threshold);
+                existing.BinCodes.Add(binCode);
+                itemMap[itemNo] = (existing.Description, existing.Quantity + qty, existing.Threshold, existing.BinCodes);
             }
             else
             {
-                itemMap[itemNo] = (description, qty, defaultThreshold);
+                var binCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { binCode };
+                itemMap[itemNo] = (description, qty, defaultThreshold, binCodes);
             }
         }
 
         var items = itemMap.Select(kvp => new InventoryItem
         {
+            ItemNumber = kvp.Key,
             Upc = kvp.Key,
             Description = kvp.Value.Description,
             QuantityOnHand = kvp.Value.Quantity,
             MinThreshold = kvp.Value.Threshold,
-            BinCode = "9-90*"
-        }).OrderBy(i => i.Status).ThenBy(i => i.Upc).ToList();
+            BinCode = string.Join(", ", kvp.Value.BinCodes.OrderBy(b => b))
+        }).OrderBy(i => i.Status).ThenBy(i => i.ItemNumber).ToList();
 
         return Result<IReadOnlyList<InventoryItem>>.Success(items);
     }

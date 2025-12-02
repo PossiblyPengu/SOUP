@@ -22,7 +22,7 @@ public partial class ThemeService : ObservableObject
     public ThemeService()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var settingsDir = Path.Combine(appDataPath, "BusinessToolsSuite");
+        var settingsDir = Path.Combine(appDataPath, "SAP");
         Directory.CreateDirectory(settingsDir);
         _settingsPath = Path.Combine(settingsDir, SettingsFileName);
 

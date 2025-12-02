@@ -141,14 +141,14 @@
                   CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="150" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Units" Binding="{Binding Units}" Width="100" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True" SortMemberPath="Description"/>
+                <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="150" IsReadOnly="True" SortMemberPath="Location"/>
+                <DataGridTextColumn Header="Units" Binding="{Binding Units}" Width="100" IsReadOnly="True" SortMemberPath="Units"/>
                 <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat='MMM dd, yyyy'}"
-                                  Width="150" IsReadOnly="True"/>
+                                  Width="150" IsReadOnly="True" SortMemberPath="ExpiryDate"/>
 
-                <DataGridTemplateColumn Header="Status" Width="120">
+                <DataGridTemplateColumn Header="Status" Width="120" SortMemberPath="Status">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Border Padding="8,4" CornerRadius="6" HorizontalAlignment="Center">

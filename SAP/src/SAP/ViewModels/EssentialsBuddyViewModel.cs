@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using SAP.Core.Entities.EssentialsBuddy;
 using SAP.Core.Interfaces;
+using SAP.Data;
 using SAP.Services;
 using SAP.Views.EssentialsBuddy;
 using SAP.Views;
@@ -38,6 +39,9 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 
     [ObservableProperty]
     private string _statusFilter = "All";
+
+    [ObservableProperty]
+    private bool _essentialsOnly;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -78,6 +82,119 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     public async Task InitializeAsync()
     {
         await LoadItems();
+    }
+
+    /// <summary>
+    /// Match items against the dictionary database to get descriptions and essential status.
+    /// Also adds ALL essential items from the dictionary that aren't already in the list.
+    /// Returns a list of unmatched items.
+    /// </summary>
+    private List<InventoryItem> MatchItemsAgainstDictionary(List<InventoryItem> items)
+    {
+        var matchedCount = 0;
+        var essentialCount = 0;
+        var unmatchedItems = new List<InventoryItem>();
+        var existingItemNumbers = new HashSet<string>(items.Select(i => i.ItemNumber));
+
+        foreach (var item in items)
+        {
+            // Try exact match
+            var dictEntity = InternalItemDictionary.GetEntity(item.ItemNumber);
+            
+            if (dictEntity != null)
+            {
+                item.DictionaryMatched = true;
+                item.DictionaryDescription = dictEntity.Description;
+                item.IsEssential = dictEntity.IsEssential;
+                matchedCount++;
+                if (dictEntity.IsEssential) essentialCount++;
+            }
+            else
+            {
+                item.DictionaryMatched = false;
+                unmatchedItems.Add(item);
+            }
+        }
+
+        // Add ALL essential items from dictionary that aren't already in the list
+        var allEssentials = InternalItemDictionary.GetAllEssentialItems();
+        var addedEssentialsCount = 0;
+        
+        foreach (var essential in allEssentials)
+        {
+            if (!existingItemNumbers.Contains(essential.Number))
+            {
+                var newItem = new InventoryItem
+                {
+                    ItemNumber = essential.Number,
+                    Description = essential.Description,
+                    DictionaryDescription = essential.Description,
+                    DictionaryMatched = true,
+                    IsEssential = true,
+                    QuantityOnHand = 0,
+                    BinCode = "Not in bins"
+                };
+                items.Add(newItem);
+                addedEssentialsCount++;
+            }
+        }
+
+        _logger?.LogInformation("Dictionary matching: {Matched}/{Total} items matched, {Essentials} marked as essential, {Unmatched} unmatched, {AddedEssentials} essential items added from dictionary",
+            matchedCount, items.Count - addedEssentialsCount, essentialCount, unmatchedItems.Count, addedEssentialsCount);
+        
+        return unmatchedItems;
+    }
+
+    /// <summary>
+    /// Prompt user to add unmatched items to the dictionary with a detailed dialog
+    /// </summary>
+    private async Task PromptToAddUnmatchedItems(List<InventoryItem> unmatchedItems)
+    {
+        if (unmatchedItems.Count == 0)
+            return;
+
+        // Show dialog for user to edit items before adding
+        var dialog = new Views.EssentialsBuddy.AddToDictionaryDialog(unmatchedItems);
+        dialog.Owner = System.Windows.Application.Current.MainWindow;
+        
+        var result = dialog.ShowDialog();
+        
+        if (result == true && dialog.WasConfirmed)
+        {
+            var addedCount = 0;
+            var essentialCount = 0;
+            
+            foreach (var item in dialog.Items)
+            {
+                // Add to dictionary with user-provided description and essential status
+                var dictItem = new Infrastructure.Services.Parsers.DictionaryItem
+                {
+                    Number = item.ItemNumber,
+                    Description = !string.IsNullOrEmpty(item.Description) ? item.Description : item.ItemNumber,
+                    Skus = new List<string>()
+                };
+                
+                InternalItemDictionary.UpsertItem(dictItem);
+                
+                // Set essential status
+                if (item.IsEssential)
+                {
+                    InternalItemDictionary.SetEssential(item.ItemNumber, true);
+                    essentialCount++;
+                }
+                
+                // Update the item to show it's now matched
+                item.DictionaryMatched = true;
+                item.DictionaryDescription = dictItem.Description;
+                addedCount++;
+            }
+            
+            StatusMessage = $"Added {addedCount} items to dictionary ({essentialCount} essentials)";
+            _logger?.LogInformation("Added {Count} items to dictionary, {Essentials} marked as essential", addedCount, essentialCount);
+            
+            // Refresh the view to show updated match status
+            await LoadItems();
+        }
     }
 
     [RelayCommand]
@@ -134,6 +251,12 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 
                 if (result.IsSuccess && result.Value != null)
                 {
+                    // Convert to list so we can add essential items from dictionary
+                    var items = result.Value.ToList();
+                    
+                    // Match against dictionary for descriptions and essential status
+                    var unmatchedItems = MatchItemsAgainstDictionary(items);
+                    
                     // Clear existing and add new (replacing data like JS version)
                     var existing = await _repository.GetAllAsync();
                     foreach (var item in existing)
@@ -141,14 +264,25 @@ public partial class EssentialsBuddyViewModel : ObservableObject
                         await _repository.DeleteAsync(item.Id);
                     }
 
-                    foreach (var item in result.Value)
+                    foreach (var item in items)
                     {
                         await _repository.AddAsync(item);
                     }
 
                     await LoadItems();
-                    StatusMessage = $"Imported {result.Value.Count} unique items (9-90* bins aggregated)";
-                    _logger?.LogInformation("Imported {Count} items from Excel using specialized parser", result.Value.Count);
+                    
+                    var essentialCount = items.Count(i => i.IsEssential);
+                    var matchedCount = items.Count(i => i.DictionaryMatched);
+                    StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials)";
+                    _logger?.LogInformation("Imported {Count} items from Excel, {Matched} matched dictionary, {Essentials} essentials", 
+                        items.Count, matchedCount, essentialCount);
+                    
+                    // Prompt to add unmatched items to dictionary
+                    if (unmatchedItems.Count > 0)
+                    {
+                        IsLoading = false;
+                        await PromptToAddUnmatchedItems(unmatchedItems);
+                    }
                 }
                 else
                 {
@@ -188,6 +322,12 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 
                 if (result.IsSuccess && result.Value != null)
                 {
+                    // Convert to list so we can add essential items from dictionary
+                    var items = result.Value.ToList();
+                    
+                    // Match against dictionary for descriptions and essential status
+                    var unmatchedItems = MatchItemsAgainstDictionary(items);
+                    
                     // Clear existing and add new
                     var existing = await _repository.GetAllAsync();
                     foreach (var item in existing)
@@ -195,14 +335,25 @@ public partial class EssentialsBuddyViewModel : ObservableObject
                         await _repository.DeleteAsync(item.Id);
                     }
 
-                    foreach (var item in result.Value)
+                    foreach (var item in items)
                     {
                         await _repository.AddAsync(item);
                     }
 
                     await LoadItems();
-                    StatusMessage = $"Imported {result.Value.Count} unique items (9-90* bins aggregated)";
-                    _logger?.LogInformation("Imported {Count} items from CSV using specialized parser", result.Value.Count);
+                    
+                    var essentialCount = items.Count(i => i.IsEssential);
+                    var matchedCount = items.Count(i => i.DictionaryMatched);
+                    StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials)";
+                    _logger?.LogInformation("Imported {Count} items from CSV, {Matched} matched dictionary, {Essentials} essentials", 
+                        items.Count, matchedCount, essentialCount);
+                    
+                    // Prompt to add unmatched items to dictionary
+                    if (unmatchedItems.Count > 0)
+                    {
+                        IsLoading = false;
+                        await PromptToAddUnmatchedItems(unmatchedItems);
+                    }
                 }
                 else
                 {
@@ -405,9 +556,23 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         ApplyFilters();
     }
 
+    partial void OnEssentialsOnlyChanged(bool value)
+    {
+        ApplyFilters();
+    }
+
     private void ApplyFilters()
     {
         var filtered = Items.AsEnumerable();
+
+        // Hide non-essential items with zero quantity
+        filtered = filtered.Where(i => i.IsEssential || i.QuantityOnHand > 0);
+
+        // Essentials filter
+        if (EssentialsOnly)
+        {
+            filtered = filtered.Where(i => i.IsEssential);
+        }
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
@@ -415,6 +580,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
             filtered = filtered.Where(i =>
                 i.ItemNumber.ToLower().Contains(search) ||
                 i.Description.ToLower().Contains(search) ||
+                (i.DictionaryDescription?.ToLower().Contains(search) ?? false) ||
                 (i.BinCode?.ToLower().Contains(search) ?? false) ||
                 (i.Category?.ToLower().Contains(search) ?? false));
         }

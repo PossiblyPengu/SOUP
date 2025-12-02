@@ -16,9 +16,30 @@ public partial class LauncherViewModel : ViewModelBase
     private readonly NavigationService _navigationService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<LauncherViewModel>? _logger;
+    private readonly ModuleConfiguration _moduleConfig;
 
     [ObservableProperty]
     private bool _isDarkMode;
+
+    /// <summary>
+    /// Whether the AllocationBuddy module is enabled
+    /// </summary>
+    public bool IsAllocationBuddyEnabled => _moduleConfig.AllocationBuddyEnabled;
+
+    /// <summary>
+    /// Whether the EssentialsBuddy module is enabled
+    /// </summary>
+    public bool IsEssentialsBuddyEnabled => _moduleConfig.EssentialsBuddyEnabled;
+
+    /// <summary>
+    /// Whether the ExpireWise module is enabled
+    /// </summary>
+    public bool IsExpireWiseEnabled => _moduleConfig.ExpireWiseEnabled;
+
+    /// <summary>
+    /// SwiftLabel is always enabled (core functionality)
+    /// </summary>
+    public bool IsSwiftLabelEnabled => true;
 
     public LauncherViewModel(
         ThemeService themeService,
@@ -30,6 +51,7 @@ public partial class LauncherViewModel : ViewModelBase
         _navigationService = navigationService;
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _moduleConfig = ModuleConfiguration.Instance;
 
         // Initialize dark mode state
         _isDarkMode = _themeService.IsDarkMode;
@@ -39,6 +61,9 @@ public partial class LauncherViewModel : ViewModelBase
         {
             IsDarkMode = isDark;
         };
+
+        _logger?.LogInformation("Module configuration: AllocationBuddy={AB}, EssentialsBuddy={EB}, ExpireWise={EW}",
+            IsAllocationBuddyEnabled, IsEssentialsBuddyEnabled, IsExpireWiseEnabled);
     }
 
     [RelayCommand]

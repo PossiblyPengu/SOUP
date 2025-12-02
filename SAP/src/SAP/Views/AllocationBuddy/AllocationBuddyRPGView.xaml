@@ -8,6 +8,104 @@
              d:DataContext="{d:DesignInstance Type=vm:AllocationBuddyRPGViewModel}">
 
     <Grid Background="{StaticResource BackgroundBrush}">
+        <!-- Full Screen Welcome Screen (shown when no data) -->
+        <Grid Visibility="{Binding HasNoData, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#667eea" Offset="0"/>
+                    <GradientStop Color="#764ba2" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600">
+                <!-- Icon -->
+                <Border Background="White" Width="120" Height="120" CornerRadius="60" 
+                        HorizontalAlignment="Center" Margin="0,0,0,32">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.3"/>
+                    </Border.Effect>
+                    <TextBlock Text="📦" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                
+                <!-- Title -->
+                <TextBlock Text="Allocation Buddy" FontSize="42" FontWeight="Bold"
+                           Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,12">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                
+                <!-- Subtitle -->
+                <TextBlock Text="Smart inventory allocation made simple" FontSize="18"
+                           Foreground="#CCFFFFFF" HorizontalAlignment="Center" Margin="0,0,0,48"/>
+                
+                <!-- Import Button -->
+                <Button Command="{Binding ImportCommand}" 
+                        HorizontalAlignment="Center" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="Foreground" Value="#667eea"/>
+                            <Setter Property="Padding" Value="40,18"/>
+                            <Setter Property="FontSize" Value="18"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                CornerRadius="30" Padding="{TemplateBinding Padding}">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2"/>
+                                            </Border.Effect>
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F0F0F0"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📥" FontSize="22" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Import Allocation File" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- Features -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,48,0,0">
+                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="Excel &amp; CSV" Foreground="White" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🏪" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="Multi-Location" Foreground="White" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="BC Transfer Ready" Foreground="White" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Supported formats -->
+                <TextBlock Text="Drag &amp; drop or click to import Excel (.xlsx) or CSV files" 
+                           FontSize="13" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,24,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content (shown when has data) -->
+        <Grid Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -328,7 +426,7 @@
 
                                         <StackPanel Orientation="Horizontal" Grid.Column="0">
                                             <TextBlock Text="📍" FontSize="18" Margin="0,0,8,0"/>
-                                            <TextBlock Text="{Binding Location}" FontWeight="Bold" FontSize="16"
+                                            <TextBlock Text="{Binding DisplayLocation}" FontWeight="Bold" FontSize="16"
                                                        Foreground="{StaticResource TextPrimaryBrush}"/>
                                             <TextBlock Text="{Binding Items.Count, StringFormat=' ({0})'}"
                                                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -459,5 +557,6 @@
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>
+        </Grid>
     </Grid>
 </UserControl>

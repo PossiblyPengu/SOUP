@@ -8,7 +8,120 @@
              d:DesignHeight="800" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:EssentialsBuddyViewModel}">
 
+    <UserControl.Resources>
+        <!-- Stock level colors -->
+        <SolidColorBrush x:Key="OutOfStockBrush" Color="#FFEBEE"/>
+        <SolidColorBrush x:Key="LowStockBrush" Color="#FFF3E0"/>
+        <SolidColorBrush x:Key="OverstockedBrush" Color="#E3F2FD"/>
+        <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="#FCE4EC"/>
+        
+        <SolidColorBrush x:Key="OutOfStockTextBrush" Color="#C62828"/>
+        <SolidColorBrush x:Key="LowStockTextBrush" Color="#EF6C00"/>
+        <SolidColorBrush x:Key="OverstockedTextBrush" Color="#1565C0"/>
+        <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#AD1457"/>
+    </UserControl.Resources>
+
     <Grid Background="{StaticResource BackgroundBrush}">
+        <!-- Full Screen Welcome Screen (shown when no data) -->
+        <Grid Visibility="{Binding HasNoData, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#11998e" Offset="0"/>
+                    <GradientStop Color="#38ef7d" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600">
+                <!-- Icon -->
+                <Border Background="White" Width="120" Height="120" CornerRadius="60" 
+                        HorizontalAlignment="Center" Margin="0,0,0,32">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.3"/>
+                    </Border.Effect>
+                    <TextBlock Text="📋" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                
+                <!-- Title -->
+                <TextBlock Text="Essentials Buddy" FontSize="42" FontWeight="Bold"
+                           Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,12">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                
+                <!-- Subtitle -->
+                <TextBlock Text="Track and manage your essential inventory items" FontSize="18"
+                           Foreground="#CCFFFFFF" HorizontalAlignment="Center" Margin="0,0,0,48"/>
+                
+                <!-- Import Button -->
+                <Button Command="{Binding ImportFromExcelCommand}" 
+                        HorizontalAlignment="Center" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="Foreground" Value="#11998e"/>
+                            <Setter Property="Padding" Value="40,18"/>
+                            <Setter Property="FontSize" Value="18"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                CornerRadius="30" Padding="{TemplateBinding Padding}">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2"/>
+                                            </Border.Effect>
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F0F0F0"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📥" FontSize="22" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Import Inventory File" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- Features -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,48,0,0">
+                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⭐" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="Essential Tracking" Foreground="White" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🎨" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="Color-Coded Status" Foreground="White" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚠️" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="Misplaced Alerts" Foreground="White" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Info -->
+                <TextBlock Text="Import Excel (.xlsx) files • Only 9-90* bin items will be shown" 
+                           FontSize="13" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,24,0,0"/>
+                <TextBlock Text="All 208 essential items will be included automatically" 
+                           FontSize="13" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content (shown when has data) -->
+        <Grid Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -121,6 +234,14 @@
                     <Label Content="Status:" Style="{StaticResource ModernLabel}" VerticalAlignment="Center" Margin="0"/>
                     <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
                               Style="{StaticResource ModernComboBox}" Width="150" VerticalAlignment="Center"/>
+                    
+                    <!-- Essentials Only Toggle -->
+                    <CheckBox Content="Essentials Only" 
+                              IsChecked="{Binding EssentialsOnly}"
+                              VerticalAlignment="Center" 
+                              Margin="16,0,0,0"
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
                 </StackPanel>
 
                 <!-- Item Count Badge -->
@@ -132,52 +253,75 @@
             </Grid>
         </Border>
 
-        <!-- Welcome Screen (shown when no data) -->
-        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}"
-                Visibility="{Binding HasNoData, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="📋" FontSize="64" HorizontalAlignment="Center" Margin="0,0,0,24"/>
-                <TextBlock Text="Welcome to Essentials Buddy" FontSize="28" FontWeight="Bold"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                <TextBlock Text="Import your inventory data to track essentials (9-90* bins)" FontSize="16"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           HorizontalAlignment="Center" Margin="0,0,0,32"/>
-                <Button Command="{Binding ImportFromExcelCommand}" Background="#007ACC" Foreground="White"
-                        Padding="24,12" FontSize="16" HorizontalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="📥" FontSize="18" Margin="0,0,12,0"/>
-                        <TextBlock Text="Import Excel File" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Text="Supported format: Excel (.xlsx)" FontSize="12"
-                           Foreground="{StaticResource TextTertiaryBrush}"
-                           HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                <TextBlock Text="Only items from 9-90* bins will be imported and aggregated" FontSize="12"
-                           Foreground="{StaticResource TextTertiaryBrush}"
-                           HorizontalAlignment="Center" Margin="0,8,0,0"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Data Grid (shown when has data) -->
+        <!-- Data Grid -->
         <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
                   Style="{StaticResource ModernDataGrid}"
                   ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
                   CellStyle="{StaticResource ModernDataGridCell}"
-                  RowStyle="{StaticResource ModernDataGridRow}"
                   CanUserReorderColumns="True" CanUserResizeColumns="True"
-                  Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                  CanUserSortColumns="True">
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}">
+                    <Style.Triggers>
+                        <!-- Non-essential item in 9-90 bin (highest priority - pink) -->
+                        <DataTrigger Binding="{Binding IsNonEssentialIn990Bin}" Value="True">
+                            <Setter Property="Background" Value="{StaticResource NonEssentialIn990Brush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource NonEssentialIn990TextBrush}"/>
+                            <Setter Property="ToolTip" Value="⚠️ Non-essential item in 9-90 bin"/>
+                        </DataTrigger>
+                        <!-- Out of Stock (red) -->
+                        <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
+                            <Setter Property="Background" Value="{StaticResource OutOfStockBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource OutOfStockTextBrush}"/>
+                        </DataTrigger>
+                        <!-- Low Stock (orange) -->
+                        <DataTrigger Binding="{Binding Status}" Value="Low">
+                            <Setter Property="Background" Value="{StaticResource LowStockBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LowStockTextBrush}"/>
+                        </DataTrigger>
+                        <!-- Overstocked (blue) -->
+                        <DataTrigger Binding="{Binding Status}" Value="Overstocked">
+                            <Setter Property="Background" Value="{StaticResource OverstockedBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource OverstockedTextBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="120" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Min" Binding="{Binding MinimumThreshold}" Width="80" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Max" Binding="{Binding MaximumThreshold}" Width="80" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Last Updated" Binding="{Binding LastUpdated, StringFormat='{}{0:MMM dd, yyyy}'}" Width="140" IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="★" Width="40" IsReadOnly="True" SortMemberPath="IsEssential">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="⭐" FontSize="14" HorizontalAlignment="Center"
+                                       Visibility="{Binding IsEssential, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                       ToolTip="Essential Item"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="⚠" Width="40" IsReadOnly="True" SortMemberPath="IsNonEssentialIn990Bin">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="⚠️" FontSize="14" HorizontalAlignment="Center"
+                                       Visibility="{Binding IsNonEssentialIn990Bin, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                       ToolTip="Non-essential item in 9-90 bin - should not be here!"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding DisplayDescription}" Width="*" IsReadOnly="True" SortMemberPath="DisplayDescription"/>
+                <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="120" IsReadOnly="True" SortMemberPath="BinCode"/>
+                <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100" IsReadOnly="True" SortMemberPath="QuantityOnHand"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" IsReadOnly="True" SortMemberPath="Status"/>
+                <DataGridTemplateColumn Header="Dict" Width="50" IsReadOnly="True" SortMemberPath="DictionaryMatched">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="✓" FontSize="14" Foreground="Green" HorizontalAlignment="Center"
+                                       Visibility="{Binding DictionaryMatched, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                       ToolTip="Matched in Dictionary"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -205,6 +349,6 @@
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>
-
+        </Grid>
     </Grid>
 </UserControl>

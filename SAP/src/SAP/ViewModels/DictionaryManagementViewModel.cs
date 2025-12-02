@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using SAP.Infrastructure.Services.Parsers;
 using SAP.Data;
 
@@ -105,7 +108,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
     private const int PageSize = 100;
 
-    public ObservableCollection<string> StoreRanks { get; } = new() { "A", "B", "C", "D" };
+    public ObservableCollection<string> StoreRanks { get; } = new() { "AA", "A", "B", "C", "D" };
 
     [ObservableProperty]
     private bool _isInitialized;
@@ -650,5 +653,210 @@ public partial class DictionaryManagementViewModel : ObservableObject
     {
         Items = new ObservableCollection<DictionaryItem>(_allItems);
         OnPropertyChanged(nameof(TotalItemCount));
+    }
+
+    [RelayCommand]
+    private async Task ImportItemsFromExcel()
+    {
+        try
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Select Items Excel File",
+                Filter = "Excel Files|*.xlsx;*.xls|All Files|*.*",
+                DefaultExt = ".xlsx"
+            };
+
+            if (openFileDialog.ShowDialog() != true)
+                return;
+
+            StatusMessage = "Importing items from Excel...";
+            int imported = 0;
+            int updated = 0;
+
+            await Task.Run(() =>
+            {
+                using var workbook = new XLWorkbook(openFileDialog.FileName);
+                var worksheet = workbook.Worksheets.First();
+                
+                // Find columns by header (case-insensitive)
+                var headerRow = worksheet.Row(1);
+                int numberCol = -1, descCol = -1, skuCol = -1;
+                
+                foreach (var cell in headerRow.CellsUsed())
+                {
+                    var headerText = cell.GetString().ToLower().Trim();
+                    if (headerText.Contains("number") || headerText == "item" || headerText == "item number" || headerText == "itemnumber")
+                        numberCol = cell.Address.ColumnNumber;
+                    else if (headerText.Contains("desc") || headerText == "name" || headerText == "item description")
+                        descCol = cell.Address.ColumnNumber;
+                    else if (headerText.Contains("sku") || headerText.Contains("upc") || headerText == "skus")
+                        skuCol = cell.Address.ColumnNumber;
+                }
+
+                // Default to columns A, B, C if no headers found
+                if (numberCol == -1) numberCol = 1;
+                if (descCol == -1) descCol = 2;
+                if (skuCol == -1) skuCol = 3;
+
+                var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
+                
+                for (int row = 2; row <= lastRow; row++)
+                {
+                    var itemNumber = worksheet.Cell(row, numberCol).GetString().Trim();
+                    var description = worksheet.Cell(row, descCol).GetString().Trim();
+                    var skuValue = skuCol > 0 ? worksheet.Cell(row, skuCol).GetString().Trim() : "";
+                    
+                    if (string.IsNullOrWhiteSpace(itemNumber))
+                        continue;
+
+                    // Parse SKUs (comma or semicolon separated)
+                    var skus = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(skuValue))
+                    {
+                        skus = skuValue.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => s.Trim())
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .ToList();
+                    }
+
+                    var existingItem = _allItems.FirstOrDefault(i => 
+                        i.Number.Equals(itemNumber, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingItem != null)
+                    {
+                        existingItem.Description = description;
+                        existingItem.Skus = skus;
+                        InternalItemDictionary.UpsertItem(existingItem);
+                        updated++;
+                    }
+                    else
+                    {
+                        var newItem = new DictionaryItem
+                        {
+                            Number = itemNumber,
+                            Description = description,
+                            Skus = skus
+                        };
+                        InternalItemDictionary.UpsertItem(newItem);
+                        _allItems.Add(newItem);
+                        imported++;
+                    }
+                }
+            });
+
+            _allItems = _allItems.OrderBy(i => i.Number).ToList();
+            SyncItemsFromAllItems();
+            UpdateDisplayedItems();
+            StatusMessage = $"Imported {imported} new items, updated {updated} existing items from Excel";
+            _logger?.LogInformation("Imported {Imported} new, {Updated} updated items from Excel", imported, updated);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error importing items: {ex.Message}";
+            _logger?.LogError(ex, "Failed to import items from Excel");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportStoresFromExcel()
+    {
+        try
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Select Stores Excel File",
+                Filter = "Excel Files|*.xlsx;*.xls|All Files|*.*",
+                DefaultExt = ".xlsx"
+            };
+
+            if (openFileDialog.ShowDialog() != true)
+                return;
+
+            StatusMessage = "Importing stores from Excel...";
+            int imported = 0;
+            int updated = 0;
+
+            await Task.Run(() =>
+            {
+                using var workbook = new XLWorkbook(openFileDialog.FileName);
+                var worksheet = workbook.Worksheets.First();
+                
+                // Find columns by header (case-insensitive)
+                var headerRow = worksheet.Row(1);
+                int codeCol = -1, nameCol = -1, rankCol = -1;
+                
+                foreach (var cell in headerRow.CellsUsed())
+                {
+                    var headerText = cell.GetString().ToLower().Trim();
+                    
+                    // Check for store code/number column (e.g., "store #", "store code", "store number", "#")
+                    if (headerText.Contains("#") || headerText.Contains("code") || headerText.Contains("number") || 
+                        headerText == "id" || headerText == "storeid")
+                        codeCol = cell.Address.ColumnNumber;
+                    // Check for name column
+                    else if (headerText.Contains("name"))
+                        nameCol = cell.Address.ColumnNumber;
+                    // Check for rank/tier column
+                    else if (headerText.Contains("rank") || headerText.Contains("grade") || headerText.Contains("tier"))
+                        rankCol = cell.Address.ColumnNumber;
+                }
+
+                // Default to columns A, B, C if no headers found
+                if (codeCol == -1) codeCol = 1;
+                if (nameCol == -1) nameCol = 2;
+                if (rankCol == -1) rankCol = 3;
+
+                var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
+                
+                for (int row = 2; row <= lastRow; row++)
+                {
+                    var code = worksheet.Cell(row, codeCol).GetString().Trim();
+                    var name = worksheet.Cell(row, nameCol).GetString().Trim();
+                    var rank = rankCol > 0 ? worksheet.Cell(row, rankCol).GetString().Trim().ToUpper() : "A";
+                    
+                    if (string.IsNullOrWhiteSpace(code))
+                        continue;
+
+                    // Validate rank (default to A if invalid)
+                    if (string.IsNullOrWhiteSpace(rank) || !new[] { "AA", "A", "B", "C", "D" }.Contains(rank))
+                        rank = "A";
+
+                    var existingStore = _allStores.FirstOrDefault(s => 
+                        s.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingStore != null)
+                    {
+                        existingStore.Name = name;
+                        existingStore.Rank = rank;
+                        InternalStoreDictionary.UpsertStore(existingStore);
+                        updated++;
+                    }
+                    else
+                    {
+                        var newStore = new StoreEntry
+                        {
+                            Code = code,
+                            Name = name,
+                            Rank = rank
+                        };
+                        InternalStoreDictionary.UpsertStore(newStore);
+                        _allStores.Add(newStore);
+                        imported++;
+                    }
+                }
+            });
+
+            _allStores = _allStores.OrderBy(s => s.Code).ToList();
+            Stores = new ObservableCollection<StoreEntry>(_allStores);
+            ApplyStoreFilters();
+            StatusMessage = $"Imported {imported} new stores, updated {updated} existing stores from Excel";
+            _logger?.LogInformation("Imported {Imported} new, {Updated} updated stores from Excel", imported, updated);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error importing stores: {ex.Message}";
+            _logger?.LogError(ex, "Failed to import stores from Excel");
+        }
     }
 }
