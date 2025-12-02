@@ -5,9 +5,9 @@ Write-Host ""
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptPath
 
-$dotnet = "E:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-$project = "BusinessToolsSuite.WPF\src\ExpireWise.Standalone\ExpireWise.Standalone.csproj"
-$exe = "BusinessToolsSuite.WPF\src\ExpireWise.Standalone\bin\Debug\net8.0-windows\ExpireWise.exe"
+$dotnet = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
+$project = "SAP\src\ExpireWise.Standalone\ExpireWise.Standalone.csproj"
+$exe = "SAP\src\ExpireWise.Standalone\bin\Debug\net8.0-windows\ExpireWise.exe"
 
 Write-Host "Building project..." -ForegroundColor Yellow
 & "$dotnet" build $project

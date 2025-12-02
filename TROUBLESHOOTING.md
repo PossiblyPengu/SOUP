@@ -1,4 +1,4 @@
-# Troubleshooting Guide - Business Tools Suite
+# Troubleshooting Guide - S.A.P (S.A.M. Add-on Pack)
 
 ## Problem: Apps don't launch from the launcher
 
@@ -59,7 +59,7 @@
    - `%AppData%\AllocationBuddy\Logs\`
    - `%AppData%\EssentialsBuddy\Logs\`
    - `%AppData%\ExpireWise\Logs\`
-   - `%AppData%\BusinessToolsSuite\Logs\` (launcher)
+   - `%AppData%\SAP\Logs\` (launcher)
 
 ### Manual Launch Test
 
@@ -67,30 +67,30 @@ To test if an app works, navigate to its directory and run it:
 
 ```powershell
 # AllocationBuddy
-cd AllocationBuddyApp/src/BusinessToolsSuite.Desktop/bin/Debug/net8.0
-.\BusinessToolsSuite.Desktop.exe
+cd SAP/src/AllocationBuddy.Standalone/bin/Debug/net8.0-windows
+.\AllocationBuddy.exe
 
 # EssentialsBuddy
-cd EssentialsBuddyApp/src/BusinessToolsSuite.Desktop/bin/Debug/net8.0
-.\BusinessToolsSuite.Desktop.exe
+cd SAP/src/EssentialsBuddy.Standalone/bin/Debug/net8.0-windows
+.\EssentialsBuddy.exe
 
 # ExpireWise
-cd ExpireWiseApp/src/BusinessToolsSuite.Desktop/bin/Debug/net8.0
-.\BusinessToolsSuite.Desktop.exe
+cd SAP/src/ExpireWise.Standalone/bin/Debug/net8.0-windows
+.\ExpireWise.exe
 ```
 
 ### Verify Build Output
 
 Check that all executables exist:
 ```powershell
-ls */src/BusinessToolsSuite.Desktop/bin/Debug/net8.0/*.exe
+ls SAP/src/*/bin/Debug/net8.0-windows/*.exe
 ```
 
-You should see 4 exe files:
-1. `AllocationBuddyApp/.../BusinessToolsSuite.Desktop.exe`
-2. `EssentialsBuddyApp/.../BusinessToolsSuite.Desktop.exe`
-3. `ExpireWiseApp/.../BusinessToolsSuite.Desktop.exe`
-4. `BusinessToolsSuite/.../BusinessToolsSuite.Desktop.exe` (launcher)
+You should see exe files:
+1. `SAP/src/AllocationBuddy.Standalone/.../AllocationBuddy.exe`
+2. `SAP/src/EssentialsBuddy.Standalone/.../EssentialsBuddy.exe`
+3. `SAP/src/ExpireWise.Standalone/.../ExpireWise.exe`
+4. `SAP/src/SAP/.../SAP.exe` (launcher)
 
 ### Current Configuration Status
 
@@ -110,7 +110,7 @@ You should see 4 exe files:
 
 2. **Try running with dotnet:**
    ```powershell
-   dotnet run --project AllocationBuddyApp/src/BusinessToolsSuite.Desktop/BusinessToolsSuite.Desktop.csproj
+   dotnet run --project SAP/src/AllocationBuddy.Standalone/AllocationBuddy.Standalone.csproj
    ```
    This will show any runtime errors in the console.
 

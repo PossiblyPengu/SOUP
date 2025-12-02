@@ -1,5 +1,5 @@
-# Business Tools Suite - Main Launcher
-Write-Host "Building and running Business Tools Suite..." -ForegroundColor Cyan
+# S.A.P - S.A.M. Add-on Pack Launcher
+Write-Host "Building and running S.A.P (S.A.M. Add-on Pack)..." -ForegroundColor Cyan
 Write-Host ""
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -7,7 +7,7 @@ Set-Location $scriptPath
 
 # Path to .NET SDK
 $dotnet = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-$project = "BusinessToolsSuite.WPF\src\BusinessToolsSuite.WPF\BusinessToolsSuite.WPF.csproj"
+$project = "SAP\src\SAP\SAP.csproj"
 
 # Verify dotnet exists
 if (-not (Test-Path $dotnet)) {

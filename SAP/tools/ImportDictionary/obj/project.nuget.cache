@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "CgPcNtkbyEU=",
+  "success": true,
+  "projectFilePath": "D:\\CODE\\Cshp\\SAP\\tools\\ImportDictionary\\ImportDictionary.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\acalabrese\\.nuget\\packages\\litedb\\5.0.21\\litedb.5.0.21.nupkg.sha512",
+    "C:\\Users\\acalabrese\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512"
+  ],
+  "logs": []
+}
