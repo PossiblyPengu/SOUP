@@ -60,7 +60,7 @@ public class ExpireWiseParser
 
                 var item = new ExpirationItem
                 {
-                    Upc = itemNumber.Trim(),
+                    ItemNumber = itemNumber.Trim(),
                     Description = description.Trim(),
                     Location = location.Trim(),
                     Quantity = units > 0 ? units : 1,
@@ -71,7 +71,7 @@ public class ExpireWiseParser
             }
 
             return Result<IReadOnlyList<ExpirationItem>>.Success(
-                items.OrderBy(i => i.ExpiryDate).ThenBy(i => i.Upc).ToList());
+                items.OrderBy(i => i.ExpiryDate).ThenBy(i => i.ItemNumber).ToList());
         }
         catch (Exception ex)
         {
@@ -120,7 +120,7 @@ public class ExpireWiseParser
 
                 var item = new ExpirationItem
                 {
-                    Upc = itemNumber.Trim(),
+                    ItemNumber = itemNumber.Trim(),
                     Description = description.Trim(),
                     Location = location.Trim(),
                     Quantity = units > 0 ? units : 1,
@@ -131,7 +131,7 @@ public class ExpireWiseParser
             }
 
             return await Task.FromResult(Result<IReadOnlyList<ExpirationItem>>.Success(
-                items.OrderBy(i => i.ExpiryDate).ThenBy(i => i.Upc).ToList()));
+                items.OrderBy(i => i.ExpiryDate).ThenBy(i => i.ItemNumber).ToList()));
         }
         catch (Exception ex)
         {

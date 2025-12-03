@@ -11,6 +11,6 @@
         MinHeight="600" MinWidth="1000"
         WindowStartupLocation="CenterScreen">
 
-    <views:ExpireWiseView/>
+    <views:ExpireWiseView DataContext="{Binding}"/>
 
 </Window>

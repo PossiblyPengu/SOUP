@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SAP.Core.Entities.Settings;
+using SAP.Core.Interfaces;
 using SAP.Infrastructure.Services;
 
 namespace SAP.ViewModels;
@@ -10,6 +12,7 @@ namespace SAP.ViewModels;
 public partial class ExpireWiseSettingsViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
+    private readonly IExpireWiseRepository _repository;
     private readonly string _appName = "ExpireWise";
 
     [ObservableProperty]
@@ -45,14 +48,32 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
-    public ExpireWiseSettingsViewModel(SettingsService settingsService)
+    [ObservableProperty]
+    private int _totalItemCount;
+
+    public ExpireWiseSettingsViewModel(SettingsService settingsService, IExpireWiseRepository repository)
     {
         _settingsService = settingsService;
+        _repository = repository;
     }
 
     public async Task InitializeAsync()
     {
         await LoadSettingsAsync().ConfigureAwait(false);
+        await RefreshItemCountAsync().ConfigureAwait(false);
+    }
+
+    private async Task RefreshItemCountAsync()
+    {
+        try
+        {
+            var items = await _repository.GetAllAsync();
+            TotalItemCount = System.Linq.Enumerable.Count(items, i => !i.IsDeleted);
+        }
+        catch
+        {
+            TotalItemCount = 0;
+        }
     }
 
     [RelayCommand]
@@ -115,5 +136,65 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
         _settingsService.ResetSettings(_appName);
         await LoadSettingsAsync();
         StatusMessage = "Settings reset to defaults";
+    }
+
+    [RelayCommand]
+    private async Task ClearAllDataAsync()
+    {
+        // First confirmation
+        var result1 = MessageBox.Show(
+            $"Are you sure you want to delete ALL {TotalItemCount} expiration items?\n\nThis action cannot be undone.",
+            "⚠️ Clear All Data",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result1 != MessageBoxResult.Yes)
+        {
+            StatusMessage = "Clear data cancelled";
+            return;
+        }
+
+        // Second confirmation for safety
+        var result2 = MessageBox.Show(
+            "This is your FINAL warning!\n\nAll ExpireWise data will be permanently deleted.\n\nAre you absolutely sure?",
+            "🚨 Final Confirmation",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Exclamation);
+
+        if (result2 != MessageBoxResult.Yes)
+        {
+            StatusMessage = "Clear data cancelled";
+            return;
+        }
+
+        try
+        {
+            // Get all items and delete them
+            var items = await _repository.GetAllAsync();
+            var count = 0;
+            foreach (var item in items)
+            {
+                await _repository.DeleteAsync(item.Id);
+                count++;
+            }
+
+            await RefreshItemCountAsync();
+            StatusMessage = $"✓ Successfully deleted {count} items";
+            
+            MessageBox.Show(
+                $"All {count} expiration items have been deleted.",
+                "Data Cleared",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error clearing data: {ex.Message}";
+            MessageBox.Show(
+                $"Failed to clear data: {ex.Message}",
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
     }
 }

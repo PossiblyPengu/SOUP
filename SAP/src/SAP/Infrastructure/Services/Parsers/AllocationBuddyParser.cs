@@ -286,6 +286,18 @@ public class AllocationBuddyParser
             if (!File.Exists(filePath))
                 return Result<IReadOnlyList<AllocationEntry>>.Failure($"File not found: {filePath}");
 
+            // Read all lines first to detect format
+            var allLines = await File.ReadAllLinesAsync(filePath, cancellationToken);
+            
+            // Try to detect pivot table format (stores as columns)
+            var pivotResult = TryParsePivotCsv(allLines);
+            if (pivotResult.IsSuccess && pivotResult.Value?.Count > 0)
+            {
+                _logger?.LogInformation("Parsed as pivot CSV with {Count} entries", pivotResult.Value.Count);
+                return pivotResult;
+            }
+
+            // Fall back to standard row-based parsing
             using var reader = new StreamReader(filePath);
             using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -443,5 +455,321 @@ public class AllocationBuddyParser
         if (double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
             return (int)d;
         return 0;
+    }
+
+    /// <summary>
+    /// Try to parse CSV as a pivot table where items are rows and stores are columns.
+    /// Format: Item, [metadata cols...], Store1, Store2, Store3, ...
+    /// </summary>
+    private Result<IReadOnlyList<AllocationEntry>> TryParsePivotCsv(string[] lines)
+    {
+        try
+        {
+            if (lines.Length < 2)
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("Not enough lines");
+
+            // Find the header row (contains "Item" and store codes like 101, 102, etc.)
+            int headerRowIndex = -1;
+            string[]? headers = null;
+            
+            for (int i = 0; i < Math.Min(10, lines.Length); i++)
+            {
+                var fields = lines[i].Split(',');
+                
+                // Look for a row with "Item" in first column and numeric store codes
+                var firstField = fields[0].Trim().ToLowerInvariant();
+                if (firstField == "item" || firstField == "item no" || firstField == "item number" || firstField == "sku")
+                {
+                    // Check if there are numeric columns (store codes) - at least 3
+                    int numericCount = 0;
+                    for (int j = 1; j < fields.Length; j++)
+                    {
+                        var val = fields[j].Trim();
+                        if (int.TryParse(val, out var num) && num >= 100 && num <= 999)
+                            numericCount++;
+                    }
+                    
+                    if (numericCount >= 3)
+                    {
+                        headerRowIndex = i;
+                        headers = fields;
+                        break;
+                    }
+                }
+            }
+
+            if (headerRowIndex < 0 || headers == null)
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("No pivot header found");
+
+            _logger?.LogInformation("Found pivot header at row {Row} with {Cols} columns", headerRowIndex, headers.Length);
+
+            // Identify store columns (3-digit numbers that match store dictionary or look like store codes)
+            var storeColumns = new List<(int Index, string StoreCode)>();
+            for (int col = 1; col < headers.Length; col++)
+            {
+                var header = headers[col].Trim();
+                if (int.TryParse(header, out var storeNum) && storeNum >= 100 && storeNum <= 999)
+                {
+                    storeColumns.Add((col, header));
+                }
+            }
+
+            if (storeColumns.Count == 0)
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("No store columns found");
+
+            _logger?.LogInformation("Found {Count} store columns", storeColumns.Count);
+
+            var entries = new List<AllocationEntry>();
+
+            // Parse data rows
+            for (int rowIdx = headerRowIndex + 1; rowIdx < lines.Length; rowIdx++)
+            {
+                var line = lines[rowIdx];
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                var fields = line.Split(',');
+                if (fields.Length < 2) continue;
+
+                var itemNumber = fields[0].Trim();
+                if (string.IsNullOrWhiteSpace(itemNumber)) continue;
+
+                // Skip rows that look like headers or totals
+                if (itemNumber.ToLowerInvariant() == "item" || 
+                    itemNumber.ToLowerInvariant() == "total" ||
+                    itemNumber.ToLowerInvariant().Contains("suggested"))
+                    continue;
+
+                // For each store column, check if there's a quantity
+                foreach (var (colIndex, storeCode) in storeColumns)
+                {
+                    if (colIndex >= fields.Length) continue;
+                    
+                    var qtyStr = fields[colIndex].Trim();
+                    var qty = ParseQuantity(qtyStr);
+                    
+                    if (qty > 0)
+                    {
+                        entries.Add(new AllocationEntry
+                        {
+                            StoreId = storeCode,
+                            StoreName = storeCode,
+                            ItemNumber = itemNumber,
+                            Description = "",
+                            Quantity = qty
+                        });
+                    }
+                }
+            }
+
+            if (entries.Count == 0)
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("No entries parsed from pivot");
+
+            // Enrich with dictionaries
+            EnrichWithStoreDictionary(entries);
+            EnrichWithItemDictionary(entries);
+
+            _logger?.LogInformation("Parsed {Count} entries from pivot CSV", entries.Count);
+
+            return Result<IReadOnlyList<AllocationEntry>>.Success(
+                entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList());
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to parse as pivot CSV");
+            return Result<IReadOnlyList<AllocationEntry>>.Failure($"Pivot parse failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Parse allocation data from clipboard text (tab or comma separated).
+    /// Expects columns: Store, Item, Quantity (and optionally Description).
+    /// </summary>
+    public Result<IReadOnlyList<AllocationEntry>> ParseFromClipboardText(string clipboardText)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(clipboardText))
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("Clipboard is empty");
+
+            var lines = clipboardText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            if (lines.Length == 0)
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("No data found in clipboard");
+
+            // Detect delimiter (tab preferred, then comma)
+            char delimiter = lines[0].Contains('\t') ? '\t' : ',';
+
+            // Parse first line as potential header
+            var firstLine = lines[0].Split(delimiter);
+            bool hasHeader = IsHeaderRow(firstLine);
+            int startRow = hasHeader ? 1 : 0;
+
+            // Detect column indices
+            int storeCol = -1, itemCol = -1, qtyCol = -1, descCol = -1;
+
+            if (hasHeader)
+            {
+                for (int i = 0; i < firstLine.Length; i++)
+                {
+                    var h = firstLine[i].Trim().ToLowerInvariant();
+                    if (storeCol < 0 && (h.Contains("store") || h.Contains("location") || h.Contains("loc")))
+                        storeCol = i;
+                    else if (itemCol < 0 && (h.Contains("item") || h.Contains("sku") || h.Contains("product")))
+                        itemCol = i;
+                    else if (qtyCol < 0 && (h.Contains("qty") || h.Contains("quantity") || h.Contains("amount")))
+                        qtyCol = i;
+                    else if (descCol < 0 && (h.Contains("desc") || h.Contains("name")))
+                        descCol = i;
+                }
+            }
+
+            // If columns not detected from header, try to infer from data
+            if (storeCol < 0 || itemCol < 0 || qtyCol < 0)
+            {
+                var detected = DetectColumnsFromClipboardData(lines, startRow, delimiter);
+                if (storeCol < 0) storeCol = detected.StoreColumnIndex;
+                if (itemCol < 0) itemCol = detected.ItemColumnIndex;
+                if (qtyCol < 0) qtyCol = detected.QuantityColumnIndex;
+            }
+
+            // Fallback to positional: Store=0, Item=1, Qty=2
+            if (storeCol < 0) storeCol = 0;
+            if (itemCol < 0) itemCol = firstLine.Length > 1 ? 1 : 0;
+            if (qtyCol < 0) qtyCol = firstLine.Length > 2 ? 2 : -1;
+
+            var entries = new List<AllocationEntry>();
+
+            for (int i = startRow; i < lines.Length; i++)
+            {
+                var fields = lines[i].Split(delimiter);
+                if (fields.Length < 2) continue;
+
+                var storeValue = storeCol >= 0 && storeCol < fields.Length ? fields[storeCol].Trim() : "";
+                var itemValue = itemCol >= 0 && itemCol < fields.Length ? fields[itemCol].Trim() : "";
+                var qtyValue = qtyCol >= 0 && qtyCol < fields.Length ? fields[qtyCol].Trim() : "1";
+                var descValue = descCol >= 0 && descCol < fields.Length ? fields[descCol].Trim() : "";
+
+                if (string.IsNullOrWhiteSpace(storeValue) || string.IsNullOrWhiteSpace(itemValue))
+                    continue;
+
+                var quantity = ParseQuantity(qtyValue);
+                if (quantity <= 0) quantity = 1; // Default to 1 if no quantity
+
+                entries.Add(new AllocationEntry
+                {
+                    StoreId = storeValue,
+                    StoreName = storeValue,
+                    ItemNumber = itemValue,
+                    Description = descValue,
+                    Quantity = quantity
+                });
+            }
+
+            if (entries.Count == 0)
+                return Result<IReadOnlyList<AllocationEntry>>.Failure("No valid entries found in clipboard data");
+
+            // Enrich with dictionaries
+            EnrichWithStoreDictionary(entries);
+            EnrichWithItemDictionary(entries);
+
+            _logger?.LogInformation("Parsed {Count} entries from clipboard", entries.Count);
+            return Result<IReadOnlyList<AllocationEntry>>.Success(
+                entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList());
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error parsing clipboard data");
+            return Result<IReadOnlyList<AllocationEntry>>.Failure($"Parse failed: {ex.Message}");
+        }
+    }
+
+    private bool IsHeaderRow(string[] fields)
+    {
+        // Check if fields look like headers (non-numeric, common header names)
+        var headerKeywords = new[] { "store", "item", "qty", "quantity", "location", "sku", "desc", "name", "product", "amount" };
+        int matches = 0;
+        foreach (var f in fields)
+        {
+            var lower = f.Trim().ToLowerInvariant();
+            if (headerKeywords.Any(k => lower.Contains(k)))
+                matches++;
+        }
+        return matches >= 2; // At least 2 header-like columns
+    }
+
+    private ColumnMap DetectColumnsFromClipboardData(string[] lines, int startRow, char delimiter)
+    {
+        var result = new ColumnMap();
+        if (lines.Length <= startRow) return result;
+
+        var sampleSize = Math.Min(10, lines.Length - startRow);
+        int columnCount = lines[startRow].Split(delimiter).Length;
+
+        var storeMatches = new int[columnCount];
+        var itemMatches = new int[columnCount];
+        var numericValues = new int[columnCount];
+
+        for (int i = startRow; i < startRow + sampleSize && i < lines.Length; i++)
+        {
+            var fields = lines[i].Split(delimiter);
+            for (int col = 0; col < Math.Min(fields.Length, columnCount); col++)
+            {
+                var value = fields[col].Trim();
+                if (string.IsNullOrEmpty(value)) continue;
+
+                // Check store dictionary
+                if (StoreDictionary.Any(s =>
+                    s.Code.Equals(value, StringComparison.OrdinalIgnoreCase) ||
+                    s.Name.Equals(value, StringComparison.OrdinalIgnoreCase)))
+                {
+                    storeMatches[col]++;
+                }
+
+                // Check 3-digit store code pattern
+                if (int.TryParse(value, out var num) && num >= 100 && num <= 999)
+                    storeMatches[col]++;
+
+                // Check item dictionary
+                if (DictionaryItems.Any(item =>
+                    item.Number.Equals(value, StringComparison.OrdinalIgnoreCase) ||
+                    item.Skus.Any(sku => sku.Equals(value, StringComparison.OrdinalIgnoreCase))))
+                {
+                    itemMatches[col]++;
+                }
+
+                // Check numeric (quantity)
+                if (double.TryParse(value, out _))
+                    numericValues[col]++;
+            }
+        }
+
+        // Assign columns based on matches
+        int maxStore = storeMatches.Max();
+        if (maxStore > 0)
+            result.StoreColumnIndex = Array.IndexOf(storeMatches, maxStore);
+
+        int maxItem = 0;
+        for (int i = 0; i < itemMatches.Length; i++)
+        {
+            if (i == result.StoreColumnIndex) continue;
+            if (itemMatches[i] > maxItem)
+            {
+                maxItem = itemMatches[i];
+                result.ItemColumnIndex = i;
+            }
+        }
+
+        // Quantity is the most numeric column that isn't store or item
+        int maxNumeric = 0;
+        for (int i = 0; i < numericValues.Length; i++)
+        {
+            if (i == result.StoreColumnIndex || i == result.ItemColumnIndex) continue;
+            if (numericValues[i] > maxNumeric)
+            {
+                maxNumeric = numericValues[i];
+                result.QuantityColumnIndex = i;
+            }
+        }
+
+        return result;
     }
 }

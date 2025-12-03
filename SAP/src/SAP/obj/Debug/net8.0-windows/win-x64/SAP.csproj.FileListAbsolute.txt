@@ -561,3 +561,5 @@ D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\UIAutomationPr
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\UIAutomationTypes.resources.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\WindowsBase.resources.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\WindowsFormsIntegration.resources.dll
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\ExpireWise\ExpireWiseAnalyticsView.g.cs
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\ExpireWise\ExpireWiseAnalyticsView.baml

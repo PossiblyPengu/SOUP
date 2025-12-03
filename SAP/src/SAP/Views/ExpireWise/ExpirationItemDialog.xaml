@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SAP.ViewModels"
              mc:Ignorable="d"
-             d:DesignHeight="650" d:DesignWidth="550"
+             d:DesignHeight="550" d:DesignWidth="600"
              d:DataContext="{d:DesignInstance Type=vm:ExpirationItemDialogViewModel}">
 
     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
@@ -17,7 +17,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="📅" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBlock Text="{Binding DialogTitle}" 
@@ -25,173 +25,513 @@
                                Foreground="{StaticResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock Text="Search the dictionary or enter item details manually"
-                           FontSize="13"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           Margin="0,6,0,0"/>
             </StackPanel>
 
-            <!-- Form Fields -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <!-- Dictionary Search Section (Only show when not in edit mode) -->
-                    <Border Background="{StaticResource BackgroundBrush}" 
-                            CornerRadius="8" Padding="16" Margin="0,0,0,20"
-                            Visibility="{Binding IsEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+            <!-- Tab Control -->
+            <TabControl Grid.Row="1" 
+                        SelectedIndex="{Binding SelectedTabIndex}"
+                        Background="Transparent"
+                        BorderThickness="0">
+                
+                <!-- Single Item Tab -->
+                <TabItem Header="Single Item">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,16,0,0">
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Text="Search Item Dictionary" FontWeight="SemiBold" FontSize="14"
-                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <!-- Item Number with Autocomplete -->
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="Item Number *" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                <Grid>
+                                    <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource ModernTextBox}"
+                                             x:Name="ItemNumberTextBox"/>
+                                </Grid>
+                                
+                                <!-- Autocomplete Suggestions -->
+                                <Border Visibility="{Binding ShowSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Background="{StaticResource SurfaceBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="1" CornerRadius="6"
+                                        MaxHeight="150" Margin="0,4,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.15"/>
+                                    </Border.Effect>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding Suggestions}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border x:Name="SuggestionBorder" 
+                                                            Padding="12,10" Cursor="Hand"
+                                                            Background="Transparent"
+                                                            BorderBrush="{StaticResource BorderBrush}"
+                                                            BorderThickness="0,0,0,1">
+                                                        <Border.InputBindings>
+                                                            <MouseBinding MouseAction="LeftClick" 
+                                                                          Command="{Binding DataContext.SelectSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </Border.InputBindings>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding Number}" 
+                                                                       FontWeight="SemiBold" FontSize="13"
+                                                                       Foreground="{StaticResource AccentBrush}"
+                                                                       Margin="0,0,12,0"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Description}" 
+                                                                       FontSize="12" TextTrimming="CharacterEllipsis"
+                                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        </Grid>
+                                                    </Border>
+                                                    <DataTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="SuggestionBorder" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+                                                        </Trigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                                
+                                <!-- Lookup Status -->
+                                <TextBlock Text="{Binding LookupStatus}" 
+                                           FontSize="11" Margin="0,4,0,0"
+                                           Visibility="{Binding LookupStatus, Converter={StaticResource StringToVisibilityConverter}}"
+                                           Foreground="{Binding ItemFoundInDictionary, Converter={StaticResource BoolToSuccessColorConverter}}"/>
                             </StackPanel>
-                            
-                            <Grid>
+
+                            <!-- Description -->
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="Description *" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+
+                            <!-- Two Column Layout: Location + Units -->
+                            <Grid Margin="0,0,0,16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                
-                                <TextBox Grid.Column="0" 
-                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource ModernTextBox}"
-                                         x:Name="SearchTextBox"/>
-                                <Button Grid.Column="1" Content="🔎 Lookup" 
-                                        Command="{Binding LookupItemCommand}"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Padding="12,8" Margin="8,0,0,0"/>
+
+                                <!-- Location -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Location" FontWeight="SemiBold" FontSize="13"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <ComboBox ItemsSource="{Binding AvailableStores}"
+                                              SelectedItem="{Binding SelectedStore}"
+                                              DisplayMemberPath="Display"
+                                              Style="{StaticResource ModernComboBox}"/>
+                                </StackPanel>
+
+                                <!-- Units -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Units" FontWeight="SemiBold" FontSize="13"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource ModernTextBox}"/>
+                                </StackPanel>
                             </Grid>
-                            
-                            <!-- Lookup Status -->
-                            <TextBlock Text="{Binding LookupStatus}" 
-                                       FontSize="12" Margin="0,8,0,0"
-                                       Foreground="{Binding ItemFoundInDictionary, Converter={StaticResource BoolToSuccessColorConverter}}"/>
-                            
-                            <!-- Suggestions Popup -->
-                            <Border Visibility="{Binding ShowSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Background="{StaticResource SurfaceBrush}"
-                                    BorderBrush="{StaticResource BorderBrush}"
-                                    BorderThickness="1" CornerRadius="6"
-                                    MaxHeight="200" Margin="0,8,0,0">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding Suggestions}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border x:Name="SuggestionBorder" 
-                                                        Padding="12,10" Cursor="Hand"
-                                                        Background="Transparent"
-                                                        BorderBrush="{StaticResource BorderBrush}"
-                                                        BorderThickness="0,0,0,1">
-                                                    <Border.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick" 
-                                                                      Command="{Binding DataContext.SelectSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                      CommandParameter="{Binding}"/>
-                                                    </Border.InputBindings>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="{Binding Number}" 
-                                                                   FontWeight="SemiBold" FontSize="13"
-                                                                   Foreground="{StaticResource AccentBrush}"
-                                                                   Margin="0,0,12,0"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Description}" 
-                                                                   FontSize="12" TextTrimming="CharacterEllipsis"
-                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                    </Grid>
-                                                </Border>
-                                                <DataTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="SuggestionBorder" Property="Background" Value="{StaticResource HoverBrush}"/>
-                                                    </Trigger>
-                                                </DataTemplate.Triggers>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
+
+                            <!-- Expiry Date (Month/Year) - Full Width -->
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="Expiry Month *" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <ComboBox ItemsSource="{Binding AvailableMonths}"
+                                              SelectedValue="{Binding ExpiryMonth}"
+                                              SelectedValuePath="Value"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Width="140"/>
+                                    <ComboBox ItemsSource="{Binding AvailableYears}"
+                                              SelectedItem="{Binding ExpiryYear}"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Width="80" Margin="8,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Notes -->
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource ModernTextBox}"
+                                         Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                                         VerticalContentAlignment="Top"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Bulk Input Tab -->
+                <TabItem Header="Bulk SKU Input">
+                    <Grid Margin="0,16,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Instructions -->
+                        <Border Grid.Row="0" Background="{StaticResource BackgroundBrush}" 
+                                CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="Enter SKUs or item numbers (one per line)" 
+                                           FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="⚠ Verification is required before saving. Click 'Verify SKUs' after entering items."
+                                           FontSize="12" Foreground="{StaticResource WarningBrush}"
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Bulk Settings Row -->
+                        <Grid Grid.Row="1" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Location -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Location" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding AvailableStores}"
+                                          SelectedItem="{Binding BulkSelectedStore}"
+                                          DisplayMemberPath="Display"
+                                          Style="{StaticResource ModernComboBox}"/>
+                            </StackPanel>
+
+                            <!-- Expiry Month/Year -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Expiry" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding AvailableMonths}"
+                                          SelectedValue="{Binding BulkExpiryMonth}"
+                                          SelectedValuePath="Value"
+                                          DisplayMemberPath="Name"
+                                          Style="{StaticResource ModernComboBox}"
+                                          Width="110"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" VerticalAlignment="Bottom">
+                                <ComboBox ItemsSource="{Binding AvailableYears}"
+                                          SelectedItem="{Binding BulkExpiryYear}"
+                                          Style="{StaticResource ModernComboBox}"
+                                          Width="70"/>
+                            </StackPanel>
+
+                            <!-- Units -->
+                            <StackPanel Grid.Column="6">
+                                <TextBlock Text="Units Each" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding BulkUnits, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource ModernTextBox}" Width="60"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- SKU Input and Verify Button -->
+                        <Grid Grid.Row="2" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="SKU List" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding BulkItemCount, StringFormat=' ({0} items)'}" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="🔍 Verify SKUs" 
+                                    Command="{Binding VerifyBulkSkusCommand}"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Padding="16,8" FontSize="12"/>
+                        </Grid>
+
+                        <!-- Main Content Area - Split between Input and Results -->
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- SKU Input Area -->
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding BulkSkuInput, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top"
+                                     VerticalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas"
+                                     FontSize="13"/>
+
+                            <!-- Separator -->
+                            <Border Grid.Column="1" Width="12"
+                                    Visibility="{Binding ShowVerificationResults, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <!-- Verification Results -->
+                            <Border Grid.Column="2" Background="{StaticResource BackgroundBrush}"
+                                    CornerRadius="6" Padding="8"
+                                    Visibility="{Binding ShowVerificationResults, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Results Header -->
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                                        <TextBlock Text="Verification Results" FontWeight="SemiBold" FontSize="12"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock FontSize="11">
+                                                <Run Text="✓" Foreground="{StaticResource SuccessBrush}"/>
+                                                <Run Text="{Binding BulkFoundCount, Mode=OneWay}" Foreground="{StaticResource SuccessBrush}"/>
+                                                <Run Text=" found" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Margin="12,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding BulkNotFoundCount}" Value="0">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                                <Run Text="⚠" Foreground="{StaticResource WarningBrush}"/>
+                                                <Run Text="{Binding BulkNotFoundCount, Mode=OneWay}" Foreground="{StaticResource WarningBrush}"/>
+                                                <Run Text=" not found" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Results List -->
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding BulkVerificationResults}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="6,4" 
+                                                            BorderBrush="{StaticResource BorderBrush}"
+                                                            BorderThickness="0,0,0,1">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" FontSize="11" Width="14" TextAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Text" Value="✓"/>
+                                                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Found}" Value="False">
+                                                                                <Setter Property="Text" Value="⚠"/>
+                                                                                <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Sku}" FontSize="11" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                    <TextBlock FontSize="10" Margin="6,0,0,0"
+                                                                               Foreground="{StaticResource AccentBrush}"
+                                                                               Visibility="{Binding Found, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                        <Run Text="→"/>
+                                                                        <Run Text="{Binding ItemNumber, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <!-- Show "SKU added" indicator -->
+                                                                    <TextBlock Text=" ✓ SKU saved" FontSize="9" 
+                                                                               Foreground="{StaticResource SuccessBrush}"
+                                                                               Visibility="{Binding SkuWasAdded, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                               Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                                <TextBlock Text="{Binding Description}" FontSize="10" 
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                            </StackPanel>
+                                                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                                <!-- Add SKU to existing item button -->
+                                                                <Button Content="📎" 
+                                                                        ToolTip="Add this SKU to the item"
+                                                                        Command="{Binding DataContext.AddSkuToExistingItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        Style="{StaticResource SecondaryButton}"
+                                                                        Padding="4,2" FontSize="10" MinWidth="24"
+                                                                        Margin="0,0,4,0"
+                                                                        Visibility="{Binding SkuCanBeAdded, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                                <!-- Add new item to DB button for not found items -->
+                                                                <Button Content="➕" 
+                                                                        ToolTip="Add new item to dictionary"
+                                                                        Command="{Binding DataContext.StartAddToDictionaryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        Style="{StaticResource SecondaryButton}"
+                                                                        Padding="4,2" FontSize="10" MinWidth="24"
+                                                                        Visibility="{Binding Found, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
                             </Border>
-                        </StackPanel>
-                    </Border>
+                        </Grid>
 
-                    <!-- Item Number (Read-only display when set from dictionary) -->
-                    <StackPanel Margin="0,0,0,16">
-                        <TextBlock Text="Item Number *" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                        <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}"
-                                 IsReadOnly="{Binding ItemFoundInDictionary}"/>
-                    </StackPanel>
+                        <!-- Add to Dictionary Panel -->
+                        <Border Grid.Row="4" Background="{StaticResource AccentBrush}" 
+                                CornerRadius="6" Padding="12" Margin="0,12,0,0"
+                                Visibility="{Binding ShowAddItemPanel, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel>
+                                <TextBlock Text="Add New Item to Dictionary" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Search for existing item or create new" FontSize="11"
+                                           Foreground="#CCFFFFFF" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Item #:" FontSize="12" 
+                                               Foreground="White" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" 
+                                             Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource ModernTextBox}" FontSize="12"/>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="SKU:" FontSize="12" 
+                                               Foreground="White" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Row="0" Grid.Column="4" 
+                                             Text="{Binding NewItemSku, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource ModernTextBox}" FontSize="12"
+                                             IsReadOnly="True" Background="#80FFFFFF"/>
+                                    
+                                    <!-- Autocomplete Suggestions -->
+                                    <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4"
+                                            Visibility="{Binding ShowAddItemSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Background="{StaticResource SurfaceBrush}"
+                                            BorderBrush="{StaticResource BorderBrush}"
+                                            BorderThickness="1" CornerRadius="4"
+                                            MaxHeight="120" Margin="0,4,0,0">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding AddItemSuggestions}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border x:Name="SuggestionBorder" 
+                                                                Padding="8,6" Cursor="Hand"
+                                                                Background="Transparent"
+                                                                BorderBrush="{StaticResource BorderBrush}"
+                                                                BorderThickness="0,0,0,1">
+                                                            <Border.InputBindings>
+                                                                <MouseBinding MouseAction="LeftClick" 
+                                                                              Command="{Binding DataContext.SelectAddItemSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                              CommandParameter="{Binding}"/>
+                                                            </Border.InputBindings>
+                                                            <StackPanel>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Number}" 
+                                                                               FontWeight="SemiBold" FontSize="12"
+                                                                               Foreground="{StaticResource AccentBrush}"/>
+                                                                    <TextBlock Text=" - add SKU to this item" FontSize="10"
+                                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                                               VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                                </StackPanel>
+                                                                <TextBlock Text="{Binding Description}" 
+                                                                           FontSize="11" TextTrimming="CharacterEllipsis"
+                                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <DataTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="SuggestionBorder" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+                                                            </Trigger>
+                                                        </DataTemplate.Triggers>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Desc:" FontSize="12" 
+                                               Foreground="White" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="4"
+                                             Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource ModernTextBox}" FontSize="12"/>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                                    <Button Content="Cancel" Command="{Binding CancelAddToDictionaryCommand}"
+                                            Style="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,0"/>
+                                    <Button Content="✓ Add to Dictionary" Command="{Binding ConfirmAddToDictionaryCommand}"
+                                            Style="{StaticResource PrimaryButton}" Padding="12,6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
 
-                    <!-- Description -->
-                    <StackPanel Margin="0,0,0,16">
-                        <TextBlock Text="Description *" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                        <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}"
-                                 IsReadOnly="{Binding ItemFoundInDictionary}"/>
-                    </StackPanel>
-
-                    <!-- Two Column Layout -->
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Location -->
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Location" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                            <TextBox Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernTextBox}"/>
-                        </StackPanel>
-
-                        <!-- Units -->
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="Units" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                            <TextBox Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernTextBox}"/>
-                        </StackPanel>
+                        <!-- Bulk Status -->
+                        <Border Grid.Row="5" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="{Binding BulkLookupStatus}" 
+                                           FontSize="12" FontWeight="SemiBold"
+                                           Visibility="{Binding BulkLookupStatus, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding BulkNotFoundCount}" Value="0">
+                                                    <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock FontSize="11" Margin="0,4,0,0"
+                                           Foreground="{StaticResource WarningBrush}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding BulkNotFoundCount}" Value="0">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                    <Run Text="Click ➕ next to missing items to add them to the database, or they will be skipped."/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
                     </Grid>
-
-                    <!-- Two Column Layout -->
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Expiry Date -->
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Expiry Date *" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                            <DatePicker SelectedDate="{Binding ExpiryDate}"
-                                        Style="{StaticResource ModernDatePicker}"/>
-                        </StackPanel>
-
-                        <!-- Category -->
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="Category" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                            <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernTextBox}"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Notes -->
-                    <StackPanel Margin="0,0,0,16">
-                        <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}"
-                                 Height="80" TextWrapping="Wrap" AcceptsReturn="True"
-                                 VerticalContentAlignment="Top"/>
-                    </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
+                </TabItem>
+            </TabControl>
 
             <!-- Buttons -->
             <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" 

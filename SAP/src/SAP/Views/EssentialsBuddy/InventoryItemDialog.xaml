@@ -32,8 +32,9 @@
             </StackPanel>
 
             <!-- Form Fields -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
+            <Grid Grid.Row="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
                     <!-- Item Number -->
                     <StackPanel Margin="0,0,0,16">
                         <TextBlock Text="Item Number" FontWeight="SemiBold" FontSize="13"
@@ -115,8 +116,18 @@
                         <DatePicker SelectedDate="{Binding LastUpdated}"
                                     Style="{StaticResource ModernDatePicker}"/>
                     </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
+                    </StackPanel>
+                </ScrollViewer>
+                <!-- Top shadow -->
+                <Border VerticalAlignment="Top" Height="10" IsHitTestVisible="False">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#10000000" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Grid>
 
             <!-- Buttons -->
             <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" 

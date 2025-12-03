@@ -203,10 +203,10 @@
         </StackPanel>
 
         <!-- Module Cards in a Grid Layout -->
-        <ScrollViewer Grid.Row="1"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto"
-                      Margin="0,20,0,20">
+        <Grid Grid.Row="1">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          Margin="0,20,0,20">
             <ItemsControl HorizontalAlignment="Center"
                           VerticalAlignment="Center">
                 <ItemsControl.ItemsPanel>
@@ -515,7 +515,26 @@
             </Grid>
 
             </ItemsControl>
-        </ScrollViewer>
+            </ScrollViewer>
+            <!-- Top shadow gradient -->
+            <Border VerticalAlignment="Top" Height="20" IsHitTestVisible="False" Margin="0,20,0,0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#12000000" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            <!-- Bottom shadow gradient -->
+            <Border VerticalAlignment="Bottom" Height="20" IsHitTestVisible="False" Margin="0,0,0,20">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="Transparent" Offset="0"/>
+                        <GradientStop Color="#12000000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Grid>
 
         <!-- Footer with improved design -->
         <Grid Grid.Row="2" Margin="0,0,0,32">
@@ -619,7 +638,9 @@
             <!-- Module Content Area with Transitions -->
             <ContentControl Grid.Row="1"
                             Content="{Binding NavigationService.CurrentView, Converter={StaticResource ViewModelToView}}"
-                            behaviors:ContentTransitionBehavior.EnableTransition="True"/>
+                            behaviors:ContentTransitionBehavior.EnableTransition="True"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"/>
         </Grid>
     </Grid>
 

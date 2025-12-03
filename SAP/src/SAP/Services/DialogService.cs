@@ -102,8 +102,12 @@ public class DialogService
             Owner = Application.Current.MainWindow,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             SizeToContent = SizeToContent.WidthAndHeight,
-            WindowStyle = WindowStyle.ToolWindow,
-            ResizeMode = ResizeMode.NoResize,
+            WindowStyle = WindowStyle.SingleBorderWindow,
+            ResizeMode = ResizeMode.CanResizeWithGrip,
+            MinWidth = 400,
+            MinHeight = 300,
+            MaxWidth = 800,
+            MaxHeight = 900,
             ShowInTaskbar = false
         };
 

@@ -17,91 +17,175 @@
                 </LinearGradientBrush>
             </Grid.Background>
             
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600">
-                <!-- Icon -->
-                <Border Background="White" Width="120" Height="120" CornerRadius="60" 
-                        HorizontalAlignment="Center" Margin="0,0,0,32">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.3"/>
-                    </Border.Effect>
-                    <TextBlock Text="📦" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                
-                <!-- Title -->
-                <TextBlock Text="Allocation Buddy" FontSize="42" FontWeight="Bold"
-                           Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,12">
-                    <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
-                    </TextBlock.Effect>
-                </TextBlock>
-                
-                <!-- Subtitle -->
-                <TextBlock Text="Smart inventory allocation made simple" FontSize="18"
-                           Foreground="#CCFFFFFF" HorizontalAlignment="Center" Margin="0,0,0,48"/>
-                
-                <!-- Import Button -->
-                <Button Command="{Binding ImportCommand}" 
-                        HorizontalAlignment="Center" Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="White"/>
-                            <Setter Property="Foreground" Value="#667eea"/>
-                            <Setter Property="Padding" Value="40,18"/>
-                            <Setter Property="FontSize" Value="18"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" 
-                                                CornerRadius="30" Padding="{TemplateBinding Padding}">
-                                            <Border.Effect>
-                                                <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2"/>
-                                            </Border.Effect>
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#F0F0F0"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="📥" FontSize="22" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Import Allocation File" VerticalAlignment="Center"/>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" 
+                            MaxWidth="550" Margin="24" MinHeight="400">
+                    <!-- Icon -->
+                    <Border Background="White" Width="100" Height="100" CornerRadius="50" 
+                            HorizontalAlignment="Center" Margin="0,0,0,24">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.3"/>
+                        </Border.Effect>
+                        <TextBlock Text="📦" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <!-- Title -->
+                    <TextBlock Text="Allocation Buddy" FontSize="36" FontWeight="Bold"
+                               Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"
+                               TextWrapping="Wrap" TextAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    
+                    <!-- Subtitle -->
+                    <TextBlock Text="Smart inventory allocation made simple" FontSize="16"
+                               Foreground="#CCFFFFFF" HorizontalAlignment="Center" Margin="0,0,0,32"
+                               TextWrapping="Wrap" TextAlignment="Center"/>
+                    
+                    <!-- Import Button -->
+                    <Button Command="{Binding ImportCommand}" 
+                            HorizontalAlignment="Center" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="#667eea"/>
+                                <Setter Property="Padding" Value="32,14"/>
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" 
+                                                    CornerRadius="25" Padding="{TemplateBinding Padding}">
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2"/>
+                                                </Border.Effect>
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#F0F0F0"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📥" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Import Allocation File" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- OR Divider -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,20">
+                        <Border Background="#40FFFFFF" Height="1" Width="60" VerticalAlignment="Center"/>
+                        <TextBlock Text="OR" Foreground="#99FFFFFF" FontWeight="Medium" Margin="12,0" FontSize="12"/>
+                        <Border Background="#40FFFFFF" Height="1" Width="60" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Button>
-                
-                <!-- Features -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,48,0,0">
-                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12" Margin="0,0,16,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📊" FontSize="18" Margin="0,0,8,0"/>
-                            <TextBlock Text="Excel &amp; CSV" Foreground="White" FontWeight="Medium"/>
+
+                    <!-- Paste Area -->
+                    <Border Background="#15FFFFFF" CornerRadius="10" Padding="16" 
+                            BorderBrush="#30FFFFFF" BorderThickness="2">
+                        <StackPanel>
+                            <TextBlock Text="📋 Paste Data from Excel" FontSize="14" FontWeight="SemiBold"
+                                       Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <TextBlock Text="Copy cells from Excel and paste below (Store, Item, Qty columns)"
+                                       FontSize="11" Foreground="#AAFFFFFF" HorizontalAlignment="Center" Margin="0,0,0,10"
+                                       TextWrapping="Wrap" TextAlignment="Center"/>
+                            <TextBox x:Name="PasteTextBox" 
+                                     Height="100" 
+                                     AcceptsReturn="True" 
+                                     AcceptsTab="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas"
+                                     FontSize="11"
+                                     Padding="8"
+                                     Text="{Binding PasteText, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="Background" Value="White"/>
+                                        <Setter Property="Foreground" Value="#333"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="TextBox">
+                                                    <Border Background="{TemplateBinding Background}" 
+                                                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <ScrollViewer x:Name="PART_ContentHost"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <Button Command="{Binding ImportFromPasteTextCommand}" 
+                                    HorizontalAlignment="Center" Margin="0,10,0,0" Cursor="Hand">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="White"/>
+                                        <Setter Property="Foreground" Value="#667eea"/>
+                                        <Setter Property="Padding" Value="20,8"/>
+                                        <Setter Property="FontSize" Value="13"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" 
+                                                            CornerRadius="16" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#F0F0F0"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Import Pasted Data" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </Border>
-                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12" Margin="0,0,16,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🏪" FontSize="18" Margin="0,0,8,0"/>
-                            <TextBlock Text="Multi-Location" Foreground="White" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#20FFFFFF" CornerRadius="8" Padding="16,12">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📋" FontSize="18" Margin="0,0,8,0"/>
-                            <TextBlock Text="BC Transfer Ready" Foreground="White" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Border>
+                    
+                    <!-- Features -->
+                    <WrapPanel HorizontalAlignment="Center" Margin="0,24,0,0">
+                        <Border Background="#20FFFFFF" CornerRadius="8" Padding="12,10" Margin="4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" FontSize="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="Excel &amp; CSV" Foreground="White" FontWeight="Medium" FontSize="13"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#20FFFFFF" CornerRadius="8" Padding="12,10" Margin="4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🏪" FontSize="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="Multi-Location" Foreground="White" FontWeight="Medium" FontSize="13"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#20FFFFFF" CornerRadius="8" Padding="12,10" Margin="4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📋" FontSize="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="BC Transfer Ready" Foreground="White" FontWeight="Medium" FontSize="13"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+                    
+                    <!-- Supported formats -->
+                    <TextBlock Text="Drag &amp; drop, import files, or paste directly from Excel" 
+                               FontSize="12" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,20,0,0"
+                               TextWrapping="Wrap" TextAlignment="Center"/>
                 </StackPanel>
-                
-                <!-- Supported formats -->
-                <TextBlock Text="Drag &amp; drop or click to import Excel (.xlsx) or CSV files" 
-                           FontSize="13" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,24,0,0"/>
-            </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <!-- Main Content (shown when has data) -->
@@ -128,6 +212,14 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📥" FontSize="14" Margin="0,0,6,0"/>
                             <TextBlock Text="Import"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding PasteCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0"
+                            ToolTip="Paste data from Excel (Ctrl+V)">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Paste"/>
                         </StackPanel>
                     </Button>
 
@@ -238,58 +330,134 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Item Totals Summary - Compact row showing per-item totals -->
+            <!-- Item Totals Summary - Collapsible section -->
             <Border Grid.Row="0"
                     Background="{StaticResource BackgroundBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="0,0,0,1"
                     Padding="12,8"
                     Visibility="{Binding ItemTotals.Count, Converter={StaticResource CountToVisibility}}">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Left" Text="📊 Item Totals:" 
-                               FontWeight="SemiBold" FontSize="13"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               VerticalAlignment="Top" Margin="0,4,12,0"/>
-                    <ItemsControl ItemsSource="{Binding ItemTotals}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{StaticResource SurfaceBrush}"
-                                        BorderBrush="{StaticResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        Padding="8,4"
-                                        Margin="0,0,8,6">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Description}" 
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                                   MaxWidth="120"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding ItemNumber, StringFormat=' ({0})'}" 
-                                                   FontSize="10"
-                                                   Foreground="{StaticResource TextTertiaryBrush}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,6,0"/>
-                                        <Border Background="{StaticResource PrimaryBrush}"
-                                                CornerRadius="3"
-                                                Padding="6,2">
-                                            <TextBlock Text="{Binding TotalQuantity, StringFormat='×{0}'}"
-                                                       FontWeight="Bold"
-                                                       FontSize="11"
-                                                       Foreground="White"/>
-                                        </Border>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </DockPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Header Row -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Left side: Title and count -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📊" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Item Totals" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <Border Background="{StaticResource PrimaryBrush}" CornerRadius="10" 
+                                    Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ItemTotals.Count, StringFormat='{}{0} items'}"
+                                           FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                            </Border>
+                        </StackPanel>
+                        
+                        <!-- Right side: Toggle button -->
+                        <ToggleButton x:Name="ItemTotalsToggle" Grid.Column="1" IsChecked="False" Cursor="Hand">
+                            <ToggleButton.Style>
+                                <Style TargetType="ToggleButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border x:Name="Bd" Background="{StaticResource SurfaceBrush}" 
+                                                        BorderBrush="{StaticResource BorderBrush}"
+                                                        BorderThickness="1" CornerRadius="4" Padding="10,6">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock x:Name="BtnText" Text="Show" FontSize="12" 
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                        <TextBlock x:Name="Arrow" Text="▼" FontSize="9"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                                   VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="BtnText" Property="Text" Value="Hide"/>
+                                                        <Setter TargetName="Arrow" Property="Text" Value="▲"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                        <Setter TargetName="BtnText" Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                                        <Setter TargetName="Arrow" Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                    </Grid>
+                    
+                    <!-- Collapsible Content -->
+                    <Border Grid.Row="1" MaxHeight="150" Margin="0,10,0,0"
+                            Visibility="{Binding IsChecked, ElementName=ItemTotalsToggle, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding ItemTotals}" Margin="0,0,0,4">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource SurfaceBrush}"
+                                                    BorderBrush="{StaticResource BorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="8,4"
+                                                    Margin="0,0,8,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Description}" 
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                                               MaxWidth="120"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ItemNumber, StringFormat=' ({0})'}" 
+                                                               FontSize="10"
+                                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,6,0"/>
+                                                    <Border Background="{StaticResource PrimaryBrush}"
+                                                            CornerRadius="3"
+                                                            Padding="6,2">
+                                                        <TextBlock Text="{Binding TotalQuantity, StringFormat='×{0}'}"
+                                                                   FontWeight="Bold"
+                                                                   FontSize="11"
+                                                                   Foreground="White"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <!-- Bottom shadow gradient for scroll indication -->
+                            <Border VerticalAlignment="Bottom" Height="20" IsHitTestVisible="False">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="Transparent" Offset="0"/>
+                                        <GradientStop Color="#18000000" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
             </Border>
 
             <!-- Item Pool - Top Section -->
@@ -348,40 +516,41 @@
                     </ItemsControl>
 
                     <!-- Pool Items - Scrollable Grid Layout with fixed max height -->
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  MaxHeight="280">
-                        <ItemsControl ItemsSource="{Binding ItemPool}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{StaticResource BackgroundBrush}"
-                                            BorderBrush="{StaticResource BorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="6"
-                                            Padding="10"
-                                            Margin="0,0,8,8"
-                                            Width="260">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                    <Grid>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      MaxHeight="280">
+                            <ItemsControl ItemsSource="{Binding ItemPool}" Margin="0,0,0,4">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BackgroundBrush}"
+                                                BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="10"
+                                                Margin="0,0,8,8"
+                                                Width="260">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
 
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Description}"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="12"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                                           MaxWidth="140"/>
-                                                <TextBlock Text="{Binding ItemNumber}"
-                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               FontWeight="SemiBold"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                                               MaxWidth="140"/>
+                                                    <TextBlock Text="{Binding ItemNumber}"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
                                                            FontSize="10"
                                                            Margin="0,2,0,0"/>
                                             </StackPanel>
@@ -409,38 +578,49 @@
                                                     Padding="0"
                                                     FontSize="14"
                                                     ToolTip="Allocate to location..."/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <!-- Bottom shadow gradient for scroll indication -->
+                        <Border VerticalAlignment="Bottom" Height="20" IsHitTestVisible="False">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="Transparent" Offset="0"/>
+                                    <GradientStop Color="#18000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Grid>
                 </DockPanel>
             </Border>
 
             <!-- Locations Section - Bottom -->
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding FilteredLocationAllocations}" Margin="16">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
+            <Grid Grid.Row="2">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding FilteredLocationAllocations}" Margin="16">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{StaticResource SurfaceBrush}"
-                                    BorderBrush="{StaticResource BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="8"
-                                    Padding="16"
-                                    Margin="0,0,0,12">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
-                                </Border.Effect>
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,12">
-                                        <Grid.ColumnDefinitions>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="16"
+                                        Margin="0,0,0,12">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                                    </Border.Effect>
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -553,6 +733,16 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            <!-- Top shadow gradient for scroll indication -->
+            <Border VerticalAlignment="Top" Height="16" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#18000000" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Grid>
         </Grid>
 
         <!-- Status Bar -->

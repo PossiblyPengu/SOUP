@@ -35,6 +35,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    [ObservableProperty]
+    private string _pasteText = string.Empty;
+
     /// <summary>
     /// True when there is no data loaded (for welcome screen)
     /// </summary>
@@ -114,6 +117,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
     public IRelayCommand ImportCommand { get; }
     public IAsyncRelayCommand<string[]> ImportFilesCommand { get; }
+    public IRelayCommand PasteCommand { get; }
+    public IRelayCommand ImportFromPasteTextCommand { get; }
     public IRelayCommand RefreshCommand { get; }
     public IRelayCommand ClearCommand { get; }
     public IRelayCommand RemoveOneCommand { get; }
@@ -134,6 +139,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
         ImportCommand = new RelayCommand(async () => await ImportAsync());
         ImportFilesCommand = new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); });
+        PasteCommand = new RelayCommand(PasteFromClipboard);
+        ImportFromPasteTextCommand = new RelayCommand(ImportFromPasteText);
         RefreshCommand = new RelayCommand(async () => await RefreshAsync());
         ClearCommand = new RelayCommand(ClearSearch);
         RemoveOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) RemoveOne(item); });
@@ -282,6 +289,79 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         OnPropertyChanged(nameof(ItemPoolCount));
         OnPropertyChanged(nameof(TotalEntries));
         OnPropertyChanged(nameof(FilteredLocationAllocations));
+    }
+
+    /// <summary>
+    /// Paste allocation data from clipboard (copied from Excel or other spreadsheet).
+    /// Expects tab or comma separated data with Store, Item, Quantity columns.
+    /// </summary>
+    private void PasteFromClipboard()
+    {
+        try
+        {
+            if (!System.Windows.Clipboard.ContainsText())
+            {
+                StatusMessage = "Clipboard is empty";
+                return;
+            }
+
+            var clipboardText = System.Windows.Clipboard.GetText();
+            var result = _parser.ParseFromClipboardText(clipboardText);
+
+            if (!result.IsSuccess || result.Value == null)
+            {
+                StatusMessage = $"Paste failed: {result.ErrorMessage}";
+                return;
+            }
+
+            PopulateFromEntries(result.Value);
+            StatusMessage = $"Pasted {result.Value.Count} entries from clipboard";
+            OnPropertyChanged(nameof(LocationsCount));
+            OnPropertyChanged(nameof(ItemPoolCount));
+            OnPropertyChanged(nameof(TotalEntries));
+            OnPropertyChanged(nameof(FilteredLocationAllocations));
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Paste failed: {ex.Message}";
+            _logger?.LogError(ex, "Failed to paste from clipboard");
+        }
+    }
+
+    /// <summary>
+    /// Import data from the PasteText textbox on the welcome screen.
+    /// </summary>
+    private void ImportFromPasteText()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(PasteText))
+            {
+                StatusMessage = "Please paste some data first";
+                return;
+            }
+
+            var result = _parser.ParseFromClipboardText(PasteText);
+
+            if (!result.IsSuccess || result.Value == null)
+            {
+                StatusMessage = $"Import failed: {result.ErrorMessage}";
+                return;
+            }
+
+            PopulateFromEntries(result.Value);
+            PasteText = string.Empty; // Clear the textbox after successful import
+            StatusMessage = $"Imported {result.Value.Count} entries";
+            OnPropertyChanged(nameof(LocationsCount));
+            OnPropertyChanged(nameof(ItemPoolCount));
+            OnPropertyChanged(nameof(TotalEntries));
+            OnPropertyChanged(nameof(FilteredLocationAllocations));
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import failed: {ex.Message}";
+            _logger?.LogError(ex, "Failed to import from paste text");
+        }
     }
 
     /// <summary>

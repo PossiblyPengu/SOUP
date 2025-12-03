@@ -4,28 +4,54 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SAP.ViewModels"
+             xmlns:local="clr-namespace:SAP.Views.ExpireWise"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}">
 
     <UserControl.Resources>
-        <!-- Fade-in animation for the entire view -->
         <Storyboard x:Key="FadeInStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                           From="0" To="1"
-                           Duration="0:0:0.4">
+                           From="0" To="1" Duration="0:0:0.4">
                 <DoubleAnimation.EasingFunction>
                     <QuadraticEase EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <ThicknessAnimation Storyboard.TargetProperty="Margin"
-                              From="0,15,0,0" To="0"
-                              Duration="0:0:0.4">
-                <ThicknessAnimation.EasingFunction>
-                    <QuadraticEase EasingMode="EaseOut"/>
-                </ThicknessAnimation.EasingFunction>
-            </ThicknessAnimation>
         </Storyboard>
+        
+        <!-- Tab Header Style -->
+        <Style x:Key="ModernTabItem" TargetType="TabItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" 
+                                Padding="{TemplateBinding Padding}" CornerRadius="8,8,0,0">
+                            <ContentPresenter x:Name="ContentSite" ContentSource="Header"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="0,2,0,0"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <UserControl.Triggers>
@@ -35,319 +61,424 @@
     </UserControl.Triggers>
 
     <Grid Background="{StaticResource BackgroundBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <!-- Main Content -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Style="{StaticResource ModernToolbar}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Full-Width Tab Bar -->
+            <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" 
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Left side - Primary actions -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Command="{Binding AddItemCommand}" Style="{StaticResource ModernButton}" Margin="0,0,6,0">
+                    <RadioButton x:Name="DataTab" Grid.Column="0" GroupName="ViewTabs" IsChecked="True" Cursor="Hand">
+                        <RadioButton.Template>
+                            <ControlTemplate TargetType="RadioButton">
+                                <Border x:Name="Border" Background="Transparent" Padding="0,16">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock x:Name="Icon" Text="📋" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="Text" Text="Data" FontSize="16" FontWeight="SemiBold" 
+                                                       Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Border x:Name="Indicator" Height="3" VerticalAlignment="Bottom" Margin="0,0,0,-16"
+                                                Background="Transparent" CornerRadius="2,2,0,0"/>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Text" Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                        <Setter TargetName="Indicator" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                        <Setter TargetName="Border" Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsMouseOver" Value="True"/>
+                                            <Condition Property="IsChecked" Value="False"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="Border" Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                        <Setter TargetName="Border" Property="Opacity" Value="0.5"/>
+                                    </MultiTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </RadioButton.Template>
+                    </RadioButton>
+
+                    <RadioButton x:Name="AnalyticsTab" Grid.Column="1" GroupName="ViewTabs" Cursor="Hand">
+                        <RadioButton.Template>
+                            <ControlTemplate TargetType="RadioButton">
+                                <Border x:Name="Border" Background="Transparent" Padding="0,16">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock x:Name="Icon" Text="📊" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="Text" Text="Analytics" FontSize="16" FontWeight="SemiBold" 
+                                                       Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Border x:Name="Indicator" Height="3" VerticalAlignment="Bottom" Margin="0,0,0,-16"
+                                                Background="Transparent" CornerRadius="2,2,0,0"/>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Text" Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                        <Setter TargetName="Indicator" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                        <Setter TargetName="Border" Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsMouseOver" Value="True"/>
+                                            <Condition Property="IsChecked" Value="False"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="Border" Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                        <Setter TargetName="Border" Property="Opacity" Value="0.5"/>
+                                    </MultiTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </RadioButton.Template>
+                    </RadioButton>
+                </Grid>
+            </Border>
+
+            <!-- Toolbar -->
+            <Border Grid.Row="1" Style="{StaticResource ModernToolbar}"
+                    Visibility="{Binding IsChecked, ElementName=DataTab, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left - Item Actions -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Button Command="{Binding AddItemCommand}" Style="{StaticResource ModernButton}" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="➕" FontSize="14" Margin="0,0,6,0"/>
+                                <TextBlock Text="Add"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✏️" FontSize="14" Margin="0,0,6,0"/>
+                                <TextBlock Text="Edit"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
+                                <TextBlock Text="Delete"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Center - Import/Export -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Menu Background="Transparent" VerticalAlignment="Center">
+                            <MenuItem Style="{StaticResource {x:Type MenuItem}}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📥" FontSize="14" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Import ▾" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                                <MenuItem Header="📊 Import from Excel" Command="{Binding ImportFromExcelCommand}"/>
+                                <MenuItem Header="📄 Import from CSV" Command="{Binding ImportFromCsvCommand}"/>
+                            </MenuItem>
+                        </Menu>
+                        <Menu Background="Transparent" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <MenuItem Style="{StaticResource {x:Type MenuItem}}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📤" FontSize="14" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Export ▾" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                                <MenuItem Header="📊 Export to Excel" Command="{Binding ExportToExcelCommand}"/>
+                                <MenuItem Header="📄 Export to CSV" Command="{Binding ExportToCsvCommand}"/>
+                            </MenuItem>
+                        </Menu>
+                        <!-- Autosave Indicator -->
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="6" Padding="10,6" Margin="16,0,0,0"
+                                Visibility="{Binding LastSavedDisplay, Converter={StaticResource StringToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✓" FontSize="12" Foreground="#4CAF50" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding LastSavedDisplay}" FontSize="12" 
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right - Settings -->
+                    <Button Grid.Column="2" Command="{Binding OpenSettingsCommand}" Style="{StaticResource SecondaryButton}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="➕" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Add"/>
+                            <TextBlock Text="⚙️" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Settings"/>
                         </StackPanel>
                     </Button>
+                </Grid>
+            </Border>
 
-                    <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0">
+            <!-- Month Navigator + Stats (only show when Data tab is selected) -->
+            <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" 
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16"
+                    Visibility="{Binding IsChecked, ElementName=DataTab, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Stats -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="8" Padding="16,10" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📦" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding TotalItems}" FontSize="18" FontWeight="Bold" 
+                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text=" total items" FontSize="13" 
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="8" Padding="16,10">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📅" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding TotalMonths}" FontSize="18" FontWeight="Bold" 
+                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text=" months" FontSize="13" 
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Center - Month Navigation -->
+                    <Border Grid.Column="1" Background="{StaticResource BackgroundBrush}" CornerRadius="12" Padding="8">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="✏️" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Edit"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Delete"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-
-                <!-- Center - Import/Export with menu -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <!-- Import Menu -->
-                    <Menu Background="Transparent" VerticalAlignment="Center">
-                        <MenuItem Style="{StaticResource {x:Type MenuItem}}">
-                            <MenuItem.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📥" FontSize="14" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Import" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" ▾" FontSize="10" VerticalAlignment="Center"/>
+                            <Button Command="{Binding PreviousMonthCommand}" 
+                                    IsEnabled="{Binding CanGoToPreviousMonth}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="40" Height="40" Padding="0" Margin="0,0,8,0">
+                                <TextBlock Text="◀" FontSize="16" HorizontalAlignment="Center"/>
+                            </Button>
+                            
+                            <Border Background="{StaticResource PrimaryBrush}" CornerRadius="8" 
+                                    Padding="24,8" MinWidth="200">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding CurrentMonthDisplay}" 
+                                               FontSize="18" FontWeight="Bold" Foreground="White"
+                                               VerticalAlignment="Center"/>
+                                    <Border Background="White" CornerRadius="10" 
+                                            Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding MonthItemCount}" FontSize="13" 
+                                                   FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                                    </Border>
                                 </StackPanel>
-                            </MenuItem.Header>
-                            <MenuItem Header="📊 Import from Excel" Command="{Binding ImportFromExcelCommand}"/>
-                            <MenuItem Header="📄 Import from CSV" Command="{Binding ImportFromCsvCommand}"/>
-                        </MenuItem>
-                    </Menu>
-
-                    <!-- Export Menu -->
-                    <Menu Background="Transparent" VerticalAlignment="Center" Margin="8,0,0,0">
-                        <MenuItem Style="{StaticResource {x:Type MenuItem}}">
-                            <MenuItem.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📤" FontSize="14" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Export" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" ▾" FontSize="10" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </MenuItem.Header>
-                            <MenuItem Header="📊 Export to Excel" Command="{Binding ExportToExcelCommand}"/>
-                            <MenuItem Header="📄 Export to CSV" Command="{Binding ExportToCsvCommand}"/>
-                        </MenuItem>
-                    </Menu>
-
-                    <Button Command="{Binding LoadItemsCommand}" Style="{StaticResource SecondaryButton}" Margin="16,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🔄" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Refresh"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-
-                <!-- Right side - Settings -->
-                <Button Grid.Column="2" Command="{Binding OpenSettingsCommand}" Style="{StaticResource SecondaryButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚙️" FontSize="14" Margin="0,0,6,0"/>
-                        <TextBlock Text="Settings"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
-
-        <!-- Summary Dashboard -->
-        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" 
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" 
-                Padding="16,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Total Items -->
-                <Border Grid.Column="0" Background="{StaticResource BackgroundBrush}" 
-                        CornerRadius="8" Padding="16,12" Margin="0,0,8,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="📦" FontSize="20" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding TotalItems}" FontSize="24" FontWeight="Bold" 
-                                   HorizontalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Total Items" FontSize="11" 
-                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Good Items -->
-                <Border Grid.Column="1" Background="#E8F5E9" 
-                        CornerRadius="8" Padding="16,12" Margin="4,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="✅" FontSize="20" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding GoodCount}" FontSize="24" FontWeight="Bold" 
-                                   HorizontalAlignment="Center" Foreground="#2E7D32"/>
-                        <TextBlock Text="Good (30+ days)" FontSize="11" 
-                                   Foreground="#2E7D32" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Warning Items -->
-                <Border Grid.Column="2" Background="#FFF3E0" 
-                        CornerRadius="8" Padding="16,12" Margin="4,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="⚠️" FontSize="20" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding WarningCount}" FontSize="24" FontWeight="Bold" 
-                                   HorizontalAlignment="Center" Foreground="#E65100"/>
-                        <TextBlock Text="Warning (8-30 days)" FontSize="11" 
-                                   Foreground="#E65100" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Critical Items -->
-                <Border Grid.Column="3" Background="#FFEBEE" 
-                        CornerRadius="8" Padding="16,12" Margin="4,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="🚨" FontSize="20" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding CriticalCount}" FontSize="24" FontWeight="Bold" 
-                                   HorizontalAlignment="Center" Foreground="#C62828"/>
-                        <TextBlock Text="Critical (≤7 days)" FontSize="11" 
-                                   Foreground="#C62828" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Expired Items -->
-                <Border Grid.Column="4" Background="#ECEFF1" 
-                        CornerRadius="8" Padding="16,12" Margin="8,0,0,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="❌" FontSize="20" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding ExpiredCount}" FontSize="24" FontWeight="Bold" 
-                                   HorizontalAlignment="Center" Foreground="#546E7A"/>
-                        <TextBlock Text="Expired" FontSize="11" 
-                                   Foreground="#546E7A" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Border>
-
-        <!-- Search and Filter Bar -->
-        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,0,0,1" Padding="16,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Search Box -->
-                <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         VerticalAlignment="Center">
-                    <TextBox.Style>
-                        <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
-                            <Style.Triggers>
-                                <Trigger Property="Text" Value="">
-                                    <Setter Property="Background">
-                                        <Setter.Value>
-                                            <VisualBrush Stretch="None" AlignmentX="Left">
-                                                <VisualBrush.Visual>
-                                                    <TextBlock Text="🔍 Search by item number, description, or location..."
-                                                             Foreground="{StaticResource TextTertiaryBrush}" Margin="12,0,0,0"/>
-                                                </VisualBrush.Visual>
-                                            </VisualBrush>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBox.Style>
-                </TextBox>
-
-                <!-- Status Filter -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <Label Content="Status:" Style="{StaticResource ModernLabel}" VerticalAlignment="Center" Margin="0"/>
-                    <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
-                              Style="{StaticResource ModernComboBox}" Width="150" VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- Item Count Badge -->
-                <Border Grid.Column="2" Background="{StaticResource PrimaryBrush}" CornerRadius="12"
-                        Padding="12,6" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding FilteredItems.Count, StringFormat='📦 {0} items'}"
-                               Foreground="White" FontWeight="SemiBold" FontSize="13"/>
-                </Border>
-            </Grid>
-        </Border>
-
-        <!-- Data Grid -->
-        <DataGrid Grid.Row="3" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
-                  Style="{StaticResource ModernDataGrid}"
-                  ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
-                  CellStyle="{StaticResource ModernDataGridCell}"
-                  RowStyle="{StaticResource ModernDataGridRow}"
-                  CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True">
-
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="130" IsReadOnly="True" SortMemberPath="ItemNumber"/>
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True" SortMemberPath="Description"/>
-                <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="120" IsReadOnly="True" SortMemberPath="Location"/>
-                <DataGridTextColumn Header="Units" Binding="{Binding Units}" Width="80" IsReadOnly="True" SortMemberPath="Units"/>
-                <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat='MMM dd, yyyy'}"
-                                  Width="130" IsReadOnly="True" SortMemberPath="ExpiryDate"/>
-
-                <DataGridTemplateColumn Header="Days Left" Width="100" SortMemberPath="DaysUntilExpiry">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="12">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="{Binding DaysUntilExpiry, StringFormat='{}{0} days'}"/>
-                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Expired">
-                                                <Setter Property="Foreground" Value="#9E9E9E"/>
-                                                <Setter Property="Text" Value="Expired"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-
-                <DataGridTemplateColumn Header="Status" Width="100" SortMemberPath="Status">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border Padding="8,4" CornerRadius="6" HorizontalAlignment="Center">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                <Setter Property="Background" Value="{StaticResource WarningBrush}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Expired">
-                                                <Setter Property="Background" Value="#9E9E9E"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <TextBlock Text="{Binding Status}" FontWeight="SemiBold" Foreground="White"
-                                         HorizontalAlignment="Center" FontSize="11"/>
                             </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                            
+                            <Button Command="{Binding NextMonthCommand}" 
+                                    IsEnabled="{Binding CanGoToNextMonth}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="40" Height="40" Padding="0" Margin="8,0,0,0">
+                                <TextBlock Text="▶" FontSize="16" HorizontalAlignment="Center"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
 
-                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100" IsReadOnly="True" SortMemberPath="Category"/>
-            </DataGrid.Columns>
-        </DataGrid>
+                    <!-- Right - Current Month Stats -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <Border Background="#FEF3C7" CornerRadius="8" Padding="16,10" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding MonthItemCount}" FontSize="18" FontWeight="Bold" 
+                                           Foreground="#92400e" VerticalAlignment="Center"/>
+                                <TextBlock Text=" items" FontSize="13" 
+                                           Foreground="#b45309" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                <TextBlock Text=" •" Foreground="#b45309" Margin="8,0"/>
+                                <TextBlock Text="{Binding MonthTotalUnits}" FontSize="18" FontWeight="Bold" 
+                                           Foreground="#92400e" VerticalAlignment="Center"/>
+                                <TextBlock Text=" units" FontSize="13" 
+                                           Foreground="#b45309" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#FEE2E2" CornerRadius="8" Padding="12,10" 
+                                Visibility="{Binding CriticalCount, Converter={StaticResource CountToVisibility}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🚨" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding CriticalCount}" FontSize="16" FontWeight="Bold" 
+                                           Foreground="#DC2626" VerticalAlignment="Center"/>
+                                <TextBlock Text=" critical" FontSize="12" 
+                                           Foreground="#DC2626" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-        <!-- Status Bar -->
-        <StatusBar Grid.Row="4" Style="{StaticResource ModernStatusBar}">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
+            <!-- Data View (Search and Items) -->
+            <Grid Grid.Row="3" Visibility="{Binding IsChecked, ElementName=DataTab, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Search Bar -->
+                <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" Padding="16,12"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <VisualBrush Stretch="None" AlignmentX="Left">
+                                                        <VisualBrush.Visual>
+                                                            <TextBlock Text="🔍 Search items in this month..."
+                                                                     Foreground="{StaticResource TextTertiaryBrush}" Margin="12,0,0,0"/>
+                                                        </VisualBrush.Visual>
+                                                    </VisualBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <Border Grid.Column="1" Background="{StaticResource AccentBrush}" CornerRadius="8"
+                                Padding="12,6" Margin="16,0,0,0">
+                            <TextBlock Text="{Binding FilteredItems.Count, StringFormat='📦 {0} showing'}"
+                                       Foreground="White" FontWeight="SemiBold" FontSize="12"/>
+                        </Border>
                     </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
+                </Border>
 
-            <StatusBarItem Grid.Column="0">
-                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
-            </StatusBarItem>
+                <!-- Data Grid -->
+                <Grid Grid.Row="1">
+                    <DataGrid ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
+                              Style="{StaticResource ModernDataGrid}"
+                              ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                              CellStyle="{StaticResource ModernDataGridCell}"
+                              RowStyle="{StaticResource ModernDataGridRow}"
+                              CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True">
 
-            <StatusBarItem Grid.Column="1" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="⏳" FontSize="14" Margin="0,0,8,0"/>
-                    <TextBlock Text="Loading..." VerticalAlignment="Center"/>
-                </StackPanel>
-            </StatusBarItem>
-        </StatusBar>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="130" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Units" Binding="{Binding Units}" Width="70" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Expiry Date" Binding="{Binding ActualExpiryDate, StringFormat='MMM dd, yyyy'}" Width="120" IsReadOnly="True"/>
 
+                            <DataGridTemplateColumn Header="Days Left" Width="90" SortMemberPath="DaysUntilExpiry">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="12">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{Binding DaysUntilExpiry, StringFormat='{}{0}d'}"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                            <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Expired">
+                                                            <Setter Property="Foreground" Value="#9E9E9E"/>
+                                                            <Setter Property="Text" Value="Expired"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Status" Width="90" SortMemberPath="Status">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="8,4" CornerRadius="6" HorizontalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                            <Setter Property="Background" Value="{StaticResource WarningBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Expired">
+                                                            <Setter Property="Background" Value="#9E9E9E"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding Status}" FontWeight="SemiBold" 
+                                                       Foreground="White" FontSize="10"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <!-- Shadow overlays -->
+                    <Border VerticalAlignment="Top" Height="16" IsHitTestVisible="False">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#12000000" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- Analytics View -->
+            <local:ExpireWiseAnalyticsView Grid.Row="3" DataContext="{Binding Analytics}"
+                                           Visibility="{Binding IsChecked, ElementName=AnalyticsTab, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+            <!-- Status Bar -->
+            <StatusBar Grid.Row="4" Style="{StaticResource ModernStatusBar}">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+
+                <StatusBarItem Grid.Column="0">
+                    <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                </StatusBarItem>
+
+                <StatusBarItem Grid.Column="1" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⏳" FontSize="14" Margin="0,0,8,0"/>
+                        <TextBlock Text="Loading..." VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
     </Grid>
 </UserControl>

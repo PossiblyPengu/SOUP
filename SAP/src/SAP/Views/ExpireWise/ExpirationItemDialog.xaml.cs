@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using SAP.Core.Entities.ExpireWise;
@@ -16,7 +17,7 @@ public partial class ExpirationItemDialog : UserControl
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
         // Close dialog with null result
-        if (Tag is Action<ExpirationItem?> closeAction)
+        if (Tag is Action<List<ExpirationItem>?> closeAction)
         {
             closeAction(null);
         }
@@ -26,12 +27,55 @@ public partial class ExpirationItemDialog : UserControl
     {
         if (DataContext is ExpirationItemDialogViewModel viewModel)
         {
-            if (viewModel.IsValid())
+            if (viewModel.IsBulkMode)
             {
-                var item = viewModel.ToEntity();
-                if (Tag is Action<ExpirationItem?> closeAction)
+                // Bulk mode - check if verified first
+                if (!viewModel.BulkVerified)
                 {
-                    closeAction(item);
+                    MessageBox.Show("Please verify SKUs before saving.", "Verification Required", 
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (viewModel.BulkFoundCount == 0)
+                {
+                    MessageBox.Show("No valid items to add. All SKUs were not found in the database.\n\nPlease add them via Import Dictionary first.", 
+                        "No Valid Items", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Show confirmation if some items were not found
+                if (viewModel.BulkNotFoundCount > 0)
+                {
+                    var result = MessageBox.Show(
+                        $"{viewModel.BulkNotFoundCount} item(s) were not found and will be skipped.\n\nDo you want to continue adding the {viewModel.BulkFoundCount} found item(s)?",
+                        "Some Items Not Found",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+                    
+                    if (result != MessageBoxResult.Yes)
+                        return;
+                }
+
+                var items = viewModel.GetBulkItems();
+                if (items.Count > 0)
+                {
+                    if (Tag is Action<List<ExpirationItem>?> closeAction)
+                    {
+                        closeAction(items);
+                    }
+                }
+            }
+            else
+            {
+                // Single item mode
+                if (viewModel.IsValid())
+                {
+                    var item = viewModel.ToEntity();
+                    if (Tag is Action<List<ExpirationItem>?> closeAction)
+                    {
+                        closeAction(new List<ExpirationItem> { item });
+                    }
                 }
             }
         }

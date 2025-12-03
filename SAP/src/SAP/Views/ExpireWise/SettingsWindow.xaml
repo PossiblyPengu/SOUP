@@ -27,8 +27,9 @@
                    Margin="0,0,0,20"/>
 
         <!-- Settings Content -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
+        <Grid Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
 
                 <!-- Alert Thresholds Section -->
                 <Border Background="White" Padding="15" CornerRadius="5">
@@ -92,8 +93,18 @@
                     </StackPanel>
                 </Border>
 
-            </StackPanel>
-        </ScrollViewer>
+                </StackPanel>
+            </ScrollViewer>
+            <!-- Top shadow -->
+            <Border VerticalAlignment="Top" Height="12" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#10000000" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Grid>
 
         <!-- Status Message -->
         <TextBlock Grid.Row="2"

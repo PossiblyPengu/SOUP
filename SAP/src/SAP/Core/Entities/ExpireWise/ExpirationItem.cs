@@ -20,9 +20,14 @@ public class ExpirationItem : BaseEntity
     
     public ExpirationStatus Status => CalculateStatus();
 
+    /// <summary>
+    /// Gets the actual expiration date (last day of the expiry month)
+    /// </summary>
+    public DateTime ActualExpiryDate => new DateTime(ExpiryDate.Year, ExpiryDate.Month, DateTime.DaysInMonth(ExpiryDate.Year, ExpiryDate.Month));
+
     private ExpirationStatus CalculateStatus()
     {
-        var daysUntilExpiry = (ExpiryDate - DateTime.UtcNow).Days;
+        var daysUntilExpiry = (ActualExpiryDate - DateTime.Today).Days;
 
         return daysUntilExpiry switch
         {
@@ -33,7 +38,7 @@ public class ExpirationItem : BaseEntity
         };
     }
 
-    public int DaysUntilExpiry => (ExpiryDate - DateTime.UtcNow).Days;
+    public int DaysUntilExpiry => (ActualExpiryDate - DateTime.Today).Days;
     
     /// <summary>
     /// Get a human-readable status description

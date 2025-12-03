@@ -104,8 +104,9 @@
         </Border>
 
         <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="32">
-            <Grid HorizontalAlignment="Center" MaxWidth="500">
+        <Grid Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+                <Grid HorizontalAlignment="Center" MaxWidth="500">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -236,8 +237,27 @@
                         Command="{Binding GenerateLabelsCommand}"
                         HorizontalAlignment="Center"
                         Width="300"/>
-            </Grid>
-        </ScrollViewer>
+                </Grid>
+            </ScrollViewer>
+            <!-- Top shadow gradient for scroll indication -->
+            <Border VerticalAlignment="Top" Height="16" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#18000000" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            <!-- Bottom shadow gradient -->
+            <Border VerticalAlignment="Bottom" Height="16" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="Transparent" Offset="0"/>
+                        <GradientStop Color="#18000000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Grid>
 
         <!-- Status Bar -->
         <Border Grid.Row="2" Background="White" Padding="16,12" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
