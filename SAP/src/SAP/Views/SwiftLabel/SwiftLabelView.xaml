@@ -7,75 +7,178 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:SwiftLabelViewModel}"
-             d:DesignHeight="600" d:DesignWidth="800"
-             Background="#F5F5F5">
+             d:DesignHeight="700" d:DesignWidth="900">
 
     <UserControl.Resources>
-        <!-- Modern TextBox Style -->
-        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <!-- Modern Card Style - Dark -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- Modern Input Label - Dark -->
+        <Style x:Key="InputLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        
+        <!-- Input Hint Text - Dark -->
+        <Style x:Key="HintTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}"/>
+            <Setter Property="Margin" Value="4,6,0,0"/>
+        </Style>
+        
+        <!-- Modern TextBox - Dark -->
+        <Style x:Key="ModernInputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="{TemplateBinding Padding}"/>
+                                CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True">
-                                <Setter Property="BorderBrush" Value="#667eea"/>
-                                <Setter Property="BorderThickness" Value="2"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#8B5CF6"/>
+                                <Setter TargetName="Border" Property="Background" Value="#1f1f23"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource TextDisabledBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!-- Modern ComboBox Style -->
-        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
+        
+        <!-- Modern ComboBox - Dark -->
+        <Style x:Key="ModernComboStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
-
-        <!-- Primary Button Style -->
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#667eea"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="24,14"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+        
+        <!-- Stepper Button - Dark -->
+        <Style x:Key="StepperButton" TargetType="Button">
+            <Setter Property="Width" Value="52"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="10"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="12" BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#5a6fd6"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#4f5fc2"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource TextDisabledBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Primary Generate Button -->
+        <Style x:Key="GenerateButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="32,16"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" CornerRadius="14" Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#8B5CF6" Offset="0"/>
+                                    <GradientStop Color="#7C3AED" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.3" Color="#8B5CF6"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#7C3AED" Offset="0"/>
+                                            <GradientStop Color="#6D28D9" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Color="#8B5CF6"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Border" Property="Background" Value="#CCCCCC"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                <Setter TargetName="Border" Property="Effect" Value="{x:Null}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Quick Box Count Button - Dark -->
+        <Style x:Key="QuickCountButton" TargetType="Button">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#2e1065"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#7c3aed"/>
+                                <Setter Property="Foreground" Value="#a78bfa"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#3b0764"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -84,193 +187,233 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <!-- Main Background - Dark -->
+    <Border Background="{DynamicResource BackgroundBrush}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="White" Padding="32,24" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="🏷️" FontSize="36" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <TextBlock Text="Swift Label" FontSize="32" FontWeight="Bold" VerticalAlignment="Center" Foreground="#1e293b"/>
-                </StackPanel>
-                <TextBlock Text="Generate transfer labels for your shipments quickly and easily"
-                           FontSize="14" Foreground="#64748b" HorizontalAlignment="Center" Margin="0,8,0,0"/>
-            </StackPanel>
-        </Border>
+            <!-- Header -->
+            <Border Grid.Row="0" Padding="32,28">
+                <Grid>
+                    <StackPanel HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Border Width="56" Height="56" CornerRadius="16" Margin="0,0,16,0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#ec4899" Offset="0"/>
+                                        <GradientStop Color="#f472b6" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="#ec4899"/>
+                                </Border.Effect>
+                                <TextBlock Text="🏷️" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Swift Label" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Generate professional transfer labels instantly" 
+                                           FontSize="14" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-        <!-- Main Content -->
-        <Grid Grid.Row="1">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
-                <Grid HorizontalAlignment="Center" MaxWidth="500">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <!-- Main Content Area -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="32,0,32,32">
+                <Grid HorizontalAlignment="Center" MaxWidth="900">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MinWidth="340"/>
+                        <ColumnDefinition Width="32"/>
+                        <ColumnDefinition Width="*" MinWidth="340"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Left Column - Input Form -->
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="28">
+                        <StackPanel>
+                            <TextBlock Text="LABEL DETAILS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}" 
+                                       Margin="0,0,0,20"/>
+                            
+                            <!-- Store Selection -->
+                            <StackPanel Margin="0,0,0,24">
+                                <TextBlock Text="Destination Store" Style="{StaticResource InputLabelStyle}"/>
+                                <ComboBox ItemsSource="{Binding Stores}"
+                                          SelectedItem="{Binding SelectedStore}"
+                                          Style="{StaticResource ModernComboStyle}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Background="#2e1065" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding Code}" FontWeight="Bold" FontSize="12" Foreground="#a78bfa"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Text="Select the destination store for this transfer" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
 
-                <!-- Store Selection -->
-                <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                    <TextBlock Text="Store" FontSize="14" FontWeight="SemiBold" Foreground="#374151" Margin="0,0,0,8"/>
-                    <ComboBox ItemsSource="{Binding Stores}"
-                              SelectedItem="{Binding SelectedStore}"
-                              Style="{StaticResource ModernComboBoxStyle}"
-                              Width="450">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock>
-                                    <Run Text="{Binding Code}" FontWeight="Bold"/>
-                                    <Run Text=" - "/>
-                                    <Run Text="{Binding Name}"/>
-                                </TextBlock>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <TextBlock Text="Select the destination store for the transfer"
-                               FontSize="12" Foreground="#9CA3AF" Margin="0,6,0,0"/>
-                </StackPanel>
+                            <!-- Transfer Number -->
+                            <StackPanel Margin="0,0,0,24">
+                                <TextBlock Text="Transfer Order Number" Style="{StaticResource InputLabelStyle}"/>
+                                <TextBox Text="{Binding TransferNumber, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource ModernInputStyle}"/>
+                                <TextBlock Text="Enter the transfer order reference (e.g., TO-12345)" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
 
-                <!-- Transfer Number -->
-                <StackPanel Grid.Row="1" Margin="0,0,0,24">
-                    <TextBlock Text="Transfer Number" FontSize="14" FontWeight="SemiBold" Foreground="#374151" Margin="0,0,0,8"/>
-                    <TextBox Text="{Binding TransferNumber, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource ModernTextBoxStyle}"
-                             Width="450"/>
-                    <TextBlock Text="Enter the transfer order number (e.g., TO-12345)"
-                               FontSize="12" Foreground="#9CA3AF" Margin="0,6,0,0"/>
-                </StackPanel>
+                            <!-- Box Count -->
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="Number of Boxes" Style="{StaticResource InputLabelStyle}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                <!-- Total Boxes -->
-                <StackPanel Grid.Row="2" Margin="0,0,0,32">
-                    <TextBlock Text="Total Number of Boxes" FontSize="14" FontWeight="SemiBold" Foreground="#374151" Margin="0,0,0,8"/>
-                    <Grid Width="450">
+                                    <Button Grid.Column="0" Content="−" Style="{StaticResource StepperButton}"
+                                            Click="DecrementBoxes_Click"/>
+
+                                    <Border Grid.Column="1" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="12" Margin="12,0" 
+                                            BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1.5">
+                                        <TextBox Text="{Binding TotalBoxes, UpdateSourceTrigger=PropertyChanged}"
+                                                 HorizontalContentAlignment="Center"
+                                                 VerticalContentAlignment="Center"
+                                                 FontSize="32"
+                                                 FontWeight="Bold"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 CaretBrush="#8b5cf6"/>
+                                    </Border>
+
+                                    <Button Grid.Column="2" Content="+" Style="{StaticResource StepperButton}"
+                                            Click="IncrementBoxes_Click"/>
+                                </Grid>
+                                
+                                <!-- Quick Count Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+                                    <TextBlock Text="Quick:" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Button Content="1" Style="{StaticResource QuickCountButton}" Click="SetBoxCount_Click" Tag="1"/>
+                                    <Button Content="2" Style="{StaticResource QuickCountButton}" Click="SetBoxCount_Click" Tag="2"/>
+                                    <Button Content="5" Style="{StaticResource QuickCountButton}" Click="SetBoxCount_Click" Tag="5"/>
+                                    <Button Content="10" Style="{StaticResource QuickCountButton}" Click="SetBoxCount_Click" Tag="10"/>
+                                    <Button Content="15" Style="{StaticResource QuickCountButton}" Click="SetBoxCount_Click" Tag="15"/>
+                                    <Button Content="20" Style="{StaticResource QuickCountButton}" Click="SetBoxCount_Click" Tag="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Right Column - Preview -->
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="28">
+                        <StackPanel>
+                            <TextBlock Text="LABEL PREVIEW" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}" 
+                                       HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                            
+                            <!-- Preview Label -->
+                            <Border BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="2.5" CornerRadius="8" 
+                                    Background="{DynamicResource BackgroundBrush}" Padding="24" Margin="0,0,0,20">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <!-- Store Badge -->
+                                    <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="16,8" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding StorePreviewText}" 
+                                                   FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    </Border>
+                                    
+                                    <!-- Divider -->
+                                    <Border Height="1" Background="{DynamicResource SurfaceActiveBrush}" Margin="0,16"/>
+                                    
+                                    <!-- Transfer Number -->
+                                    <TextBlock Text="{Binding TransferPreviewText}" 
+                                               FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    
+                                    <!-- Box Number - Large -->
+                                    <TextBlock Text="{Binding BoxPreviewText}" 
+                                               FontSize="36" FontWeight="Bold" HorizontalAlignment="Center" 
+                                               Margin="0,16,0,0" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    
+                                    <!-- Date -->
+                                    <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="6" Padding="12,6" 
+                                            HorizontalAlignment="Center" Margin="0,16,0,0">
+                                        <TextBlock Text="{Binding DatePreviewText}" 
+                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Preview Info -->
+                            <Border Background="#2e1065" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="📄" FontSize="16" Margin="0,0,8,0"/>
+                                        <TextBlock FontSize="13" Foreground="#c4b5fd">
+                                            <Run Text="{Binding TotalBoxes, Mode=OneWay}"/>
+                                            <Run Text=" labels will be generated"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <TextBlock Text="(2 per page, Word document format)" 
+                                               FontSize="11" Foreground="#a78bfa" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Generate Button -->
+                            <Button Content="🏷️  Generate Labels"
+                                    Style="{StaticResource GenerateButtonStyle}"
+                                    Command="{Binding GenerateLabelsCommand}"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- Status Bar -->
+            <Border Grid.Row="2" Padding="24,16">
+                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="16,12" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="1">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-
-                        <Button Grid.Column="0" Content="-" Width="50" Height="50"
-                                FontSize="24" FontWeight="Bold"
-                                Background="#F3F4F6" BorderThickness="0" Cursor="Hand"
-                                Click="DecrementBoxes_Click">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Border" Background="#F3F4F6" CornerRadius="8">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#E5E7EB"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <Border Grid.Column="1" Background="White" CornerRadius="8" Margin="12,0" BorderBrush="#E0E0E0" BorderThickness="1">
-                            <TextBox Text="{Binding TotalBoxes, UpdateSourceTrigger=PropertyChanged}"
-                                     HorizontalContentAlignment="Center"
-                                     VerticalContentAlignment="Center"
-                                     FontSize="28"
-                                     FontWeight="Bold"
-                                     BorderThickness="0"
-                                     Background="Transparent"/>
-                        </Border>
-
-                        <Button Grid.Column="2" Content="+" Width="50" Height="50"
-                                FontSize="24" FontWeight="Bold"
-                                Background="#F3F4F6" BorderThickness="0" Cursor="Hand"
-                                Click="IncrementBoxes_Click">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Border" Background="#F3F4F6" CornerRadius="8">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#E5E7EB"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </Grid>
-                    <TextBlock Text="Number of box labels to generate (each label shows Box X of Y)"
-                               FontSize="12" Foreground="#9CA3AF" Margin="0,6,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- Preview Card -->
-                <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="24" Margin="0,0,0,32"
-                        BorderBrush="#E0E0E0" BorderThickness="1">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
-                    </Border.Effect>
-                    <StackPanel>
-                        <TextBlock Text="LABEL PREVIEW" FontSize="11" FontWeight="Bold" Foreground="#9CA3AF" 
-                                   HorizontalAlignment="Center" Margin="0,0,0,16"/>
                         
-                        <Border BorderBrush="#1e293b" BorderThickness="2" CornerRadius="4" Padding="20" Background="#FAFAFA">
-                            <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding StorePreviewText}" 
-                                           FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#1e293b"/>
-                                <TextBlock Text="{Binding TransferPreviewText}" 
-                                           FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="#374151"/>
-                                <TextBlock Text="{Binding BoxPreviewText}" 
-                                           FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,12,0,0" Foreground="#1e293b"/>
-                                <TextBlock Text="{Binding DatePreviewText}" 
-                                           FontSize="11" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="#6B7280"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+                        <!-- Status Indicator -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="8" Height="8" Margin="0,0,10,0">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#10B981"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsGenerating}" Value="True">
+                                                <Setter Property="Fill" Value="#F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding StatusMessage}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        
+                        <!-- Progress Indicator -->
+                        <ProgressBar Grid.Column="2" 
+                                     IsIndeterminate="{Binding IsGenerating}"
+                                     Visibility="{Binding IsGenerating, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                     Width="100" Height="4"
+                                     Background="{DynamicResource SurfaceActiveBrush}" Foreground="#8B5CF6"/>
+                    </Grid>
                 </Border>
-
-                <!-- Generate Button -->
-                <Button Grid.Row="4" Content="🏷️  Generate Labels"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Command="{Binding GenerateLabelsCommand}"
-                        HorizontalAlignment="Center"
-                        Width="300"/>
-                </Grid>
-            </ScrollViewer>
-            <!-- Top shadow gradient for scroll indication -->
-            <Border VerticalAlignment="Top" Height="16" IsHitTestVisible="False">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#18000000" Offset="0"/>
-                        <GradientStop Color="Transparent" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
-            <!-- Bottom shadow gradient -->
-            <Border VerticalAlignment="Bottom" Height="16" IsHitTestVisible="False">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="Transparent" Offset="0"/>
-                        <GradientStop Color="#18000000" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
             </Border>
         </Grid>
-
-        <!-- Status Bar -->
-        <Border Grid.Row="2" Background="White" Padding="16,12" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
-            <Grid>
-                <TextBlock Text="{Binding StatusMessage}" 
-                           FontSize="13" Foreground="#64748b"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                
-                <ProgressBar IsIndeterminate="{Binding IsGenerating}"
-                             Visibility="{Binding IsGenerating, Converter={StaticResource BooleanToVisibilityConverter}}"
-                             Height="4" VerticalAlignment="Bottom" Margin="0,8,0,0"
-                             Background="#E5E7EB" Foreground="#667eea"/>
-            </Grid>
-        </Border>
-    </Grid>
+    </Border>
 </UserControl>
+
+
+
+
+

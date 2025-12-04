@@ -8,6 +8,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/ModernStyles.xaml"/>
+                <ResourceDictionary Source="Themes/DarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters -->
@@ -23,6 +24,8 @@
             <converters:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>
             <converters:StringToColorConverter x:Key="StringToColorConverter"/>
             <converters:CriticalToHeightConverter x:Key="CriticalToHeightConverter"/>
+            <!-- Sorting Converters -->
+            <converters:SortToggleConverter x:Key="SortToggleConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

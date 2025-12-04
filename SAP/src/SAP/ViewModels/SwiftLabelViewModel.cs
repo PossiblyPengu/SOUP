@@ -107,7 +107,9 @@ public partial class SwiftLabelViewModel : ObservableObject
 
     private async Task GenerateLabelsAsync()
     {
-        if (SelectedStore == null || TotalBoxes <= 0 || string.IsNullOrWhiteSpace(TransferNumber))
+        // Guard clause for null safety
+        var store = SelectedStore;
+        if (store == null || TotalBoxes <= 0 || string.IsNullOrWhiteSpace(TransferNumber))
         {
             StatusMessage = "Please fill in all fields";
             return;
@@ -123,7 +125,7 @@ public partial class SwiftLabelViewModel : ObservableObject
             {
                 Filter = "Word Document (*.docx)|*.docx",
                 DefaultExt = ".docx",
-                FileName = $"Labels_{SelectedStore.Code}_{TransferNumber}_{DateTime.Now:yyyyMMdd_HHmmss}"
+                FileName = $"Labels_{store.Code}_{TransferNumber}_{DateTime.Now:yyyyMMdd_HHmmss}"
             };
 
             if (saveDialog.ShowDialog() != true)
@@ -134,12 +136,16 @@ public partial class SwiftLabelViewModel : ObservableObject
 
             var filePath = saveDialog.FileName;
 
-            // Generate the Word document
-            await Task.Run(() => CreateLabelDocument(filePath)).ConfigureAwait(false);
+            // Generate the Word document (capture store for thread safety)
+            var storeCode = store.Code;
+            var storeName = store.Name;
+            var boxCount = TotalBoxes;
+            var transfer = TransferNumber;
+            await Task.Run(() => CreateLabelDocument(filePath, storeCode, storeName, boxCount, transfer)).ConfigureAwait(false);
 
-            StatusMessage = $"Successfully created {TotalBoxes} labels!";
+            StatusMessage = $"Successfully created {boxCount} labels!";
             _logger?.LogInformation("Generated {Count} labels for store {Store}, transfer {Transfer}",
-                TotalBoxes, SelectedStore.Code, TransferNumber);
+                boxCount, storeCode, transfer);
 
             // Open the document
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -159,7 +165,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         }
     }
 
-    private void CreateLabelDocument(string filePath)
+    private void CreateLabelDocument(string filePath, string storeCode, string storeName, int totalBoxes, string transferNumber)
     {
         using var document = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
 
@@ -198,7 +204,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         table.AppendChild(tableProps);
 
         // Calculate rows needed (2 labels per row)
-        var rowsNeeded = (TotalBoxes + 1) / 2;
+        var rowsNeeded = (totalBoxes + 1) / 2;
 
         for (int row = 0; row < rowsNeeded; row++)
         {
@@ -213,9 +219,9 @@ public partial class SwiftLabelViewModel : ObservableObject
             {
                 var boxNumber = row * 2 + col + 1;
 
-                if (boxNumber <= TotalBoxes)
+                if (boxNumber <= totalBoxes)
                 {
-                    tableRow.AppendChild(CreateLabelCell(boxNumber));
+                    tableRow.AppendChild(CreateLabelCell(boxNumber, storeCode, storeName, totalBoxes, transferNumber));
                 }
                 else
                 {
@@ -238,7 +244,13 @@ public partial class SwiftLabelViewModel : ObservableObject
         mainPart.Document.Save();
     }
 
-    private TableCell CreateLabelCell(int boxNumber)
+    // Font size constants (in half-points)
+    private const string FontSizeStoreName = "48";    // 24pt
+    private const string FontSizeTransfer = "36";     // 18pt
+    private const string FontSizeBoxNumber = "72";    // 36pt
+    private const string FontSizeDate = "24";         // 12pt
+
+    private static TableCell CreateLabelCell(int boxNumber, string storeCode, string storeName, int totalBoxes, string transferNumber)
     {
         var cell = new TableCell();
 
@@ -257,9 +269,9 @@ public partial class SwiftLabelViewModel : ObservableObject
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new FontSize { Val = "48" } // 24pt
+                    new FontSize { Val = FontSizeStoreName }
                 ),
-                new Text($"{SelectedStore!.Code} - {SelectedStore.Name}")
+                new Text($"{storeCode} - {storeName}")
             )
         );
 
@@ -272,9 +284,9 @@ public partial class SwiftLabelViewModel : ObservableObject
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new FontSize { Val = "36" } // 18pt
+                    new FontSize { Val = FontSizeTransfer }
                 ),
-                new Text($"Transfer: {TransferNumber}")
+                new Text($"Transfer: {transferNumber}")
             )
         );
 
@@ -287,9 +299,9 @@ public partial class SwiftLabelViewModel : ObservableObject
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new FontSize { Val = "72" } // 36pt
+                    new FontSize { Val = FontSizeBoxNumber }
                 ),
-                new Text($"Box {boxNumber} of {TotalBoxes}")
+                new Text($"Box {boxNumber} of {totalBoxes}")
             )
         );
 
@@ -300,7 +312,7 @@ public partial class SwiftLabelViewModel : ObservableObject
             ),
             new Run(
                 new RunProperties(
-                    new FontSize { Val = "24" } // 12pt
+                    new FontSize { Val = FontSizeDate }
                 ),
                 new Text($"Date: {DateTime.Now:MMM dd, yyyy}")
             )

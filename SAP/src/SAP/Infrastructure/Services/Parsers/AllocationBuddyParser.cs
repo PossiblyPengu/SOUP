@@ -175,6 +175,74 @@ public class AllocationBuddyParser
                 result.QuantityColumnIndex, numericValues[result.QuantityColumnIndex], sampleSize);
         }
 
+        // If data-based detection failed, fall back to header-based detection
+        if (result.StoreColumnIndex < 0 || result.ItemColumnIndex < 0)
+        {
+            _logger?.LogInformation("Data-based detection incomplete (Store: {Store}, Item: {Item}), falling back to header detection",
+                result.StoreColumnIndex, result.ItemColumnIndex);
+            result = DetectColumnsByHeaders(headers, result);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Fallback header-based column detection when data detection fails
+    /// </summary>
+    private ColumnMap DetectColumnsByHeaders(List<string> headers, ColumnMap existingMap)
+    {
+        var result = existingMap;
+        
+        // Common store/location header patterns
+        var storePatterns = new[] { "store", "location", "loc", "site", "branch", "warehouse", "whse", "ship-to", "shipto", "customer", "dest", "destination" };
+        
+        // Common item/product header patterns  
+        var itemPatterns = new[] { "item", "product", "sku", "part", "article", "material", "upc", "barcode", "code", "number", "no.", "no" };
+        
+        // Common quantity header patterns
+        var qtyPatterns = new[] { "qty", "quantity", "amount", "count", "units", "pcs", "pieces", "ordered", "order qty", "pick qty", "pick" };
+
+        for (int i = 0; i < headers.Count; i++)
+        {
+            var header = headers[i].ToLowerInvariant();
+            
+            // Detect store column
+            if (result.StoreColumnIndex < 0 && storePatterns.Any(p => header.Contains(p)))
+            {
+                result.StoreColumnIndex = i;
+                _logger?.LogInformation("Store column detected by header '{Header}' at index {Index}", headers[i], i);
+            }
+            
+            // Detect item column
+            if (result.ItemColumnIndex < 0 && i != result.StoreColumnIndex && itemPatterns.Any(p => header.Contains(p)))
+            {
+                result.ItemColumnIndex = i;
+                _logger?.LogInformation("Item column detected by header '{Header}' at index {Index}", headers[i], i);
+            }
+            
+            // Detect quantity column
+            if (result.QuantityColumnIndex < 0 && i != result.StoreColumnIndex && i != result.ItemColumnIndex && qtyPatterns.Any(p => header.Contains(p)))
+            {
+                result.QuantityColumnIndex = i;
+                _logger?.LogInformation("Quantity column detected by header '{Header}' at index {Index}", headers[i], i);
+            }
+        }
+
+        // Last resort: if we still don't have columns, use positional defaults
+        if (result.StoreColumnIndex < 0 && result.ItemColumnIndex < 0 && headers.Count >= 3)
+        {
+            _logger?.LogWarning("Using positional fallback: Column 0 = Store, Column 1 = Item, Column 2 = Quantity");
+            result.StoreColumnIndex = 0;
+            result.ItemColumnIndex = 1;
+            result.QuantityColumnIndex = 2;
+        }
+        else if (result.StoreColumnIndex < 0 && result.ItemColumnIndex < 0 && headers.Count >= 2)
+        {
+            _logger?.LogWarning("Using minimal positional fallback: Column 0 = Store, Column 1 = Item");
+            result.StoreColumnIndex = 0;
+            result.ItemColumnIndex = 1;
+        }
+
         return result;
     }
 

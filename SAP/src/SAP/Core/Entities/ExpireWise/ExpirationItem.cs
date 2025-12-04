@@ -8,6 +8,12 @@ namespace SAP.Core.Entities.ExpireWise;
 /// </summary>
 public class ExpirationItem : BaseEntity
 {
+    /// <summary>Number of days until expiry to show critical status (7 days or less)</summary>
+    public const int CriticalDaysThreshold = 7;
+
+    /// <summary>Number of days until expiry to show warning status (30 days or less)</summary>
+    public const int WarningDaysThreshold = 30;
+
     public string ItemNumber { get; set; } = string.Empty;
     public string Upc { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -17,7 +23,7 @@ public class ExpirationItem : BaseEntity
     public DateTime ExpiryDate { get; set; }
     public string? Notes { get; set; }
     public string? Category { get; set; }
-    
+
     public ExpirationStatus Status => CalculateStatus();
 
     /// <summary>
@@ -32,8 +38,8 @@ public class ExpirationItem : BaseEntity
         return daysUntilExpiry switch
         {
             < 0 => ExpirationStatus.Expired,
-            <= 7 => ExpirationStatus.Critical,
-            <= 30 => ExpirationStatus.Warning,
+            <= CriticalDaysThreshold => ExpirationStatus.Critical,
+            <= WarningDaysThreshold => ExpirationStatus.Warning,
             _ => ExpirationStatus.Good
         };
     }

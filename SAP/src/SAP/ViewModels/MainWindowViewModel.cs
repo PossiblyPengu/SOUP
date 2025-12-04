@@ -15,10 +15,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainWindowViewModel>? _logger;
+    private readonly ThemeService _themeService;
     private bool _disposed;
 
     [ObservableProperty]
     private string _title = "S.A.P";
+
+    [ObservableProperty]
+    private bool _isDarkMode = true;
 
     public LauncherViewModel LauncherViewModel { get; }
     public NavigationService NavigationService { get; }
@@ -26,16 +30,27 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public MainWindowViewModel(
         LauncherViewModel launcherViewModel,
         NavigationService navigationService,
+        ThemeService themeService,
         IServiceProvider serviceProvider,
         ILogger<MainWindowViewModel>? logger = null)
     {
         LauncherViewModel = launcherViewModel;
         NavigationService = navigationService;
+        _themeService = themeService;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
+        // Sync with theme service
+        IsDarkMode = _themeService.IsDarkMode;
+        _themeService.ThemeChanged += OnThemeChanged;
+
         // Update title when navigating to modules
         NavigationService.ModuleChanged += OnModuleChanged;
+    }
+
+    private void OnThemeChanged(object? sender, bool isDarkMode)
+    {
+        IsDarkMode = isDarkMode;
     }
 
     private void OnModuleChanged(object? sender, string moduleName)
@@ -43,6 +58,13 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         Title = moduleName == "Launcher"
             ? "S.A.P"
             : $"S.A.P - {moduleName}";
+    }
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        _themeService.ToggleTheme();
+        _logger?.LogInformation("Theme toggled to {Theme}", IsDarkMode ? "Dark" : "Light");
     }
 
     [RelayCommand]
@@ -75,6 +97,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             {
                 // Unsubscribe from events to prevent memory leaks
                 NavigationService.ModuleChanged -= OnModuleChanged;
+                _themeService.ThemeChanged -= OnThemeChanged;
             }
             _disposed = true;
         }

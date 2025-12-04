@@ -99,8 +99,21 @@ public sealed class DictionaryDbContext : IDisposable
     {
         if (!_disposed)
         {
-            _database?.Dispose();
+            try
+            {
+                _database?.Dispose();
+                Serilog.Log.Debug("DictionaryDbContext disposed successfully");
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Error disposing DictionaryDbContext");
+            }
             _disposed = true;
         }
     }
+
+    /// <summary>
+    /// Check if the context has been disposed
+    /// </summary>
+    public bool IsDisposed => _disposed;
 }

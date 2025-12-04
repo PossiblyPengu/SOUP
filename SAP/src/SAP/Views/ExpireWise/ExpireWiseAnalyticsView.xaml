@@ -11,7 +11,7 @@
     <UserControl.Resources>
         <!-- Card Style -->
         <Style x:Key="ChartCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
             <Setter Property="Margin" Value="8"/>
@@ -24,7 +24,7 @@
 
         <!-- Stat Card Style -->
         <Style x:Key="StatCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="16"/>
             <Setter Property="Margin" Value="6"/>
@@ -37,7 +37,7 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Background="{StaticResource BackgroundBrush}" Margin="16">
+        <Grid Background="{DynamicResource BackgroundBrush}" Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -49,9 +49,9 @@
             <Border Grid.Row="0" Margin="8,0,8,16">
                 <StackPanel>
                     <TextBlock Text="📊 Analytics Dashboard" FontSize="24" FontWeight="Bold" 
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <TextBlock Text="Overview of expiration data and trends" FontSize="13" 
-                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
 
@@ -68,18 +68,18 @@
                 <Border Grid.Column="0" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#EEF2FF" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="#312e81" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="📦" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Total Items" FontSize="12" 
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding TotalItems}" FontSize="28" FontWeight="Bold" 
-                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="{Binding TotalUnits, StringFormat='{}{0:N0} total units'}" 
-                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,8,0,0"/>
+                                   FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -87,18 +87,18 @@
                 <Border Grid.Column="1" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#FEE2E2" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="#7f1d1d" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="🚨" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Critical" FontSize="12" 
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding CriticalItems}" FontSize="28" FontWeight="Bold" 
                                            Foreground="#EF4444"/>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="{Binding ExpiredItems, StringFormat='{}{0} already expired'}" 
-                                   FontSize="11" Foreground="#9E9E9E" Margin="0,8,0,0"/>
+                                   FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -106,23 +106,23 @@
                 <Border Grid.Column="2" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#FEF3C7" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="#78350f" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="📅" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Avg. Shelf Life" FontSize="12" 
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding AverageShelfLife, StringFormat='{}{0:F0}'}" 
                                                FontSize="28" FontWeight="Bold" 
-                                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <TextBlock Text=" days" FontSize="14" VerticalAlignment="Bottom" 
-                                               Margin="0,0,0,5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                               Margin="0,0,0,5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="until expiration" FontSize="11" 
-                                   Foreground="{StaticResource TextTertiaryBrush}" Margin="0,8,0,0"/>
+                                   Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -130,19 +130,19 @@
                 <Border Grid.Column="3" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#ECFDF5" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="#022c22" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="📍" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Top Location" FontSize="12" 
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding MostCommonLocation}" FontSize="20" FontWeight="Bold" 
-                                           Foreground="{StaticResource TextPrimaryBrush}" 
+                                           Foreground="{DynamicResource TextPrimaryBrush}" 
                                            TextTrimming="CharacterEllipsis" MaxWidth="120"/>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="most items stored" FontSize="11" 
-                                   Foreground="{StaticResource TextTertiaryBrush}" Margin="0,8,0,0"/>
+                                   Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -163,7 +163,7 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Text="📈 Monthly Expiration Forecast" FontSize="16" FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding MonthlyData}" Height="200">
                             <ItemsControl.ItemsPanel>
@@ -182,7 +182,7 @@
 
                                         <!-- Bar -->
                                         <Grid Grid.Row="0" VerticalAlignment="Bottom">
-                                            <Border Background="#E5E7EB" CornerRadius="6,6,0,0" 
+                                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="6,6,0,0" 
                                                     Height="160" VerticalAlignment="Bottom"/>
                                             <Border CornerRadius="6,6,0,0" VerticalAlignment="Bottom"
                                                     Height="{Binding ItemPercentage, Converter={StaticResource PercentageToHeightConverter}}">
@@ -208,13 +208,13 @@
                                         <!-- Count Label -->
                                         <TextBlock Grid.Row="1" Text="{Binding ItemCount}" 
                                                    HorizontalAlignment="Center" FontWeight="Bold"
-                                                   FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
                                                    Margin="0,8,0,0"/>
 
                                         <!-- Month Label -->
                                         <TextBlock Grid.Row="2" Text="{Binding ShortMonth}" 
                                                    HorizontalAlignment="Center" FontSize="11"
-                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                                    Margin="0,2,0,0"/>
                                     </Grid>
                                 </DataTemplate>
@@ -232,7 +232,7 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Text="🎯 Status Distribution" FontSize="16" FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding StatusDistribution}">
                             <ItemsControl.ItemTemplate>
@@ -252,13 +252,13 @@
                                                 </Ellipse.Fill>
                                             </Ellipse>
                                             <TextBlock Text="{Binding Status}" FontSize="12" 
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        VerticalAlignment="Center"/>
                                         </StackPanel>
 
                                         <!-- Progress Bar -->
                                         <Grid Grid.Column="1" Margin="8,0">
-                                            <Border Background="#E5E7EB" CornerRadius="4" Height="8"/>
+                                            <Border Background="{DynamicResource SurfaceActiveBrush}" CornerRadius="4" Height="8"/>
                                             <Border CornerRadius="4" Height="8" HorizontalAlignment="Left"
                                                     Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}">
                                                 <Border.Background>
@@ -270,7 +270,7 @@
                                         <!-- Count -->
                                         <TextBlock Grid.Column="2" Text="{Binding Count}" 
                                                    FontWeight="SemiBold" FontSize="13"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </DataTemplate>
@@ -296,7 +296,7 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Text="📍 Top Locations" FontSize="16" FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding LocationDistribution}">
                             <ItemsControl.ItemTemplate>
@@ -310,12 +310,12 @@
 
                                         <!-- Location Name -->
                                         <TextBlock Grid.Column="0" Text="{Binding Location}" FontSize="13" 
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
 
                                         <!-- Progress Bar -->
                                         <Grid Grid.Column="1" Margin="12,0">
-                                            <Border Background="#E5E7EB" CornerRadius="4" Height="12"/>
+                                            <Border Background="{DynamicResource SurfaceActiveBrush}" CornerRadius="4" Height="12"/>
                                             <Border CornerRadius="4" Height="12" HorizontalAlignment="Left"
                                                     Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}">
                                                 <Border.Background>
@@ -327,9 +327,9 @@
                                         <!-- Stats -->
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                             <TextBlock Text="{Binding Count}" FontWeight="Bold" FontSize="13"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <TextBlock Text=" items" FontSize="11"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        VerticalAlignment="Bottom" Margin="0,0,0,1"/>
                                         </StackPanel>
                                     </Grid>
@@ -348,9 +348,9 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Text="⏰ Next Expiring" FontSize="16" FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
-                        <Border Grid.Row="1" Background="#FEF3C7" CornerRadius="10" Padding="16">
+                        <Border Grid.Row="1" Background="#78350f" CornerRadius="10" Padding="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -358,22 +358,22 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Days Badge -->
-                                <Border Grid.Column="0" Background="#F59E0B" CornerRadius="10" 
+                                <Border Grid.Column="0" Background="#f59e0b" CornerRadius="10" 
                                         Padding="16,12" VerticalAlignment="Center" Margin="0,0,16,0">
                                     <StackPanel HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding NextExpiringDays}" FontSize="28" FontWeight="Bold" 
-                                                   Foreground="White" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="days" FontSize="11" Foreground="White" 
-                                                   HorizontalAlignment="Center" Opacity="0.9"/>
+                                                   Foreground="{DynamicResource SurfaceBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="days" FontSize="11" Foreground="{DynamicResource SurfaceBrush}" 
+                                                   HorizontalAlignment="Center" Opacity="0.8"/>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Item Details -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="Next item to expire:" FontSize="11" 
-                                               Foreground="#92400E" Margin="0,0,0,4"/>
+                                               Foreground="#fcd34d" Margin="0,0,0,4"/>
                                     <TextBlock Text="{Binding NextExpiringItem}" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="#78350F" TextWrapping="Wrap" 
+                                               Foreground="#fef3c7" TextWrapping="Wrap" 
                                                TextTrimming="CharacterEllipsis" MaxHeight="40"/>
                                 </StackPanel>
                             </Grid>
@@ -384,3 +384,8 @@
         </Grid>
     </ScrollViewer>
 </UserControl>
+
+
+
+
+

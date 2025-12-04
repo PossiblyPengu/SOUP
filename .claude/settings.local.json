@@ -29,7 +29,10 @@
       "Bash(\"E:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"E:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
       "Bash(\"E:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" run --project \"E:\\CODE\\Cshp\\BusinessToolsSuite.WPF\\src\\BusinessToolsSuite.WPF\\BusinessToolsSuite.WPF.csproj\")",
       "Bash(ls:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\" --no-incremental)"
     ],
     "deny": [],
     "ask": []

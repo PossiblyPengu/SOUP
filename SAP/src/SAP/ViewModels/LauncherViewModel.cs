@@ -10,13 +10,14 @@ namespace SAP.ViewModels;
 /// <summary>
 /// Launcher ViewModel for navigating to different modules
 /// </summary>
-public partial class LauncherViewModel : ViewModelBase
+public partial class LauncherViewModel : ViewModelBase, IDisposable
 {
     private readonly ThemeService _themeService;
     private readonly NavigationService _navigationService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<LauncherViewModel>? _logger;
     private readonly ModuleConfiguration _moduleConfig;
+    private bool _disposed;
 
     [ObservableProperty]
     private bool _isDarkMode;
@@ -57,13 +58,34 @@ public partial class LauncherViewModel : ViewModelBase
         _isDarkMode = _themeService.IsDarkMode;
 
         // Subscribe to theme changes
-        _themeService.ThemeChanged += (_, isDark) =>
-        {
-            IsDarkMode = isDark;
-        };
+        _themeService.ThemeChanged += OnThemeChanged;
 
         _logger?.LogInformation("Module configuration: AllocationBuddy={AB}, EssentialsBuddy={EB}, ExpireWise={EW}",
             IsAllocationBuddyEnabled, IsEssentialsBuddyEnabled, IsExpireWiseEnabled);
+    }
+
+    private void OnThemeChanged(object? sender, bool isDark)
+    {
+        IsDarkMode = isDark;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // Unsubscribe from events to prevent memory leaks
+                _themeService.ThemeChanged -= OnThemeChanged;
+            }
+            _disposed = true;
+        }
     }
 
     [RelayCommand]

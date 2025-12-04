@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SAP.Core.Entities.EssentialsBuddy;
@@ -10,6 +11,12 @@ namespace SAP.ViewModels;
 /// </summary>
 public partial class InventoryItemDialogViewModel : ObservableObject
 {
+    // Validation constants
+    private const int MaxItemNumberLength = 50;
+    private const int MaxDescriptionLength = 500;
+    private const int MaxBinCodeLength = 50;
+    private const int MaxCategoryLength = 100;
+
     [ObservableProperty]
     private string _itemNumber = string.Empty;
 
@@ -107,8 +114,59 @@ public partial class InventoryItemDialogViewModel : ObservableObject
     /// </summary>
     public bool IsValid()
     {
-        return !string.IsNullOrWhiteSpace(ItemNumber)
-            && !string.IsNullOrWhiteSpace(Description)
-            && QuantityOnHand >= 0;
+        return GetValidationErrors().Count == 0;
+    }
+
+    /// <summary>
+    /// Gets a list of validation errors
+    /// </summary>
+    public List<string> GetValidationErrors()
+    {
+        var errors = new List<string>();
+
+        // Item Number validation
+        if (string.IsNullOrWhiteSpace(ItemNumber))
+            errors.Add("Item Number is required");
+        else if (ItemNumber.Length > MaxItemNumberLength)
+            errors.Add($"Item Number must be {MaxItemNumberLength} characters or less");
+
+        // Description validation
+        if (string.IsNullOrWhiteSpace(Description))
+            errors.Add("Description is required");
+        else if (Description.Length > MaxDescriptionLength)
+            errors.Add($"Description must be {MaxDescriptionLength} characters or less");
+
+        // Quantity validation
+        if (QuantityOnHand < 0)
+            errors.Add("Quantity on Hand cannot be negative");
+
+        // Bin Code validation (optional but has max length)
+        if (!string.IsNullOrEmpty(BinCode) && BinCode.Length > MaxBinCodeLength)
+            errors.Add($"Bin Code must be {MaxBinCodeLength} characters or less");
+
+        // Category validation (optional but has max length)
+        if (!string.IsNullOrEmpty(Category) && Category.Length > MaxCategoryLength)
+            errors.Add($"Category must be {MaxCategoryLength} characters or less");
+
+        // Threshold validation
+        if (MinimumThreshold.HasValue && MaximumThreshold.HasValue &&
+            MinimumThreshold.Value > MaximumThreshold.Value)
+        {
+            errors.Add("Minimum threshold cannot be greater than maximum threshold");
+        }
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Gets the first validation error message, or null if valid
+    /// </summary>
+    public string? ValidationError
+    {
+        get
+        {
+            var errors = GetValidationErrors();
+            return errors.Count > 0 ? errors[0] : null;
+        }
     }
 }

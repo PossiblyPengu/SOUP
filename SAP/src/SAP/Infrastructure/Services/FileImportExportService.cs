@@ -26,12 +26,28 @@ public class FileImportExportService : IFileImportExportService
         _logger = logger;
     }
 
+    // Maximum allowed file path length
+    private const int MaxPathLength = 260;
+
+    // Maximum clipboard text length to prevent DoS
+    private const int MaxClipboardTextLength = 10_000_000; // 10MB
+
     public async Task<Result<IEnumerable<T>>> ImportFromExcelAsync<T>(string filePath) where T : class, new()
     {
         try
         {
+            // Validate file path
+            var pathValidation = ValidateFilePath(filePath);
+            if (!pathValidation.IsSuccess)
+                return Result<IEnumerable<T>>.Failure(pathValidation.ErrorMessage ?? "Invalid file path");
+
             if (!File.Exists(filePath))
                 return Result<IEnumerable<T>>.Failure($"File not found: {filePath}");
+
+            // Validate file extension
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            if (extension != ".xlsx" && extension != ".xls")
+                return Result<IEnumerable<T>>.Failure($"Invalid file type: expected Excel file (.xlsx, .xls), got {extension}");
 
             await using var stream = File.OpenRead(filePath);
             using var workbook = new XLWorkbook(stream);
@@ -83,8 +99,18 @@ public class FileImportExportService : IFileImportExportService
     {
         try
         {
+            // Validate file path
+            var pathValidation = ValidateFilePath(filePath);
+            if (!pathValidation.IsSuccess)
+                return Result<IEnumerable<T>>.Failure(pathValidation.ErrorMessage ?? "Invalid file path");
+
             if (!File.Exists(filePath))
                 return Result<IEnumerable<T>>.Failure($"File not found: {filePath}");
+
+            // Validate file extension
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            if (extension != ".csv")
+                return Result<IEnumerable<T>>.Failure($"Invalid file type: expected CSV file (.csv), got {extension}");
 
             var data = new List<T>();
             var properties = typeof(T).GetProperties().Where(p => p.CanWrite).ToArray();
@@ -268,5 +294,52 @@ public class FileImportExportService : IFileImportExportService
 
         try { return Convert.ChangeType(text, underlyingType, CultureInfo.InvariantCulture); }
         catch { return null; }
+    }
+
+    /// <summary>
+    /// Validates a file path for security and correctness
+    /// </summary>
+    private static Result ValidateFilePath(string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return Result.Failure("File path is required");
+
+        if (filePath.Length > MaxPathLength)
+            return Result.Failure($"File path exceeds maximum length of {MaxPathLength} characters");
+
+        // Check for path traversal attempts
+        var fullPath = Path.GetFullPath(filePath);
+        if (!fullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase) &&
+            (filePath.Contains("..") || filePath.Contains("~")))
+        {
+            // Path was normalized, check if it contains suspicious patterns
+            if (filePath.Contains("..\\") || filePath.Contains("../"))
+                return Result.Failure("Path traversal is not allowed");
+        }
+
+        // Check for invalid characters
+        var invalidChars = Path.GetInvalidPathChars();
+        if (filePath.Any(c => invalidChars.Contains(c)))
+            return Result.Failure("File path contains invalid characters");
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Sanitizes a string for use in file names
+    /// </summary>
+    public static string SanitizeFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return "unnamed";
+
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sanitized = new string(fileName.Where(c => !invalidChars.Contains(c)).ToArray());
+
+        // Limit length
+        if (sanitized.Length > 200)
+            sanitized = sanitized.Substring(0, 200);
+
+        return string.IsNullOrWhiteSpace(sanitized) ? "unnamed" : sanitized;
     }
 }

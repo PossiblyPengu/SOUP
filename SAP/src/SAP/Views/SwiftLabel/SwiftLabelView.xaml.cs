@@ -26,4 +26,14 @@ public partial class SwiftLabelView : UserControl
             vm.TotalBoxes--;
         }
     }
+
+    private void SetBoxCount_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string tagValue && 
+            int.TryParse(tagValue, out int count) && 
+            DataContext is SwiftLabelViewModel vm)
+        {
+            vm.TotalBoxes = count;
+        }
+    }
 }

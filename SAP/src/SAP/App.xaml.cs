@@ -163,6 +163,11 @@ public partial class App : Application
         {
             await _host.StartAsync().ConfigureAwait(false);
 
+            // Initialize theme service
+            var themeService = _host.Services.GetRequiredService<ThemeService>();
+            themeService.Initialize();
+            Log.Information("Theme initialized: {Theme}", themeService.IsDarkMode ? "Dark" : "Light");
+
             // Initialize the shared dictionary database at startup
             // This loads items and stores that are used across multiple modules
             try

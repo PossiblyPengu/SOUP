@@ -8,7 +8,7 @@
              d:DesignHeight="650" d:DesignWidth="500"
              d:DataContext="{d:DesignInstance Type=vm:InventoryItemDialogViewModel}">
 
-    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
+    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12">
         <Grid Margin="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -22,12 +22,12 @@
                     <TextBlock Text="📦" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBlock Text="Inventory Item" 
                                FontSize="20" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
                 <TextBlock Text="Add or edit inventory item details"
                            FontSize="13"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            Margin="0,6,0,0"/>
             </StackPanel>
 
@@ -38,7 +38,7 @@
                     <!-- Item Number -->
                     <StackPanel Margin="0,0,0,16">
                         <TextBlock Text="Item Number" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}"/>
                     </StackPanel>
@@ -46,7 +46,7 @@
                     <!-- Description -->
                     <StackPanel Margin="0,0,0,16">
                         <TextBlock Text="Description" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}"/>
                     </StackPanel>
@@ -62,7 +62,7 @@
                         <!-- Bin Code -->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Bin Code" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                             <TextBox Text="{Binding BinCode, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource ModernTextBox}"/>
                         </StackPanel>
@@ -70,7 +70,7 @@
                         <!-- Quantity On Hand -->
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Qty On Hand" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                             <TextBox Text="{Binding QuantityOnHand, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource ModernTextBox}"/>
                         </StackPanel>
@@ -87,7 +87,7 @@
                         <!-- Minimum Threshold -->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Min Threshold" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                             <TextBox Text="{Binding MinimumThreshold, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource ModernTextBox}"/>
                         </StackPanel>
@@ -95,7 +95,7 @@
                         <!-- Maximum Threshold -->
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Max Threshold" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                             <TextBox Text="{Binding MaximumThreshold, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource ModernTextBox}"/>
                         </StackPanel>
@@ -104,7 +104,7 @@
                     <!-- Category -->
                     <StackPanel Margin="0,0,0,16">
                         <TextBlock Text="Category" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}"/>
                     </StackPanel>
@@ -112,7 +112,7 @@
                     <!-- Last Updated -->
                     <StackPanel Margin="0,0,0,16">
                         <TextBlock Text="Last Updated" FontWeight="SemiBold" FontSize="13"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <DatePicker SelectedDate="{Binding LastUpdated}"
                                     Style="{StaticResource ModernDatePicker}"/>
                     </StackPanel>
@@ -130,7 +130,7 @@
             </Grid>
 
             <!-- Buttons -->
-            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" 
+            <Border Grid.Row="2" BorderBrush="{DynamicResource BorderBrush}" 
                     BorderThickness="0,1,0,0" Padding="0,20,0,0" Margin="0,16,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -152,3 +152,8 @@
         </Grid>
     </Border>
 </UserControl>
+
+
+
+
+

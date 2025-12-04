@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,6 +23,19 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     private readonly AllocationBuddyParser _parser;
     private readonly DialogService _dialogService;
     private readonly ILogger<AllocationBuddyRPGViewModel>? _logger;
+
+    // Thread-safe lookup dictionaries for O(1) item lookups (instead of O(n) LINQ queries)
+    private ConcurrentDictionary<string, DictionaryItem> _itemLookupByNumber = new(StringComparer.OrdinalIgnoreCase);
+    private ConcurrentDictionary<string, DictionaryItem> _itemLookupBySku = new(StringComparer.OrdinalIgnoreCase);
+
+    // Cancellation token source for background operations
+    private CancellationTokenSource? _loadDictionariesCts;
+
+    // Duration for update flash effect (in milliseconds)
+    private const int UpdateFlashDurationMs = 300;
+
+    // Maximum clipboard text length to prevent DoS
+    private const int MaxClipboardTextLength = 10_000_000; // 10MB
 
     public ObservableCollection<LocationAllocation> LocationAllocations { get; } = new();
     public ObservableCollection<ItemAllocation> ItemPool { get; } = new();
@@ -90,11 +105,29 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
     public ObservableCollection<ItemTotalSummary> ItemTotals { get; } = new();
 
     /// <summary>
+    /// Current sort mode for Item Totals
+    /// </summary>
+    private string _itemTotalsSortMode = "qty-desc";
+    public string ItemTotalsSortMode
+    {
+        get => _itemTotalsSortMode;
+        set
+        {
+            if (SetProperty(ref _itemTotalsSortMode, value))
+            {
+                RefreshItemTotals();
+            }
+        }
+    }
+
+    public IRelayCommand<string> SortItemTotalsCommand { get; private set; } = null!;
+
+    /// <summary>
     /// Recalculates the ItemTotals collection from all locations.
     /// </summary>
     private void RefreshItemTotals()
     {
-        var totals = LocationAllocations
+        var grouped = LocationAllocations
             .SelectMany(l => l.Items)
             .GroupBy(i => i.ItemNumber)
             .Select(g => new ItemTotalSummary
@@ -103,9 +136,19 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
                 Description = g.First().Description,
                 TotalQuantity = g.Sum(i => i.Quantity),
                 LocationCount = g.Select(i => i).Count()
-            })
-            .OrderByDescending(t => t.TotalQuantity)
-            .ToList();
+            });
+
+        // Apply sorting based on current mode
+        var totals = _itemTotalsSortMode switch
+        {
+            "qty-asc" => grouped.OrderBy(t => t.TotalQuantity).ToList(),
+            "qty-desc" => grouped.OrderByDescending(t => t.TotalQuantity).ToList(),
+            "name-asc" => grouped.OrderBy(t => t.Description).ToList(),
+            "name-desc" => grouped.OrderByDescending(t => t.Description).ToList(),
+            "item-asc" => grouped.OrderBy(t => t.ItemNumber).ToList(),
+            "item-desc" => grouped.OrderByDescending(t => t.ItemNumber).ToList(),
+            _ => grouped.OrderByDescending(t => t.TotalQuantity).ToList()
+        };
 
         ItemTotals.Clear();
         foreach (var t in totals)
@@ -115,11 +158,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         OnPropertyChanged(nameof(ItemTotals));
     }
 
-    public IRelayCommand ImportCommand { get; }
+    public IAsyncRelayCommand ImportCommand { get; }
     public IAsyncRelayCommand<string[]> ImportFilesCommand { get; }
     public IRelayCommand PasteCommand { get; }
     public IRelayCommand ImportFromPasteTextCommand { get; }
-    public IRelayCommand RefreshCommand { get; }
+    public IAsyncRelayCommand RefreshCommand { get; }
     public IRelayCommand ClearCommand { get; }
     public IRelayCommand RemoveOneCommand { get; }
     public IRelayCommand AddOneCommand { get; }
@@ -137,11 +180,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         _dialogService = dialogService;
         _logger = logger;
 
-        ImportCommand = new RelayCommand(async () => await ImportAsync());
+        ImportCommand = new AsyncRelayCommand(ImportAsync);
         ImportFilesCommand = new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); });
         PasteCommand = new RelayCommand(PasteFromClipboard);
         ImportFromPasteTextCommand = new RelayCommand(ImportFromPasteText);
-        RefreshCommand = new RelayCommand(async () => await RefreshAsync());
+        RefreshCommand = new AsyncRelayCommand(RefreshAsync);
         ClearCommand = new RelayCommand(ClearSearch);
         RemoveOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) RemoveOne(item); });
         AddOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) AddOne(item); });
@@ -150,30 +193,93 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
         CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
+        SortItemTotalsCommand = new RelayCommand<string>(mode => { if (mode != null) ItemTotalsSortMode = mode; });
         ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
         ExportToCsvCommand = new AsyncRelayCommand(ExportToCsvAsync);
 
         // Load dictionaries on a background task to avoid blocking the UI during startup
-        _ = Task.Run(() =>
+        _ = LoadDictionariesAsync();
+    }
+
+    /// <summary>
+    /// Loads dictionaries asynchronously and builds lookup tables for O(1) access
+    /// </summary>
+    private async Task LoadDictionariesAsync()
+    {
+        // Cancel any existing load operation
+        _loadDictionariesCts?.Cancel();
+        _loadDictionariesCts = new CancellationTokenSource();
+        var cancellationToken = _loadDictionariesCts.Token;
+
+        try
         {
-            try
+            await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Load store dictionary from shared location
                 var stores = InternalStoreDictionary.GetStores();
                 var mappedStores = stores.Select(s => new StoreEntry { Code = s.Code, Name = s.Name, Rank = s.Rank }).ToList();
                 _parser.SetStoreDictionary(mappedStores);
 
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Load item dictionary from shared location
                 var items = InternalItemDictionary.GetItems();
                 _parser.SetDictionaryItems(items);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Build lookup dictionaries for O(1) access
+                BuildItemLookupDictionaries(items);
+
                 Serilog.Log.Information("Loaded {Count} dictionary items for AllocationBuddy matching", items.Count);
-            }
-            catch (Exception ex)
+            }, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger?.LogDebug("Dictionary loading was cancelled");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load dictionaries for AllocationBuddy");
+            Serilog.Log.Error(ex, "Failed to load dictionaries for AllocationBuddy");
+        }
+    }
+
+    /// <summary>
+    /// Builds thread-safe lookup dictionaries from the item list for O(1) access
+    /// </summary>
+    private void BuildItemLookupDictionaries(IReadOnlyList<DictionaryItem> items)
+    {
+        // Create new dictionaries to avoid mutation during reads
+        var newByNumber = new ConcurrentDictionary<string, DictionaryItem>(StringComparer.OrdinalIgnoreCase);
+        var newBySku = new ConcurrentDictionary<string, DictionaryItem>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in items)
+        {
+            // Add by item number
+            if (!string.IsNullOrEmpty(item.Number))
             {
-                // Log via Serilog if available; otherwise ignore to avoid throwing from ctor
-                try { Serilog.Log.Error(ex, "Failed to load dictionaries for AllocationBuddy"); } catch { }
+                newByNumber.TryAdd(item.Number, item);
             }
-        });
+
+            // Add by each SKU
+            if (item.Skus != null)
+            {
+                foreach (var sku in item.Skus)
+                {
+                    if (!string.IsNullOrEmpty(sku))
+                    {
+                        newBySku.TryAdd(sku, item);
+                    }
+                }
+            }
+        }
+
+        // Atomic swap of references (thread-safe due to reference assignment)
+        _itemLookupByNumber = newByNumber;
+        _itemLookupBySku = newBySku;
     }
 
     /// <summary>
@@ -247,8 +353,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             else
             {
                 poolItem.Quantity += it.Quantity;
-                poolItem.IsUpdated = true;
-                _ = Task.Delay(300).ContinueWith(_ => poolItem.IsUpdated = false);
+                SetTemporaryUpdateFlag(poolItem);
             }
         }
 
@@ -264,31 +369,69 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
     private async Task ImportAsync()
     {
-        var files = await _dialogService.ShowOpenFileDialogAsync("Select allocation file", "All Files", "xlsx", "csv");
-        if (files == null || files.Length == 0) return;
-        var file = files[0];
-        Result<IReadOnlyList<AllocationEntry>> result;
-        if (file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        try
         {
-            result = await _parser.ParseCsvAsync(file);
-        }
-        else
-        {
-            result = await _parser.ParseExcelAsync(file);
-        }
+            _logger?.LogInformation("ImportAsync started");
+            
+            var files = await _dialogService.ShowOpenFileDialogAsync("Select allocation file", "All Files", "xlsx", "csv");
+            
+            _logger?.LogInformation("File dialog returned: {Files}", files != null ? string.Join(", ", files) : "null");
+            
+            if (files == null || files.Length == 0) 
+            {
+                _logger?.LogInformation("No files selected, returning");
+                return;
+            }
+            
+            var file = files[0];
+            _logger?.LogInformation("Importing file: {File}", file);
+            
+            StatusMessage = $"Importing {Path.GetFileName(file)}...";
+            
+            Result<IReadOnlyList<AllocationEntry>> result;
+            if (file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                result = await _parser.ParseCsvAsync(file);
+            }
+            else
+            {
+                result = await _parser.ParseExcelAsync(file);
+            }
 
-        if (!result.IsSuccess || result.Value == null)
-        {
-            StatusMessage = $"Import failed: {result.ErrorMessage}";
-            return;
-        }
+            _logger?.LogInformation("Parse result: Success={Success}, Count={Count}, Error={Error}", 
+                result.IsSuccess, result.Value?.Count ?? 0, result.ErrorMessage);
 
-        PopulateFromEntries(result.Value);
-        StatusMessage = $"Imported {result.Value.Count} entries";
-        OnPropertyChanged(nameof(LocationsCount));
-        OnPropertyChanged(nameof(ItemPoolCount));
-        OnPropertyChanged(nameof(TotalEntries));
-        OnPropertyChanged(nameof(FilteredLocationAllocations));
+            if (!result.IsSuccess || result.Value == null)
+            {
+                StatusMessage = $"Import failed: {result.ErrorMessage}";
+                _logger?.LogError("Import failed: {Error}", result.ErrorMessage);
+                System.Windows.MessageBox.Show($"Import failed: {result.ErrorMessage}", "Import Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return;
+            }
+
+            if (result.Value.Count == 0)
+            {
+                StatusMessage = "No valid entries found. Check file has Store, Item, and Quantity columns.";
+                _logger?.LogWarning("No entries found in file");
+                System.Windows.MessageBox.Show("No valid entries found.\n\nMake sure the file has columns for Store/Location, Item/Product, and Quantity.", "Import Warning", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            PopulateFromEntries(result.Value);
+            StatusMessage = $"Imported {result.Value.Count} entries from {Path.GetFileName(file)}";
+            _logger?.LogInformation("Successfully imported {Count} entries", result.Value.Count);
+            
+            OnPropertyChanged(nameof(LocationsCount));
+            OnPropertyChanged(nameof(ItemPoolCount));
+            OnPropertyChanged(nameof(TotalEntries));
+            OnPropertyChanged(nameof(FilteredLocationAllocations));
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Exception in ImportAsync");
+            StatusMessage = $"Import error: {ex.Message}";
+            System.Windows.MessageBox.Show($"Import error: {ex.Message}", "Import Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        }
     }
 
     /// <summary>
@@ -306,6 +449,15 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             }
 
             var clipboardText = System.Windows.Clipboard.GetText();
+
+            // Validate clipboard text length to prevent DoS
+            if (clipboardText.Length > MaxClipboardTextLength)
+            {
+                StatusMessage = $"Clipboard content too large (max {MaxClipboardTextLength / 1_000_000}MB)";
+                _logger?.LogWarning("Clipboard text rejected: {Length} bytes exceeds maximum", clipboardText.Length);
+                return;
+            }
+
             var result = _parser.ParseFromClipboardText(clipboardText);
 
             if (!result.IsSuccess || result.Value == null)
@@ -338,6 +490,14 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(PasteText))
             {
                 StatusMessage = "Please paste some data first";
+                return;
+            }
+
+            // Validate text length to prevent DoS
+            if (PasteText.Length > MaxClipboardTextLength)
+            {
+                StatusMessage = $"Text too large (max {MaxClipboardTextLength / 1_000_000}MB)";
+                _logger?.LogWarning("Paste text rejected: {Length} bytes exceeds maximum", PasteText.Length);
                 return;
             }
 
@@ -545,28 +705,59 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Gets the SKU for an item number using O(1) dictionary lookup
+    /// </summary>
     private string? GetSKU(string itemNumber)
     {
-        var dictItem = _parser.DictionaryItems?.FirstOrDefault(d =>
-            string.Equals(d.Number, itemNumber, StringComparison.OrdinalIgnoreCase) ||
-            (d.Skus != null && d.Skus.Contains(itemNumber, StringComparer.OrdinalIgnoreCase)));
+        var dictItem = FindDictionaryItem(itemNumber);
         return dictItem?.Skus?.FirstOrDefault();
     }
 
+    /// <summary>
+    /// Gets the description for an item number using O(1) dictionary lookup
+    /// </summary>
     private string GetDescription(string itemNumber)
     {
-        var dictItem = _parser.DictionaryItems?.FirstOrDefault(d =>
-            string.Equals(d.Number, itemNumber, StringComparison.OrdinalIgnoreCase) ||
-            (d.Skus != null && d.Skus.Contains(itemNumber, StringComparer.OrdinalIgnoreCase)));
+        var dictItem = FindDictionaryItem(itemNumber);
         return dictItem?.Description ?? "";
     }
 
+    /// <summary>
+    /// Gets the canonical item number using O(1) dictionary lookup
+    /// </summary>
     private string GetCanonicalItemNumber(string itemNumber)
     {
-        var dictItem = _parser.DictionaryItems?.FirstOrDefault(d =>
-            string.Equals(d.Number, itemNumber, StringComparison.OrdinalIgnoreCase) ||
-            (d.Skus != null && d.Skus.Contains(itemNumber, StringComparer.OrdinalIgnoreCase)));
+        var dictItem = FindDictionaryItem(itemNumber);
         return dictItem?.Number ?? itemNumber;
+    }
+
+    /// <summary>
+    /// Finds a dictionary item by number or SKU using O(1) lookup
+    /// </summary>
+    private DictionaryItem? FindDictionaryItem(string itemNumber)
+    {
+        if (string.IsNullOrEmpty(itemNumber))
+            return null;
+
+        // Try lookup by item number first
+        if (_itemLookupByNumber.TryGetValue(itemNumber, out var itemByNumber))
+            return itemByNumber;
+
+        // Try lookup by SKU
+        if (_itemLookupBySku.TryGetValue(itemNumber, out var itemBySku))
+            return itemBySku;
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sets the IsUpdated flag on an item temporarily to trigger a visual flash effect
+    /// </summary>
+    private static void SetTemporaryUpdateFlag(ItemAllocation item)
+    {
+        item.IsUpdated = true;
+        _ = Task.Delay(UpdateFlashDurationMs).ContinueWith(_ => item.IsUpdated = false);
     }
 
     private void RemoveOne(ItemAllocation item)
@@ -597,12 +788,10 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         else
         {
             poolItem.Quantity += 1;
-            poolItem.IsUpdated = true;
-            _ = Task.Delay(300).ContinueWith(_ => poolItem.IsUpdated = false);
+            SetTemporaryUpdateFlag(poolItem);
         }
         // mark target updated
-        target.IsUpdated = true;
-        _ = Task.Delay(300).ContinueWith(_ => target.IsUpdated = false);
+        SetTemporaryUpdateFlag(target);
         if (target.Quantity == 0)
             loc.Items.Remove(target);
         OnPropertyChanged(nameof(TotalEntries));
@@ -651,13 +840,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         {
             var target = loc.Items.First(i => ReferenceEquals(i, item));
             target.Quantity += 1;
-            target.IsUpdated = true;
-            _ = Task.Delay(300).ContinueWith(_ => target.IsUpdated = false);
+            SetTemporaryUpdateFlag(target);
         }
 
         poolItem.Quantity -= 1;
-        poolItem.IsUpdated = true;
-        _ = Task.Delay(300).ContinueWith(_ => poolItem.IsUpdated = false);
+        SetTemporaryUpdateFlag(poolItem);
         if (poolItem.Quantity == 0) ItemPool.Remove(poolItem);
         OnPropertyChanged(nameof(TotalEntries));
     }
@@ -706,8 +893,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
         }
 
         poolItem.Quantity -= 1;
-        poolItem.IsUpdated = true;
-        _ = Task.Delay(300).ContinueWith(_ => poolItem.IsUpdated = false);
+        SetTemporaryUpdateFlag(poolItem);
         if (poolItem.Quantity == 0) ItemPool.Remove(poolItem);
         OnPropertyChanged(nameof(TotalEntries));
     }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Serilog;
 
 namespace SAP.Services;
 
@@ -95,9 +96,10 @@ public class ModuleConfiguration
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // If there's any error reading config, enable all modules
+            // If there's any error reading config, enable all modules and log the error
+            Log.Warning(ex, "Failed to load module configuration from {Path}, enabling all modules", _configPath);
             AllocationBuddyEnabled = true;
             EssentialsBuddyEnabled = true;
             ExpireWiseEnabled = true;
@@ -149,9 +151,10 @@ public class ModuleConfiguration
             
             File.WriteAllLines(_configPath, lines);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore save errors
+            // Log save errors but don't crash
+            Log.Warning(ex, "Failed to save module configuration to {Path}", _configPath);
         }
     }
     

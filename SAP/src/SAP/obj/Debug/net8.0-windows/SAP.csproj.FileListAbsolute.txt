@@ -212,3 +212,5 @@ d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Views\EssentialsBuddy\AddToDic
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Views\EssentialsBuddy\AddToDictionaryDialog.g.cs
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Views\ExpireWise\ExpireWiseAnalyticsView.g.cs
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Views\ExpireWise\ExpireWiseAnalyticsView.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Themes\DarkTheme.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\Themes\LightTheme.baml

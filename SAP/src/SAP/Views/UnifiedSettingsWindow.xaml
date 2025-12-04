@@ -10,19 +10,19 @@
         Height="800"
         Width="950"
         WindowStartupLocation="CenterOwner"
-        Background="#f8fafc"
+        Background="{DynamicResource BackgroundBrush}"
         d:DataContext="{d:DesignInstance Type=vm:UnifiedSettingsViewModel}">
 
     <Window.Resources>
         <!-- Modern Card Style -->
         <Style x:Key="SettingsCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Direction="270"/>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.2" Direction="270"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -31,7 +31,7 @@
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#0f172a"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
 
@@ -39,25 +39,27 @@
         <Style x:Key="SettingLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="Foreground" Value="#e4e4e7"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
         <!-- Helper Text Style -->
         <Style x:Key="HelperText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#64748b"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,4,0,0"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
 
         <!-- Modern TextBox Style -->
         <Style x:Key="SettingsTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#e2e8f0"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="#8b5cf6"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -70,10 +72,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="#cbd5e1"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource TextDisabledBrush}"/>
                             </Trigger>
                             <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="#667eea"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8b5cf6"/>
                                 <Setter TargetName="border" Property="BorderThickness" Value="2"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -84,8 +86,9 @@
 
         <!-- Modern ComboBox Style -->
         <Style x:Key="SettingsComboBox" TargetType="ComboBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#e2e8f0"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="FontSize" Value="13"/>
@@ -94,7 +97,7 @@
         <!-- Modern CheckBox Style -->
         <Style x:Key="SettingsCheckBox" TargetType="CheckBox">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="Foreground" Value="#e4e4e7"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
@@ -117,7 +120,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#667eea"/>
+                                <Setter TargetName="Border" Property="Background" Value="#8b5cf6"/>
                                 <Setter Property="Foreground" Value="White"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>
@@ -126,7 +129,7 @@
                                     <Condition Property="IsMouseOver" Value="True"/>
                                     <Condition Property="IsSelected" Value="False"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="Border" Property="Background" Value="#f1f5f9"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -150,12 +153,12 @@
                 <TextBlock Text="Settings"
                            FontSize="28"
                            FontWeight="Bold"
-                           Foreground="#0f172a"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            VerticalAlignment="Center"/>
             </StackPanel>
             <TextBlock Text="Configure application preferences and defaults"
                        FontSize="14"
-                       Foreground="#64748b"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
                        Margin="0,8,0,0"/>
         </StackPanel>
 
@@ -169,7 +172,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Background="#f1f5f9" CornerRadius="10" Padding="4" Margin="0,0,0,20">
+                        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="4" Margin="0,0,0,20">
                             <TabPanel IsItemsHost="True"/>
                         </Border>
                         <ContentPresenter Grid.Row="1" ContentSource="SelectedContent"/>
@@ -419,7 +422,7 @@
 
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock FontWeight="SemiBold" FontSize="14"
-                                                   Foreground="{StaticResource TextPrimaryBrush}">
+                                                   Foreground="{DynamicResource TextPrimaryBrush}">
                                             <Run Text="Total Items: "/>
                                             <Run Text="{Binding TotalItemCount, Mode=OneWay}" FontWeight="Bold"/>
                                         </TextBlock>
@@ -480,7 +483,7 @@
         <Border Grid.Row="2" Background="#f1f5f9" CornerRadius="8" Padding="12" Margin="0,16,0,0">
             <TextBlock Text="{Binding StatusMessage}"
                        FontSize="12"
-                       Foreground="#64748b"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
                        HorizontalAlignment="Center"/>
         </Border>
 
@@ -550,7 +553,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Border" Background="#f1f5f9" CornerRadius="10" Padding="{TemplateBinding Padding}"
                                 BorderBrush="#e2e8f0" BorderThickness="1">
-                            <TextBlock Text="Close" Foreground="#475569" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Close" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -563,3 +566,10 @@
         </Grid>
     </Grid>
 </Window>
+
+
+
+
+
+
+

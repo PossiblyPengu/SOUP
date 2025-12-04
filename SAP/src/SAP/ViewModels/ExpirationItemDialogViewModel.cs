@@ -26,6 +26,12 @@ public class StoreOption
 /// </summary>
 public partial class ExpirationItemDialogViewModel : ObservableObject
 {
+    // Validation constants
+    private const int MaxItemNumberLength = 50;
+    private const int MaxDescriptionLength = 500;
+    private const int MaxNotesLength = 1000;
+    private const int MaxUnits = 999999;
+
     [ObservableProperty]
     private string _itemNumber = string.Empty;
 
@@ -779,9 +785,57 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     /// </summary>
     public bool IsValid()
     {
-        return !string.IsNullOrWhiteSpace(ItemNumber)
-            && !string.IsNullOrWhiteSpace(Description)
-            && Units >= 0;
+        return GetValidationErrors().Count == 0;
+    }
+
+    /// <summary>
+    /// Gets a list of validation errors
+    /// </summary>
+    public List<string> GetValidationErrors()
+    {
+        var errors = new List<string>();
+
+        // Item Number validation
+        if (string.IsNullOrWhiteSpace(ItemNumber))
+            errors.Add("Item Number is required");
+        else if (ItemNumber.Length > MaxItemNumberLength)
+            errors.Add($"Item Number must be {MaxItemNumberLength} characters or less");
+
+        // Description validation
+        if (string.IsNullOrWhiteSpace(Description))
+            errors.Add("Description is required");
+        else if (Description.Length > MaxDescriptionLength)
+            errors.Add($"Description must be {MaxDescriptionLength} characters or less");
+
+        // Units validation
+        if (Units < 0)
+            errors.Add("Units cannot be negative");
+        else if (Units > MaxUnits)
+            errors.Add($"Units cannot exceed {MaxUnits:N0}");
+
+        // Notes validation (optional but has max length)
+        if (!string.IsNullOrEmpty(Notes) && Notes.Length > MaxNotesLength)
+            errors.Add($"Notes must be {MaxNotesLength} characters or less");
+
+        // Expiry date validation
+        if (ExpiryYear < DateTime.Today.Year - 1)
+            errors.Add("Expiry year is too far in the past");
+        else if (ExpiryYear > DateTime.Today.Year + 10)
+            errors.Add("Expiry year is too far in the future");
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Gets the first validation error message, or null if valid
+    /// </summary>
+    public string? ValidationError
+    {
+        get
+        {
+            var errors = GetValidationErrors();
+            return errors.Count > 0 ? errors[0] : null;
+        }
     }
 }
 

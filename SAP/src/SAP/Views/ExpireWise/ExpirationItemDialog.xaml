@@ -8,7 +8,7 @@
              d:DesignHeight="550" d:DesignWidth="600"
              d:DataContext="{d:DesignInstance Type=vm:ExpirationItemDialogViewModel}">
 
-    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12">
+    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12">
         <Grid Margin="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -22,7 +22,7 @@
                     <TextBlock Text="📅" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBlock Text="{Binding DialogTitle}" 
                                FontSize="20" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
@@ -40,7 +40,7 @@
                             <!-- Item Number with Autocomplete -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Item Number *" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                                 <Grid>
                                     <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource ModernTextBox}"
@@ -49,8 +49,8 @@
                                 
                                 <!-- Autocomplete Suggestions -->
                                 <Border Visibility="{Binding ShowSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        Background="{StaticResource SurfaceBrush}"
-                                        BorderBrush="{StaticResource BorderBrush}"
+                                        Background="{DynamicResource SurfaceBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="1" CornerRadius="6"
                                         MaxHeight="150" Margin="0,4,0,0">
                                     <Border.Effect>
@@ -63,7 +63,7 @@
                                                     <Border x:Name="SuggestionBorder" 
                                                             Padding="12,10" Cursor="Hand"
                                                             Background="Transparent"
-                                                            BorderBrush="{StaticResource BorderBrush}"
+                                                            BorderBrush="{DynamicResource BorderBrush}"
                                                             BorderThickness="0,0,0,1">
                                                         <Border.InputBindings>
                                                             <MouseBinding MouseAction="LeftClick" 
@@ -81,12 +81,12 @@
                                                                        Margin="0,0,12,0"/>
                                                             <TextBlock Grid.Column="1" Text="{Binding Description}" 
                                                                        FontSize="12" TextTrimming="CharacterEllipsis"
-                                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                         </Grid>
                                                     </Border>
                                                     <DataTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter TargetName="SuggestionBorder" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+                                                            <Setter TargetName="SuggestionBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                                                         </Trigger>
                                                     </DataTemplate.Triggers>
                                                 </DataTemplate>
@@ -105,7 +105,7 @@
                             <!-- Description -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Description *" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                                 <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource ModernTextBox}"/>
                             </StackPanel>
@@ -121,7 +121,7 @@
                                 <!-- Location -->
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="Location" FontWeight="SemiBold" FontSize="13"
-                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                                     <ComboBox ItemsSource="{Binding AvailableStores}"
                                               SelectedItem="{Binding SelectedStore}"
                                               DisplayMemberPath="Display"
@@ -131,7 +131,7 @@
                                 <!-- Units -->
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="Units" FontWeight="SemiBold" FontSize="13"
-                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                                     <TextBox Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource ModernTextBox}"/>
                                 </StackPanel>
@@ -140,7 +140,7 @@
                             <!-- Expiry Date (Month/Year) - Full Width -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Expiry Month *" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                                 <StackPanel Orientation="Horizontal">
                                     <ComboBox ItemsSource="{Binding AvailableMonths}"
                                               SelectedValue="{Binding ExpiryMonth}"
@@ -158,7 +158,7 @@
                             <!-- Notes -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                                 <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource ModernTextBox}"
                                          Height="60" TextWrapping="Wrap" AcceptsReturn="True"
@@ -181,12 +181,12 @@
                         </Grid.RowDefinitions>
 
                         <!-- Instructions -->
-                        <Border Grid.Row="0" Background="{StaticResource BackgroundBrush}" 
+                        <Border Grid.Row="0" Background="{DynamicResource BackgroundBrush}" 
                                 CornerRadius="6" Padding="12" Margin="0,0,0,12">
                             <StackPanel>
                                 <TextBlock Text="Enter SKUs or item numbers (one per line)" 
                                            FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock Text="⚠ Verification is required before saving. Click 'Verify SKUs' after entering items."
                                            FontSize="12" Foreground="{StaticResource WarningBrush}"
                                            Margin="0,4,0,0"/>
@@ -208,7 +208,7 @@
                             <!-- Location -->
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Location" FontWeight="SemiBold" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                 <ComboBox ItemsSource="{Binding AvailableStores}"
                                           SelectedItem="{Binding BulkSelectedStore}"
                                           DisplayMemberPath="Display"
@@ -218,7 +218,7 @@
                             <!-- Expiry Month/Year -->
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Expiry" FontWeight="SemiBold" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                 <ComboBox ItemsSource="{Binding AvailableMonths}"
                                           SelectedValue="{Binding BulkExpiryMonth}"
                                           SelectedValuePath="Value"
@@ -236,7 +236,7 @@
                             <!-- Units -->
                             <StackPanel Grid.Column="6">
                                 <TextBlock Text="Units Each" FontWeight="SemiBold" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                 <TextBox Text="{Binding BulkUnits, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource ModernTextBox}" Width="60"/>
                             </StackPanel>
@@ -250,9 +250,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal">
                                 <TextBlock Text="SKU List" FontWeight="SemiBold" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding BulkItemCount, StringFormat=' ({0} items)'}" FontSize="11"
-                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button Grid.Column="1" Content="🔍 Verify SKUs" 
                                     Command="{Binding VerifyBulkSkusCommand}"
@@ -283,7 +283,7 @@
                                     Visibility="{Binding ShowVerificationResults, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
                             <!-- Verification Results -->
-                            <Border Grid.Column="2" Background="{StaticResource BackgroundBrush}"
+                            <Border Grid.Column="2" Background="{DynamicResource BackgroundBrush}"
                                     CornerRadius="6" Padding="8"
                                     Visibility="{Binding ShowVerificationResults, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <Grid>
@@ -295,12 +295,12 @@
                                     <!-- Results Header -->
                                     <StackPanel Grid.Row="0" Margin="0,0,0,8">
                                         <TextBlock Text="Verification Results" FontWeight="SemiBold" FontSize="12"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                             <TextBlock FontSize="11">
                                                 <Run Text="✓" Foreground="{StaticResource SuccessBrush}"/>
                                                 <Run Text="{Binding BulkFoundCount, Mode=OneWay}" Foreground="{StaticResource SuccessBrush}"/>
-                                                <Run Text=" found" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Run Text=" found" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </TextBlock>
                                             <TextBlock FontSize="11" Margin="12,0,0,0">
                                                 <TextBlock.Style>
@@ -315,7 +315,7 @@
                                                 </TextBlock.Style>
                                                 <Run Text="⚠" Foreground="{StaticResource WarningBrush}"/>
                                                 <Run Text="{Binding BulkNotFoundCount, Mode=OneWay}" Foreground="{StaticResource WarningBrush}"/>
-                                                <Run Text=" not found" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Run Text=" not found" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </TextBlock>
                                         </StackPanel>
                                     </StackPanel>
@@ -326,7 +326,7 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Padding="6,4" 
-                                                            BorderBrush="{StaticResource BorderBrush}"
+                                                            BorderBrush="{DynamicResource BorderBrush}"
                                                             BorderThickness="0,0,0,1">
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
@@ -351,7 +351,7 @@
                                                             <StackPanel Grid.Column="1" Margin="6,0,0,0">
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <TextBlock Text="{Binding Sku}" FontSize="11" FontWeight="SemiBold"
-                                                                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                                     <TextBlock FontSize="10" Margin="6,0,0,0"
                                                                                Foreground="{StaticResource AccentBrush}"
                                                                                Visibility="{Binding Found, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -366,7 +366,7 @@
                                                                 </StackPanel>
                                                                 <TextBlock Text="{Binding Description}" FontSize="10" 
                                                                            TextTrimming="CharacterEllipsis"
-                                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                             </StackPanel>
                                                             <StackPanel Grid.Column="2" Orientation="Horizontal">
                                                                 <!-- Add SKU to existing item button -->
@@ -437,8 +437,8 @@
                                     <!-- Autocomplete Suggestions -->
                                     <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4"
                                             Visibility="{Binding ShowAddItemSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
-                                            Background="{StaticResource SurfaceBrush}"
-                                            BorderBrush="{StaticResource BorderBrush}"
+                                            Background="{DynamicResource SurfaceBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1" CornerRadius="4"
                                             MaxHeight="120" Margin="0,4,0,0">
                                         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -448,7 +448,7 @@
                                                         <Border x:Name="SuggestionBorder" 
                                                                 Padding="8,6" Cursor="Hand"
                                                                 Background="Transparent"
-                                                                BorderBrush="{StaticResource BorderBrush}"
+                                                                BorderBrush="{DynamicResource BorderBrush}"
                                                                 BorderThickness="0,0,0,1">
                                                             <Border.InputBindings>
                                                                 <MouseBinding MouseAction="LeftClick" 
@@ -461,17 +461,17 @@
                                                                                FontWeight="SemiBold" FontSize="12"
                                                                                Foreground="{StaticResource AccentBrush}"/>
                                                                     <TextBlock Text=" - add SKU to this item" FontSize="10"
-                                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                                               Foreground="{DynamicResource TextSecondaryBrush}"
                                                                                VerticalAlignment="Center" Margin="4,0,0,0"/>
                                                                 </StackPanel>
                                                                 <TextBlock Text="{Binding Description}" 
                                                                            FontSize="11" TextTrimming="CharacterEllipsis"
-                                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                             </StackPanel>
                                                         </Border>
                                                         <DataTemplate.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="SuggestionBorder" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+                                                                <Setter TargetName="SuggestionBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                                                             </Trigger>
                                                         </DataTemplate.Triggers>
                                                     </DataTemplate>
@@ -503,7 +503,7 @@
                                            Visibility="{Binding BulkLookupStatus, Converter={StaticResource StringToVisibilityConverter}}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding BulkNotFoundCount}" Value="0">
                                                     <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
@@ -534,7 +534,7 @@
             </TabControl>
 
             <!-- Buttons -->
-            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" 
+            <Border Grid.Row="2" BorderBrush="{DynamicResource BorderBrush}" 
                     BorderThickness="0,1,0,0" Padding="0,20,0,0" Margin="0,16,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -563,3 +563,8 @@
         </Grid>
     </Border>
 </UserControl>
+
+
+
+
+

@@ -9,25 +9,61 @@
              d:DataContext="{d:DesignInstance Type=vm:EssentialsBuddyViewModel}">
 
     <UserControl.Resources>
-        <!-- Stock level colors -->
-        <SolidColorBrush x:Key="OutOfStockBrush" Color="#FFEBEE"/>
-        <SolidColorBrush x:Key="LowStockBrush" Color="#FFF3E0"/>
-        <SolidColorBrush x:Key="OverstockedBrush" Color="#E3F2FD"/>
-        <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="#FCE4EC"/>
+        <!-- Emerald green accent for EssentialsBuddy -->
+        <Color x:Key="EssentialsAccentColor">#10b981</Color>
+        <Color x:Key="EssentialsAccentLightColor">#34d399</Color>
+        <SolidColorBrush x:Key="EssentialsAccentBrush" Color="{StaticResource EssentialsAccentColor}"/>
+        <SolidColorBrush x:Key="EssentialsAccentLightBrush" Color="{StaticResource EssentialsAccentLightColor}"/>
         
-        <SolidColorBrush x:Key="OutOfStockTextBrush" Color="#C62828"/>
-        <SolidColorBrush x:Key="LowStockTextBrush" Color="#EF6C00"/>
-        <SolidColorBrush x:Key="OverstockedTextBrush" Color="#1565C0"/>
-        <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#AD1457"/>
+        <!-- Stock level colors for dark theme -->
+        <SolidColorBrush x:Key="OutOfStockBrush" Color="#7f1d1d"/>
+        <SolidColorBrush x:Key="LowStockBrush" Color="#78350f"/>
+        <SolidColorBrush x:Key="OverstockedBrush" Color="#1e3a5f"/>
+        <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="#831843"/>
+        
+        <SolidColorBrush x:Key="OutOfStockTextBrush" Color="#fca5a5"/>
+        <SolidColorBrush x:Key="LowStockTextBrush" Color="#fcd34d"/>
+        <SolidColorBrush x:Key="OverstockedTextBrush" Color="#93c5fd"/>
+        <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#f9a8d4"/>
+        
+        <!-- Sidebar Navigation Style -->
+        <Style x:Key="SidebarNavItem" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bg" Background="Transparent" CornerRadius="10" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#052e16"/>
+                                <Setter Property="Foreground" Value="#34d399"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
-    <Grid Background="{StaticResource BackgroundBrush}">
+    <Grid Background="{DynamicResource BackgroundBrush}">
         <!-- Full Screen Welcome Screen (shown when no data) -->
         <Grid Visibility="{Binding HasNoData, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#11998e" Offset="0"/>
-                    <GradientStop Color="#38ef7d" Offset="1"/>
+                    <GradientStop Color="#0f0f23" Offset="0"/>
+                    <GradientStop Color="#1a1a2e" Offset="0.5"/>
+                    <GradientStop Color="#16213e" Offset="1"/>
                 </LinearGradientBrush>
             </Grid.Background>
             
@@ -35,10 +71,16 @@
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" 
                             MaxWidth="600" Margin="24" MinHeight="400">
                     <!-- Icon -->
-                    <Border Background="White" Width="100" Height="100" CornerRadius="50" 
+                    <Border Width="100" Height="100" CornerRadius="28" 
                             HorizontalAlignment="Center" Margin="0,0,0,24">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#10b981" Offset="0"/>
+                                <GradientStop Color="#34d399" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.3"/>
+                            <DropShadowEffect BlurRadius="40" ShadowDepth="0" Opacity="0.6" Color="#10b981"/>
                         </Border.Effect>
                         <TextBlock Text="📋" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -54,7 +96,7 @@
                     
                     <!-- Subtitle -->
                     <TextBlock Text="Track and manage your essential inventory items" FontSize="16"
-                               Foreground="#CCFFFFFF" HorizontalAlignment="Center" Margin="0,0,0,32"
+                               Foreground="{DynamicResource TextTertiaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,32"
                                TextWrapping="Wrap" TextAlignment="Center"/>
                     
                     <!-- Import Button -->
@@ -62,8 +104,7 @@
                             HorizontalAlignment="Center" Cursor="Hand">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="#11998e"/>
+                                <Setter Property="Foreground" Value="White"/>
                                 <Setter Property="Padding" Value="32,14"/>
                                 <Setter Property="FontSize" Value="16"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -71,21 +112,33 @@
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" 
-                                                    CornerRadius="25" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="Bg" CornerRadius="14" Padding="{TemplateBinding Padding}">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#10b981" Offset="0"/>
+                                                        <GradientStop Color="#34d399" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
                                                 <Border.Effect>
-                                                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2"/>
+                                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="#10b981"/>
                                                 </Border.Effect>
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bg" Property="Background">
+                                                        <Setter.Value>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#34d399" Offset="0"/>
+                                                                <GradientStop Color="#6ee7b7" Offset="1"/>
+                                                            </LinearGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#F0F0F0"/>
-                                    </Trigger>
-                                </Style.Triggers>
                             </Style>
                         </Button.Style>
                         <StackPanel Orientation="Horizontal">
@@ -96,267 +149,390 @@
                     
                     <!-- Features -->
                     <WrapPanel HorizontalAlignment="Center" Margin="0,32,0,0">
-                        <Border Background="#20FFFFFF" CornerRadius="8" Padding="12,10" Margin="4">
+                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10" Margin="4">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⭐" FontSize="16" Margin="0,0,6,0"/>
-                                <TextBlock Text="Essential Tracking" Foreground="White" FontWeight="Medium" FontSize="13"/>
+                                <TextBlock Text="⭐" FontSize="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="Essential Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Medium" FontSize="13"/>
                             </StackPanel>
                         </Border>
-                        <Border Background="#20FFFFFF" CornerRadius="8" Padding="12,10" Margin="4">
+                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10" Margin="4">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🎨" FontSize="16" Margin="0,0,6,0"/>
-                                <TextBlock Text="Color-Coded Status" Foreground="White" FontWeight="Medium" FontSize="13"/>
+                                <TextBlock Text="🎨" FontSize="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="Color-Coded Status" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Medium" FontSize="13"/>
                             </StackPanel>
                         </Border>
-                        <Border Background="#20FFFFFF" CornerRadius="8" Padding="12,10" Margin="4">
+                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10" Margin="4">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚠️" FontSize="16" Margin="0,0,6,0"/>
-                                <TextBlock Text="Misplaced Alerts" Foreground="White" FontWeight="Medium" FontSize="13"/>
+                                <TextBlock Text="⚠️" FontSize="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="Misplaced Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Medium" FontSize="13"/>
                             </StackPanel>
                         </Border>
                     </WrapPanel>
                     
                     <!-- Info -->
                     <TextBlock Text="Import Excel (.xlsx) files • Only 9-90* bin items will be shown" 
-                               FontSize="12" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,20,0,0"
+                               FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center" Margin="0,20,0,0"
                                TextWrapping="Wrap" TextAlignment="Center"/>
                     <TextBlock Text="All 208 essential items will be included automatically" 
-                               FontSize="12" Foreground="#99FFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0"
+                               FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"
                                TextWrapping="Wrap" TextAlignment="Center"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
 
-        <!-- Main Content (shown when has data) -->
+        <!-- Main Content with Sidebar (shown when has data) -->
         <Grid Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Style="{StaticResource ModernToolbar}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Left Sidebar -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <!-- Left side - Primary actions -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="✏️" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Edit"/>
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="16,20,16,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Width="36" Height="36" CornerRadius="10" Margin="0,0,12,0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#10b981" Offset="0"/>
+                                        <GradientStop Color="#34d399" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <TextBlock Text="📋" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Essentials" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Buddy" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
                         </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Delete"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-
-                <!-- Center - Export menu and actions -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <!-- Export Menu -->
-                    <Menu Background="Transparent" VerticalAlignment="Center">
-                        <MenuItem Style="{StaticResource {x:Type MenuItem}}">
-                            <MenuItem.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📤" FontSize="14" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Export" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" ▾" FontSize="10" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </MenuItem.Header>
-                            <MenuItem Header="📊 Export to Excel" Command="{Binding ExportToExcelCommand}"/>
-                            <MenuItem Header="📄 Export to CSV" Command="{Binding ExportToCsvCommand}"/>
-                        </MenuItem>
-                    </Menu>
-
-                    <Button Command="{Binding LoadItemsCommand}" Style="{StaticResource SecondaryButton}" Margin="16,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🔄" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Refresh"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ClearDataCommand}" Style="{StaticResource DangerButton}" Margin="6,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="Clear"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-
-                <!-- Right side - Settings -->
-                <Button Grid.Column="2" Command="{Binding OpenSettingsCommand}" Style="{StaticResource SecondaryButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚙️" FontSize="14" Margin="0,0,6,0"/>
-                        <TextBlock Text="Settings"/>
                     </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
 
-        <!-- Search and Filter Bar -->
-        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,0,0,1" Padding="16,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                    <!-- Stats Summary -->
+                    <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="12" Margin="12,0,12,12" Padding="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,0,8">
+                                <TextBlock Text="{Binding FilteredItems.Count}" FontSize="20" FontWeight="Bold" Foreground="#34d399"/>
+                                <TextBlock Text="Total Items" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,0,8">
+                                <TextBlock Text="{Binding EssentialItemsCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="#fbbf24"/>
+                                <TextBlock Text="Essential" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="0" Grid.Row="1">
+                                <TextBlock Text="{Binding OutOfStockCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="#ef4444"/>
+                                <TextBlock Text="Out of Stock" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Grid.Row="1">
+                                <TextBlock Text="{Binding LowStockCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="#f97316"/>
+                                <TextBlock Text="Low Stock" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-                <!-- Search Box -->
-                <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         VerticalAlignment="Center">
-                    <TextBox.Style>
-                        <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+                    <!-- Navigation -->
+                    <StackPanel Grid.Row="2" Margin="0,8,0,0">
+                        <TextBlock Text="NAVIGATION" FontSize="10" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
+                        
+                        <RadioButton x:Name="NavData" Style="{StaticResource SidebarNavItem}" 
+                                     IsChecked="True" GroupName="EssentialsNav">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Data View" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                        
+                        <RadioButton x:Name="NavImport" Style="{StaticResource SidebarNavItem}" GroupName="EssentialsNav"
+                                     Command="{Binding ImportFromExcelCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📥" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Import Data" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                        
+                        <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="16,12"/>
+                        
+                        <TextBlock Text="ACTIONS" FontSize="10" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
+                        
+                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsActions"
+                                     Command="{Binding ExportToExcelCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📤" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                        
+                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsActions"
+                                     Command="{Binding ExportToCsvCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📄" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                        
+                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsActions"
+                                     Command="{Binding LoadItemsCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔄" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+
+                    <!-- Bottom Actions -->
+                    <StackPanel Grid.Row="3" Margin="8,0,8,12">
+                        <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="8,0,8,12"/>
+                        
+                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsBottom"
+                                     Command="{Binding OpenSettingsCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                        
+                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsBottom"
+                                     Command="{Binding ClearDataCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗑️" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Clear Data" VerticalAlignment="Center" Foreground="#ef4444"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Content Area -->
+            <Grid Grid.Column="1" Background="{DynamicResource BackgroundBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header with Search -->
+                <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="20,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Search Box -->
+                        <Border Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="12,0" MaxWidth="500" HorizontalAlignment="Left">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         VerticalAlignment="Center" Padding="0,8" FontSize="14"
+                                         CaretBrush="{DynamicResource TextPrimaryBrush}">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox">
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter Property="Background">
+                                                        <Setter.Value>
+                                                            <VisualBrush Stretch="None" AlignmentX="Left">
+                                                                <VisualBrush.Visual>
+                                                                    <TextBlock Text="Search items..." Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,0"/>
+                                                                </VisualBrush.Visual>
+                                                            </VisualBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                            </Grid>
+                        </Border>
+
+                        <!-- Status Filter -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0">
+                            <TextBlock Text="Status:" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
+                                      Style="{StaticResource ModernComboBox}" Width="140"/>
+                        </StackPanel>
+
+                        <!-- Essentials Toggle -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <CheckBox Content="Essentials Only" 
+                                      IsChecked="{Binding EssentialsOnly}"
+                                      Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
+                                      VerticalAlignment="Center"/>
+                            
+                            <Border Background="#10b981" CornerRadius="10" Padding="12,6" Margin="16,0,0,0">
+                                <TextBlock Text="{Binding FilteredItems.Count, StringFormat='{}{0} items'}"
+                                           Foreground="White" FontWeight="SemiBold" FontSize="12"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Quick Actions Bar -->
+                <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" Padding="16,8" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✏️" FontSize="12" Margin="0,0,6,0"/>
+                                <TextBlock Text="Edit" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗑️" FontSize="12" Margin="0,0,6,0"/>
+                                <TextBlock Text="Delete" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Legend -->
+                        <StackPanel Orientation="Horizontal" Margin="32,0,0,0">
+                            <TextBlock Text="Legend:" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            
+                            <Border Background="#7f1d1d" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <TextBlock Text="Out of Stock" Foreground="#fca5a5" FontSize="10"/>
+                            </Border>
+                            
+                            <Border Background="#78350f" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <TextBlock Text="Low Stock" Foreground="#fcd34d" FontSize="10"/>
+                            </Border>
+                            
+                            <Border Background="#1e3a5f" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <TextBlock Text="Overstocked" Foreground="#93c5fd" FontSize="10"/>
+                            </Border>
+                            
+                            <Border Background="#831843" CornerRadius="4" Padding="8,3">
+                                <TextBlock Text="Non-Essential in 9-90" Foreground="#f9a8d4" FontSize="10"/>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Data Grid -->
+                <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
+                          Style="{StaticResource ModernDataGrid}"
+                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                          CellStyle="{StaticResource ModernDataGridCell}"
+                          CanUserReorderColumns="True" CanUserResizeColumns="True"
+                          CanUserSortColumns="True" Margin="16">
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}">
                             <Style.Triggers>
-                                <Trigger Property="Text" Value="">
-                                    <Setter Property="Background">
-                                        <Setter.Value>
-                                            <VisualBrush Stretch="None" AlignmentX="Left">
-                                                <VisualBrush.Visual>
-                                                    <TextBlock Text="🔍 Search by item number, description, bin code, or category..."
-                                                             Foreground="{StaticResource TextTertiaryBrush}" Margin="12,0,0,0"/>
-                                                </VisualBrush.Visual>
-                                            </VisualBrush>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
+                                <!-- Non-essential item in 9-90 bin (highest priority - pink) -->
+                                <DataTrigger Binding="{Binding IsNonEssentialIn990Bin}" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource NonEssentialIn990Brush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource NonEssentialIn990TextBrush}"/>
+                                    <Setter Property="ToolTip" Value="⚠️ Non-essential item in 9-90 bin"/>
+                                </DataTrigger>
+                                <!-- Out of Stock (red) -->
+                                <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
+                                    <Setter Property="Background" Value="{StaticResource OutOfStockBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource OutOfStockTextBrush}"/>
+                                </DataTrigger>
+                                <!-- Low Stock (orange) -->
+                                <DataTrigger Binding="{Binding Status}" Value="Low">
+                                    <Setter Property="Background" Value="{StaticResource LowStockBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource LowStockTextBrush}"/>
+                                </DataTrigger>
+                                <!-- Overstocked (blue) -->
+                                <DataTrigger Binding="{Binding Status}" Value="Overstocked">
+                                    <Setter Property="Background" Value="{StaticResource OverstockedBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource OverstockedTextBrush}"/>
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBox.Style>
-                </TextBox>
+                    </DataGrid.RowStyle>
 
-                <!-- Status Filter -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <Label Content="Status:" Style="{StaticResource ModernLabel}" VerticalAlignment="Center" Margin="0"/>
-                    <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
-                              Style="{StaticResource ModernComboBox}" Width="150" VerticalAlignment="Center"/>
-                    
-                    <!-- Essentials Only Toggle -->
-                    <CheckBox Content="Essentials Only" 
-                              IsChecked="{Binding EssentialsOnly}"
-                              VerticalAlignment="Center" 
-                              Margin="16,0,0,0"
-                              FontWeight="SemiBold"
-                              Foreground="{StaticResource TextPrimaryBrush}"/>
-                </StackPanel>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="★" Width="40" IsReadOnly="True" SortMemberPath="IsEssential">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="⭐" FontSize="14" HorizontalAlignment="Center"
+                                               Visibility="{Binding IsEssential, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               ToolTip="Essential Item"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="⚠" Width="40" IsReadOnly="True" SortMemberPath="IsNonEssentialIn990Bin">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="⚠️" FontSize="14" HorizontalAlignment="Center"
+                                               Visibility="{Binding IsNonEssentialIn990Bin, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               ToolTip="Non-essential item in 9-90 bin - should not be here!"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding DisplayDescription}" Width="*" IsReadOnly="True" SortMemberPath="DisplayDescription"/>
+                        <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="120" IsReadOnly="True" SortMemberPath="BinCode"/>
+                        <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100" IsReadOnly="True" SortMemberPath="QuantityOnHand"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" IsReadOnly="True" SortMemberPath="Status"/>
+                        <DataGridTemplateColumn Header="Dict" Width="50" IsReadOnly="True" SortMemberPath="DictionaryMatched">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="✓" FontSize="14" Foreground="#34d399" HorizontalAlignment="Center"
+                                               Visibility="{Binding DictionaryMatched, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                               ToolTip="Matched in Dictionary"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
 
-                <!-- Item Count Badge -->
-                <Border Grid.Column="2" Background="{StaticResource PrimaryBrush}" CornerRadius="12"
-                        Padding="12,6" Margin="12,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding FilteredItems.Count, StringFormat='📊 {0} items'}"
-                               Foreground="White" FontWeight="SemiBold" FontSize="13"/>
-                </Border>
-            </Grid>
-        </Border>
-
-        <!-- Data Grid -->
-        <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
-                  Style="{StaticResource ModernDataGrid}"
-                  ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
-                  CellStyle="{StaticResource ModernDataGridCell}"
-                  CanUserReorderColumns="True" CanUserResizeColumns="True"
-                  CanUserSortColumns="True">
-
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}">
-                    <Style.Triggers>
-                        <!-- Non-essential item in 9-90 bin (highest priority - pink) -->
-                        <DataTrigger Binding="{Binding IsNonEssentialIn990Bin}" Value="True">
-                            <Setter Property="Background" Value="{StaticResource NonEssentialIn990Brush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource NonEssentialIn990TextBrush}"/>
-                            <Setter Property="ToolTip" Value="⚠️ Non-essential item in 9-90 bin"/>
-                        </DataTrigger>
-                        <!-- Out of Stock (red) -->
-                        <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
-                            <Setter Property="Background" Value="{StaticResource OutOfStockBrush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource OutOfStockTextBrush}"/>
-                        </DataTrigger>
-                        <!-- Low Stock (orange) -->
-                        <DataTrigger Binding="{Binding Status}" Value="Low">
-                            <Setter Property="Background" Value="{StaticResource LowStockBrush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource LowStockTextBrush}"/>
-                        </DataTrigger>
-                        <!-- Overstocked (blue) -->
-                        <DataTrigger Binding="{Binding Status}" Value="Overstocked">
-                            <Setter Property="Background" Value="{StaticResource OverstockedBrush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource OverstockedTextBrush}"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-
-            <DataGrid.Columns>
-                <DataGridTemplateColumn Header="★" Width="40" IsReadOnly="True" SortMemberPath="IsEssential">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="⭐" FontSize="14" HorizontalAlignment="Center"
-                                       Visibility="{Binding IsEssential, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                       ToolTip="Essential Item"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="⚠" Width="40" IsReadOnly="True" SortMemberPath="IsNonEssentialIn990Bin">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="⚠️" FontSize="14" HorizontalAlignment="Center"
-                                       Visibility="{Binding IsNonEssentialIn990Bin, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                       ToolTip="Non-essential item in 9-90 bin - should not be here!"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
-                <DataGridTextColumn Header="Description" Binding="{Binding DisplayDescription}" Width="*" IsReadOnly="True" SortMemberPath="DisplayDescription"/>
-                <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="120" IsReadOnly="True" SortMemberPath="BinCode"/>
-                <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100" IsReadOnly="True" SortMemberPath="QuantityOnHand"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" IsReadOnly="True" SortMemberPath="Status"/>
-                <DataGridTemplateColumn Header="Dict" Width="50" IsReadOnly="True" SortMemberPath="DictionaryMatched">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="✓" FontSize="14" Foreground="Green" HorizontalAlignment="Center"
-                                       Visibility="{Binding DictionaryMatched, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                       ToolTip="Matched in Dictionary"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <!-- Status Bar -->
-        <StatusBar Grid.Row="3" Style="{StaticResource ModernStatusBar}">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
+                <!-- Status Bar -->
+                <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,1,0,0" Padding="16,10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="12"/>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" 
+                                    Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="⏳" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Loading..." Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
                     </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
-
-            <StatusBarItem Grid.Column="0">
-                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
-            </StatusBarItem>
-
-            <StatusBarItem Grid.Column="1" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="⏳" FontSize="14" Margin="0,0,8,0"/>
-                    <TextBlock Text="Loading..." VerticalAlignment="Center"/>
-                </StackPanel>
-            </StatusBarItem>
-        </StatusBar>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
+
+
+
+
+

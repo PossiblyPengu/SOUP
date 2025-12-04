@@ -1,0 +1,108 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================= -->
+    <!-- DARK THEME COLORS             -->
+    <!-- ============================= -->
+    
+    <!-- Neutral/Surface Colors -->
+    <Color x:Key="BackgroundColor">#0f0f23</Color>
+    <Color x:Key="SurfaceColor">#18181b</Color>
+    <Color x:Key="SurfaceHoverColor">#27272a</Color>
+    <Color x:Key="SurfaceActiveColor">#3f3f46</Color>
+    <Color x:Key="BorderColor">#27272a</Color>
+    <Color x:Key="BorderDarkColor">#3f3f46</Color>
+    <Color x:Key="BorderLightColor">#18181b</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimaryColor">#f4f4f5</Color>
+    <Color x:Key="TextSecondaryColor">#a1a1aa</Color>
+    <Color x:Key="TextTertiaryColor">#71717a</Color>
+    <Color x:Key="TextDisabledColor">#52525b</Color>
+    <Color x:Key="TextOnPrimaryColor">#ffffff</Color>
+    <Color x:Key="TextLinkColor">#818cf8</Color>
+    
+    <!-- Sidebar Colors -->
+    <Color x:Key="SidebarBackgroundColor">#09090b</Color>
+    <Color x:Key="SidebarHoverColor">#18181b</Color>
+    <Color x:Key="SidebarActiveColor">#1e1b4b</Color>
+    
+    <!-- Module Light Background Colors (for cards, badges) -->
+    <Color x:Key="ExpireWiseLightColor">#422006</Color>
+    <Color x:Key="AllocationBuddyLightColor">#2e1065</Color>
+    <Color x:Key="EssentialsBuddyLightColor">#022c22</Color>
+    <Color x:Key="SwiftLabelLightColor">#450a0a</Color>
+    
+    <!-- Stock Level Colors -->
+    <Color x:Key="OutOfStockColor">#450a0a</Color>
+    <Color x:Key="OutOfStockTextColor">#f87171</Color>
+    <Color x:Key="LowStockColor">#422006</Color>
+    <Color x:Key="LowStockTextColor">#fbbf24</Color>
+    <Color x:Key="OverstockedColor">#1e3a5f</Color>
+    <Color x:Key="OverstockedTextColor">#60a5fa</Color>
+    <Color x:Key="InStockColor">#022c22</Color>
+    <Color x:Key="InStockTextColor">#34d399</Color>
+    
+    <!-- Essentials Buddy Special Colors -->
+    <Color x:Key="NonEssentialIn990Color">#422006</Color>
+    <Color x:Key="NonEssentialIn990TextColor">#fbbf24</Color>
+
+    <!-- ============================= -->
+    <!-- DARK THEME BRUSHES            -->
+    <!-- ============================= -->
+    
+    <!-- Surface Brushes -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}"/>
+    <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{StaticResource SurfaceActiveColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
+    <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
+    
+    <!-- Text Brushes -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
+    
+    <!-- Sidebar Brushes -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource SidebarBackgroundColor}"/>
+    <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}"/>
+    <SolidColorBrush x:Key="SidebarActiveBrush" Color="{StaticResource SidebarActiveColor}"/>
+    
+    <!-- Module Light Background Brushes -->
+    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="{StaticResource ExpireWiseLightColor}"/>
+    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="{StaticResource AllocationBuddyLightColor}"/>
+    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="{StaticResource EssentialsBuddyLightColor}"/>
+    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="{StaticResource SwiftLabelLightColor}"/>
+    
+    <!-- Stock Level Brushes -->
+    <SolidColorBrush x:Key="OutOfStockBrush" Color="{StaticResource OutOfStockColor}"/>
+    <SolidColorBrush x:Key="OutOfStockTextBrush" Color="{StaticResource OutOfStockTextColor}"/>
+    <SolidColorBrush x:Key="LowStockBrush" Color="{StaticResource LowStockColor}"/>
+    <SolidColorBrush x:Key="LowStockTextBrush" Color="{StaticResource LowStockTextColor}"/>
+    <SolidColorBrush x:Key="OverstockedBrush" Color="{StaticResource OverstockedColor}"/>
+    <SolidColorBrush x:Key="OverstockedTextBrush" Color="{StaticResource OverstockedTextColor}"/>
+    <SolidColorBrush x:Key="InStockBrush" Color="{StaticResource InStockColor}"/>
+    <SolidColorBrush x:Key="InStockTextBrush" Color="{StaticResource InStockTextColor}"/>
+    
+    <!-- Essentials Buddy Special Brushes -->
+    <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="{StaticResource NonEssentialIn990Color}"/>
+    <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="{StaticResource NonEssentialIn990TextColor}"/>
+    
+    <!-- Launcher Background Gradient -->
+    <LinearGradientBrush x:Key="LauncherBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0f0f23" Offset="0"/>
+        <GradientStop Color="#1a1a2e" Offset="0.5"/>
+        <GradientStop Color="#1e1b4b" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Card/Input Background -->
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#18181b"/>
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#27272a"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#3f3f46"/>
+
+</ResourceDictionary>

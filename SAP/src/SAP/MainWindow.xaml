@@ -10,8 +10,12 @@
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
         Title="{Binding Title}"
         Width="1200" Height="800"
-        MinWidth="900" MinHeight="600"
-        WindowStartupLocation="CenterScreen">
+        MinWidth="1000" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip"
+        Background="Transparent">
 
     <Window.InputBindings>
         <KeyBinding Key="D1" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}"/>
@@ -21,110 +25,52 @@
     </Window.InputBindings>
 
     <Window.Resources>
-        <!-- Converters -->
         <converters:ViewModelToViewConverter x:Key="ViewModelToView"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
-        <!-- Card Button Style with Hover Effects -->
-        <Style x:Key="CardButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
+        <!-- App Selection Button Style -->
+        <Style x:Key="AppNavButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#a1a1aa"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="300"/>
-            <Setter Property="Height" Value="330"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="12,4"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="20"
-                                Padding="{TemplateBinding Padding}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="15"
-                                                  ShadowDepth="5"
-                                                  Opacity="0.2"
-                                                  Color="#000000"/>
-                            </Border.Effect>
-                            <Border.RenderTransform>
-                                <ScaleTransform x:Name="ScaleTransform" ScaleX="1" ScaleY="1"/>
-                            </Border.RenderTransform>
-                            <Border.RenderTransformOrigin>
-                                <Point X="0.5" Y="0.5"/>
-                            </Border.RenderTransformOrigin>
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" 
+                                CornerRadius="14" Padding="16,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Border x:Name="IconBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="12" 
+                                        Background="{DynamicResource SurfaceHoverBrush}" Margin="0,0,14,0">
+                                    <ContentPresenter ContentSource="Tag" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <ContentPresenter HorizontalAlignment="Left"/>
+                                </StackPanel>
+                                
+                                <Border x:Name="ShortcutBadge" Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}" 
+                                        CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Opacity="0.7">
+                                    <TextBlock x:Name="ShortcutText" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </Border>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#FAFAFA"/>
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleX"
-                                                             To="1.05" Duration="0:0:0.2">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <QuadraticEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleY"
-                                                             To="1.05" Duration="0:0:0.2">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <QuadraticEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleX"
-                                                             To="1.0" Duration="0:0:0.2">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <QuadraticEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleY"
-                                                             To="1.0" Duration="0:0:0.2">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <QuadraticEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
+                                <Setter TargetName="Border" Property="Background" Value="#18181b"/>
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleX"
-                                                             To="0.98" Duration="0:0:0.1"/>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleY"
-                                                             To="0.98" Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleX"
-                                                             To="1.0" Duration="0:0:0.1"/>
-                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
-                                                             Storyboard.TargetProperty="ScaleY"
-                                                             To="1.0" Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#1e1b4b"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="ShortcutBadge" Property="Opacity" Value="1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -132,25 +78,99 @@
             </Setter>
         </Style>
 
-        <!-- Theme Toggle Button Style -->
-        <Style x:Key="ThemeToggleButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#30FFFFFF"/>
-            <Setter Property="BorderThickness" Value="0"/>
+        <!-- Launch Button Style -->
+        <Style x:Key="LaunchButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="10"
-                                Padding="16,10">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                        <Border x:Name="Border" CornerRadius="16" Padding="40,16">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop x:Name="GradStart" Color="#8b5cf6" Offset="0"/>
+                                    <GradientStop x:Name="GradEnd" Color="#6366f1" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="#8b5cf6"/>
+                            </Border.Effect>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="Launch App" VerticalAlignment="Center"/>
+                                <TextBlock Text=" →" FontSize="18" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#40FFFFFF"/>
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#a78bfa" Offset="0"/>
+                                            <GradientStop Color="#818cf8" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#7c3aed" Offset="0"/>
+                                            <GradientStop Color="#4f46e5" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Pop-out Button Style -->
+        <Style x:Key="PopOutButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="12">
+                            <TextBlock Text="↗" FontSize="18" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#3f3f46"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Quick Action Button -->
+        <Style x:Key="QuickActionStyle" TargetType="Button">
+            <Setter Property="Background" Value="#27272a"/>
+            <Setter Property="Foreground" Value="#a1a1aa"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#3f3f46"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -159,489 +179,581 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <!-- Modern Gradient Background -->
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#667eea" Offset="0.0"/>
-                <GradientStop Color="#764ba2" Offset="1.0"/>
-            </LinearGradientBrush>
-        </Grid.Background>
-
-        <!-- Launcher View (shown when no module is active) -->
-        <Grid Visibility="{Binding NavigationService.CurrentView, Converter={StaticResource NullToVisibility}, ConverterParameter=Invert}">
+    <!-- Custom Window Chrome -->
+    <Border Background="{DynamicResource BackgroundBrush}" 
+            BorderBrush="{DynamicResource BorderBrush}" 
+            BorderThickness="1" 
+            CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#000000"/>
+        </Border.Effect>
+        
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="40"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-
-            <!-- Header with improved spacing -->
-            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,50,0,0">
-            <TextBlock Text="⚙️" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-            <TextBlock Text="S.A.P"
-                       FontSize="44"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       HorizontalAlignment="Center"
-                       Margin="0,0,0,6"/>
-            <TextBlock Text="S.A.M. Add-on Pack"
-                       FontSize="18"
-                       Foreground="#E8E8E8"
-                       HorizontalAlignment="Center"
-                       FontWeight="Light"
-                       Margin="0,0,0,6"/>
-            <Border Background="#40FFFFFF"
-                    CornerRadius="20"
-                    Padding="14,7"
-                    HorizontalAlignment="Center">
-                <TextBlock Text="Select an application to begin →"
-                           FontSize="15"
-                           Foreground="White"
-                           HorizontalAlignment="Center"/>
+            
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Title -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="⚙" FontSize="16" Foreground="{DynamicResource AccentBrush}" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,0">
+                        <!-- Minimize -->
+                        <Button Click="MinimizeButton_Click" ToolTip="Minimize"
+                                Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                                        <TextBlock Text="─" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        
+                        <!-- Maximize/Restore -->
+                        <Button Click="MaximizeButton_Click" ToolTip="Maximize"
+                                Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                                        <TextBlock x:Name="MaxIcon" Text="□" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        
+                        <!-- Close -->
+                        <Button Click="CloseButton_Click" ToolTip="Close"
+                                Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                                        <TextBlock Text="✕" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#dc2626"/>
+                                            <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Border>
-        </StackPanel>
-
-        <!-- Module Cards in a Grid Layout -->
-        <Grid Grid.Row="1">
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                          VerticalScrollBarVisibility="Auto"
-                          Margin="0,20,0,20">
-            <ItemsControl HorizontalAlignment="Center"
-                          VerticalAlignment="Center">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Columns="2" HorizontalAlignment="Center"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-            <!-- ExpireWise Card -->
-            <Grid Margin="16"
-                  Visibility="{Binding LauncherViewModel.IsExpireWiseEnabled, Converter={StaticResource BoolToVisibility}}">
-                <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}"
-                        Style="{StaticResource CardButtonStyle}">
-                    <StackPanel Margin="28">
-                        <Border Background="#FEF3C7"
-                                CornerRadius="16"
-                                Width="72"
-                                Height="72"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,16">
-                            <TextBlock Text="📦"
-                                       FontSize="42"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="ExpireWise"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   Foreground="#1e293b"
-                                   Margin="0,0,0,14"/>
-                        <TextBlock Text="Track product expiration dates and manage inventory lifecycle with automated alerts"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   Foreground="#64748b"
-                                   FontSize="13"
-                                   LineHeight="20"
-                                   Margin="0,0,0,16"/>
-                        <Border Background="#FEF3C7"
-                                CornerRadius="8"
-                                Padding="12,6"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="Alt + 1"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       Foreground="#92400e"/>
-                        </Border>
-                    </StackPanel>
-                </Button>
-
-                <!-- Pop-out button overlay -->
-                <Button Command="{Binding LauncherViewModel.PopOutExpireWiseCommand}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Margin="16"
-                        Width="36"
-                        Height="36"
-                        Background="#FEF3C7"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        ToolTip="Open in separate window">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Border"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="8"
-                                    Width="36"
-                                    Height="36">
-                                <TextBlock Text="🗗"
-                                           FontSize="18"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#FDE68A"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-
-            <!-- Allocation Buddy Card -->
-            <Grid Margin="16"
-                  Visibility="{Binding LauncherViewModel.IsAllocationBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
-                <Button Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"
-                        Style="{StaticResource CardButtonStyle}">
-                    <StackPanel Margin="28">
-                        <Border Background="#DDD6FE"
-                                CornerRadius="16"
-                                Width="72"
-                                Height="72"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,16">
-                            <TextBlock Text="📊"
-                                       FontSize="42"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Allocation Buddy"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   Foreground="#1e293b"
-                                   Margin="0,0,0,14"/>
-                        <TextBlock Text="Manage store allocations with smart categorization and real-time inventory distribution"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   Foreground="#64748b"
-                                   FontSize="13"
-                                   LineHeight="20"
-                                   Margin="0,0,0,16"/>
-                        <Border Background="#DDD6FE"
-                                CornerRadius="8"
-                                Padding="12,6"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="Alt + 2"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       Foreground="#5b21b6"/>
-                        </Border>
-                    </StackPanel>
-                </Button>
-
-                <!-- Pop-out button overlay -->
-                <Button Command="{Binding LauncherViewModel.PopOutAllocationBuddyCommand}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Margin="16"
-                        Width="36"
-                        Height="36"
-                        Background="#DDD6FE"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        ToolTip="Open in separate window">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Border"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="8"
-                                    Width="36"
-                                    Height="36">
-                                <TextBlock Text="🗗"
-                                           FontSize="18"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#C4B5FD"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-
-            <!-- Essentials Buddy Card -->
-            <Grid Margin="16"
-                  Visibility="{Binding LauncherViewModel.IsEssentialsBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
-                <Button Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"
-                        Style="{StaticResource CardButtonStyle}">
-                    <StackPanel Margin="28">
-                        <Border Background="#D1FAE5"
-                                CornerRadius="16"
-                                Width="72"
-                                Height="72"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,16">
-                            <TextBlock Text="📋"
-                                       FontSize="42"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Essentials Buddy"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   Foreground="#1e293b"
-                                   Margin="0,0,0,14"/>
-                        <TextBlock Text="Monitor Business Central bin contents and track essential inventory with comprehensive reporting"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   Foreground="#64748b"
-                                   FontSize="13"
-                                   LineHeight="20"
-                                   Margin="0,0,0,16"/>
-                        <Border Background="#D1FAE5"
-                                CornerRadius="8"
-                                Padding="12,6"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="Alt + 3"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       Foreground="#065f46"/>
-                        </Border>
-                    </StackPanel>
-                </Button>
-
-                <!-- Pop-out button overlay -->
-                <Button Command="{Binding LauncherViewModel.PopOutEssentialsBuddyCommand}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Margin="16"
-                        Width="36"
-                        Height="36"
-                        Background="#D1FAE5"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        ToolTip="Open in separate window">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Border"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="8"
-                                    Width="36"
-                                    Height="36">
-                                <TextBlock Text="🗗"
-                                           FontSize="18"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#A7F3D0"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-
-            <!-- Swift Label Card -->
-            <Grid Margin="16">
-                <Button Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}"
-                        Style="{StaticResource CardButtonStyle}">
-                    <StackPanel Margin="28">
-                        <Border Background="#FEE2E2"
-                                CornerRadius="16"
-                                Width="72"
-                                Height="72"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,16">
-                            <TextBlock Text="🏷️"
-                                       FontSize="42"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Swift Label"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   Foreground="#1e293b"
-                                   Margin="0,0,0,14"/>
-                        <TextBlock Text="Generate transfer order box labels quickly with store info, transfer number, and box counts"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   Foreground="#64748b"
-                                   FontSize="13"
-                                   LineHeight="20"
-                                   Margin="0,0,0,16"/>
-                        <Border Background="#FEE2E2"
-                                CornerRadius="8"
-                                Padding="12,6"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="Alt + 4"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       Foreground="#991b1b"/>
-                        </Border>
-                    </StackPanel>
-                </Button>
-
-                <!-- Pop-out button overlay -->
-                <Button Command="{Binding LauncherViewModel.PopOutSwiftLabelCommand}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Margin="16"
-                        Width="36"
-                        Height="36"
-                        Background="#FEE2E2"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        ToolTip="Open in separate window">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Border"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="8"
-                                    Width="36"
-                                    Height="36">
-                                <TextBlock Text="🗗"
-                                           FontSize="18"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#FECACA"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-
-            </ItemsControl>
-            </ScrollViewer>
-            <!-- Top shadow gradient -->
-            <Border VerticalAlignment="Top" Height="20" IsHitTestVisible="False" Margin="0,20,0,0">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#12000000" Offset="0"/>
-                        <GradientStop Color="Transparent" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
-            <!-- Bottom shadow gradient -->
-            <Border VerticalAlignment="Bottom" Height="20" IsHitTestVisible="False" Margin="0,0,0,20">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="Transparent" Offset="0"/>
-                        <GradientStop Color="#12000000" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
-        </Grid>
-
-        <!-- Footer with improved design -->
-        <Grid Grid.Row="2" Margin="0,0,0,32">
+            
+            <!-- Main Content Area -->
+            <Grid Grid.Row="1">
+        <!-- Launcher View -->
+        <Grid x:Name="LauncherPanel"
+              Visibility="{Binding NavigationService.CurrentView, Converter={StaticResource NullToVisibility}, ConverterParameter=Invert}">
+            
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="340"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left spacer -->
-            <Border Grid.Column="0"/>
+            <!-- Left Sidebar - App Selection -->
+            <Border Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}" CornerRadius="0,0,0,12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-            <!-- Center text -->
-            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                <TextBlock Text="v1.0.0"
-                           Foreground="#E8E8E8"
-                           FontSize="13"
-                           HorizontalAlignment="Center"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,8"/>
-                <TextBlock Text="All tools run 100% offline • Built with .NET 8 &amp; WPF"
-                           Foreground="#D0D0D0"
-                           FontSize="12"
-                           HorizontalAlignment="Center"/>
-            </StackPanel>
+                    <!-- Logo & Branding -->
+                    <StackPanel Grid.Row="0" Margin="24,32,24,24">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <Border Width="56" Height="56" CornerRadius="16">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#8b5cf6" Offset="0"/>
+                                        <GradientStop Color="#ec4899" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="#8b5cf6"/>
+                                </Border.Effect>
+                                <TextBlock Text="⚙" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center" Margin="14,0,0,0">
+                                <TextBlock Text="S.A.P" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="S.A.M. Add-on Pack" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <!-- Version Badge -->
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                    <Ellipse.Fill>
+                                        <SolidColorBrush Color="#22c55e"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <TextBlock Text="v1.0.0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                                <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
+                                <TextBlock Text="Stable" Foreground="#22c55e" FontSize="12" FontWeight="Medium"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
-            <!-- Right side - Settings and Theme toggle -->
-            <StackPanel Grid.Column="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,0,48,0">
-                <Button Command="{Binding OpenSettingsCommand}"
-                        Style="{StaticResource ThemeToggleButtonStyle}"
-                        Margin="0,0,10,0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚙️" FontSize="16" Margin="0,0,10,0"/>
-                        <TextBlock Text="Settings" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <!-- App Selection List -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,8,0,0">
+                            <TextBlock Text="APPLICATIONS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextDisabledBrush}" 
+                                       Margin="24,0,0,12"/>
+
+                            <!-- ExpireWise -->
+                            <RadioButton x:Name="NavExpireWise" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}"
+                                         IsChecked="True"
+                                         Visibility="{Binding LauncherViewModel.IsExpireWiseEnabled, Converter={StaticResource BoolToVisibility}}">
+                                <RadioButton.Tag>
+                                    <TextBlock Text="📦" FontSize="20"/>
+                                </RadioButton.Tag>
+                                <StackPanel>
+                                    <TextBlock Text="ExpireWise" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Expiry tracking" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Allocation Buddy -->
+                            <RadioButton x:Name="NavAllocationBuddy" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}"
+                                         Visibility="{Binding LauncherViewModel.IsAllocationBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
+                                <RadioButton.Tag>
+                                    <TextBlock Text="📊" FontSize="20"/>
+                                </RadioButton.Tag>
+                                <StackPanel>
+                                    <TextBlock Text="Allocation Buddy" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Store allocations" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Essentials Buddy -->
+                            <RadioButton x:Name="NavEssentialsBuddy" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}"
+                                         Visibility="{Binding LauncherViewModel.IsEssentialsBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
+                                <RadioButton.Tag>
+                                    <TextBlock Text="📋" FontSize="20"/>
+                                </RadioButton.Tag>
+                                <StackPanel>
+                                    <TextBlock Text="Essentials Buddy" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Inventory tracking" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Swift Label -->
+                            <RadioButton x:Name="NavSwiftLabel" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}">
+                                <RadioButton.Tag>
+                                    <TextBlock Text="🏷️" FontSize="20"/>
+                                </RadioButton.Tag>
+                                <StackPanel>
+                                    <TextBlock Text="Swift Label" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Label generator" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Bottom Actions -->
+                    <StackPanel Grid.Row="2" Margin="12,0,12,20">
+                        <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="12,0,12,16"/>
+                        
+                        <!-- Theme Toggle -->
+                        <Button Command="{Binding ToggleThemeCommand}" Style="{StaticResource QuickActionStyle}" Margin="0,0,0,8"
+                                ToolTip="Toggle Light/Dark Mode">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontSize="16" Margin="0,0,12,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🌙"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                    <Setter Property="Text" Value="☀️"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock FontSize="14" FontWeight="Medium" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Dark Mode"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                    <Setter Property="Text" Value="Light Mode"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Command="{Binding OpenSettingsCommand}" Style="{StaticResource QuickActionStyle}" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Settings" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
-                </Button>
-                <Button Command="{Binding LauncherViewModel.ToggleThemeCommand}"
-                        Style="{StaticResource ThemeToggleButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="MoonIcon" Text="🌙" FontSize="16" Margin="0,0,10,0"/>
-                        <TextBlock x:Name="SunIcon" Text="☀️" FontSize="16" Margin="0,0,10,0" Visibility="Collapsed"/>
-                        <TextBlock Text="Theme" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                </Grid>
+            </Border>
+
+            <!-- Right Side - Splash Screen -->
+            <Grid Grid.Column="1">
+                <!-- ExpireWise Splash -->
+                <Grid Visibility="{Binding IsChecked, ElementName=NavExpireWise, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0f0f23" Offset="0"/>
+                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
+                            <GradientStop Color="#1e1b4b" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
+                        <!-- Large Icon -->
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#7c3aed" Offset="0"/>
+                                    <GradientStop Color="#a78bfa" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#7c3aed"/>
+                            </Border.Effect>
+                            <TextBlock Text="📦" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        
+                        <!-- Title -->
+                        <TextBlock Text="ExpireWise" FontSize="42" FontWeight="Bold" Foreground="White" 
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        
+                        <!-- Subtitle -->
+                        <TextBlock Text="Track product expiration dates and manage inventory lifecycle" 
+                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                        
+                        <!-- Features -->
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="📅 Expiry Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="📊 Analytics" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="⚠️ Smart Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                        </WrapPanel>
+                        
+                        <!-- Launch Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}" 
+                                    Style="{StaticResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.PopOutExpireWiseCommand}"
+                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    ToolTip="Open in new window"/>
+                        </StackPanel>
+                        
+                        <!-- Keyboard shortcut hint -->
+                        <TextBlock Text="Press Alt+1 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
+                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
                     </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
+                </Grid>
+
+                <!-- Allocation Buddy Splash -->
+                <Grid Visibility="{Binding IsChecked, ElementName=NavAllocationBuddy, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0f0f23" Offset="0"/>
+                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
+                            <GradientStop Color="#1e1b4b" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#6366f1" Offset="0"/>
+                                    <GradientStop Color="#818cf8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#6366f1"/>
+                            </Border.Effect>
+                            <TextBlock Text="📊" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        
+                        <TextBlock Text="Allocation Buddy" FontSize="42" FontWeight="Bold" Foreground="White" 
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Smart inventory allocation and store distribution management" 
+                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                        
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="🏪 Multi-Store" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="📋 BC Ready" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="📥 Excel Import" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                        </WrapPanel>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}" 
+                                    Style="{StaticResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.PopOutAllocationBuddyCommand}"
+                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    ToolTip="Open in new window"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Press Alt+2 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
+                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Essentials Buddy Splash -->
+                <Grid Visibility="{Binding IsChecked, ElementName=NavEssentialsBuddy, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0f0f23" Offset="0"/>
+                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
+                            <GradientStop Color="#052e16" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#10b981" Offset="0"/>
+                                    <GradientStop Color="#34d399" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#10b981"/>
+                            </Border.Effect>
+                            <TextBlock Text="📋" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        
+                        <TextBlock Text="Essentials Buddy" FontSize="42" FontWeight="Bold" Foreground="White" 
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Monitor essential inventory levels and track stock status" 
+                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                        
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="⭐ Essential Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="🎨 Status Colors" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="⚠️ Misplaced Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                        </WrapPanel>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}" 
+                                    Style="{StaticResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.PopOutEssentialsBuddyCommand}"
+                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    ToolTip="Open in new window"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Press Alt+3 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
+                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Swift Label Splash -->
+                <Grid Visibility="{Binding IsChecked, ElementName=NavSwiftLabel, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0f0f23" Offset="0"/>
+                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
+                            <GradientStop Color="#4a1d4a" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#ec4899" Offset="0"/>
+                                    <GradientStop Color="#f472b6" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#ec4899"/>
+                            </Border.Effect>
+                            <TextBlock Text="🏷️" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        
+                        <TextBlock Text="Swift Label" FontSize="42" FontWeight="Bold" Foreground="White" 
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Generate transfer order box labels quickly and easily" 
+                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                        
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="🖨️ Quick Print" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="📦 Box Labels" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                                <TextBlock Text="🏪 Store Info" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                        </WrapPanel>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}" 
+                                    Style="{StaticResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.PopOutSwiftLabelCommand}"
+                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    ToolTip="Open in new window"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Press Alt+4 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
+                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Grid>
 
         <!-- Module View (shown when a module is active) -->
-        <Grid Visibility="{Binding NavigationService.CurrentView, Converter={StaticResource NullToVisibility}}">
-            <Grid.Background>
-                <SolidColorBrush Color="#F5F5F5"/>
-            </Grid.Background>
+        <Grid Visibility="{Binding NavigationService.CurrentView, Converter={StaticResource NullToVisibility}}"
+              Background="{DynamicResource BackgroundBrush}">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Top Navigation Bar with Back Button -->
-            <Border Grid.Row="0"
-                    Background="White"
-                    BorderBrush="#E0E0E0"
-                    BorderThickness="0,0,0,1"
-                    Padding="16,12">
+            <!-- Top Navigation Bar -->
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,14">
                 <Grid>
-                    <Button HorizontalAlignment="Left"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Back Button -->
+                    <Button Grid.Column="0" HorizontalAlignment="Left"
                             Command="{Binding NavigationService.NavigateBackCommand}"
-                            Cursor="Hand"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Padding="12,8">
+                            Cursor="Hand" Background="Transparent" BorderThickness="0">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Border"
-                                        Background="{TemplateBinding Background}"
-                                        CornerRadius="8"
-                                        Padding="{TemplateBinding Padding}">
+                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="←" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Back to Launcher" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="←" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Back to Launcher" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Border" Property="Background" Value="#F5F5F5"/>
+                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
-                                        <Setter TargetName="Border" Property="Background" Value="#E8E8E8"/>
+                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource BorderDarkBrush}"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
+                    
+                    <!-- Theme Toggle Button -->
+                    <Button Grid.Column="2" HorizontalAlignment="Right"
+                            Command="{Binding ToggleThemeCommand}"
+                            Cursor="Hand" Background="Transparent" BorderThickness="0"
+                            ToolTip="Toggle Light/Dark Mode">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="12,10">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="ThemeIcon" Text="🌙" FontSize="16" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="ThemeText" Text="Dark" FontSize="13" FontWeight="Medium" 
+                                                   VerticalAlignment="Center" Margin="8,0,0,0"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="☀️" FontSize="16"/>
+                                                    <TextBlock Text="Light" FontSize="13" FontWeight="Medium" Margin="8,0,0,0"/>
+                                                </StackPanel>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </Grid>
             </Border>
 
-            <!-- Module Content Area with Transitions -->
+            <!-- Module Content -->
             <ContentControl Grid.Row="1"
                             Content="{Binding NavigationService.CurrentView, Converter={StaticResource ViewModelToView}}"
                             behaviors:ContentTransitionBehavior.EnableTransition="True"
                             HorizontalContentAlignment="Stretch"
                             VerticalContentAlignment="Stretch"/>
         </Grid>
-    </Grid>
-
+            </Grid>
+        </Grid>
+    </Border>
 </Window>
+

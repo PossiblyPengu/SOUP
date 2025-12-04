@@ -233,7 +233,7 @@ D:\CODE\Cshp\SAP\publish\createdump.exe
 D:\CODE\Cshp\SAP\publish\hostfxr.dll
 D:\CODE\Cshp\SAP\publish\hostpolicy.dll
 D:\CODE\Cshp\SAP\publish\mscordaccore.dll
-D:\CODE\Cshp\SAP\publish\mscordaccore_amd64_amd64_8.0.2125.47513.dll
+D:\CODE\Cshp\SAP\publish\mscordaccore_amd64_amd64_8.0.1124.51707.dll
 D:\CODE\Cshp\SAP\publish\mscordbi.dll
 D:\CODE\Cshp\SAP\publish\mscorrc.dll
 D:\CODE\Cshp\SAP\publish\msquic.dll
