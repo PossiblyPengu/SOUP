@@ -1,5 +1,109 @@
+# ============================================
+# .NET / C# Build Artifacts
+# ============================================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# ============================================
+# Visual Studio
+# ============================================
+.vs/
+*.user
+*.userosscache
+*.suo
+*.cache
+*.rsuser
+
+# User-specific files
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/repositories.config
+
+# ============================================
+# .NET Core / SDK
+# ============================================
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider IDE
+.idea/
+
+# ============================================
+# Backup & Temporary Files
+# ============================================
+*.backup
+*.bak
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# Temporary .NET project files
+*_wpftmp.csproj
+
+# ============================================
+# macOS
+# ============================================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ============================================
+# Windows
+# ============================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 nul
 
-.fake
+# ============================================
+# Logs & Debug Files
+# ============================================
+*.log
+*.log.*
+npm-debug.log*
+DEBUG_*
+
+# ============================================
+# Development Tools
+# ============================================
+# Claude AI settings (local only)
 .claude/settings.local.json
-.claude/settings.local.json
+
+# VS Code (keep shared settings, ignore local)
+!.vscode/
+.vscode/*.log
+
+# ============================================
+# Test Files (development only)
+# ============================================
+test_files/
+
+# ============================================
+# Installer Output
+# ============================================
+SAP/installer/Output/

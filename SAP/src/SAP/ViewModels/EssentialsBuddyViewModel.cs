@@ -19,8 +19,25 @@ using SAP.Infrastructure.Services.Parsers;
 
 namespace SAP.ViewModels;
 
+/// <summary>
+/// ViewModel for the Essentials Buddy module, managing essential inventory items and stock levels.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This module helps track essential items that should always be in stock, providing:
+/// <list type="bullet">
+///   <item>Import of inventory data from Excel or CSV files</item>
+///   <item>Automatic matching against the item dictionary to identify essential items</item>
+///   <item>Filtering by stock status (Normal, Low, Out of Stock, Overstocked)</item>
+///   <item>Automatic addition of missing essential items with zero quantity</item>
+///   <item>Persistent storage of data between sessions</item>
+/// </list>
+/// </para>
+/// </remarks>
 public partial class EssentialsBuddyViewModel : ObservableObject
 {
+    #region Private Fields
+
     private readonly IEssentialsBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
     private readonly EssentialsBuddyParser _parser;
@@ -28,36 +45,95 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
 
+    #endregion
+
+    #region Observable Properties
+
+    /// <summary>
+    /// Gets or sets the full collection of inventory items.
+    /// </summary>
     [ObservableProperty]
     private ObservableCollection<InventoryItem> _items = new();
 
+    /// <summary>
+    /// Gets or sets the filtered collection of items based on current filters.
+    /// </summary>
     [ObservableProperty]
     private ObservableCollection<InventoryItem> _filteredItems = new();
 
+    /// <summary>
+    /// Gets or sets the currently selected inventory item.
+    /// </summary>
     [ObservableProperty]
     private InventoryItem? _selectedItem;
 
+    /// <summary>
+    /// Gets or sets the search text for filtering items.
+    /// </summary>
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the current status filter (All, Normal, Low, OutOfStock, Overstocked).
+    /// </summary>
     [ObservableProperty]
     private string _statusFilter = "All";
 
+    /// <summary>
+    /// Gets or sets whether to show only essential items.
+    /// </summary>
     [ObservableProperty]
     private bool _essentialsOnly;
 
+    /// <summary>
+    /// Gets or sets whether data is currently being loaded.
+    /// </summary>
     [ObservableProperty]
     private bool _isLoading;
 
+    /// <summary>
+    /// Gets or sets the current status message displayed to the user.
+    /// </summary>
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    /// <summary>
+    /// Gets or sets whether there is no data loaded.
+    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasData))]
+    [NotifyPropertyChangedFor(nameof(EssentialItemsCount))]
+    [NotifyPropertyChangedFor(nameof(OutOfStockCount))]
+    [NotifyPropertyChangedFor(nameof(LowStockCount))]
     private bool _hasNoData = true;
 
-    public bool HasData => !HasNoData;
+    #endregion
 
+    #region Computed Properties
+
+    /// <summary>
+    /// Gets a value indicating whether data is loaded.
+    /// </summary>
+    public bool HasData => !HasNoData;
+    
+    /// <summary>
+    /// Gets the count of items marked as essential.
+    /// </summary>
+    public int EssentialItemsCount => Items.Count(i => i.IsEssential);
+    
+    /// <summary>
+    /// Gets the count of items that are out of stock.
+    /// </summary>
+    public int OutOfStockCount => Items.Count(i => i.Status == InventoryStatus.OutOfStock);
+    
+    /// <summary>
+    /// Gets the count of items with low stock levels.
+    /// </summary>
+    public int LowStockCount => Items.Count(i => i.Status == InventoryStatus.Low);
+
+    /// <summary>
+    /// Gets the available status filter options.
+    /// </summary>
     public ObservableCollection<string> StatusFilters { get; } = new()
     {
         "All",
@@ -67,6 +143,18 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         "Overstocked"
     };
 
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EssentialsBuddyViewModel"/> class.
+    /// </summary>
+    /// <param name="repository">The repository for persisting inventory data.</param>
+    /// <param name="fileService">The service for file import/export operations.</param>
+    /// <param name="dialogService">The service for displaying dialogs.</param>
+    /// <param name="serviceProvider">The service provider for dependency resolution.</param>
+    /// <param name="logger">Optional logger for diagnostic output.</param>
     public EssentialsBuddyViewModel(
         IEssentialsBuddyRepository repository,
         IFileImportExportService fileService,
@@ -76,7 +164,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject
     {
         _repository = repository;
         _fileService = fileService;
-        _parser = new EssentialsBuddyParser(null); // Uses specialized parser with exact JS logic
+        _parser = new EssentialsBuddyParser(null);
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -566,21 +654,22 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 
     private void ApplyFilters()
     {
-        var filtered = Items.AsEnumerable();
+        // Build query - all filtering is deferred until ToList()
+        IEnumerable<InventoryItem> query = Items;
 
         // Hide non-essential items with zero quantity
-        filtered = filtered.Where(i => i.IsEssential || i.QuantityOnHand > 0);
+        query = query.Where(i => i.IsEssential || i.QuantityOnHand > 0);
 
         // Essentials filter
         if (EssentialsOnly)
         {
-            filtered = filtered.Where(i => i.IsEssential);
+            query = query.Where(i => i.IsEssential);
         }
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             var search = SearchText;
-            filtered = filtered.Where(i =>
+            query = query.Where(i =>
                 i.ItemNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 i.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 (i.DictionaryDescription?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -588,16 +677,16 @@ public partial class EssentialsBuddyViewModel : ObservableObject
                 (i.Category?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
-        if (StatusFilter != "All")
+        if (StatusFilter != "All" && Enum.TryParse<InventoryStatus>(StatusFilter, out var status))
         {
-            if (Enum.TryParse<InventoryStatus>(StatusFilter, out var status))
-            {
-                filtered = filtered.Where(i => i.Status == status);
-            }
+            query = query.Where(i => i.Status == status);
         }
 
+        // Materialize once, then bulk update collection
+        var results = query.OrderBy(i => i.ItemNumber).ToList();
+        
         FilteredItems.Clear();
-        foreach (var item in filtered.OrderBy(i => i.ItemNumber))
+        foreach (var item in results)
         {
             FilteredItems.Add(item);
         }
@@ -618,6 +707,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject
             StatusMessage = "Failed to open settings";
         }
     }
+
+    #endregion
 
     #region Data Persistence
 

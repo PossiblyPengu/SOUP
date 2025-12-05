@@ -6,10 +6,15 @@ using System.Windows.Data;
 namespace SAP.Converters;
 
 /// <summary>
-/// Converts a boolean value to Visibility (true = Visible, false = Collapsed)
+/// Converts a boolean value to <see cref="Visibility"/>.
 /// </summary>
+/// <remarks>
+/// <c>true</c> converts to <see cref="Visibility.Visible"/>,
+/// <c>false</c> converts to <see cref="Visibility.Collapsed"/>.
+/// </remarks>
 public class BoolToVisibilityConverter : IValueConverter
 {
+    /// <inheritdoc/>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool boolValue)
@@ -19,6 +24,7 @@ public class BoolToVisibilityConverter : IValueConverter
         return Visibility.Collapsed;
     }
 
+    /// <inheritdoc/>
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is Visibility visibility)
@@ -30,10 +36,15 @@ public class BoolToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts a boolean value to Visibility (true = Collapsed, false = Visible)
+/// Converts a boolean value to <see cref="Visibility"/> with inverse logic.
 /// </summary>
+/// <remarks>
+/// <c>true</c> converts to <see cref="Visibility.Collapsed"/>,
+/// <c>false</c> converts to <see cref="Visibility.Visible"/>.
+/// </remarks>
 public class InverseBoolToVisibilityConverter : IValueConverter
 {
+    /// <inheritdoc/>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool boolValue)
@@ -43,6 +54,7 @@ public class InverseBoolToVisibilityConverter : IValueConverter
         return Visibility.Visible;
     }
 
+    /// <inheritdoc/>
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is Visibility visibility)

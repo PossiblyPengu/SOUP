@@ -40,7 +40,7 @@
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Bg" Property="Background" Value="#1e1b4b"/>
-                                <Setter Property="Foreground" Value="#818cf8"/>
+                                <Setter Property="Foreground" Value="{StaticResource AllocationAccentLightBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

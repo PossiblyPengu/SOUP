@@ -19,10 +19,25 @@ using SAP.Infrastructure.Services.Parsers;
 namespace SAP.ViewModels;
 
 /// <summary>
-/// ViewModel for ExpireWise expiration tracking module with month-based navigation
+/// ViewModel for the ExpireWise module, tracking product expiration dates with month-based navigation.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This module provides comprehensive expiration tracking including:
+/// <list type="bullet">
+///   <item>Month-by-month navigation of expiring items</item>
+///   <item>Visual indicators for critical (≤7 days), warning (≤30 days), and expired items</item>
+///   <item>Import of expiration data from Excel or CSV files</item>
+///   <item>Manual entry of expiration items</item>
+///   <item>Analytics dashboard with expiration trends</item>
+///   <item>Persistent storage of data between sessions</item>
+/// </list>
+/// </para>
+/// </remarks>
 public partial class ExpireWiseViewModel : ObservableObject
 {
+    #region Private Fields
+
     private readonly IExpireWiseRepository _repository;
     private readonly IFileImportExportService _fileService;
     private readonly ExpireWiseParser _parser;
@@ -30,68 +45,144 @@ public partial class ExpireWiseViewModel : ObservableObject
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ExpireWiseViewModel>? _logger;
 
+    #endregion
+
+    #region Observable Properties
+
+    /// <summary>
+    /// Gets or sets the full collection of expiration items.
+    /// </summary>
     [ObservableProperty]
     private ObservableCollection<ExpirationItem> _items = new();
 
+    /// <summary>
+    /// Gets or sets the filtered items for the current month view.
+    /// </summary>
     [ObservableProperty]
     private ObservableCollection<ExpirationItem> _filteredItems = new();
 
+    /// <summary>
+    /// Gets or sets the available months that have expiring items.
+    /// </summary>
     [ObservableProperty]
     private ObservableCollection<MonthGroup> _availableMonths = new();
 
+    /// <summary>
+    /// Gets or sets the currently selected expiration item.
+    /// </summary>
     [ObservableProperty]
     private ExpirationItem? _selectedItem;
 
+    /// <summary>
+    /// Gets or sets the search text for filtering items.
+    /// </summary>
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the currently displayed month.
+    /// </summary>
     [ObservableProperty]
     private DateTime _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
+    /// <summary>
+    /// Gets or sets the formatted display string for the current month.
+    /// </summary>
     [ObservableProperty]
     private string _currentMonthDisplay = string.Empty;
 
+    /// <summary>
+    /// Gets or sets whether data is currently being loaded.
+    /// </summary>
     [ObservableProperty]
     private bool _isLoading;
 
+    /// <summary>
+    /// Gets or sets the current status message displayed to the user.
+    /// </summary>
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    /// <summary>
+    /// Gets or sets whether there is data loaded.
+    /// </summary>
     [ObservableProperty]
     private bool _hasData;
 
-    // Summary statistics for current month
+    #endregion
+
+    #region Month Statistics
+
+    /// <summary>
+    /// Gets or sets the count of items expiring in the current month.
+    /// </summary>
     [ObservableProperty]
     private int _monthItemCount;
 
+    /// <summary>
+    /// Gets or sets the total units expiring in the current month.
+    /// </summary>
     [ObservableProperty]
     private int _monthTotalUnits;
 
+    /// <summary>
+    /// Gets or sets the count of items in critical status (≤7 days until expiry).
+    /// </summary>
     [ObservableProperty]
     private int _criticalCount;
 
+    /// <summary>
+    /// Gets or sets the count of expired items.
+    /// </summary>
     [ObservableProperty]
     private int _expiredCount;
 
-    // Overall stats
+    /// <summary>
+    /// Gets or sets the total count of all items.
+    /// </summary>
     [ObservableProperty]
     private int _totalItems;
 
+    /// <summary>
+    /// Gets or sets the count of distinct months with expiring items.
+    /// </summary>
     [ObservableProperty]
     private int _totalMonths;
 
-    // Autosave indicator
+    #endregion
+
+    #region UI State
+
+    /// <summary>
+    /// Gets or sets the display text for the last save time.
+    /// </summary>
     [ObservableProperty]
     private string _lastSavedDisplay = string.Empty;
 
-    // Tab navigation
+    /// <summary>
+    /// Gets or sets the index of the selected tab.
+    /// </summary>
     [ObservableProperty]
     private int _selectedTabIndex;
 
-    // Analytics
+    /// <summary>
+    /// Gets or sets the analytics ViewModel for the analytics dashboard.
+    /// </summary>
     [ObservableProperty]
     private ExpireWiseAnalyticsViewModel _analytics = new();
 
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExpireWiseViewModel"/> class.
+    /// </summary>
+    /// <param name="repository">The repository for persisting expiration data.</param>
+    /// <param name="fileService">The service for file import/export operations.</param>
+    /// <param name="dialogService">The service for displaying dialogs.</param>
+    /// <param name="serviceProvider">The service provider for dependency resolution.</param>
+    /// <param name="logger">Optional logger for diagnostic output.</param>
     public ExpireWiseViewModel(
         IExpireWiseRepository repository,
         IFileImportExportService fileService,
@@ -634,6 +725,8 @@ public partial class ExpireWiseViewModel : ObservableObject
             StatusMessage = "Failed to open settings";
         }
     }
+
+    #endregion
 
     #region Data Persistence
 

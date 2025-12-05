@@ -1,10 +1,17 @@
+// ============================================
+// S.A.P - S.A.M. Add-on Pack
+// Assembly Information
+// ============================================
+
 using System.Windows;
 
-[assembly:ThemeInfo(
-    ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
-                                                //(used if a resource is not found in the page,
-                                                // or application resource dictionaries)
-    ResourceDictionaryLocation.SourceAssembly   //where the generic resource dictionary is located
-                                                //(used if a resource is not found in the page,
-                                                // app, or any theme specific resource dictionaries)
+// Theme resource dictionary locations
+[assembly: ThemeInfo(
+    // Theme-specific resource dictionaries location
+    // (used if a resource is not found in page or app resource dictionaries)
+    ResourceDictionaryLocation.None,
+    
+    // Generic resource dictionary location
+    // (used if a resource is not found in page, app, or theme-specific dictionaries)
+    ResourceDictionaryLocation.SourceAssembly
 )]

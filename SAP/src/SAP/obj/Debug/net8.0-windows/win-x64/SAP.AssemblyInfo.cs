@@ -10,11 +10,13 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("SAP")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("PossiblyPengu")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © 2024-2025")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b09f5a43bcc436195b370bb9b4f6d19bbde88cb7")]
-[assembly: System.Reflection.AssemblyProductAttribute("SAP")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ccf7aff86a68af6e2af7119839d93db4fd18713")]
+[assembly: System.Reflection.AssemblyProductAttribute("S.A.P - S.A.M. Add-on Pack")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SAP")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]

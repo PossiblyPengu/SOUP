@@ -6,23 +6,57 @@ namespace SAP.Services;
 
 /// <summary>
 /// Manages module enable/disable configuration based on installer selections.
-/// Reads from %APPDATA%\SAP\modules.ini
 /// </summary>
+/// <remarks>
+/// <para>
+/// This singleton service reads and writes module configuration from
+/// <c>%APPDATA%\SAP\modules.ini</c>. The configuration controls which
+/// modules are available in the application launcher.
+/// </para>
+/// <para>
+/// If no configuration file exists (development mode or portable install),
+/// all modules are enabled by default.
+/// </para>
+/// </remarks>
 public class ModuleConfiguration
 {
     private static readonly Lazy<ModuleConfiguration> _instance = new(() => new ModuleConfiguration());
     
+    /// <summary>
+    /// Gets the singleton instance of the module configuration service.
+    /// </summary>
     public static ModuleConfiguration Instance => _instance.Value;
     
+    /// <summary>
+    /// Gets whether the AllocationBuddy module is enabled.
+    /// </summary>
     public bool AllocationBuddyEnabled { get; private set; } = true;
+    
+    /// <summary>
+    /// Gets whether the EssentialsBuddy module is enabled.
+    /// </summary>
     public bool EssentialsBuddyEnabled { get; private set; } = true;
+    
+    /// <summary>
+    /// Gets whether the ExpireWise module is enabled.
+    /// </summary>
     public bool ExpireWiseEnabled { get; private set; } = true;
     
+    /// <summary>
+    /// Gets the installed version from the configuration.
+    /// </summary>
     public string? InstalledVersion { get; private set; }
+    
+    /// <summary>
+    /// Gets the installation date from the configuration.
+    /// </summary>
     public string? InstallDate { get; private set; }
     
     private readonly string _configPath;
     
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ModuleConfiguration"/> class.
+    /// </summary>
     private ModuleConfiguration()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -31,6 +65,9 @@ public class ModuleConfiguration
         LoadConfiguration();
     }
     
+    /// <summary>
+    /// Loads the configuration from the INI file.
+    /// </summary>
     private void LoadConfiguration()
     {
         if (!File.Exists(_configPath))
@@ -106,6 +143,12 @@ public class ModuleConfiguration
         }
     }
     
+    /// <summary>
+    /// Parses a boolean value from a string with flexible format support.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <param name="defaultValue">The default value if parsing fails.</param>
+    /// <returns>The parsed boolean value.</returns>
     private static bool ParseBool(string value, bool defaultValue)
     {
         return value.ToLowerInvariant() switch
@@ -117,7 +160,7 @@ public class ModuleConfiguration
     }
     
     /// <summary>
-    /// Reload configuration from disk
+    /// Reloads the configuration from disk.
     /// </summary>
     public void Reload()
     {
@@ -125,7 +168,7 @@ public class ModuleConfiguration
     }
     
     /// <summary>
-    /// Save current configuration to disk
+    /// Saves the current configuration to disk.
     /// </summary>
     public void Save()
     {
@@ -159,8 +202,10 @@ public class ModuleConfiguration
     }
     
     /// <summary>
-    /// Enable or disable a module (for settings UI)
+    /// Enables or disables a module by name.
     /// </summary>
+    /// <param name="moduleName">The name of the module ("AllocationBuddy", "EssentialsBuddy", or "ExpireWise").</param>
+    /// <param name="enabled">Whether the module should be enabled.</param>
     public void SetModuleEnabled(string moduleName, bool enabled)
     {
         switch (moduleName)

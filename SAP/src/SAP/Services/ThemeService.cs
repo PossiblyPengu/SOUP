@@ -8,21 +8,47 @@ using System.Windows;
 namespace SAP.Services;
 
 /// <summary>
-/// Service for managing application theme (light/dark mode) in WPF
+/// Service for managing application theme (light/dark mode) in WPF.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This service provides centralized theme management for the application,
+/// supporting dynamic switching between light and dark themes at runtime.
+/// </para>
+/// <para>
+/// Theme preference is persisted to disk in the user's AppData folder and
+/// automatically restored on application startup.
+/// </para>
+/// </remarks>
 public partial class ThemeService : ObservableObject
 {
+    /// <summary>
+    /// Gets the singleton instance of the theme service.
+    /// </summary>
     private static readonly Lazy<ThemeService> _instance = new(() => new ThemeService(), isThreadSafe: true);
+    
+    /// <summary>
+    /// Gets the singleton instance of the theme service.
+    /// </summary>
     public static ThemeService Instance => _instance.Value;
 
     private readonly string _settingsPath;
     private const string SettingsFileName = "theme-settings.json";
 
+    /// <summary>
+    /// Gets or sets whether dark mode is currently active.
+    /// </summary>
     [ObservableProperty]
     private bool _isDarkMode = true;
 
+    /// <summary>
+    /// Occurs when the theme changes between light and dark mode.
+    /// </summary>
     public event EventHandler<bool>? ThemeChanged;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ThemeService"/> class.
+    /// </summary>
     public ThemeService()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -34,7 +60,7 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
-    /// Toggles between light and dark theme
+    /// Toggles between light and dark themes.
     /// </summary>
     public void ToggleTheme()
     {
@@ -44,8 +70,9 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
-    /// Sets the theme explicitly
+    /// Sets the theme explicitly to light or dark.
     /// </summary>
+    /// <param name="isDark"><c>true</c> for dark theme; <c>false</c> for light theme.</param>
     public void SetTheme(bool isDark)
     {
         if (IsDarkMode != isDark)
@@ -57,7 +84,7 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
-    /// Initialize and apply the theme on app startup
+    /// Initializes and applies the theme on application startup.
     /// </summary>
     public void Initialize()
     {
@@ -65,7 +92,7 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
-    /// Applies the current theme to the application by swapping ResourceDictionaries
+    /// Applies the current theme by swapping ResourceDictionaries in the application.
     /// </summary>
     private void ApplyTheme()
     {
@@ -105,7 +132,7 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
-    /// Loads theme preference from disk
+    /// Loads the theme preference from disk.
     /// </summary>
     private void LoadTheme()
     {
@@ -133,7 +160,7 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
-    /// Saves theme preference to disk
+    /// Saves the theme preference to disk.
     /// </summary>
     private void SaveTheme()
     {
@@ -159,8 +186,14 @@ public partial class ThemeService : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Internal class for serializing theme settings to JSON.
+    /// </summary>
     private class ThemeSettings
     {
+        /// <summary>
+        /// Gets or sets whether dark mode is enabled.
+        /// </summary>
         public bool IsDarkMode { get; set; }
     }
 }

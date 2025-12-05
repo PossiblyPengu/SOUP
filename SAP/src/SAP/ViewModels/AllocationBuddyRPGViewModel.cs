@@ -18,68 +18,149 @@ using System.IO;
 
 namespace SAP.ViewModels;
 
+/// <summary>
+/// ViewModel for the Allocation Buddy module, managing inventory allocation across store locations.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This ViewModel provides functionality for:
+/// <list type="bullet">
+///   <item>Importing allocation data from Excel, CSV, or clipboard</item>
+///   <item>Managing item allocations across multiple store locations</item>
+///   <item>Moving items between locations and an item pool</item>
+///   <item>Exporting allocation data to Excel or CSV</item>
+///   <item>Auto-archiving data to preserve state between sessions</item>
+/// </list>
+/// </para>
+/// <para>
+/// Data is automatically archived before imports and when the application closes,
+/// ensuring no data loss between sessions.
+/// </para>
+/// </remarks>
 public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 {
+    #region Private Fields
+
     private readonly AllocationBuddyParser _parser;
     private readonly DialogService _dialogService;
     private readonly ILogger<AllocationBuddyRPGViewModel>? _logger;
 
-    // Thread-safe lookup dictionaries for O(1) item lookups (instead of O(n) LINQ queries)
+    /// <summary>
+    /// Thread-safe lookup dictionary for O(1) item access by item number.
+    /// </summary>
     private ConcurrentDictionary<string, DictionaryItem> _itemLookupByNumber = new(StringComparer.OrdinalIgnoreCase);
+    
+    /// <summary>
+    /// Thread-safe lookup dictionary for O(1) item access by SKU.
+    /// </summary>
     private ConcurrentDictionary<string, DictionaryItem> _itemLookupBySku = new(StringComparer.OrdinalIgnoreCase);
 
-    // Cancellation token source for background operations
+    /// <summary>
+    /// Cancellation token source for background dictionary loading operations.
+    /// </summary>
     private CancellationTokenSource? _loadDictionariesCts;
 
-    // Dispose tracking
+    /// <summary>
+    /// Tracks whether this instance has been disposed.
+    /// </summary>
     private bool _disposed;
 
-    // Duration for update flash effect (in milliseconds)
+    /// <summary>
+    /// Duration in milliseconds for the visual flash effect when items are updated.
+    /// </summary>
     private const int UpdateFlashDurationMs = 300;
 
-    // Maximum clipboard text length to prevent DoS
-    private const int MaxClipboardTextLength = 10_000_000; // 10MB
+    /// <summary>
+    /// Maximum clipboard text length (10MB) to prevent denial-of-service attacks.
+    /// </summary>
+    private const int MaxClipboardTextLength = 10_000_000;
     
-    // Auto-archive: tracks if current data has been modified since last archive
+    /// <summary>
+    /// Tracks whether current data has unsaved changes that need archiving.
+    /// </summary>
     private bool _hasUnarchivedChanges;
 
-    public ObservableCollection<LocationAllocation> LocationAllocations { get; } = new();
-    public ObservableCollection<ItemAllocation> ItemPool { get; } = new();
-    public ObservableCollection<FileImportResult> FileImportResults { get; } = new();
-
-    // Undo buffer for last deactivation
+    /// <summary>
+    /// Buffer storing the last deactivation operation for undo functionality.
+    /// </summary>
     private DeactivationRecord? _lastDeactivation;
 
+    #endregion
+
+    #region Observable Collections
+
+    /// <summary>
+    /// Gets the collection of location allocations, each containing items allocated to that location.
+    /// </summary>
+    public ObservableCollection<LocationAllocation> LocationAllocations { get; } = new();
+    
+    /// <summary>
+    /// Gets the pool of unallocated items that can be moved to locations.
+    /// </summary>
+    public ObservableCollection<ItemAllocation> ItemPool { get; } = new();
+    
+    /// <summary>
+    /// Gets the results of the last file import operation for display to the user.
+    /// </summary>
+    public ObservableCollection<FileImportResult> FileImportResults { get; } = new();
+
+    #endregion
+
+    #region Observable Properties
+
+    /// <summary>
+    /// Gets or sets the current status message displayed to the user.
+    /// </summary>
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the search text used to filter displayed locations and items.
+    /// </summary>
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the text pasted by the user for import from the welcome screen.
+    /// </summary>
     [ObservableProperty]
     private string _pasteText = string.Empty;
 
+    #endregion
+
+    #region Computed Properties
+
     /// <summary>
-    /// True when there is no data loaded (for welcome screen)
+    /// Gets a value indicating whether there is no data loaded (displays welcome screen).
     /// </summary>
     public bool HasNoData => LocationAllocations.Count == 0 && ItemPool.Count == 0;
     
     /// <summary>
-    /// True when there is data loaded
+    /// Gets a value indicating whether data is loaded (displays main interface).
     /// </summary>
     public bool HasData => !HasNoData;
 
     /// <summary>
-    /// Called when SearchText changes to filter the displayed locations.
+    /// Gets the total quantity of all items across all locations.
     /// </summary>
-    partial void OnSearchTextChanged(string value)
-    {
-        OnPropertyChanged(nameof(FilteredLocationAllocations));
-    }
+    public int TotalEntries => LocationAllocations.Sum(l => l.Items.Sum(i => i.Quantity));
 
     /// <summary>
-    /// Gets locations filtered by search text.
+    /// Gets the number of locations with allocations.
     /// </summary>
+    public int LocationsCount => LocationAllocations.Count;
+
+    /// <summary>
+    /// Gets the number of items in the unallocated pool.
+    /// </summary>
+    public int ItemPoolCount => ItemPool.Count;
+
+    /// <summary>
+    /// Gets locations filtered by the current search text.
+    /// </summary>
+    /// <remarks>
+    /// Filters by location code, location name, item number, and item description.
+    /// </remarks>
     public IEnumerable<LocationAllocation> FilteredLocationAllocations
     {
         get
@@ -97,13 +178,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         }
     }
 
-    public int TotalEntries => LocationAllocations.Sum(l => l.Items.Sum(i => i.Quantity));
+    #endregion
 
-    public int LocationsCount => LocationAllocations.Count;
-
-    public int ItemPoolCount => ItemPool.Count;
-
-    public string FooterMessage => StatusMessage;
+    #region Item Totals
 
     /// <summary>
     /// Gets a summary of total quantities per unique item across all locations.
@@ -126,74 +203,130 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         }
     }
 
-    public IRelayCommand<string> SortItemTotalsCommand { get; private set; } = null!;
-
     /// <summary>
     /// Recalculates the ItemTotals collection from all locations.
     /// </summary>
     private void RefreshItemTotals()
     {
-        var grouped = LocationAllocations
-            .SelectMany(l => l.Items)
+        // Materialize items once for O(n) instead of multiple iterations
+        var allItems = LocationAllocations.SelectMany(l => l.Items).ToList();
+        
+        var grouped = allItems
             .GroupBy(i => i.ItemNumber)
             .Select(g => new ItemTotalSummary
             {
                 ItemNumber = g.Key,
                 Description = g.First().Description,
                 TotalQuantity = g.Sum(i => i.Quantity),
-                LocationCount = g.Select(i => i).Count()
+                LocationCount = g.Count()
             });
 
         // Apply sorting based on current mode
-        var totals = _itemTotalsSortMode switch
+        IEnumerable<ItemTotalSummary> sorted = _itemTotalsSortMode switch
         {
-            "qty-asc" => grouped.OrderBy(t => t.TotalQuantity).ToList(),
-            "qty-desc" => grouped.OrderByDescending(t => t.TotalQuantity).ToList(),
-            "name-asc" => grouped.OrderBy(t => t.Description).ToList(),
-            "name-desc" => grouped.OrderByDescending(t => t.Description).ToList(),
-            "item-asc" => grouped.OrderBy(t => t.ItemNumber).ToList(),
-            "item-desc" => grouped.OrderByDescending(t => t.ItemNumber).ToList(),
-            _ => grouped.OrderByDescending(t => t.TotalQuantity).ToList()
+            "qty-asc" => grouped.OrderBy(t => t.TotalQuantity),
+            "qty-desc" => grouped.OrderByDescending(t => t.TotalQuantity),
+            "name-asc" => grouped.OrderBy(t => t.Description),
+            "name-desc" => grouped.OrderByDescending(t => t.Description),
+            "item-asc" => grouped.OrderBy(t => t.ItemNumber),
+            "item-desc" => grouped.OrderByDescending(t => t.ItemNumber),
+            _ => grouped.OrderByDescending(t => t.TotalQuantity)
         };
 
         ItemTotals.Clear();
-        foreach (var t in totals)
+        foreach (var t in sorted)
         {
             ItemTotals.Add(t);
         }
         OnPropertyChanged(nameof(ItemTotals));
     }
 
+    #endregion
+
+    #region Commands
+
+    /// <summary>Command to import data from an Excel or CSV file via file dialog.</summary>
     public IAsyncRelayCommand ImportCommand { get; }
+    
+    /// <summary>Command to import data from multiple files (used by drag-and-drop).</summary>
     public IAsyncRelayCommand<string[]> ImportFilesCommand { get; }
+    
+    /// <summary>Command to paste and import data from the clipboard.</summary>
     public IRelayCommand PasteCommand { get; }
+    
+    /// <summary>Command to import data from the paste text box on the welcome screen.</summary>
     public IRelayCommand ImportFromPasteTextCommand { get; }
+    
+    /// <summary>Command to refresh the current data display.</summary>
     public IAsyncRelayCommand RefreshCommand { get; }
+    
+    /// <summary>Command to clear the search filter.</summary>
     public IRelayCommand ClearCommand { get; }
+    
+    /// <summary>Command to decrease an item's quantity by one.</summary>
     public IRelayCommand RemoveOneCommand { get; }
+    
+    /// <summary>Command to increase an item's quantity by one.</summary>
     public IRelayCommand AddOneCommand { get; }
+    
+    /// <summary>Command to move an item from the pool to a selected location.</summary>
     public IRelayCommand MoveFromPoolCommand { get; }
+    
+    /// <summary>Command to deactivate a store, moving its items to the pool.</summary>
     public IAsyncRelayCommand<LocationAllocation> DeactivateStoreCommand { get; }
+    
+    /// <summary>Command to undo the last store deactivation.</summary>
     public IRelayCommand UndoDeactivateCommand { get; }
+    
+    /// <summary>Command to clear all allocation data after confirmation.</summary>
     public IAsyncRelayCommand ClearDataCommand { get; }
+    
+    /// <summary>Command to copy a location's data to the clipboard.</summary>
     public IRelayCommand<LocationAllocation> CopyLocationToClipboardCommand { get; }
+    
+    /// <summary>Command to export allocation data to an Excel file.</summary>
     public IAsyncRelayCommand ExportToExcelCommand { get; }
+    
+    /// <summary>Command to export allocation data to a CSV file.</summary>
     public IAsyncRelayCommand ExportToCsvCommand { get; }
     
-    // Archive System
+    /// <summary>Command to sort item totals by the specified mode.</summary>
+    public IRelayCommand<string> SortItemTotalsCommand { get; private set; } = null!;
+
+    #endregion
+
+    #region Archive System
+
+    /// <summary>Command to manually archive the current data.</summary>
     public IAsyncRelayCommand ArchiveCurrentCommand { get; }
+    
+    /// <summary>Command to load and display the list of archives.</summary>
     public IAsyncRelayCommand ViewArchivesCommand { get; }
+    
+    /// <summary>Gets the collection of available archives.</summary>
     public ObservableCollection<ArchiveViewModel> Archives { get; } = new();
     
+    /// <summary>Gets or sets whether the archive panel is open.</summary>
     [ObservableProperty]
     private bool _isArchivePanelOpen;
 
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AllocationBuddyRPGViewModel"/> class.
+    /// </summary>
+    /// <param name="parser">The parser for processing allocation data.</param>
+    /// <param name="dialogService">The service for displaying dialogs.</param>
+    /// <param name="logger">Optional logger for diagnostic output.</param>
     public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
         _parser = parser;
         _dialogService = dialogService;
         _logger = logger;
 
+        // Initialize import/export commands
         ImportCommand = new AsyncRelayCommand(ImportAsync);
         ImportFilesCommand = new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); });
         PasteCommand = new RelayCommand(PasteFromClipboard);
@@ -254,7 +387,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 // Build lookup dictionaries for O(1) access
                 BuildItemLookupDictionaries(items);
 
-                Serilog.Log.Information("Loaded {Count} dictionary items for AllocationBuddy matching", items.Count);
+                _logger?.LogInformation("Loaded {Count} dictionary items for AllocationBuddy matching", items.Count);
             }, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -264,7 +397,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to load dictionaries for AllocationBuddy");
-            Serilog.Log.Error(ex, "Failed to load dictionaries for AllocationBuddy");
         }
     }
 
@@ -558,7 +690,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Import multiple files (used by drag & drop). Accepts full file paths.
+    /// Import multiple files (used by drag and drop). Accepts full file paths.
     /// </summary>
     public async Task ImportFilesAsync(string[] files)
     {
@@ -1621,6 +1753,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public int TotalQuantity { get; set; }
         public int LocationCount { get; set; }
     }
+
+    #endregion
 
     #region Archive Data Classes
 

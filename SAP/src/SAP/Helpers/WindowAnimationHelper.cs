@@ -3,11 +3,20 @@ using System.Windows.Media.Animation;
 
 namespace SAP.Helpers;
 
+/// <summary>
+/// Helper class for applying smooth animations to WPF windows.
+/// </summary>
+/// <remarks>
+/// Provides fade-in/fade-out animations for window open and close transitions,
+/// creating a more polished user experience.
+/// </remarks>
 public static class WindowAnimationHelper
 {
     /// <summary>
-    /// Animates a window opening with fade-in and scale effect
+    /// Animates a window opening with a fade-in effect.
     /// </summary>
+    /// <param name="window">The window to animate.</param>
+    /// <param name="durationMs">Animation duration in milliseconds.</param>
     public static void AnimateWindowOpen(Window window, double durationMs = 300)
     {
         // Windows don't support RenderTransform, so we only animate opacity
@@ -25,8 +34,11 @@ public static class WindowAnimationHelper
     }
 
     /// <summary>
-    /// Animates a window closing with fade-out and scale effect
+    /// Animates a window closing with a fade-out effect.
     /// </summary>
+    /// <param name="window">The window to animate.</param>
+    /// <param name="durationMs">Animation duration in milliseconds.</param>
+    /// <returns>A task that completes when the animation finishes.</returns>
     public static async Task AnimateWindowCloseAsync(Window window, double durationMs = 200)
     {
         var fadeOut = new DoubleAnimation
@@ -65,8 +77,13 @@ public static class WindowAnimationHelper
     }
 
     /// <summary>
-    /// Attaches automatic window animations to a window
+    /// Enables automatic open/close animations for a window.
     /// </summary>
+    /// <param name="window">The window to enable animations on.</param>
+    /// <remarks>
+    /// Call this method once during window initialization to attach
+    /// animation handlers to the Loaded and Closing events.
+    /// </remarks>
     public static void EnableWindowAnimations(Window window)
     {
         window.Loaded += (s, e) => AnimateWindowOpen(window);

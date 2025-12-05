@@ -7,13 +7,26 @@ using System.Windows;
 namespace SAP.Services;
 
 /// <summary>
-/// Service for showing dialogs and file pickers in WPF
+/// Service for displaying dialogs, message boxes, and file pickers in WPF.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This service provides a consistent API for all dialog interactions in the application,
+/// including message boxes, confirmation dialogs, and file open/save dialogs.
+/// </para>
+/// <para>
+/// All methods are async-compatible for consistency with MVVM patterns, though WPF
+/// dialogs are inherently synchronous.
+/// </para>
+/// </remarks>
 public class DialogService
 {
     /// <summary>
-    /// Show an information message dialog
+    /// Shows an informational message dialog.
     /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="message">The message content.</param>
+    /// <returns>A completed task.</returns>
     public Task ShowMessageAsync(string title, string message)
     {
         MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -21,8 +34,11 @@ public class DialogService
     }
 
     /// <summary>
-    /// Show an error message dialog
+    /// Shows an error message dialog with an error icon.
     /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="message">The error message content.</param>
+    /// <returns>A completed task.</returns>
     public Task ShowErrorAsync(string title, string message)
     {
         MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
@@ -30,8 +46,11 @@ public class DialogService
     }
 
     /// <summary>
-    /// Show a confirmation dialog
+    /// Shows a Yes/No confirmation dialog.
     /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="message">The confirmation message.</param>
+    /// <returns><c>true</c> if the user clicked Yes; otherwise, <c>false</c>.</returns>
     public Task<bool> ShowConfirmationAsync(string title, string message)
     {
         var result = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -39,8 +58,12 @@ public class DialogService
     }
 
     /// <summary>
-    /// Show an open file dialog (supports multiple files)
+    /// Shows an open file dialog that allows selecting multiple files.
     /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="filterName">The display name for the file type filter.</param>
+    /// <param name="extensions">File extensions to filter (e.g., "xlsx", "csv").</param>
+    /// <returns>Array of selected file paths, or <c>null</c> if cancelled.</returns>
     public Task<string[]?> ShowOpenFileDialogAsync(string title, string filterName, params string[] extensions)
     {
         var filterParts = new System.Collections.Generic.List<string>();
@@ -64,8 +87,12 @@ public class DialogService
     }
 
     /// <summary>
-    /// Show a save file dialog
+    /// Shows a save file dialog.
     /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="defaultFileName">The default file name.</param>
+    /// <param name="filter">The file type filter string (e.g., "CSV Files|*.csv").</param>
+    /// <returns>The selected file path, or <c>null</c> if cancelled.</returns>
     public Task<string?> ShowSaveFileDialogAsync(string title, string defaultFileName, string filter = "All Files|*.*")
     {
         var dialog = new SaveFileDialog
@@ -80,8 +107,10 @@ public class DialogService
     }
 
     /// <summary>
-    /// Show a custom window dialog
+    /// Shows a custom window as a modal dialog.
     /// </summary>
+    /// <param name="dialog">The window to display.</param>
+    /// <returns>The dialog result.</returns>
     public Task<bool?> ShowDialogAsync(Window dialog)
     {
         dialog.Owner = Application.Current.MainWindow;
@@ -90,8 +119,15 @@ public class DialogService
     }
 
     /// <summary>
-    /// Show a custom content dialog (UserControl embedded in a Window)
+    /// Shows a UserControl embedded in a dialog window and returns a result.
     /// </summary>
+    /// <typeparam name="T">The type of result expected from the dialog.</typeparam>
+    /// <param name="content">The UserControl to display as dialog content.</param>
+    /// <returns>The result from the dialog, or default if closed without result.</returns>
+    /// <remarks>
+    /// The content UserControl should set its Tag property to an <see cref="Action{T}"/>
+    /// and invoke it with the result when the dialog should close.
+    /// </remarks>
     public Task<T> ShowContentDialogAsync<T>(System.Windows.Controls.UserControl content)
     {
         var tcs = new TaskCompletionSource<T>();
