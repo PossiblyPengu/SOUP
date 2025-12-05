@@ -576,13 +576,13 @@ public partial class EssentialsBuddyViewModel : ObservableObject
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            var search = SearchText.ToLower();
+            var search = SearchText;
             filtered = filtered.Where(i =>
-                i.ItemNumber.ToLower().Contains(search) ||
-                i.Description.ToLower().Contains(search) ||
-                (i.DictionaryDescription?.ToLower().Contains(search) ?? false) ||
-                (i.BinCode?.ToLower().Contains(search) ?? false) ||
-                (i.Category?.ToLower().Contains(search) ?? false));
+                i.ItemNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                i.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (i.DictionaryDescription?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (i.BinCode?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (i.Category?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
         if (StatusFilter != "All")

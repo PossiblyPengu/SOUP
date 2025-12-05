@@ -21,13 +21,31 @@ public partial class ExpireWiseWindow : Window
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
 
         // Enable smooth window opening animation
-        Loaded += (s, e) => WindowAnimationHelper.AnimateWindowOpen(this);
+        Loaded += (s, e) =>
+        {
+            WindowAnimationHelper.AnimateWindowOpen(this);
+            UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
+        };
         Closed += (s, e) => ThemeService.Instance.ThemeChanged -= OnThemeChanged;
     }
 
     private void OnThemeChanged(object? sender, bool isDarkMode)
     {
         ApplyTheme(isDarkMode);
+        UpdateThemeIcon(isDarkMode);
+    }
+
+    private void UpdateThemeIcon(bool isDarkMode)
+    {
+        if (ThemeToggleButton?.Template?.FindName("ThemeIcon", ThemeToggleButton) is System.Windows.Controls.TextBlock icon)
+        {
+            icon.Text = isDarkMode ? "🌙" : "☀️";
+        }
+    }
+
+    private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        ThemeService.Instance.ToggleTheme();
     }
 
     private void ApplyTheme(bool isDarkMode)

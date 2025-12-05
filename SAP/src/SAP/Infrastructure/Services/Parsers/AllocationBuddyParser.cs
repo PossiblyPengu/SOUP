@@ -513,7 +513,11 @@ public class AllocationBuddyParser
     private static string GetField(CsvReader csv, string columnName)
     {
         try { return csv.GetField(columnName) ?? ""; }
-        catch { return ""; }
+        catch (Exception ex)
+        {
+            Serilog.Log.Debug(ex, "Failed to get CSV field '{ColumnName}'", columnName);
+            return "";
+        }
     }
 
     private static int ParseQuantity(string text)

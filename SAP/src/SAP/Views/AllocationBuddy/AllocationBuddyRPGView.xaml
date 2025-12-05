@@ -75,7 +75,7 @@
                     
                     <!-- Title -->
                     <TextBlock Text="Allocation Buddy" FontSize="36" FontWeight="Bold"
-                               Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"
+                               Foreground="{DynamicResource SplashTitleBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"
                                TextWrapping="Wrap" TextAlignment="Center">
                         <TextBlock.Effect>
                             <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
@@ -147,7 +147,7 @@
                             BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="1">
                         <StackPanel>
                             <TextBlock Text="📋 Paste Data from Excel" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
                             <TextBlock Text="Copy cells from Excel and paste below (Store, Item, Qty columns)"
                                        FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,10"
                                        TextWrapping="Wrap" TextAlignment="Center"/>

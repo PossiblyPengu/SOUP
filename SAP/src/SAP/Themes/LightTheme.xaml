@@ -105,4 +105,83 @@
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#f8fafc"/>
     <SolidColorBrush x:Key="InputBorderBrush" Color="#e2e8f0"/>
 
+    <!-- Splash Screen Text (high contrast against gradient) -->
+    <SolidColorBrush x:Key="SplashTitleBrush" Color="#0f172a"/>
+    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#475569"/>
+
+    <!-- Module Splash Gradients (blend with sidebar) -->
+    <LinearGradientBrush x:Key="ExpireWiseSplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#f1f5f9" Offset="0"/>
+        <GradientStop Color="#f8fafc" Offset="0.5"/>
+        <GradientStop Color="#ede9fe" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="AllocationBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#f1f5f9" Offset="0"/>
+        <GradientStop Color="#f8fafc" Offset="0.5"/>
+        <GradientStop Color="#e0e7ff" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="EssentialsBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#f1f5f9" Offset="0"/>
+        <GradientStop Color="#f8fafc" Offset="0.5"/>
+        <GradientStop Color="#d1fae5" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SwiftLabelSplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#f1f5f9" Offset="0"/>
+        <GradientStop Color="#f8fafc" Offset="0.5"/>
+        <GradientStop Color="#fce7f3" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Module Icon Gradients -->
+    <LinearGradientBrush x:Key="ExpireWiseIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#7c3aed" Offset="0"/>
+        <GradientStop Color="#a78bfa" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="ExpireWiseIconShadowColor">#7c3aed</Color>
+
+    <LinearGradientBrush x:Key="AllocationBuddyIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#6366f1" Offset="0"/>
+        <GradientStop Color="#818cf8" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="AllocationBuddyIconShadowColor">#6366f1</Color>
+
+    <LinearGradientBrush x:Key="EssentialsBuddyIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#10b981" Offset="0"/>
+        <GradientStop Color="#34d399" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="EssentialsBuddyIconShadowColor">#10b981</Color>
+
+    <LinearGradientBrush x:Key="SwiftLabelIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#ec4899" Offset="0"/>
+        <GradientStop Color="#f472b6" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="SwiftLabelIconShadowColor">#ec4899</Color>
+
+    <!-- App Logo Gradient -->
+    <LinearGradientBrush x:Key="AppLogoGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#8b5cf6" Offset="0"/>
+        <GradientStop Color="#ec4899" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="AppLogoShadowColor">#8b5cf6</Color>
+
+    <!-- Launch Button Gradients -->
+    <LinearGradientBrush x:Key="LaunchButtonGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#8b5cf6" Offset="0"/>
+        <GradientStop Color="#6366f1" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="LaunchButtonHoverGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#a78bfa" Offset="0"/>
+        <GradientStop Color="#818cf8" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="LaunchButtonPressedGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#7c3aed" Offset="0"/>
+        <GradientStop Color="#4f46e5" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="LaunchButtonShadowColor">#8b5cf6</Color>
+
+    <!-- Status Indicator -->
+    <SolidColorBrush x:Key="StatusOnlineBrush" Color="#22c55e"/>
+
 </ResourceDictionary>

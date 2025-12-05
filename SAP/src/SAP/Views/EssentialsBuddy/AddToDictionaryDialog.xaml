@@ -40,7 +40,7 @@
                       BorderThickness="0"
                       Background="Transparent"
                       RowBackground="{DynamicResource SurfaceBrush}"
-                      AlternatingRowBackground="#1f1f23"
+                      AlternatingRowBackground="{DynamicResource SurfaceHoverBrush}"
                       Foreground="{DynamicResource TextPrimaryBrush}">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
@@ -59,7 +59,7 @@
                         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#2e1065"/>
+                                <Setter Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                         </Style.Triggers>

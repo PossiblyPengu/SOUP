@@ -213,7 +213,10 @@ public class ExpireWiseParser
                     if (!string.IsNullOrWhiteSpace(value))
                         return value;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Debug(ex, "Failed to get CSV field '{FieldName}'", name);
+                }
             }
         }
         return "";

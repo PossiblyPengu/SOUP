@@ -12,8 +12,8 @@ namespace SAP.Services;
 /// </summary>
 public partial class ThemeService : ObservableObject
 {
-    private static ThemeService? _instance;
-    public static ThemeService Instance => _instance ??= new ThemeService();
+    private static readonly Lazy<ThemeService> _instance = new(() => new ThemeService(), isThreadSafe: true);
+    public static ThemeService Instance => _instance.Value;
 
     private readonly string _settingsPath;
     private const string SettingsFileName = "theme-settings.json";
@@ -25,7 +25,6 @@ public partial class ThemeService : ObservableObject
 
     public ThemeService()
     {
-        _instance = this;
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var settingsDir = Path.Combine(appDataPath, "SAP");
         Directory.CreateDirectory(settingsDir);

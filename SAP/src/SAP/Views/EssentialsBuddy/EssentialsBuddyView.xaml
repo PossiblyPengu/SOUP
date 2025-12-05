@@ -87,7 +87,7 @@
                     
                     <!-- Title -->
                     <TextBlock Text="Essentials Buddy" FontSize="36" FontWeight="Bold"
-                               Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"
+                               Foreground="{DynamicResource SplashTitleBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"
                                TextWrapping="Wrap" TextAlignment="Center">
                         <TextBlock.Effect>
                             <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>

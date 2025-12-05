@@ -567,11 +567,11 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
         if (!string.IsNullOrWhiteSpace(ItemSearchText))
         {
-            var search = ItemSearchText.ToLower();
+            var search = ItemSearchText;
             filtered = _allItems.Where(i =>
-                i.Number.ToLower().Contains(search) ||
-                i.Description.ToLower().Contains(search) ||
-                (i.Skus != null && i.Skus.Any(s => s.ToLower().Contains(search))));
+                i.Number.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                i.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (i.Skus != null && i.Skus.Any(s => s.Contains(search, StringComparison.OrdinalIgnoreCase))));
         }
 
         var filteredList = filtered.ToList();
@@ -638,11 +638,11 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
         if (!string.IsNullOrWhiteSpace(StoreSearchText))
         {
-            var search = StoreSearchText.ToLower();
+            var search = StoreSearchText;
             filtered = filtered.Where(s =>
-                s.Code.ToLower().Contains(search) ||
-                s.Name.ToLower().Contains(search) ||
-                s.Rank.ToLower().Contains(search));
+                s.Code.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                s.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                s.Rank.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
         // Stores are typically small, show all

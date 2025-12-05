@@ -576,11 +576,11 @@ public partial class ExpireWiseViewModel : ObservableObject
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            var search = SearchText.ToLower();
+            var search = SearchText;
             filtered = filtered.Where(i =>
-                i.ItemNumber.ToLower().Contains(search) ||
-                i.Description.ToLower().Contains(search) ||
-                (i.Location?.ToLower().Contains(search) ?? false));
+                i.ItemNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                i.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (i.Location?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
         FilteredItems.Clear();

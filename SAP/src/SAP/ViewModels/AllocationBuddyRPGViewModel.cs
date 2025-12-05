@@ -18,7 +18,7 @@ using System.IO;
 
 namespace SAP.ViewModels;
 
-public partial class AllocationBuddyRPGViewModel : ObservableObject
+public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 {
     private readonly AllocationBuddyParser _parser;
     private readonly DialogService _dialogService;
@@ -30,6 +30,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
 
     // Cancellation token source for background operations
     private CancellationTokenSource? _loadDictionariesCts;
+
+    // Dispose tracking
+    private bool _disposed;
 
     // Duration for update flash effect (in milliseconds)
     private const int UpdateFlashDurationMs = 300;
@@ -81,13 +84,13 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(SearchText))
                 return LocationAllocations;
 
-            var search = SearchText.Trim().ToLowerInvariant();
+            var search = SearchText.Trim();
             return LocationAllocations.Where(loc =>
-                loc.Location.ToLowerInvariant().Contains(search) ||
-                (loc.LocationName?.ToLowerInvariant().Contains(search) ?? false) ||
+                loc.Location.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (loc.LocationName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 loc.Items.Any(i =>
-                    i.ItemNumber.ToLowerInvariant().Contains(search) ||
-                    (i.Description?.ToLowerInvariant().Contains(search) ?? false)));
+                    i.ItemNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    (i.Description?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)));
         }
     }
 
@@ -1095,6 +1098,33 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject
             return $"\"{field.Replace("\"", "\"\"")}\"";
         }
         return field;
+    }
+
+    /// <summary>
+    /// Releases resources used by this ViewModel.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases unmanaged and optionally managed resources.
+    /// </summary>
+    /// <param name="disposing">True to release both managed and unmanaged resources.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _loadDictionariesCts?.Cancel();
+                _loadDictionariesCts?.Dispose();
+                _loadDictionariesCts = null;
+            }
+            _disposed = true;
+        }
     }
 
     public class LocationAllocation

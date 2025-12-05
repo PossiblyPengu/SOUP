@@ -293,7 +293,11 @@ public class FileImportExportService : IFileImportExportService
         if (underlyingType.IsEnum) return Enum.TryParse(underlyingType, text, true, out var e) ? e : null;
 
         try { return Convert.ChangeType(text, underlyingType, CultureInfo.InvariantCulture); }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            Serilog.Log.Debug(ex, "Failed to convert '{Text}' to type {Type}", text, underlyingType.Name);
+            return null;
+        }
     }
 
     /// <summary>

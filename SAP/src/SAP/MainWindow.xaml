@@ -32,14 +32,14 @@
         <!-- App Selection Button Style -->
         <Style x:Key="AppNavButtonStyle" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#a1a1aa"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="12,4"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Border" Background="{TemplateBinding Background}" 
+                        <Border x:Name="Border" Background="{TemplateBinding Background}"
                                 CornerRadius="14" Padding="16,14">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -47,17 +47,17 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                
-                                <Border x:Name="IconBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="12" 
+
+                                <Border x:Name="IconBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="12"
                                         Background="{DynamicResource SurfaceHoverBrush}" Margin="0,0,14,0">
                                     <ContentPresenter ContentSource="Tag" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                
+
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <ContentPresenter HorizontalAlignment="Left"/>
                                 </StackPanel>
-                                
-                                <Border x:Name="ShortcutBadge" Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}" 
+
+                                <Border x:Name="ShortcutBadge" Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}"
                                         CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Opacity="0.7">
                                     <TextBlock x:Name="ShortcutText" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                 </Border>
@@ -65,11 +65,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#18181b"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#1e1b4b"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                                 <Setter TargetName="ShortcutBadge" Property="Opacity" Value="1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -87,15 +87,10 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" CornerRadius="16" Padding="40,16">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop x:Name="GradStart" Color="#8b5cf6" Offset="0"/>
-                                    <GradientStop x:Name="GradEnd" Color="#6366f1" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
+                        <Border x:Name="Border" CornerRadius="16" Padding="40,16"
+                                Background="{DynamicResource LaunchButtonGradient}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="#8b5cf6"/>
+                                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="{DynamicResource LaunchButtonShadowColor}"/>
                             </Border.Effect>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <TextBlock Text="Launch App" VerticalAlignment="Center"/>
@@ -104,24 +99,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background">
-                                    <Setter.Value>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#a78bfa" Offset="0"/>
-                                            <GradientStop Color="#818cf8" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource LaunchButtonHoverGradient}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Border" Property="Background">
-                                    <Setter.Value>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#7c3aed" Offset="0"/>
-                                            <GradientStop Color="#4f46e5" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource LaunchButtonPressedGradient}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -145,7 +126,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#3f3f46"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -155,22 +136,22 @@
 
         <!-- Quick Action Button -->
         <Style x:Key="QuickActionStyle" TargetType="Button">
-            <Setter Property="Background" Value="#27272a"/>
-            <Setter Property="Foreground" Value="#a1a1aa"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
                                 CornerRadius="12" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#3f3f46"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -293,15 +274,10 @@
                     <!-- Logo & Branding -->
                     <StackPanel Grid.Row="0" Margin="24,32,24,24">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                            <Border Width="56" Height="56" CornerRadius="16">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#8b5cf6" Offset="0"/>
-                                        <GradientStop Color="#ec4899" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
+                            <Border Width="56" Height="56" CornerRadius="16"
+                                Background="{DynamicResource AppLogoGradient}">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="#8b5cf6"/>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{DynamicResource AppLogoShadowColor}"/>
                                 </Border.Effect>
                                 <TextBlock Text="⚙" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
                             </Border>
@@ -314,14 +290,10 @@
                         <!-- Version Badge -->
                         <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="#22c55e"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
+                                <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{DynamicResource StatusOnlineBrush}"/>
                                 <TextBlock Text="v1.0.0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                                 <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
-                                <TextBlock Text="Stable" Foreground="#22c55e" FontSize="12" FontWeight="Medium"/>
+                                <TextBlock Text="Stable" Foreground="{DynamicResource StatusOnlineBrush}" FontSize="12" FontWeight="Medium"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -430,32 +402,21 @@
             <!-- Right Side - Splash Screen -->
             <Grid Grid.Column="1">
                 <!-- ExpireWise Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavExpireWise, Converter={StaticResource BoolToVisibility}}">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#0f0f23" Offset="0"/>
-                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
-                            <GradientStop Color="#1e1b4b" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Grid.Background>
+                <Grid Visibility="{Binding IsChecked, ElementName=NavExpireWise, Converter={StaticResource BoolToVisibility}}"
+                      Background="{DynamicResource ExpireWiseSplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <!-- Large Icon -->
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#7c3aed" Offset="0"/>
-                                    <GradientStop Color="#a78bfa" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource ExpireWiseIconGradient}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#7c3aed"/>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource ExpireWiseIconShadowColor}"/>
                             </Border.Effect>
                             <TextBlock Text="📦" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         
                         <!-- Title -->
-                        <TextBlock Text="ExpireWise" FontSize="42" FontWeight="Bold" Foreground="White" 
+                        <TextBlock Text="ExpireWise" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,12"/>
                         
                         <!-- Subtitle -->
@@ -492,30 +453,19 @@
                 </Grid>
 
                 <!-- Allocation Buddy Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavAllocationBuddy, Converter={StaticResource BoolToVisibility}}">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#0f0f23" Offset="0"/>
-                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
-                            <GradientStop Color="#1e1b4b" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Grid.Background>
+                <Grid Visibility="{Binding IsChecked, ElementName=NavAllocationBuddy, Converter={StaticResource BoolToVisibility}}"
+                      Background="{DynamicResource AllocationBuddySplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#6366f1" Offset="0"/>
-                                    <GradientStop Color="#818cf8" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource AllocationBuddyIconGradient}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#6366f1"/>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource AllocationBuddyIconShadowColor}"/>
                             </Border.Effect>
                             <TextBlock Text="📊" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        
-                        <TextBlock Text="Allocation Buddy" FontSize="42" FontWeight="Bold" Foreground="White" 
+
+                        <TextBlock Text="Allocation Buddy" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,12"/>
                         
                         <TextBlock Text="Smart inventory allocation and store distribution management" 
@@ -548,30 +498,19 @@
                 </Grid>
 
                 <!-- Essentials Buddy Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavEssentialsBuddy, Converter={StaticResource BoolToVisibility}}">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#0f0f23" Offset="0"/>
-                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
-                            <GradientStop Color="#052e16" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Grid.Background>
+                <Grid Visibility="{Binding IsChecked, ElementName=NavEssentialsBuddy, Converter={StaticResource BoolToVisibility}}"
+                      Background="{DynamicResource EssentialsBuddySplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#10b981" Offset="0"/>
-                                    <GradientStop Color="#34d399" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource EssentialsBuddyIconGradient}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#10b981"/>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource EssentialsBuddyIconShadowColor}"/>
                             </Border.Effect>
                             <TextBlock Text="📋" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        
-                        <TextBlock Text="Essentials Buddy" FontSize="42" FontWeight="Bold" Foreground="White" 
+
+                        <TextBlock Text="Essentials Buddy" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,12"/>
                         
                         <TextBlock Text="Monitor essential inventory levels and track stock status" 
@@ -604,30 +543,19 @@
                 </Grid>
 
                 <!-- Swift Label Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavSwiftLabel, Converter={StaticResource BoolToVisibility}}">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#0f0f23" Offset="0"/>
-                            <GradientStop Color="#1a1a2e" Offset="0.5"/>
-                            <GradientStop Color="#4a1d4a" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Grid.Background>
+                <Grid Visibility="{Binding IsChecked, ElementName=NavSwiftLabel, Converter={StaticResource BoolToVisibility}}"
+                      Background="{DynamicResource SwiftLabelSplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#ec4899" Offset="0"/>
-                                    <GradientStop Color="#f472b6" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
+                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource SwiftLabelIconGradient}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="#ec4899"/>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource SwiftLabelIconShadowColor}"/>
                             </Border.Effect>
                             <TextBlock Text="🏷️" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        
-                        <TextBlock Text="Swift Label" FontSize="42" FontWeight="Bold" Foreground="White" 
+
+                        <TextBlock Text="Swift Label" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,12"/>
                         
                         <TextBlock Text="Generate transfer order box labels quickly and easily" 
