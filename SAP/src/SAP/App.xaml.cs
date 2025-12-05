@@ -187,6 +187,35 @@ public partial class App : Application
                 Log.Error(ex, "Failed to initialize dictionary database");
             }
 
+            // Load persisted data for all apps
+            try
+            {
+                var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
+                if (essentialsViewModel != null)
+                {
+                    await essentialsViewModel.LoadPersistedDataAsync();
+                }
+
+                var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
+                if (expireWiseViewModel != null)
+                {
+                    await expireWiseViewModel.LoadPersistedDataAsync();
+                }
+
+                // AllocationBuddy auto-loads from archives via LoadArchivesAsync
+                var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+                if (allocationViewModel != null)
+                {
+                    await allocationViewModel.LoadMostRecentArchiveAsync();
+                }
+
+                Log.Information("Persisted data loaded for all apps");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error loading persisted app data");
+            }
+
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
 
@@ -204,6 +233,38 @@ public partial class App : Application
     {
         try
         {
+            // Save all app data before closing
+            try
+            {
+                // Archive AllocationBuddy data
+                var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+                if (allocationViewModel != null)
+                {
+                    await allocationViewModel.ArchiveOnShutdownAsync();
+                    Log.Information("AllocationBuddy data archived on shutdown");
+                }
+
+                // Save EssentialsBuddy data
+                var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
+                if (essentialsViewModel != null)
+                {
+                    await essentialsViewModel.SaveDataOnShutdownAsync();
+                    Log.Information("EssentialsBuddy data saved on shutdown");
+                }
+
+                // Save ExpireWise data
+                var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
+                if (expireWiseViewModel != null)
+                {
+                    await expireWiseViewModel.SaveDataOnShutdownAsync();
+                    Log.Information("ExpireWise data saved on shutdown");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error saving app data on shutdown");
+            }
+
             // Dispose dictionary database
             try
             {

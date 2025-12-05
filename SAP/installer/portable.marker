@@ -1,0 +1,2 @@
+This file indicates that SAP is running in portable mode.
+All data will be stored in the Data subfolder of the application directory.

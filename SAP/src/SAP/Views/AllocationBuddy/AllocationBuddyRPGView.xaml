@@ -4,10 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SAP.ViewModels"
+             xmlns:converters="clr-namespace:SAP.Converters"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:AllocationBuddyRPGViewModel}">
 
     <UserControl.Resources>
+        <!-- Converters -->
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter"/>
+        
         <!-- Indigo/Purple accent for AllocationBuddy -->
         <Color x:Key="AllocationAccentColor">#6366f1</Color>
         <Color x:Key="AllocationAccentLightColor">#818cf8</Color>
@@ -357,6 +362,21 @@
                         
                         <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="16,12"/>
                         
+                        <TextBlock Text="ARCHIVE" FontSize="10" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
+                        
+                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="AllocationArchive"
+                                     IsChecked="{Binding IsArchivePanelOpen, Mode=TwoWay}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📚" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="View Archives" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Archives.Count, StringFormat=' ({0})'}" 
+                                           FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                        
+                        <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="16,12"/>
+                        
                         <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="AllocationActions"
                                      Command="{Binding UndoDeactivateCommand}">
                             <StackPanel Orientation="Horizontal">
@@ -385,6 +405,172 @@
                                 <TextBlock Text="Clear Data" VerticalAlignment="Center" Foreground="#ef4444"/>
                             </StackPanel>
                         </RadioButton>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Archive Panel (Slide-in from right) -->
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                    HorizontalAlignment="Right" Width="320"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0"
+                    Visibility="{Binding IsArchivePanelOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Panel Header -->
+                    <Border Grid.Row="0" Background="{DynamicResource BackgroundBrush}" Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📚" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Past Allocations" FontSize="16" FontWeight="Bold" 
+                                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            
+                            <Button Grid.Column="1" Content="✕" Cursor="Hand"
+                                    Command="{Binding ViewArchivesCommand}"
+                                    Click="CloseArchivePanel_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                        <Setter Property="FontSize" Value="16"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Archive List -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="12">
+                        <ItemsControl ItemsSource="{Binding Archives}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="10" 
+                                            Margin="0,0,0,8" Padding="12">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <!-- Name -->
+                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                            
+                                            <!-- Date and Stats -->
+                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding DisplayDate}" FontSize="11" 
+                                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                                <TextBlock Text=" • " Foreground="{DynamicResource TextDisabledBrush}"/>
+                                                <TextBlock Text="{Binding Summary}" FontSize="11" 
+                                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Notes -->
+                                            <TextBlock Grid.Row="2" Text="{Binding Notes}" FontSize="11" 
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,4,0,0"
+                                                       Visibility="{Binding Notes, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                            
+                                            <!-- Actions -->
+                                            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+                                                <Button Content="Load" Command="{Binding LoadCommand}" Cursor="Hand" Margin="0,0,8,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="#6366f1"/>
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                            <Setter Property="Padding" Value="12,6"/>
+                                                            <Setter Property="FontSize" Value="11"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                                                                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter TargetName="Bg" Property="Background" Value="#818cf8"/>
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                                <Button Content="Delete" Command="{Binding DeleteCommand}" Cursor="Hand">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                                            <Setter Property="Foreground" Value="#ef4444"/>
+                                                            <Setter Property="Padding" Value="12,6"/>
+                                                            <Setter Property="FontSize" Value="11"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                                                                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter TargetName="Bg" Property="Background" Value="#fecaca"/>
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    
+                    <!-- Empty State -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Visibility="{Binding Archives.Count, Converter={StaticResource ZeroToVisibilityConverter}}">
+                        <TextBlock Text="📚" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="No archives yet" FontSize="14" FontWeight="Medium"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Archive your current allocation to save it for later" 
+                                   FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}" 
+                                   HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="200"/>
                     </StackPanel>
                 </Grid>
             </Border>

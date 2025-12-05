@@ -331,7 +331,6 @@ D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\createdump.exe
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\hostfxr.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\hostpolicy.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\mscordaccore.dll
-D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\mscordaccore_amd64_amd64_8.0.2125.47513.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\mscordbi.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\mscorrc.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\msquic.dll
@@ -563,3 +562,8 @@ D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\WindowsBase.re
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\WindowsFormsIntegration.resources.dll
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\ExpireWise\ExpireWiseAnalyticsView.g.cs
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\ExpireWise\ExpireWiseAnalyticsView.baml
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\mscordaccore_amd64_amd64_8.0.1124.51707.dll
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\DarkTheme.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\LightTheme.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.g.cs

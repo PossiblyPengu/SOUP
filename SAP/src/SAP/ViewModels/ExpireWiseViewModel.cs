@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -632,6 +634,125 @@ public partial class ExpireWiseViewModel : ObservableObject
             StatusMessage = "Failed to open settings";
         }
     }
+
+    #region Data Persistence
+
+    private static string GetDataPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(appData, "SAP", "ExpireWise");
+    }
+
+    private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");
+
+    /// <summary>
+    /// Saves current data on application shutdown.
+    /// </summary>
+    public async Task SaveDataOnShutdownAsync()
+    {
+        if (Items.Count == 0) return;
+
+        try
+        {
+            var dataPath = GetDataPath();
+            Directory.CreateDirectory(dataPath);
+
+            var data = new ExpireWiseData
+            {
+                SavedAt = DateTime.Now,
+                Items = Items.Select(i => new SavedExpirationItem
+                {
+                    ItemNumber = i.ItemNumber,
+                    Upc = i.Upc,
+                    Description = i.Description,
+                    Location = i.Location,
+                    Units = i.Units,
+                    ExpiryDate = i.ExpiryDate,
+                    Notes = i.Notes,
+                    Category = i.Category
+                }).ToList()
+            };
+
+            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(GetDataFilePath(), json);
+
+            _logger?.LogInformation("Saved ExpireWise data: {Count} items", Items.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to save ExpireWise data");
+        }
+    }
+
+    /// <summary>
+    /// Loads persisted data on startup.
+    /// </summary>
+    public async Task LoadPersistedDataAsync()
+    {
+        try
+        {
+            var filePath = GetDataFilePath();
+            if (!File.Exists(filePath)) return;
+
+            var json = await File.ReadAllTextAsync(filePath);
+            var data = JsonSerializer.Deserialize<ExpireWiseData>(json);
+
+            if (data?.Items == null || data.Items.Count == 0) return;
+
+            Items.Clear();
+            foreach (var saved in data.Items)
+            {
+                Items.Add(new ExpirationItem
+                {
+                    ItemNumber = saved.ItemNumber,
+                    Upc = saved.Upc,
+                    Description = saved.Description,
+                    Location = saved.Location,
+                    Units = saved.Units,
+                    ExpiryDate = saved.ExpiryDate,
+                    Notes = saved.Notes,
+                    Category = saved.Category
+                });
+            }
+
+            RebuildVisibleMonths();
+            ApplyFilters();
+            HasData = Items.Count > 0;
+            TotalItems = Items.Count;
+            TotalMonths = Items
+                .Select(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
+                .Distinct()
+                .Count();
+            BuildAvailableMonths();
+            UpdateMonthStats();
+            StatusMessage = $"Restored {Items.Count} items from previous session";
+            _logger?.LogInformation("Loaded ExpireWise persisted data: {Count} items", Items.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load ExpireWise persisted data");
+        }
+    }
+
+    private class ExpireWiseData
+    {
+        public DateTime SavedAt { get; set; }
+        public List<SavedExpirationItem> Items { get; set; } = new();
+    }
+
+    private class SavedExpirationItem
+    {
+        public string ItemNumber { get; set; } = string.Empty;
+        public string Upc { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string? Location { get; set; }
+        public int Units { get; set; }
+        public DateTime ExpiryDate { get; set; }
+        public string? Notes { get; set; }
+        public string? Category { get; set; }
+    }
+
+    #endregion
 }
 
 /// <summary>

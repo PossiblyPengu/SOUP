@@ -19,6 +19,13 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>SAP</RootNamespace>
     <AssemblyName>SAP</AssemblyName>
+
+    <!-- Self-contained deployment -->
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>

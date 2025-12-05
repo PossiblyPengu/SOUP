@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -615,4 +618,137 @@ public partial class EssentialsBuddyViewModel : ObservableObject
             StatusMessage = "Failed to open settings";
         }
     }
+
+    #region Data Persistence
+
+    private static string GetDataPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(appData, "SAP", "EssentialsBuddy");
+    }
+
+    private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");
+
+    /// <summary>
+    /// Saves current data on application shutdown.
+    /// </summary>
+    public async Task SaveDataOnShutdownAsync()
+    {
+        if (Items.Count == 0) return;
+
+        try
+        {
+            var dataPath = GetDataPath();
+            Directory.CreateDirectory(dataPath);
+
+            var data = new EssentialsBuddyData
+            {
+                SavedAt = DateTime.Now,
+                Items = Items.Select(i => new SavedInventoryItem
+                {
+                    ItemNumber = i.ItemNumber,
+                    Upc = i.Upc,
+                    Description = i.Description,
+                    DictionaryDescription = i.DictionaryDescription,
+                    IsEssential = i.IsEssential,
+                    DictionaryMatched = i.DictionaryMatched,
+                    BinCode = i.BinCode,
+                    Location = i.Location,
+                    Category = i.Category,
+                    QuantityOnHand = i.QuantityOnHand,
+                    MinimumThreshold = i.MinimumThreshold,
+                    MaximumThreshold = i.MaximumThreshold,
+                    UnitCost = i.UnitCost,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            };
+
+            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(GetDataFilePath(), json);
+
+            _logger?.LogInformation("Saved EssentialsBuddy data: {Count} items", Items.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to save EssentialsBuddy data");
+        }
+    }
+
+    /// <summary>
+    /// Loads persisted data on startup.
+    /// </summary>
+    public async Task LoadPersistedDataAsync()
+    {
+        try
+        {
+            var filePath = GetDataFilePath();
+            if (!File.Exists(filePath)) return;
+
+            var json = await File.ReadAllTextAsync(filePath);
+            var data = JsonSerializer.Deserialize<EssentialsBuddyData>(json);
+
+            if (data?.Items == null || data.Items.Count == 0) return;
+
+            Items.Clear();
+            foreach (var saved in data.Items)
+            {
+                Items.Add(new InventoryItem
+                {
+                    ItemNumber = saved.ItemNumber,
+                    Upc = saved.Upc,
+                    Description = saved.Description,
+                    DictionaryDescription = saved.DictionaryDescription,
+                    IsEssential = saved.IsEssential,
+                    DictionaryMatched = saved.DictionaryMatched,
+                    BinCode = saved.BinCode,
+                    Location = saved.Location,
+                    Category = saved.Category,
+                    QuantityOnHand = saved.QuantityOnHand,
+                    MinimumThreshold = saved.MinimumThreshold,
+                    MaximumThreshold = saved.MaximumThreshold,
+                    UnitCost = saved.UnitCost,
+                    UnitPrice = saved.UnitPrice
+                });
+            }
+
+            ApplyFilters();
+            HasNoData = Items.Count == 0;
+            StatusMessage = $"Restored {Items.Count} items from previous session";
+            _logger?.LogInformation("Loaded EssentialsBuddy persisted data: {Count} items", Items.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load EssentialsBuddy persisted data");
+        }
+    }
+
+    #endregion
+
+    #region Persistence Data Classes
+
+    private class EssentialsBuddyData
+    {
+        public DateTime SavedAt { get; set; }
+        public List<SavedInventoryItem> Items { get; set; } = new();
+    }
+
+    private class SavedInventoryItem
+    {
+        public string ItemNumber { get; set; } = string.Empty;
+        public string Upc { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string? DictionaryDescription { get; set; }
+        public bool IsEssential { get; set; }
+        public bool DictionaryMatched { get; set; }
+        public string? BinCode { get; set; }
+        public string? Location { get; set; }
+        public string? Category { get; set; }
+        public int QuantityOnHand { get; set; }
+        public int? MinimumThreshold { get; set; }
+        public int? MaximumThreshold { get; set; }
+        public decimal? UnitCost { get; set; }
+        public decimal? UnitPrice { get; set; }
+    }
+
+    #endregion
 }

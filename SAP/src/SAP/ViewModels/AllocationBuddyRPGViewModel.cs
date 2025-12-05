@@ -39,6 +39,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     // Maximum clipboard text length to prevent DoS
     private const int MaxClipboardTextLength = 10_000_000; // 10MB
+    
+    // Auto-archive: tracks if current data has been modified since last archive
+    private bool _hasUnarchivedChanges;
 
     public ObservableCollection<LocationAllocation> LocationAllocations { get; } = new();
     public ObservableCollection<ItemAllocation> ItemPool { get; } = new();
@@ -176,6 +179,14 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     public IRelayCommand<LocationAllocation> CopyLocationToClipboardCommand { get; }
     public IAsyncRelayCommand ExportToExcelCommand { get; }
     public IAsyncRelayCommand ExportToCsvCommand { get; }
+    
+    // Archive System
+    public IAsyncRelayCommand ArchiveCurrentCommand { get; }
+    public IAsyncRelayCommand ViewArchivesCommand { get; }
+    public ObservableCollection<ArchiveViewModel> Archives { get; } = new();
+    
+    [ObservableProperty]
+    private bool _isArchivePanelOpen;
 
     public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
@@ -199,9 +210,16 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         SortItemTotalsCommand = new RelayCommand<string>(mode => { if (mode != null) ItemTotalsSortMode = mode; });
         ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
         ExportToCsvCommand = new AsyncRelayCommand(ExportToCsvAsync);
+        
+        // Archive commands
+        ArchiveCurrentCommand = new AsyncRelayCommand(ArchiveCurrentAsync, () => HasData);
+        ViewArchivesCommand = new AsyncRelayCommand(LoadArchivesAsync);
 
         // Load dictionaries on a background task to avoid blocking the UI during startup
         _ = LoadDictionariesAsync();
+        
+        // Load archives on startup
+        _ = LoadArchivesAsync();
     }
 
     /// <summary>
@@ -386,6 +404,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 return;
             }
             
+            // Auto-archive existing data before importing new data
+            await AutoArchiveIfNeededAsync();
+            
             var file = files[0];
             _logger?.LogInformation("Importing file: {File}", file);
             
@@ -421,6 +442,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
 
             PopulateFromEntries(result.Value);
+            MarkAsModified();
             StatusMessage = $"Imported {result.Value.Count} entries from {Path.GetFileName(file)}";
             _logger?.LogInformation("Successfully imported {Count} entries", result.Value.Count);
             
@@ -469,7 +491,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 return;
             }
 
+            // Auto-archive is async, but for paste we'll fire-and-forget
+            _ = AutoArchiveIfNeededAsync();
+            
             PopulateFromEntries(result.Value);
+            MarkAsModified();
             StatusMessage = $"Pasted {result.Value.Count} entries from clipboard";
             OnPropertyChanged(nameof(LocationsCount));
             OnPropertyChanged(nameof(ItemPoolCount));
@@ -512,7 +538,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 return;
             }
 
+            // Auto-archive is async, but for paste we'll fire-and-forget
+            _ = AutoArchiveIfNeededAsync();
+            
             PopulateFromEntries(result.Value);
+            MarkAsModified();
             PasteText = string.Empty; // Clear the textbox after successful import
             StatusMessage = $"Imported {result.Value.Count} entries";
             OnPropertyChanged(nameof(LocationsCount));
@@ -570,7 +600,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         if (allEntries.Count > 0)
         {
+            await AutoArchiveIfNeededAsync();
             PopulateFromEntries(allEntries);
+            MarkAsModified();
             StatusMessage = $"Imported {allEntries.Count} entries from {files.Length} files";
             OnPropertyChanged(nameof(LocationsCount));
             OnPropertyChanged(nameof(ItemPoolCount));
@@ -965,12 +997,16 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         var ok = await _dialogService.ShowContentDialogAsync<bool?>(confirm);
         if (ok != true) return;
 
+        // Auto-archive before clearing
+        await AutoArchiveIfNeededAsync();
+
         // Clear all collections
         LocationAllocations.Clear();
         ItemPool.Clear();
         FileImportResults.Clear();
         _lastDeactivation = null;
         SearchText = string.Empty;
+        _hasUnarchivedChanges = false; // Reset since we just archived and cleared
 
         // Update all computed properties
         OnPropertyChanged(nameof(TotalEntries));
@@ -1100,6 +1136,392 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         return field;
     }
 
+    #region Archive System
+
+    /// <summary>
+    /// Archives the current allocation data with a name and optional notes.
+    /// </summary>
+    private async Task ArchiveCurrentAsync()
+    {
+        if (LocationAllocations.Count == 0)
+        {
+            StatusMessage = "No data to archive";
+            return;
+        }
+
+        // Show archive dialog
+        var dialog = new SAP.Views.AllocationBuddy.ArchiveDialog();
+        var result = await _dialogService.ShowContentDialogAsync<ArchiveDialogResult?>(dialog);
+        
+        if (result == null) return;
+
+        try
+        {
+            var archivePath = GetArchivePath();
+            Directory.CreateDirectory(archivePath);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var safeFileName = string.Join("_", result.Name.Split(Path.GetInvalidFileNameChars()));
+            var fileName = $"{timestamp}_{safeFileName}.json";
+            var filePath = Path.Combine(archivePath, fileName);
+
+            // Create archive data
+            var archiveData = new ArchiveData
+            {
+                Name = result.Name,
+                Notes = result.Notes,
+                ArchivedAt = DateTime.Now,
+                Locations = LocationAllocations.Select(loc => new ArchivedLocation
+                {
+                    Location = loc.Location,
+                    LocationName = loc.LocationName,
+                    Items = loc.Items.Select(item => new ArchivedItem
+                    {
+                        ItemNumber = item.ItemNumber,
+                        Description = item.Description,
+                        Quantity = item.Quantity,
+                        SKU = item.SKU
+                    }).ToList()
+                }).ToList(),
+                TotalItems = TotalEntries,
+                LocationCount = LocationsCount
+            };
+
+            // Save to file
+            var json = System.Text.Json.JsonSerializer.Serialize(archiveData, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            await File.WriteAllTextAsync(filePath, json);
+
+            // Reload archives list
+            await LoadArchivesAsync();
+            
+            _hasUnarchivedChanges = false; // Data is now archived
+
+            StatusMessage = $"Archived as '{result.Name}'";
+            _logger?.LogInformation("Archived allocation data: {Name} ({Count} items)", result.Name, TotalEntries);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Archive failed: {ex.Message}";
+            _logger?.LogError(ex, "Failed to archive allocation data");
+        }
+    }
+
+    /// <summary>
+    /// Loads the list of archives from disk.
+    /// </summary>
+    private async Task LoadArchivesAsync()
+    {
+        try
+        {
+            Archives.Clear();
+            var archivePath = GetArchivePath();
+            
+            if (!Directory.Exists(archivePath))
+            {
+                return;
+            }
+
+            var files = Directory.GetFiles(archivePath, "*.json")
+                .OrderByDescending(f => File.GetCreationTime(f));
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var json = await File.ReadAllTextAsync(file);
+                    var data = System.Text.Json.JsonSerializer.Deserialize<ArchiveData>(json);
+                    if (data != null)
+                    {
+                        Archives.Add(new ArchiveViewModel
+                        {
+                            Name = data.Name,
+                            Notes = data.Notes,
+                            ArchivedAt = data.ArchivedAt,
+                            TotalItems = data.TotalItems,
+                            LocationCount = data.LocationCount,
+                            FilePath = file,
+                            LoadCommand = new AsyncRelayCommand(async () => await LoadArchiveAsync(file)),
+                            DeleteCommand = new AsyncRelayCommand(async () => await DeleteArchiveAsync(file))
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to load archive file: {File}", file);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load archives");
+        }
+    }
+
+    /// <summary>
+    /// Loads an archived allocation into the current view.
+    /// </summary>
+    private async Task LoadArchiveAsync(string filePath)
+    {
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var data = System.Text.Json.JsonSerializer.Deserialize<ArchiveData>(json);
+            
+            if (data == null)
+            {
+                StatusMessage = "Invalid archive file";
+                return;
+            }
+
+            // Clear current data
+            LocationAllocations.Clear();
+            ItemPool.Clear();
+
+            // Load archived data
+            foreach (var loc in data.Locations)
+            {
+                var location = new LocationAllocation
+                {
+                    Location = loc.Location,
+                    LocationName = loc.LocationName
+                };
+
+                foreach (var item in loc.Items)
+                {
+                    location.Items.Add(new ItemAllocation
+                    {
+                        ItemNumber = item.ItemNumber,
+                        Description = item.Description,
+                        Quantity = item.Quantity,
+                        SKU = item.SKU
+                    });
+                }
+
+                LocationAllocations.Add(location);
+            }
+
+            // Update UI
+            OnPropertyChanged(nameof(TotalEntries));
+            OnPropertyChanged(nameof(LocationsCount));
+            OnPropertyChanged(nameof(ItemPoolCount));
+            OnPropertyChanged(nameof(FilteredLocationAllocations));
+            OnPropertyChanged(nameof(HasNoData));
+            OnPropertyChanged(nameof(HasData));
+            RefreshItemTotals();
+
+            IsArchivePanelOpen = false;
+            _hasUnarchivedChanges = false; // Loaded data is already archived
+            StatusMessage = $"Loaded archive: {data.Name}";
+            _logger?.LogInformation("Loaded archive: {Name}", data.Name);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to load archive: {ex.Message}";
+            _logger?.LogError(ex, "Failed to load archive: {FilePath}", filePath);
+        }
+    }
+
+    /// <summary>
+    /// Deletes an archive file.
+    /// </summary>
+    private async Task DeleteArchiveAsync(string filePath)
+    {
+        try
+        {
+            var confirm = new SAP.Views.AllocationBuddy.ConfirmDialog();
+            confirm.SetMessage("Delete this archive? This action cannot be undone.");
+            var ok = await _dialogService.ShowContentDialogAsync<bool?>(confirm);
+            if (ok != true) return;
+
+            File.Delete(filePath);
+            await LoadArchivesAsync();
+            StatusMessage = "Archive deleted";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to delete archive: {ex.Message}";
+            _logger?.LogError(ex, "Failed to delete archive: {FilePath}", filePath);
+        }
+    }
+
+    private static string GetArchivePath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(appData, "SAP", "AllocationBuddy", "Archives");
+    }
+
+    /// <summary>
+    /// Automatically archives the current data if there are unarchived changes.
+    /// Called before imports and clears to preserve data.
+    /// </summary>
+    private async Task AutoArchiveIfNeededAsync()
+    {
+        // Only auto-archive if there's data and it has been modified
+        if (LocationAllocations.Count == 0 || !_hasUnarchivedChanges)
+        {
+            return;
+        }
+
+        await SaveCurrentDataAsync("Auto-Archive", "Automatically saved before new import or clear");
+    }
+
+    /// <summary>
+    /// Archives the current data on application shutdown.
+    /// Called from App.OnExit to ensure data is saved before closing.
+    /// </summary>
+    public async Task ArchiveOnShutdownAsync()
+    {
+        if (LocationAllocations.Count == 0)
+        {
+            return;
+        }
+
+        await SaveCurrentDataAsync("Session-Save", "Automatically saved when application closed");
+    }
+
+    /// <summary>
+    /// Loads the most recent archive on startup to restore previous session.
+    /// </summary>
+    public async Task LoadMostRecentArchiveAsync()
+    {
+        try
+        {
+            var archivePath = GetArchivePath();
+            if (!Directory.Exists(archivePath)) return;
+
+            // Find the most recent Session-Save or Auto-Archive
+            var files = Directory.GetFiles(archivePath, "*.json")
+                .Select(f => new { Path = f, Info = new FileInfo(f) })
+                .OrderByDescending(f => f.Info.LastWriteTime)
+                .FirstOrDefault();
+
+            if (files == null) return;
+
+            // Load the archive silently
+            var json = await File.ReadAllTextAsync(files.Path);
+            var data = System.Text.Json.JsonSerializer.Deserialize<ArchiveData>(json);
+
+            if (data == null || data.Locations.Count == 0) return;
+
+            // Clear current data
+            LocationAllocations.Clear();
+            ItemPool.Clear();
+
+            // Load archived data
+            foreach (var loc in data.Locations)
+            {
+                var location = new LocationAllocation
+                {
+                    Location = loc.Location,
+                    LocationName = loc.LocationName
+                };
+
+                foreach (var item in loc.Items)
+                {
+                    location.Items.Add(new ItemAllocation
+                    {
+                        ItemNumber = item.ItemNumber,
+                        Description = item.Description,
+                        Quantity = item.Quantity,
+                        SKU = item.SKU
+                    });
+                }
+
+                LocationAllocations.Add(location);
+            }
+
+            // Update UI
+            OnPropertyChanged(nameof(TotalEntries));
+            OnPropertyChanged(nameof(LocationsCount));
+            OnPropertyChanged(nameof(ItemPoolCount));
+            OnPropertyChanged(nameof(FilteredLocationAllocations));
+            OnPropertyChanged(nameof(HasNoData));
+            OnPropertyChanged(nameof(HasData));
+            RefreshItemTotals();
+
+            _hasUnarchivedChanges = false; // Loaded data is already archived
+            StatusMessage = $"Restored {data.Locations.Count} locations from previous session";
+            _logger?.LogInformation("Loaded most recent archive: {Name}", data.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load most recent archive");
+            // Silent failure - don't interrupt startup
+        }
+    }
+
+    /// <summary>
+    /// Saves the current allocation data to an archive file.
+    /// </summary>
+    private async Task SaveCurrentDataAsync(string prefix, string notes)
+    {
+        try
+        {
+            var archivePath = GetArchivePath();
+            Directory.CreateDirectory(archivePath);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var fileName = $"{timestamp}_{prefix}.json";
+            var filePath = Path.Combine(archivePath, fileName);
+
+            // Create archive data
+            var archiveData = new ArchiveData
+            {
+                Name = $"{prefix} {DateTime.Now:MMM d, yyyy h:mm tt}",
+                Notes = notes,
+                ArchivedAt = DateTime.Now,
+                Locations = LocationAllocations.Select(loc => new ArchivedLocation
+                {
+                    Location = loc.Location,
+                    LocationName = loc.LocationName,
+                    Items = loc.Items.Select(item => new ArchivedItem
+                    {
+                        ItemNumber = item.ItemNumber,
+                        Description = item.Description,
+                        Quantity = item.Quantity,
+                        SKU = item.SKU
+                    }).ToList()
+                }).ToList(),
+                TotalItems = TotalEntries,
+                LocationCount = LocationsCount
+            };
+
+            // Save to file
+            var json = System.Text.Json.JsonSerializer.Serialize(archiveData, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            await File.WriteAllTextAsync(filePath, json);
+
+            _hasUnarchivedChanges = false;
+            _logger?.LogInformation("{Prefix} allocation data ({Count} items)", prefix, TotalEntries);
+            
+            // Reload archives list (only if not shutting down)
+            if (prefix != "Session-Save")
+            {
+                await LoadArchivesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to save allocation data: {Prefix}", prefix);
+            // Don't interrupt the user's workflow if save fails
+        }
+    }
+
+    /// <summary>
+    /// Marks that the current data has been modified and should be auto-archived.
+    /// </summary>
+    private void MarkAsModified()
+    {
+        _hasUnarchivedChanges = true;
+    }
+
+    #endregion
+
     /// <summary>
     /// Releases resources used by this ViewModel.
     /// </summary>
@@ -1199,4 +1621,63 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public int TotalQuantity { get; set; }
         public int LocationCount { get; set; }
     }
+
+    #region Archive Data Classes
+
+    /// <summary>
+    /// Result from the archive dialog.
+    /// </summary>
+    public class ArchiveDialogResult
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel for displaying an archive in the list.
+    /// </summary>
+    public class ArchiveViewModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public DateTime ArchivedAt { get; set; }
+        public int TotalItems { get; set; }
+        public int LocationCount { get; set; }
+        public string FilePath { get; set; } = string.Empty;
+        public IAsyncRelayCommand? LoadCommand { get; set; }
+        public IAsyncRelayCommand? DeleteCommand { get; set; }
+
+        public string DisplayDate => ArchivedAt.ToString("MMM d, yyyy h:mm tt");
+        public string Summary => $"{TotalItems} items • {LocationCount} locations";
+    }
+
+    /// <summary>
+    /// Data structure for archived allocation data.
+    /// </summary>
+    public class ArchiveData
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public DateTime ArchivedAt { get; set; }
+        public int TotalItems { get; set; }
+        public int LocationCount { get; set; }
+        public List<ArchivedLocation> Locations { get; set; } = new();
+    }
+
+    public class ArchivedLocation
+    {
+        public string Location { get; set; } = string.Empty;
+        public string? LocationName { get; set; }
+        public List<ArchivedItem> Items { get; set; } = new();
+    }
+
+    public class ArchivedItem
+    {
+        public string ItemNumber { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public string? SKU { get; set; }
+    }
+
+    #endregion
 }

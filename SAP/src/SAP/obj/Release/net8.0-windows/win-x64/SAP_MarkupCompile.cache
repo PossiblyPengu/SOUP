@@ -10,11 +10,11 @@ none
 false
 TRACE;RELEASE;NET;NET8_0;NETCOREAPP
 D:\CODE\Cshp\SAP\src\SAP\App.xaml
-23-916128020
+24-504600868
 
-89222549727
+912049494780
 2391442169621
-MainWindow.xaml;Themes\DarkTheme.xaml;Themes\LightTheme.xaml;Themes\ModernStyles.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\AllocationBuddy\SettingsWindow.xaml;Views\DictionaryManagementView.xaml;Views\EssentialsBuddy\AddToDictionaryDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\EssentialsBuddy\SettingsWindow.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseAnalyticsView.xaml;Views\ExpireWise\ExpireWiseView.xaml;Views\ExpireWise\SettingsWindow.xaml;Views\SwiftLabel\SwiftLabelView.xaml;Views\UnifiedSettingsWindow.xaml;Windows\AllocationBuddyWindow.xaml;Windows\EssentialsBuddyWindow.xaml;Windows\ExpireWiseWindow.xaml;Windows\SwiftLabelWindow.xaml;
+MainWindow.xaml;Themes\DarkTheme.xaml;Themes\LightTheme.xaml;Themes\ModernStyles.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\ArchiveDialog.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\AllocationBuddy\SettingsWindow.xaml;Views\DictionaryManagementView.xaml;Views\EssentialsBuddy\AddToDictionaryDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\EssentialsBuddy\SettingsWindow.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseAnalyticsView.xaml;Views\ExpireWise\ExpireWiseView.xaml;Views\ExpireWise\SettingsWindow.xaml;Views\SwiftLabel\SwiftLabelView.xaml;Views\UnifiedSettingsWindow.xaml;Windows\AllocationBuddyWindow.xaml;Windows\EssentialsBuddyWindow.xaml;Windows\ExpireWiseWindow.xaml;Windows\SwiftLabelWindow.xaml;
 
 False
 

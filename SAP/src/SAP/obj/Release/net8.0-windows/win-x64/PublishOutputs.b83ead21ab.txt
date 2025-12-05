@@ -1,0 +1,2 @@
+D:\CODE\Cshp\SAP\publish-portable\SAP.pdb
+D:\CODE\Cshp\SAP\publish-portable\SAP.exe
