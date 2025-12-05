@@ -1,4 +1,4 @@
-<UserControl x:Class="SAP.Views.AllocationBuddy.ArchiveDialog"
+﻿<UserControl x:Class="SAP.Views.AllocationBuddy.ArchiveDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,7 +17,7 @@
                             <GradientStop Color="#8b5cf6" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
-                    <TextBlock Text="📁" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="ðŸ“" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Archive Allocation" FontSize="18" FontWeight="Bold" 
@@ -124,7 +124,7 @@
                     </Button.Style>
                 </Button>
 
-                <Button Grid.Column="2" x:Name="ArchiveButton" Content="📁 Archive" 
+                <Button Grid.Column="2" x:Name="ArchiveButton" Content="ðŸ“ Archive" 
                         Click="ArchiveButton_Click" Cursor="Hand">
                     <Button.Style>
                         <Style TargetType="Button">

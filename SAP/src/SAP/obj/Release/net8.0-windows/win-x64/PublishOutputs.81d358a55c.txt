@@ -1,2 +1,0 @@
-D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\publish\SAP.pdb
-D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\publish\SAP.exe

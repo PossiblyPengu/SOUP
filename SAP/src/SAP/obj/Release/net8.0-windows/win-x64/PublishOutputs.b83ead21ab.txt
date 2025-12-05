@@ -1,3 +1,0 @@
-D:\CODE\Cshp\SAP\publish-portable\SAP.pdb
-D:\CODE\Cshp\SAP\publish-portable\SAP.xml
-D:\CODE\Cshp\SAP\publish-portable\SAP.exe

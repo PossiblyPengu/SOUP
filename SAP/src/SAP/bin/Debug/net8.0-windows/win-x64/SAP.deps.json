@@ -7,7 +7,7 @@
   "targets": {
     ".NETCoreApp,Version=v8.0": {},
     ".NETCoreApp,Version=v8.0/win-x64": {
-      "SAP/4.1.0": {
+      "SAP/4.2.0": {
         "dependencies": {
           "ClosedXML": "0.104.2",
           "CommunityToolkit.Mvvm": "8.4.0",
@@ -1478,7 +1478,7 @@
     }
   },
   "libraries": {
-    "SAP/4.1.0": {
+    "SAP/4.2.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
