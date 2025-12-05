@@ -35,9 +35,9 @@ $configuration = if ($Release) { "Release" } else { "Debug" }
 # ============================================
 
 Write-Host ""
-Write-Host "  ╔═══════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "  ║   S.A.P - S.A.M. Add-on Pack Launcher     ║" -ForegroundColor Cyan
-Write-Host "  ╚═══════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "  =============================================" -ForegroundColor Cyan
+Write-Host "    S.A.P - S.A.M. Add-on Pack Launcher" -ForegroundColor Cyan
+Write-Host "  =============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ============================================

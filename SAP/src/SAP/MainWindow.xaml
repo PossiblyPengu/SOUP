@@ -404,14 +404,6 @@
                             </StackPanel>
                         </Button>
 
-                        <Button Command="{Binding ShowAboutCommand}" Style="{StaticResource QuickActionStyle}"
-                                ToolTip="About S.A.P (F1)">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,12,0"/>
-                                <TextBlock Text="About" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
                         <!-- Keyboard Shortcuts Help -->
                         <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="12,10" Margin="0,12,0,0">
                             <StackPanel>

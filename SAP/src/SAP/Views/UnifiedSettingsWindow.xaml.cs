@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using SAP.ViewModels;
+using SAP.Windows;
 
 namespace SAP.Views;
 
@@ -28,6 +29,18 @@ public partial class UnifiedSettingsWindow : Window
         {
             Serilog.Log.Error(ex, "Error initializing settings");
         }
+    }
+
+    /// <summary>
+    /// Opens the About dialog
+    /// </summary>
+    private void OnAboutClick(object sender, RoutedEventArgs e)
+    {
+        var aboutWindow = new AboutWindow
+        {
+            Owner = this
+        };
+        aboutWindow.ShowDialog();
     }
 
     /// <summary>
