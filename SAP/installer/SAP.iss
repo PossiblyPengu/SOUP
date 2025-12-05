@@ -145,22 +145,10 @@ Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; Comment: "Un
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "Launch {#MyAppFullName}"; Check: not IsPortableInstall
 
 ; ============================================================================
-; Installation Types
-; ============================================================================
-[Types]
-Name: "full"; Description: "{cm:InstallTypeFull}"
-Name: "portable"; Description: "{cm:InstallTypePortable}"
-
-[Components]
-Name: "main"; Description: "Application Files"; Types: full portable; Flags: fixed
-Name: "shortcuts"; Description: "Start Menu and Desktop Shortcuts"; Types: full
-Name: "registry"; Description: "Registry Entries"; Types: full
-
-; ============================================================================
-; Installation Tasks (User Choices)
+; Installation Tasks (User Choices) - Full install only
 ; ============================================================================
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Components: shortcuts
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 ; ============================================================================
 ; Registry Entries (Full install only)
