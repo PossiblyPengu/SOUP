@@ -9,6 +9,8 @@ namespace SAP.Windows;
 
 public partial class ExpireWiseWindow : Window
 {
+    private const string WindowKey = "ExpireWiseWindow";
+
     public ExpireWiseWindow(ExpireWiseViewModel viewModel)
     {
         // Apply theme BEFORE InitializeComponent so DynamicResources can resolve
@@ -16,6 +18,9 @@ public partial class ExpireWiseWindow : Window
         
         InitializeComponent();
         DataContext = viewModel;
+
+        // Attach window position/size persistence
+        WindowSettingsService.Instance.AttachToWindow(this, WindowKey);
 
         // Subscribe to theme changes
         ThemeService.Instance.ThemeChanged += OnThemeChanged;

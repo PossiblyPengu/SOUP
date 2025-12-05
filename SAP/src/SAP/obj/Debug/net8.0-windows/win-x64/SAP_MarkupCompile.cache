@@ -1,5 +1,5 @@
 ﻿SAP
-1.0.0.0
+1.1.0.0
 
 winexe
 C#
@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 D:\CODE\Cshp\SAP\src\SAP\App.xaml
-24-504600868
+2590200978
 
-91346249663
-2391442169621
-MainWindow.xaml;Themes\DarkTheme.xaml;Themes\LightTheme.xaml;Themes\ModernStyles.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\ArchiveDialog.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\AllocationBuddy\SettingsWindow.xaml;Views\DictionaryManagementView.xaml;Views\EssentialsBuddy\AddToDictionaryDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\EssentialsBuddy\SettingsWindow.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseAnalyticsView.xaml;Views\ExpireWise\ExpireWiseView.xaml;Views\ExpireWise\SettingsWindow.xaml;Views\SwiftLabel\SwiftLabelView.xaml;Views\UnifiedSettingsWindow.xaml;Windows\AllocationBuddyWindow.xaml;Windows\EssentialsBuddyWindow.xaml;Windows\ExpireWiseWindow.xaml;Windows\SwiftLabelWindow.xaml;
+94-291085233
+247-1078746895
+MainWindow.xaml;Themes\DarkTheme.xaml;Themes\LightTheme.xaml;Themes\ModernStyles.xaml;Views\AllocationBuddy\AllocationBuddyRPGView.xaml;Views\AllocationBuddy\ArchiveDialog.xaml;Views\AllocationBuddy\ConfirmDialog.xaml;Views\AllocationBuddy\SelectLocationDialog.xaml;Views\AllocationBuddy\SettingsWindow.xaml;Views\DictionaryManagementView.xaml;Views\EssentialsBuddy\AddToDictionaryDialog.xaml;Views\EssentialsBuddy\EssentialsBuddyView.xaml;Views\EssentialsBuddy\InventoryItemDialog.xaml;Views\EssentialsBuddy\SettingsWindow.xaml;Views\ExpireWise\ExpirationItemDialog.xaml;Views\ExpireWise\ExpireWiseAnalyticsView.xaml;Views\ExpireWise\ExpireWiseView.xaml;Views\ExpireWise\SettingsWindow.xaml;Views\SwiftLabel\SwiftLabelView.xaml;Views\UnifiedSettingsWindow.xaml;Windows\AboutWindow.xaml;Windows\AllocationBuddyWindow.xaml;Windows\EssentialsBuddyWindow.xaml;Windows\ExpireWiseWindow.xaml;Windows\SwiftLabelWindow.xaml;
 
 False
 

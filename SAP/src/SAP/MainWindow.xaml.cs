@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using SAP.Services;
 using SAP.ViewModels;
 
 namespace SAP;
@@ -10,10 +11,15 @@ namespace SAP;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private const string WindowKey = "MainWindow";
+
     public MainWindow(MainWindowViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
+
+        // Attach window position/size persistence
+        WindowSettingsService.Instance.AttachToWindow(this, WindowKey);
     }
 
     // Custom title bar drag

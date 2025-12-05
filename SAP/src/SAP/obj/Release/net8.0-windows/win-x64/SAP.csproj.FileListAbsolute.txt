@@ -569,3 +569,5 @@ D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\zh-Hant\WindowsBase.
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\zh-Hant\WindowsFormsIntegration.resources.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\SAP.xml
 D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\SAP.xml
+D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Windows\AboutWindow.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Windows\AboutWindow.g.cs

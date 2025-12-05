@@ -569,3 +569,5 @@ D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.g.cs
 D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\SAP.xml
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.xml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\AboutWindow.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\AboutWindow.g.cs

@@ -18,9 +18,9 @@
   <!-- Assembly Information                           -->
   <!-- ============================================== -->
   <PropertyGroup>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Version>4.1.0</Version>
+    <AssemblyVersion>4.1.0.0</AssemblyVersion>
+    <FileVersion>4.1.0.0</FileVersion>
     <Product>S.A.P - S.A.M. Add-on Pack</Product>
     <Company>PossiblyPengu</Company>
     <Authors>PossiblyPengu</Authors>
@@ -69,6 +69,14 @@
     <!-- Logging -->
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+
+  <!-- ============================================== -->
+  <!-- Framework References                           -->
+  <!-- ============================================== -->
+  <ItemGroup>
+    <!-- Windows Forms for multi-monitor screen detection -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
   </ItemGroup>
 
   <!-- ============================================== -->

@@ -53,7 +53,7 @@ namespace SAP.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SAP;V1.0.0.0;component/views/dictionarymanagementview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SAP;V1.1.0.0;component/views/dictionarymanagementview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Views\DictionaryManagementView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

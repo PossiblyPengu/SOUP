@@ -61,7 +61,7 @@ namespace SAP.Windows {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SAP;V1.0.0.0;component/windows/essentialsbuddywindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SAP;V4.1.0.0;component/windows/essentialsbuddywindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Windows\EssentialsBuddyWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SAP.Services;
 using SAP.Views;
+using SAP.Windows;
 
 namespace SAP.ViewModels;
 
@@ -60,11 +61,35 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             : $"S.A.P - {moduleName}";
     }
 
+    /// <summary>
+    /// Toggles between light and dark themes (Ctrl+T shortcut).
+    /// </summary>
     [RelayCommand]
     private void ToggleTheme()
     {
         _themeService.ToggleTheme();
         _logger?.LogInformation("Theme toggled to {Theme}", IsDarkMode ? "Dark" : "Light");
+    }
+
+    /// <summary>
+    /// Shows the About dialog with version and module information (F1 shortcut).
+    /// </summary>
+    [RelayCommand]
+    private void ShowAbout()
+    {
+        try
+        {
+            var aboutWindow = new AboutWindow
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+            aboutWindow.ShowDialog();
+            _logger?.LogInformation("Opened About dialog");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to open About dialog");
+        }
     }
 
     [RelayCommand]

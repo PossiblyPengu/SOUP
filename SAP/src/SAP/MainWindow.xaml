@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:SAP.ViewModels"
         xmlns:converters="clr-namespace:SAP.Converters"
         xmlns:behaviors="clr-namespace:SAP.Behaviors"
+        xmlns:core="clr-namespace:SAP.Core"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
         Title="{Binding Title}"
@@ -18,10 +19,17 @@
         Background="Transparent">
 
     <Window.InputBindings>
+        <!-- Module Navigation Shortcuts -->
         <KeyBinding Key="D1" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}"/>
         <KeyBinding Key="D2" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"/>
         <KeyBinding Key="D3" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"/>
         <KeyBinding Key="D4" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}"/>
+        
+        <!-- Global Shortcuts -->
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding ToggleThemeCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding NavigationService.NavigateBackCommand}"/>
+        <KeyBinding Key="H" Modifiers="Alt" Command="{Binding NavigationService.NavigateBackCommand}"/>
+        <KeyBinding Key="F1" Command="{Binding ShowAboutCommand}"/>
     </Window.InputBindings>
 
     <Window.Resources>
@@ -291,9 +299,9 @@
                         <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{DynamicResource StatusOnlineBrush}"/>
-                                <TextBlock Text="v1.0.0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                                <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                                 <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
-                                <TextBlock Text="Stable" Foreground="{DynamicResource StatusOnlineBrush}" FontSize="12" FontWeight="Medium"/>
+                                <TextBlock Text="{x:Static core:AppVersion.Channel}" Foreground="{DynamicResource StatusOnlineBrush}" FontSize="12" FontWeight="Medium"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -395,6 +403,48 @@
                                 <TextBlock Text="Settings" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+
+                        <Button Command="{Binding ShowAboutCommand}" Style="{StaticResource QuickActionStyle}"
+                                ToolTip="About S.A.P (F1)">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="About" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Keyboard Shortcuts Help -->
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="12,10" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="SHORTCUTS" FontSize="9" FontWeight="Bold" 
+                                           Foreground="{DynamicResource TextDisabledBrush}" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Alt+1-4" FontSize="10" FontWeight="SemiBold" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,12,4"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Launch module" FontSize="10" 
+                                               Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Ctrl+T" FontSize="10" FontWeight="SemiBold" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,12,4"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="Toggle theme" FontSize="10" 
+                                               Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Esc" FontSize="10" FontWeight="SemiBold" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,12,0"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="Return to home" FontSize="10" 
+                                               Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Grid>
             </Border>

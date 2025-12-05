@@ -9,6 +9,8 @@ namespace SAP.Windows;
 
 public partial class SwiftLabelWindow : Window
 {
+    private const string WindowKey = "SwiftLabelWindow";
+
     public SwiftLabelWindow(object viewModel)
     {
         // Apply theme BEFORE InitializeComponent so DynamicResources can resolve
@@ -16,6 +18,9 @@ public partial class SwiftLabelWindow : Window
         
         InitializeComponent();
         DataContext = viewModel;
+
+        // Attach window position/size persistence
+        WindowSettingsService.Instance.AttachToWindow(this, WindowKey);
 
         // Subscribe to theme changes
         ThemeService.Instance.ThemeChanged += OnThemeChanged;

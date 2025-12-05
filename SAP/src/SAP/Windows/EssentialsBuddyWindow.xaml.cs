@@ -9,6 +9,8 @@ namespace SAP.Windows;
 
 public partial class EssentialsBuddyWindow : Window
 {
+    private const string WindowKey = "EssentialsBuddyWindow";
+
     public EssentialsBuddyWindow(EssentialsBuddyViewModel viewModel)
     {
         // Apply theme BEFORE InitializeComponent so DynamicResources can resolve
@@ -16,6 +18,9 @@ public partial class EssentialsBuddyWindow : Window
         
         InitializeComponent();
         DataContext = viewModel;
+
+        // Attach window position/size persistence
+        WindowSettingsService.Instance.AttachToWindow(this, WindowKey);
 
         // Subscribe to theme changes
         ThemeService.Instance.ThemeChanged += OnThemeChanged;

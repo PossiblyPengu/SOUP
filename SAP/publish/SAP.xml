@@ -179,6 +179,89 @@
             Used to show empty state messages when collections are empty
             </summary>
         </member>
+        <member name="T:SAP.Core.AppVersion">
+            <summary>
+            Application version information and changelog.
+            </summary>
+            <remarks>
+            <para>
+            This static class contains the application's version information,
+            release date, and changelog history. Update this class when
+            releasing new versions.
+            </para>
+            <para>
+            Version Format: MAJOR.MINOR.PATCH
+            - MAJOR: Breaking changes or major new features
+            - MINOR: New features, backwards compatible
+            - PATCH: Bug fixes and minor improvements
+            </para>
+            </remarks>
+        </member>
+        <member name="F:SAP.Core.AppVersion.Version">
+            <summary>
+            The current application version string (e.g., "4.1.0").
+            </summary>
+        </member>
+        <member name="F:SAP.Core.AppVersion.DisplayVersion">
+            <summary>
+            The current version display string with 'v' prefix (e.g., "v4.1.0").
+            </summary>
+        </member>
+        <member name="F:SAP.Core.AppVersion.Channel">
+            <summary>
+            The release channel (Stable, Beta, Alpha, Dev).
+            </summary>
+        </member>
+        <member name="F:SAP.Core.AppVersion.BuildDate">
+            <summary>
+            The build date in ISO format.
+            </summary>
+        </member>
+        <member name="F:SAP.Core.AppVersion.FullVersion">
+            <summary>
+            Full version string with channel (e.g., "v4.1.0 - Stable").
+            </summary>
+        </member>
+        <member name="P:SAP.Core.AppVersion.Changelog">
+            <summary>
+            Gets the changelog entries for all versions.
+            </summary>
+        </member>
+        <member name="P:SAP.Core.AppVersion.LatestChanges">
+            <summary>
+            Gets the latest changelog entry.
+            </summary>
+        </member>
+        <member name="T:SAP.Core.ChangelogEntry">
+            <summary>
+            Represents a single version's changelog entry.
+            </summary>
+            <param name="Version">The version number (e.g., "1.1.0").</param>
+            <param name="Date">The release date in ISO format.</param>
+            <param name="Title">The release title/name.</param>
+            <param name="Changes">List of changes in this version.</param>
+        </member>
+        <member name="M:SAP.Core.ChangelogEntry.#ctor(System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Represents a single version's changelog entry.
+            </summary>
+            <param name="Version">The version number (e.g., "1.1.0").</param>
+            <param name="Date">The release date in ISO format.</param>
+            <param name="Title">The release title/name.</param>
+            <param name="Changes">List of changes in this version.</param>
+        </member>
+        <member name="P:SAP.Core.ChangelogEntry.Version">
+            <summary>The version number (e.g., "1.1.0").</summary>
+        </member>
+        <member name="P:SAP.Core.ChangelogEntry.Date">
+            <summary>The release date in ISO format.</summary>
+        </member>
+        <member name="P:SAP.Core.ChangelogEntry.Title">
+            <summary>The release title/name.</summary>
+        </member>
+        <member name="P:SAP.Core.ChangelogEntry.Changes">
+            <summary>List of changes in this version.</summary>
+        </member>
         <member name="T:SAP.Core.Common.BaseEntity">
             <summary>
             Base class for all domain entities providing common tracking properties.
@@ -1877,6 +1960,83 @@
         </member>
         <member name="P:SAP.Services.ThemeService.IsDarkMode">
             <inheritdoc cref="F:SAP.Services.ThemeService._isDarkMode"/>
+        </member>
+        <member name="T:SAP.Services.WindowSettingsService">
+            <summary>
+            Service for persisting and restoring window position, size, and state.
+            </summary>
+            <remarks>
+            <para>
+            This service saves window settings (position, size, state) to the user's AppData folder
+            and restores them on subsequent application launches.
+            </para>
+            <para>
+            Settings are stored per-window, identified by a unique window key.
+            The service handles multi-monitor scenarios and ensures windows open on visible screens.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:SAP.Services.WindowSettingsService.Instance">
+            <summary>
+            Gets the singleton instance of the window settings service.
+            </summary>
+        </member>
+        <member name="M:SAP.Services.WindowSettingsService.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:SAP.Services.WindowSettingsService"/> class.
+            </summary>
+        </member>
+        <member name="M:SAP.Services.WindowSettingsService.SaveWindowSettings(System.Windows.Window,System.String)">
+            <summary>
+            Saves the current window settings to disk.
+            </summary>
+            <param name="window">The window to save settings for.</param>
+            <param name="windowKey">A unique key identifying this window type.</param>
+        </member>
+        <member name="M:SAP.Services.WindowSettingsService.RestoreWindowSettings(System.Windows.Window,System.String)">
+            <summary>
+            Restores window settings from disk.
+            </summary>
+            <param name="window">The window to restore settings for.</param>
+            <param name="windowKey">A unique key identifying this window type.</param>
+            <returns><c>true</c> if settings were restored; <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:SAP.Services.WindowSettingsService.AttachToWindow(System.Windows.Window,System.String)">
+            <summary>
+            Attaches save handlers to a window for automatic settings persistence.
+            </summary>
+            <param name="window">The window to attach handlers to.</param>
+            <param name="windowKey">A unique key identifying this window type.</param>
+        </member>
+        <member name="M:SAP.Services.WindowSettingsService.GetSettingsPath(System.String)">
+            <summary>
+            Gets the file path for the window settings file.
+            </summary>
+        </member>
+        <member name="M:SAP.Services.WindowSettingsService.IsPositionVisible(System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Checks if a window position is visible on any connected monitor.
+            </summary>
+        </member>
+        <member name="T:SAP.Services.WindowSettingsService.WindowSettings">
+            <summary>
+            Internal class for serializing window settings.
+            </summary>
+        </member>
+        <member name="P:SAP.Services.WindowSettingsService.WindowSettings.Left">
+            <summary>Gets or sets the left position.</summary>
+        </member>
+        <member name="P:SAP.Services.WindowSettingsService.WindowSettings.Top">
+            <summary>Gets or sets the top position.</summary>
+        </member>
+        <member name="P:SAP.Services.WindowSettingsService.WindowSettings.Width">
+            <summary>Gets or sets the width.</summary>
+        </member>
+        <member name="P:SAP.Services.WindowSettingsService.WindowSettings.Height">
+            <summary>Gets or sets the height.</summary>
+        </member>
+        <member name="P:SAP.Services.WindowSettingsService.WindowSettings.IsMaximized">
+            <summary>Gets or sets whether the window was maximized.</summary>
         </member>
         <member name="T:SAP.ViewModels.AllocationBuddyRPGViewModel">
             <summary>
@@ -3797,6 +3957,17 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
+            <inheritdoc/>
+        </member>
+        <member name="M:SAP.ViewModels.MainWindowViewModel.ToggleTheme">
+            <summary>
+            Toggles between light and dark themes (Ctrl+T shortcut).
+            </summary>
+        </member>
+        <member name="M:SAP.ViewModels.MainWindowViewModel.ShowAbout">
+            <summary>
+            Shows the About dialog with version and module information (F1 shortcut).
+            </summary>
         </member>
         <member name="P:SAP.ViewModels.MainWindowViewModel.Title">
             <inheritdoc cref="F:SAP.ViewModels.MainWindowViewModel._title"/>
@@ -3809,6 +3980,12 @@
         </member>
         <member name="P:SAP.ViewModels.MainWindowViewModel.ToggleThemeCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SAP.ViewModels.MainWindowViewModel.ToggleTheme"/>.</summary>
+        </member>
+        <member name="F:SAP.ViewModels.MainWindowViewModel.showAboutCommand">
+            <summary>The backing field for <see cref="P:SAP.ViewModels.MainWindowViewModel.ShowAboutCommand"/>.</summary>
+        </member>
+        <member name="P:SAP.ViewModels.MainWindowViewModel.ShowAboutCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SAP.ViewModels.MainWindowViewModel.ShowAbout"/>.</summary>
         </member>
         <member name="F:SAP.ViewModels.MainWindowViewModel.openSettingsCommand">
             <summary>The backing field for <see cref="P:SAP.ViewModels.MainWindowViewModel.OpenSettingsCommand"/>.</summary>
@@ -4061,6 +4238,54 @@
             </summary>
         </member>
         <member name="M:SAP.Views.UnifiedSettingsWindow.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SAP.Windows.AboutWindow">
+            <summary>
+            About dialog showing application version, build info, installed modules, and changelog.
+            </summary>
+            <summary>
+            AboutWindow
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:SAP.Windows.AboutWindow"/> class.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.LoadVersionInfo">
+            <summary>
+            Loads version and build information.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.LoadModuleInfo">
+            <summary>
+            Loads installed module information.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.LoadChangelog">
+            <summary>
+            Loads the latest changelog entry.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.AddModuleEntry(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Adds a module entry to the modules panel.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.TitleBar_MouseLeftButtonDown(System.Object,System.Windows.Input.MouseButtonEventArgs)">
+            <summary>
+            Handles title bar dragging.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.CloseButton_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Closes the dialog.
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.AboutWindow.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
