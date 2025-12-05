@@ -110,6 +110,10 @@ D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Views\ExpireWise\Exp
 D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Views\ExpireWise\ExpireWiseAnalyticsView.baml
 D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.baml
 D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.g.cs
+D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\SAP.xml
+D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\SAP.xml
+D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Windows\AboutWindow.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Windows\AboutWindow.g.cs
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\Microsoft.CSharp.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\Microsoft.VisualBasic.Core.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\Microsoft.Win32.Primitives.dll
@@ -567,7 +571,3 @@ D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\zh-Hant\UIAutomation
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\zh-Hant\UIAutomationTypes.resources.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\zh-Hant\WindowsBase.resources.dll
 D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\zh-Hant\WindowsFormsIntegration.resources.dll
-D:\CODE\Cshp\SAP\src\SAP\bin\Release\net8.0-windows\win-x64\SAP.xml
-D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\SAP.xml
-D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Windows\AboutWindow.baml
-D:\CODE\Cshp\SAP\src\SAP\obj\Release\net8.0-windows\win-x64\Windows\AboutWindow.g.cs

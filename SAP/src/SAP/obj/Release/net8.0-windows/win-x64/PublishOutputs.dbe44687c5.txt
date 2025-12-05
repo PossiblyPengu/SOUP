@@ -47,3 +47,4 @@ D:\CODE\Cshp\SAP\publish-framework\Serilog.Sinks.File.dll
 D:\CODE\Cshp\SAP\publish-framework\SixLabors.Fonts.dll
 D:\CODE\Cshp\SAP\publish-framework\System.Diagnostics.EventLog.dll
 D:\CODE\Cshp\SAP\publish-framework\System.IO.Packaging.dll
+D:\CODE\Cshp\SAP\publish-framework\SAP.xml

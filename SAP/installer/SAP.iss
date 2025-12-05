@@ -1,163 +1,323 @@
-; SAP Installer Script for Inno Setup 6
-; https://jrsoftware.org/isinfo.php
+; ============================================================================
+;                        S.A.P - S.A.M. Add-on Pack
+;                        Installer Script v4.1.0
 ;
-; This installer supports two modes:
-;   - Standard: Framework-dependent (smaller, requires .NET 8 runtime)
-;   - Portable: Self-contained (larger, no dependencies, all data in install folder)
-
-#define MyAppName "SAP"
-#define MyAppVersion "1.0.0"
-#define MyAppPublisher "SAP"
-#define MyAppURL ""
+;  Modern Inno Setup 6 installer with custom styling
+; ============================================================================
+#define MyAppName "S.A.P"
+#define MyAppFullName "S.A.M. Add-on Pack"
+#define MyAppVersion "4.1.0"
+#define MyAppPublisher "PossiblyPengu"
+#define MyAppURL "https://github.com/PossiblyPengu/Cshp"
 #define MyAppExeName "SAP.exe"
+#define MyAppCopyright "(c) 2024-2025 PossiblyPengu"
 
 [Setup]
-; Unique identifier for this application
+; ============================================================================
+; Application Identity
+; ============================================================================
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} v{#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+AppCopyright={#MyAppCopyright}
+
+; Version info embedded in installer
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppFullName} Setup
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoCopyright={#MyAppCopyright}
+VersionInfoProductName={#MyAppFullName}
+VersionInfoProductVersion={#MyAppVersion}
+
+; ============================================================================
+; Installation Paths
+; ============================================================================
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-; Allow user to change install directory
-DisableDirPage=no
-; Output settings
-OutputDir=Output
+DisableProgramGroupPage=yes
+
+; ============================================================================
+; Output Configuration
+; ============================================================================
+OutputDir=..\installer
 OutputBaseFilename=SAP-Setup-{#MyAppVersion}
-; Compression
 Compression=lzma2/ultra64
 SolidCompression=yes
-; Modern wizard style
+LZMAUseSeparateProcess=yes
+LZMADictionarySize=65536
+LZMANumFastBytes=273
+
+; ============================================================================
+; Visual Styling - Modern Look
+; ============================================================================
 WizardStyle=modern
-; Allow non-admin installs (for portable mode)
+WizardSizePercent=110,100
+
+; Show progress during install
+ShowLanguageDialog=no
+DisableWelcomePage=no
+DisableDirPage=no
+DisableReadyPage=no
+AlwaysShowDirOnReadyPage=yes
+AlwaysShowGroupOnReadyPage=yes
+
+; ============================================================================
+; Security & Permissions
+; ============================================================================
 PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog commandline
-; Architecture
-ArchitecturesAllowed=x64compatible
+PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesInstallIn64BitMode=x64compatible
-; Uninstall settings
+
+; ============================================================================
+; Uninstaller Settings
+; ============================================================================
 UninstallDisplayIcon={app}\{#MyAppExeName}
-; Minimum Windows version (Windows 10)
-MinVersion=10.0
+UninstallDisplayName={#MyAppFullName}
+CreateUninstallRegKey=not IsPortableInstall
+
+; ============================================================================
+; Misc Settings
+; ============================================================================
+SetupMutex=SAP_Setup_Mutex_{#MyAppVersion}
+AppMutex=SAP_App_Mutex
+CloseApplications=yes
+CloseApplicationsFilter=*.exe
+RestartApplications=yes
+ChangesAssociations=no
+ChangesEnvironment=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+; ============================================================================
+; Custom Messages
+; ============================================================================
+[Messages]
+WelcomeLabel1=Welcome to {#MyAppFullName}
+WelcomeLabel2=This will install {#MyAppFullName} v{#MyAppVersion} on your computer.%n%nS.A.P. is a suite of tools designed to enhance your S.A.M. workflow.%n%nIt is recommended that you close all other applications before continuing.
+FinishedHeadingLabel=Installation Complete!
+FinishedLabelNoIcons=Setup has successfully installed {#MyAppFullName}.%n%nYour productivity tools are ready to use.
+FinishedLabel=Setup has successfully installed [name] on your computer.%n%nClick Finish to close this wizard.
+ClickFinish=Click Finish to exit Setup.
+StatusExtractFiles=Extracting files...
+StatusCreateIcons=Creating shortcuts...
+StatusUninstalling=Removing files...
+
+[CustomMessages]
+english.NameAndVersion=%1 version %2
+english.AdditionalIcons=Additional shortcuts:
+english.CreateDesktopIcon=Create a &desktop shortcut
+english.CreateQuickLaunchIcon=Create a &Quick Launch shortcut
+english.InstallTypeFull=Full Installation (~15 MB)
+english.InstallTypeFullDesc=Requires .NET 8 Runtime. Includes Start Menu shortcuts, registry entries, and uninstaller. Recommended for most users.
+english.InstallTypePortable=Portable Installation (~75 MB)
+english.InstallTypePortableDesc=Self-contained with bundled .NET. No shortcuts or registry entries. Runs anywhere without dependencies.
+
+; ============================================================================
+; Files to Install
+; ============================================================================
+[Files]
+; Full install - framework-dependent (requires .NET 8 runtime)
+Source: "..\publish-framework\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: not IsPortableInstall
+; Portable install - self-contained (bundled .NET)
+Source: "..\publish-portable\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsPortableInstall
+
+[Dirs]
+; User data directory (writable by standard user)
+Name: "{app}\Data"; Permissions: users-modify
+
+; ============================================================================
+; Shortcuts (Full install only)
+; ============================================================================
+[Icons]
+; Start Menu (full install only)
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "Launch {#MyAppFullName}"; Check: not IsPortableInstall
+Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; Comment: "Uninstall {#MyAppFullName}"; Check: not IsPortableInstall
+
+; Desktop (optional, full install only)
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "Launch {#MyAppFullName}"; Check: not IsPortableInstall
+
+; ============================================================================
+; Installation Types
+; ============================================================================
 [Types]
-Name: "full"; Description: "Full installation (requires .NET 8 runtime)"
-Name: "compact"; Description: "Compact installation (AllocationBuddy only, requires .NET 8)"
-Name: "portable"; Description: "Portable installation (self-contained, no dependencies)"
-Name: "custom"; Description: "Custom installation"; Flags: iscustom
+Name: "full"; Description: "{cm:InstallTypeFull}"
+Name: "portable"; Description: "{cm:InstallTypePortable}"
 
 [Components]
-Name: "core"; Description: "SAP Core Application"; Types: full compact portable custom; Flags: fixed
-Name: "modules"; Description: "Modules"; Types: full portable
-Name: "modules\allocationbuddy"; Description: "AllocationBuddy - Inventory allocation and matching"; Types: full compact portable custom; Flags: checkablealone
-Name: "modules\essentialsbuddy"; Description: "EssentialsBuddy - Essentials tracking and management"; Types: full portable custom; Flags: checkablealone
-Name: "modules\expirewise"; Description: "ExpireWise - Expiration date tracking"; Types: full portable custom; Flags: checkablealone
-Name: "data"; Description: "Data Files"; Types: full compact portable
-Name: "data\dictionary"; Description: "Dictionary Database (13,000+ items for AllocationBuddy)"; Types: full compact portable
+Name: "main"; Description: "Application Files"; Types: full portable; Flags: fixed
+Name: "shortcuts"; Description: "Start Menu and Desktop Shortcuts"; Types: full
+Name: "registry"; Description: "Registry Entries"; Types: full
 
+; ============================================================================
+; Installation Tasks (User Choices)
+; ============================================================================
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; Check: not IsPortableMode
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode and not IsPortableMode
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Components: shortcuts
 
-[Files]
-; Framework-dependent version for standard install (smaller, requires .NET 8)
-Source: "..\publish-framework\*"; DestDir: "{app}"; Components: core; Check: not IsPortableMode; Flags: ignoreversion recursesubdirs createallsubdirs
+; ============================================================================
+; Registry Entries (Full install only)
+; ============================================================================
+[Registry]
+; App registration (full install only)
+Root: HKCU; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey; Check: not IsPortableInstall
+Root: HKCU; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey; Check: not IsPortableInstall
 
-; Self-contained version for portable install (larger, no dependencies)
-Source: "..\publish-portable\*"; DestDir: "{app}"; Components: core; Check: IsPortableMode; Flags: ignoreversion recursesubdirs createallsubdirs
-
-; Dictionary database - for standard install (AppData)
-Source: "{userappdata}\SAP\Shared\dictionaries.db"; DestDir: "{userappdata}\SAP\Shared"; Components: data\dictionary; Check: not IsPortableMode; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
-
-; Dictionary database - for portable install (install folder)
-Source: "{userappdata}\SAP\Shared\dictionaries.db"; DestDir: "{app}\Data"; Components: data\dictionary; Check: IsPortableMode; Flags: external skipifsourcedoesntexist onlyifdoesntexist
-
-; Create portable marker file
-Source: "..\installer\portable.marker"; DestDir: "{app}"; DestName: "portable.txt"; Check: IsPortableMode; Flags: skipifsourcedoesntexist
-
-[Icons]
-; Only create shortcuts for standard install
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Check: not IsPortableMode
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; Check: not IsPortableMode
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Check: not IsPortableMode
-
-[INI]
-; Create module configuration file for standard install (AppData)
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Modules"; Key: "AllocationBuddy"; String: "true"; Components: modules\allocationbuddy; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Modules"; Key: "AllocationBuddy"; String: "false"; Components: not modules\allocationbuddy; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Modules"; Key: "EssentialsBuddy"; String: "true"; Components: modules\essentialsbuddy; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Modules"; Key: "EssentialsBuddy"; String: "false"; Components: not modules\essentialsbuddy; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Modules"; Key: "ExpireWise"; String: "true"; Components: modules\expirewise; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Modules"; Key: "ExpireWise"; String: "false"; Components: not modules\expirewise; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Info"; Key: "InstalledVersion"; String: "{#MyAppVersion}"; Check: not IsPortableMode
-Filename: "{userappdata}\SAP\modules.ini"; Section: "Info"; Key: "InstallDate"; String: "{code:GetCurrentDate}"; Check: not IsPortableMode
-
-; Create module configuration file for portable install (install folder)
-Filename: "{app}\Data\modules.ini"; Section: "Modules"; Key: "AllocationBuddy"; String: "true"; Components: modules\allocationbuddy; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Modules"; Key: "AllocationBuddy"; String: "false"; Components: not modules\allocationbuddy; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Modules"; Key: "EssentialsBuddy"; String: "true"; Components: modules\essentialsbuddy; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Modules"; Key: "EssentialsBuddy"; String: "false"; Components: not modules\essentialsbuddy; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Modules"; Key: "ExpireWise"; String: "true"; Components: modules\expirewise; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Modules"; Key: "ExpireWise"; String: "false"; Components: not modules\expirewise; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Info"; Key: "InstalledVersion"; String: "{#MyAppVersion}"; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Info"; Key: "InstallDate"; String: "{code:GetCurrentDate}"; Check: IsPortableMode
-Filename: "{app}\Data\modules.ini"; Section: "Info"; Key: "PortableMode"; String: "true"; Check: IsPortableMode
-
+; ============================================================================
+; Run After Install
+; ============================================================================
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppFullName}"; Flags: nowait postinstall skipifsilent shellexec
 
+; ============================================================================
+; Uninstall - Clean up
+; ============================================================================
 [UninstallDelete]
-; Clean up logs on uninstall (standard install only - user data preserved)
-Type: filesandordirs; Name: "{userappdata}\SAP\Logs"
-Type: files; Name: "{userappdata}\SAP\modules.ini"
+Type: filesandordirs; Name: "{app}"
 
+; ============================================================================
+; Pascal Script - Advanced Customization
+; ============================================================================
 [Code]
 var
-  PortablePage: TInputOptionWizardPage;
+  ModulesLabel: TNewStaticText;
+  ProgressLabel: TNewStaticText;
+  InstallTypePage: TInputOptionWizardPage;
+  PortableMode: Boolean;
 
-function IsPortableMode: Boolean;
+// Check if portable install was selected
+function IsPortableInstall: Boolean;
 begin
-  // Check if portable type is selected
-  Result := WizardSetupType(False) = 'portable';
+  Result := PortableMode;
 end;
 
-function GetCurrentDate(Param: String): String;
-begin
-  Result := GetDateTimeString('yyyy-mm-dd hh:nn:ss', '-', ':');
-end;
-
-function CreateUninstallRegKey: Boolean;
-begin
-  // Only create uninstall registry key for standard install
-  Result := not IsPortableMode;
-end;
-
+// Initialize wizard with custom styling
 procedure InitializeWizard;
 begin
-  // Update default directory for portable mode
+  // Create install type selection page (after welcome, before directory)
+  InstallTypePage := CreateInputOptionPage(wpWelcome,
+    'Select Installation Type',
+    'How would you like to install {#MyAppFullName}?',
+    'Please select an installation type, then click Next.',
+    True, False);
+  
+  InstallTypePage.Add('Full Installation (Recommended)');
+  InstallTypePage.Add('Portable Installation');
+  InstallTypePage.Values[0] := True; // Default to full install
+  
+  // Add module info label on welcome page
+  ModulesLabel := TNewStaticText.Create(WizardForm);
+  ModulesLabel.Parent := WizardForm.WelcomePage;
+  ModulesLabel.Left := WizardForm.WelcomeLabel2.Left;
+  ModulesLabel.Top := WizardForm.WelcomeLabel2.Top + WizardForm.WelcomeLabel2.Height + 20;
+  ModulesLabel.Width := WizardForm.WelcomeLabel2.Width;
+  ModulesLabel.Height := 100;
+  ModulesLabel.AutoSize := False;
+  ModulesLabel.WordWrap := True;
+  ModulesLabel.Caption := 
+    'Included Modules:' + #13#10 +
+    '  * ExpireWise - Expiry date tracking' + #13#10 +
+    '  * AllocationBuddy - Resource allocation' + #13#10 +
+    '  * EssentialsBuddy - Core workflows' + #13#10 +
+    '  * SwiftLabel - Label generation';
+  ModulesLabel.Font.Style := [];
+  ModulesLabel.Font.Color := clGray;
+  
+  // Add progress label on install page
+  ProgressLabel := TNewStaticText.Create(WizardForm);
+  ProgressLabel.Parent := WizardForm.InstallingPage;
+  ProgressLabel.Left := WizardForm.StatusLabel.Left;
+  ProgressLabel.Top := WizardForm.ProgressGauge.Top + WizardForm.ProgressGauge.Height + 10;
+  ProgressLabel.Width := WizardForm.StatusLabel.Width;
+  ProgressLabel.Caption := '';
+  ProgressLabel.Font.Color := clGray;
+  
+  // Customize wizard form appearance
+  WizardForm.WelcomeLabel1.Font.Size := 14;
+  WizardForm.WelcomeLabel1.Font.Style := [fsBold];
+  
+  WizardForm.FinishedHeadingLabel.Font.Size := 14;
+  WizardForm.FinishedHeadingLabel.Font.Style := [fsBold];
 end;
 
+// Custom page captions and install type handling
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  // When type selection changes, update the default directory
-  if CurPageID = wpSelectDir then
+  // Update portable mode based on selection
+  if CurPageID = InstallTypePage.ID then
   begin
-    if IsPortableMode then
-    begin
-      // Suggest a portable-friendly location
-      WizardForm.DirEdit.Text := ExpandConstant('{userdocs}\SAP-Portable');
-    end;
+    WizardForm.NextButton.Caption := 'Next';
+  end
+  else if CurPageID = InstallTypePage.ID + 1 then
+  begin
+    // User just left the install type page, capture their selection
+    PortableMode := InstallTypePage.Values[1];
+  end;
+  
+  case CurPageID of
+    wpWelcome:
+      WizardForm.NextButton.Caption := 'Get Started';
+    wpSelectDir:
+      WizardForm.NextButton.Caption := 'Next';
+    wpSelectProgramGroup:
+      WizardForm.NextButton.Caption := 'Next';
+    wpSelectTasks:
+      WizardForm.NextButton.Caption := 'Next';
+    wpReady:
+      WizardForm.NextButton.Caption := 'Install';
+    wpInstalling:
+      WizardForm.NextButton.Caption := 'Installing...';
+    wpFinished:
+      WizardForm.NextButton.Caption := 'Finish';
+  else
+    WizardForm.NextButton.Caption := 'Next';
   end;
 end;
 
+// Skip tasks page for portable install
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := False;
+  // Skip the tasks page for portable installs (no desktop icon option needed)
+  if (PageID = wpSelectTasks) and PortableMode then
+    Result := True;
+end;
+
+// Show percentage during installation
+procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);
+var
+  Percent: Integer;
+begin
+  if MaxProgress > 0 then
+  begin
+    Percent := (CurProgress * 100) div MaxProgress;
+    WizardForm.StatusLabel.Caption := Format('Installing files... %d%%', [Percent]);
+  end;
+end;
+
+// Validate before install
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  // Add any pre-install checks here
+end;
+
+// Called when setup starts
 function InitializeSetup: Boolean;
 begin
+  PortableMode := False; // Default to full install
   Result := True;
+end;
+
+// Called when setup ends
+procedure DeinitializeSetup;
+begin
+  // Cleanup if needed
 end;

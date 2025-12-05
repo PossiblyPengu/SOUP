@@ -1,6 +1,14 @@
-# SAP Installer
+# S.A.P Installer
 
-This folder contains scripts to build and package the SAP application as a Windows installer.
+Modern Windows installer for S.A.P (S.A.M. Add-on Pack).
+
+## ✨ Features
+
+- **Modern UI** - Clean, contemporary installer design
+- **Module Selection** - Choose which modules to install
+- **Self-Contained** - No .NET runtime required
+- **Custom Shortcuts** - Desktop and Start Menu shortcuts
+- **Version Tracking** - Installation info saved for updates
 
 ## Prerequisites
 
@@ -41,43 +49,38 @@ cd installer
 If you're using a portable .NET SDK:
 
 ```powershell
-.\build-installer.ps1 -DotnetPath "d:\CODE\important files\dotnet-sdk-9.0.306-win-x64\dotnet.exe"
+.\build-installer.ps1 -DotnetPath "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
 ```
 
 ## Output
 
 After a successful build:
 
-- **Published application**: `publish\` folder in the SAP root directory
-- **Installer**: `installer\Output\SAP-Setup-1.0.0.exe`
+- **Published application**: `SAP\publish\` folder
+- **Installer**: `installer\Output\SAP-Setup-v4.1.0.exe`
 
 ## Installation Types
 
-The installer offers three installation types:
-
 | Type | Description | Modules Included |
 |------|-------------|------------------|
-| **Full** | All modules and data | AllocationBuddy, EssentialsBuddy, ExpireWise, Dictionary DB |
-| **Compact** | Core + AllocationBuddy | AllocationBuddy, Dictionary DB |
-| **Custom** | User-selected | User chooses which modules to enable |
+| **Full** | All modules (Recommended) | All 4 modules + Dictionary |
+| **Minimal** | Core + AllocationBuddy | AllocationBuddy + Dictionary |
+| **Custom** | User-selected | Choose which modules to enable |
 
-### Available Components
+## Included Modules
 
-- **SAP Core Application** (required) - The main application framework
-- **Modules**
-  - **AllocationBuddy** - Inventory allocation and matching
-  - **EssentialsBuddy** - Essentials tracking and management
-  - **ExpireWise** - Expiration date tracking
-- **Data Files**
-  - **Dictionary Database** - 13,000+ items for AllocationBuddy matching
+| Module | Description |
+|--------|-------------|
+| 📅 **ExpireWise** | Expiration date tracking and management |
+| 📊 **AllocationBuddy** | Store allocation matching and tracking |
+| ✅ **EssentialsBuddy** | Essential items inventory tracking |
+| 🏷️ **SwiftLabel** | Quick label generation (always included) |
 
-## What's Included
+## Data Files
 
-The installer packages:
-- SAP application (self-contained, no .NET runtime required)
-- All dependencies
-- Assets and resources
-- Module configuration based on user selection
+| File | Description |
+|------|-------------|
+| 📚 **Item Dictionary** | 13,000+ items for quick lookup |
 
 ## Installation Details
 
