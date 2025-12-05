@@ -60,6 +60,9 @@
     <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
     <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
     
+    <!-- Title Bar (matches sidebar top) -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#ffffff"/>
+    
     <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
@@ -69,7 +72,12 @@
     <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
     
     <!-- Sidebar Brushes -->
-    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource SidebarBackgroundColor}"/>
+    <LinearGradientBrush x:Key="SidebarBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#ffffff" Offset="0"/>
+        <GradientStop Color="#f1f5f9" Offset="0.4"/>
+        <GradientStop Color="#e2e8f0" Offset="0.8"/>
+        <GradientStop Color="#cbd5e1" Offset="1"/>
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}"/>
     <SolidColorBrush x:Key="SidebarActiveBrush" Color="{StaticResource SidebarActiveColor}"/>
     
@@ -111,27 +119,35 @@
 
     <!-- Module Splash Gradients (blend with sidebar) -->
     <LinearGradientBrush x:Key="ExpireWiseSplashGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#f1f5f9" Offset="0"/>
-        <GradientStop Color="#f8fafc" Offset="0.5"/>
-        <GradientStop Color="#ede9fe" Offset="1"/>
+        <GradientStop Color="#fafafa" Offset="0"/>
+        <GradientStop Color="#f5f3ff" Offset="0.25"/>
+        <GradientStop Color="#ede9fe" Offset="0.5"/>
+        <GradientStop Color="#ddd6fe" Offset="0.75"/>
+        <GradientStop Color="#c4b5fd" Offset="1"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="AllocationBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#f1f5f9" Offset="0"/>
-        <GradientStop Color="#f8fafc" Offset="0.5"/>
-        <GradientStop Color="#e0e7ff" Offset="1"/>
+        <GradientStop Color="#fafafa" Offset="0"/>
+        <GradientStop Color="#eef2ff" Offset="0.25"/>
+        <GradientStop Color="#e0e7ff" Offset="0.5"/>
+        <GradientStop Color="#c7d2fe" Offset="0.75"/>
+        <GradientStop Color="#a5b4fc" Offset="1"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="EssentialsBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#f1f5f9" Offset="0"/>
-        <GradientStop Color="#f8fafc" Offset="0.5"/>
-        <GradientStop Color="#d1fae5" Offset="1"/>
+        <GradientStop Color="#fafafa" Offset="0"/>
+        <GradientStop Color="#ecfdf5" Offset="0.25"/>
+        <GradientStop Color="#d1fae5" Offset="0.5"/>
+        <GradientStop Color="#a7f3d0" Offset="0.75"/>
+        <GradientStop Color="#6ee7b7" Offset="1"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="SwiftLabelSplashGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#f1f5f9" Offset="0"/>
-        <GradientStop Color="#f8fafc" Offset="0.5"/>
-        <GradientStop Color="#fce7f3" Offset="1"/>
+        <GradientStop Color="#fafafa" Offset="0"/>
+        <GradientStop Color="#fdf2f8" Offset="0.25"/>
+        <GradientStop Color="#fce7f3" Offset="0.5"/>
+        <GradientStop Color="#fbcfe8" Offset="0.75"/>
+        <GradientStop Color="#f9a8d4" Offset="1"/>
     </LinearGradientBrush>
 
     <!-- Module Icon Gradients -->

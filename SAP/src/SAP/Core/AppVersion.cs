@@ -19,12 +19,12 @@ namespace SAP.Core;
 public static class AppVersion
 {
     /// <summary>
-    /// The current application version string (e.g., "4.1.0").
+    /// The current application version string (e.g., "4.2.0").
     /// </summary>
-    public const string Version = "4.1.0";
+    public const string Version = "4.2.0";
 
     /// <summary>
-    /// The current version display string with 'v' prefix (e.g., "v4.1.0").
+    /// The current version display string with 'v' prefix (e.g., "v4.2.0").
     /// </summary>
     public const string DisplayVersion = "v" + Version;
 
@@ -39,7 +39,7 @@ public static class AppVersion
     public const string BuildDate = "2025-12-05";
 
     /// <summary>
-    /// Full version string with channel (e.g., "v4.1.0 - Stable").
+    /// Full version string with channel (e.g., "v4.2.0 - Stable").
     /// </summary>
     public const string FullVersion = DisplayVersion + " - " + Channel;
 
@@ -48,6 +48,20 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.2.0", "2025-12-05", "UI Polish Update", new[]
+        {
+            "🎨 Enhanced gradient backgrounds in both light and dark themes",
+            "🌈 Sidebar now uses smooth gradient transitions",
+            "🖼️ Module splash screens have more vibrant color gradients",
+            "🪟 Title bar now matches sidebar color for seamless look",
+            "📍 Moved About button into Settings window",
+            "📜 Removed scroll from launcher sidebar navigation",
+            "🔤 S.A.P title now follows theme colors",
+            "📦 Installer now offers Full vs Portable installation options",
+            "💾 Full install: Framework-dependent (~15 MB, requires .NET 8)",
+            "📁 Portable install: Self-contained (~75 MB, runs anywhere)"
+        }),
+
         new("4.1.0", "2025-12-05", "Quality of Life Update", new[]
         {
             "✨ Added About dialog with version and module information (F1)",

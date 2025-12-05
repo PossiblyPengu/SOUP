@@ -5,6 +5,29 @@ All notable changes to S.A.P (S.A.M. Add-on Pack) will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2025-12-05
+
+### Added
+- **Installer Options** - Choose between Full and Portable installation
+  - Full install: Framework-dependent (~15 MB), requires .NET 8 Runtime
+  - Portable install: Self-contained (~75 MB), runs anywhere without dependencies
+
+### Changed
+- **Enhanced Gradients** - More prominent gradient backgrounds in both themes
+  - Sidebar uses smooth vertical gradient transitions
+  - Module splash screens have vibrant color progressions
+  - Title bar now matches sidebar color for seamless appearance
+- **About Button** - Moved from launcher sidebar into Settings window
+- **Launcher Sidebar** - Removed scroll, fixed app list display
+- **S.A.P Title** - Now properly follows light/dark theme colors
+
+### Visual Improvements
+- Dark theme: Deeper, richer color gradients with purple/indigo/green/pink accents
+- Light theme: Brighter, more colorful gradients while maintaining clean aesthetic
+- Seamless visual flow from title bar through sidebar to content area
+
+---
+
 ## [4.1.0] - 2025-12-05
 
 ### Added

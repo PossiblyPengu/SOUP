@@ -6,7 +6,7 @@
 ; ============================================================================
 #define MyAppName "S.A.P"
 #define MyAppFullName "S.A.M. Add-on Pack"
-#define MyAppVersion "4.1.0"
+#define MyAppVersion "4.2.0"
 #define MyAppPublisher "PossiblyPengu"
 #define MyAppURL "https://github.com/PossiblyPengu/Cshp"
 #define MyAppExeName "SAP.exe"
