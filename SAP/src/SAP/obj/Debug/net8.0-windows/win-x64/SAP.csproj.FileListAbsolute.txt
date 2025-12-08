@@ -574,3 +574,11 @@ D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\ref\SAP.dll
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\Windows98Theme.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\DoomGame.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\DoomGame.g.cs
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_door.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_gameover.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_hurt.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_kill.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_levelup.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_pickup.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_secret.wav
+D:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\win98_easteregg.wav

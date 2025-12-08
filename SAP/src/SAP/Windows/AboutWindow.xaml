@@ -32,15 +32,15 @@
             <!-- Win98 Title Bar -->
             <DockPanel Grid.Row="0" LastChildFill="True" Background="{DynamicResource TitleBarBackgroundBrush}" Height="32">
                 <Image Source="pack://application:,,,/SAP;component/Assets/win98_icon.png" Width="20" Height="20" Margin="8,6,4,6"/>
-                <TextBlock Text="About S.A.P" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center" FontFamily="Tahoma" Margin="0,0,0,0"/>
+                <TextBlock Text="About S.A.P" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center" Margin="0,0,0,0"/>
                 <Button Content="✕" Width="32" Height="24" Margin="0,4,4,4" Click="CloseButton_Click"
-                        Background="{DynamicResource SurfaceActiveBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2"
-                        FontFamily="Tahoma" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                    Background="{DynamicResource SurfaceActiveBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2"
+                    FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
             </DockPanel>
 
             <!-- Content -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
-                <StackPanel FontFamily="Tahoma">
+                <StackPanel>
                     <!-- App Icon and Name -->
                     <Border Width="80" Height="80" CornerRadius="20"
                             HorizontalAlignment="Center" Margin="0,0,0,16" Cursor="Hand"
@@ -149,8 +149,8 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,10" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2">
                 <Button Content="Close" HorizontalAlignment="Center" Click="CloseButton_Click"
-                        Padding="18,6" FontWeight="Bold" FontFamily="Tahoma" FontSize="13" Cursor="Hand"
-                        Background="{DynamicResource SurfaceHoverBrush}" BorderBrush="{DynamicResource BorderLightBrush}" BorderThickness="2"/>
+                    Padding="18,6" FontWeight="Bold" FontSize="13" Cursor="Hand"
+                    Background="{DynamicResource SurfaceHoverBrush}" BorderBrush="{DynamicResource BorderLightBrush}" BorderThickness="2"/>
             </Border>
         </Grid>
     </Border>

@@ -14,6 +14,8 @@ namespace SAP.Windows;
 public partial class DoomGame : Window
 {
     #region Win32 API for Mouse
+    // Minimal fix: add missing field for build
+    bool _victory = false;
     [DllImport("user32.dll")]
     static extern bool SetCursorPos(int X, int Y);
 
@@ -1211,6 +1213,9 @@ public partial class DoomGame : Window
             int drawStartX = Math.Max(0, -spriteWidth / 2 + spriteScreenX);
             int drawEndX = Math.Min(W - 1, spriteWidth / 2 + spriteScreenX);
 
+
+            // Minimal fix: declare vertOffset if missing
+            double vertOffset = 0.0;
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
             {
                 if (transformY >= _zBuffer[stripe]) continue;

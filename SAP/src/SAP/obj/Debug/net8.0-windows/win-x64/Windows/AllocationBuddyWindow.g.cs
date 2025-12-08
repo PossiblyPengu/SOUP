@@ -8,7 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using SAP.Core;
 using SAP.ViewModels;
 using SAP.Views.AllocationBuddy;
 using System;
