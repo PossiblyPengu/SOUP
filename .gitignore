@@ -109,3 +109,4 @@ test_files/
 SAP/installer/Output/
 
 .fake
+.claude/settings.local.json

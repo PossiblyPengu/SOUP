@@ -54,7 +54,7 @@ public partial class UnifiedSettingsWindow : Window
             var tabHeader = selectedTab.Header?.ToString() ?? "(null)";
             Serilog.Log.Information("Tab selected: {TabHeader}", tabHeader);
             
-            if (tabHeader == "Dictionary Management")
+            if (tabHeader.Contains("Dictionary"))
             {
                 Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}", 
                     _viewModel.DictionaryManagement.IsInitialized, 
