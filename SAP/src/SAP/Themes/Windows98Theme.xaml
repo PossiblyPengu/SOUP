@@ -2,19 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ============================= -->
-    <!-- WINDOWS 98 THEME COLORS       -->
+    <!-- WINDOWS 98 THEME - AUTHENTIC  -->
     <!-- Easter Egg Retro Theme!       -->
     <!-- ============================= -->
-    
-    <!-- Classic Windows 98 Color Palette (warmer grays than Win95) -->
-    <Color x:Key="BackgroundColor">#3A6EA5</Color>          <!-- Win98 default blue desktop -->
-    <Color x:Key="SurfaceColor">#D4D0C8</Color>             <!-- Win98 warm gray (not pure silver) -->
+
+    <!-- Classic Windows 98 Color Palette -->
+    <Color x:Key="BackgroundColor">#D4D0C8</Color>          <!-- Win98 warm gray surface -->
+    <Color x:Key="SurfaceColor">#D4D0C8</Color>             <!-- Win98 warm gray -->
     <Color x:Key="SurfaceHoverColor">#ECE9D8</Color>        <!-- Lighter warm gray -->
     <Color x:Key="SurfaceActiveColor">#ACA899</Color>       <!-- Pressed state -->
     <Color x:Key="BorderColor">#808080</Color>              <!-- Dark border -->
     <Color x:Key="BorderDarkColor">#404040</Color>          <!-- Darker border (3D shadow) -->
     <Color x:Key="BorderLightColor">#FFFFFF</Color>         <!-- Light border (3D highlight) -->
-    
+    <Color x:Key="SelectionColor">#000080</Color>           <!-- Classic Win98 selection blue -->
+
     <!-- Text Colors -->
     <Color x:Key="TextPrimaryColor">#000000</Color>
     <Color x:Key="TextSecondaryColor">#000000</Color>
@@ -22,18 +23,18 @@
     <Color x:Key="TextDisabledColor">#808080</Color>
     <Color x:Key="TextOnPrimaryColor">#FFFFFF</Color>
     <Color x:Key="TextLinkColor">#0000FF</Color>
-    
+
     <!-- Sidebar Colors (Windows 98 Navy) -->
-    <Color x:Key="SidebarBackgroundColor">#0A246A</Color>   <!-- Win98 darker navy -->
+    <Color x:Key="SidebarBackgroundColor">#0A246A</Color>
     <Color x:Key="SidebarHoverColor">#1E3F7A</Color>
     <Color x:Key="SidebarActiveColor">#0A246A</Color>
-    
+
     <!-- Module Light Background Colors -->
-    <Color x:Key="ExpireWiseLightColor">#FFFFC0</Color>     <!-- Light yellow -->
-    <Color x:Key="AllocationBuddyLightColor">#C0C0FF</Color> <!-- Light blue -->
-    <Color x:Key="EssentialsBuddyLightColor">#C0FFC0</Color> <!-- Light green -->
-    <Color x:Key="SwiftLabelLightColor">#FFC0C0</Color>      <!-- Light red -->
-    
+    <Color x:Key="ExpireWiseLightColor">#FFFFC0</Color>
+    <Color x:Key="AllocationBuddyLightColor">#C0C0FF</Color>
+    <Color x:Key="EssentialsBuddyLightColor">#C0FFC0</Color>
+    <Color x:Key="SwiftLabelLightColor">#FFC0C0</Color>
+
     <!-- Stock Level Colors -->
     <Color x:Key="OutOfStockColor">#FF0000</Color>
     <Color x:Key="OutOfStockTextColor">#FFFFFF</Color>
@@ -43,7 +44,7 @@
     <Color x:Key="OverstockedTextColor">#FFFFFF</Color>
     <Color x:Key="InStockColor">#00FF00</Color>
     <Color x:Key="InStockTextColor">#000000</Color>
-    
+
     <!-- Essentials Buddy Special Colors -->
     <Color x:Key="NonEssentialIn990Color">#FFFF00</Color>
     <Color x:Key="NonEssentialIn990TextColor">#000000</Color>
@@ -51,7 +52,7 @@
     <!-- ============================= -->
     <!-- WINDOWS 98 THEME BRUSHES      -->
     <!-- ============================= -->
-    
+
     <!-- Surface Brushes -->
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
@@ -60,16 +61,17 @@
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
     <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
     <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
-    
+    <SolidColorBrush x:Key="SelectionBrush" Color="{StaticResource SelectionColor}"/>
+
     <!-- Title Bar (Windows 98 Blue Gradient - Classic!) -->
     <LinearGradientBrush x:Key="TitleBarBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
         <GradientStop Color="#0A246A" Offset="0"/>
         <GradientStop Color="#A6CAF0" Offset="1"/>
     </LinearGradientBrush>
-    
+
     <!-- Title Bar Text (White for visibility on blue) -->
     <SolidColorBrush x:Key="TitleBarTextBrush" Color="#FFFFFF"/>
-    
+
     <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
@@ -77,18 +79,18 @@
     <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
     <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
-    
-    <!-- Sidebar Brushes (Classic Windows 98 warm gray) -->
+
+    <!-- Sidebar Brushes -->
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#D4D0C8"/>
     <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}"/>
     <SolidColorBrush x:Key="SidebarActiveBrush" Color="{StaticResource SidebarActiveColor}"/>
-    
+
     <!-- Module Light Background Brushes -->
     <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="{StaticResource ExpireWiseLightColor}"/>
     <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="{StaticResource AllocationBuddyLightColor}"/>
     <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="{StaticResource EssentialsBuddyLightColor}"/>
     <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="{StaticResource SwiftLabelLightColor}"/>
-    
+
     <!-- Stock Level Brushes -->
     <SolidColorBrush x:Key="OutOfStockBrush" Color="{StaticResource OutOfStockColor}"/>
     <SolidColorBrush x:Key="OutOfStockTextBrush" Color="{StaticResource OutOfStockTextColor}"/>
@@ -98,30 +100,30 @@
     <SolidColorBrush x:Key="OverstockedTextBrush" Color="{StaticResource OverstockedTextColor}"/>
     <SolidColorBrush x:Key="InStockBrush" Color="{StaticResource InStockColor}"/>
     <SolidColorBrush x:Key="InStockTextBrush" Color="{StaticResource InStockTextColor}"/>
-    
+
     <!-- Essentials Buddy Special Brushes -->
     <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="{StaticResource NonEssentialIn990Color}"/>
     <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="{StaticResource NonEssentialIn990TextColor}"/>
-    
-    <!-- Launcher Background (Win98 Blue Desktop) -->
-    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#3A6EA5"/>
+
+    <!-- Launcher Background (Win98 Gray Surface) -->
+    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#D4D0C8"/>
 
     <!-- Card/Input Background -->
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#D4D0C8"/>
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="InputBorderBrush" Color="#7F9DB9"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#808080"/>
 
     <!-- Splash Screen Text -->
-    <SolidColorBrush x:Key="SplashTitleBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#D4D0C8"/>
+    <SolidColorBrush x:Key="SplashTitleBrush" Color="#000000"/>
+    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#404040"/>
 
-    <!-- Module Splash Gradients (Win98 blue style) -->
-    <SolidColorBrush x:Key="ExpireWiseSplashGradient" Color="#3A6EA5"/>
-    <SolidColorBrush x:Key="AllocationBuddySplashGradient" Color="#3A6EA5"/>
-    <SolidColorBrush x:Key="EssentialsBuddySplashGradient" Color="#3A6EA5"/>
-    <SolidColorBrush x:Key="SwiftLabelSplashGradient" Color="#3A6EA5"/>
+    <!-- Module Splash Gradients (Win98 gray style) -->
+    <SolidColorBrush x:Key="ExpireWiseSplashGradient" Color="#D4D0C8"/>
+    <SolidColorBrush x:Key="AllocationBuddySplashGradient" Color="#D4D0C8"/>
+    <SolidColorBrush x:Key="EssentialsBuddySplashGradient" Color="#D4D0C8"/>
+    <SolidColorBrush x:Key="SwiftLabelSplashGradient" Color="#D4D0C8"/>
 
-    <!-- Module Icon Gradients (Flat solid colors for Win98 look) -->
+    <!-- Module Icon Gradients -->
     <SolidColorBrush x:Key="ExpireWiseIconGradient" Color="#FFFF00"/>
     <Color x:Key="ExpireWiseIconShadowColor">#808000</Color>
 
@@ -143,106 +145,79 @@
     </LinearGradientBrush>
     <Color x:Key="AppLogoShadowColor">#000000</Color>
 
-    <!-- Small pixel-style icons (vector) to emulate low-color Win98 icons -->
-    <DrawingImage x:Key="IconNew">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{StaticResource TextPrimaryBrush}" Geometry="M2,14 L14,14 L14,10 L18,10 L18,2 L10,2 L10,6 L2,6 Z" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
-
-    <DrawingImage x:Key="IconOpen">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{StaticResource TextPrimaryBrush}" Geometry="M2,4 L6,4 L8,6 L18,6 L18,16 L2,16 Z M4,6 L4,14 L16,14 L16,8 L8,8 L6,6 Z" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
-
-    <DrawingImage x:Key="IconSave">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{StaticResource TextPrimaryBrush}" Geometry="M3,3 L15,3 L15,13 L3,13 Z M3,13 L3,18 L18,18 L18,7 L15,3" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
-
-    <DrawingImage x:Key="IconSettings">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{StaticResource TextPrimaryBrush}" Geometry="M10,2 L12,2 L13,4 L15,4 L16,6 L15,8 L16,10 L15,12 L13,12 L12,14 L10,14 L9,12 L7,12 L6,10 L7,8 L6,6 L7,4 L9,4 Z M10,6 A4,4 0 1 0 10,14 A4,4 0 1 0 10,6 Z" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
-
-    <DrawingImage x:Key="IconExit">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{StaticResource TextPrimaryBrush}" Geometry="M4,4 L14,12 M14,4 L4,12" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
-
-    <!-- Icon display helper -->
-    <Style x:Key="SmallIconImage" TargetType="Image">
-        <Setter Property="Width" Value="16" />
-        <Setter Property="Height" Value="16" />
-        <Setter Property="Margin" Value="4,0" />
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-    </Style>
-
-    <!-- Launch Button (Classic 3D Button Look) -->
-    <SolidColorBrush x:Key="LaunchButtonGradient" Color="#C0C0C0"/>
-    <SolidColorBrush x:Key="LaunchButtonHoverGradient" Color="#D4D0C8"/>
-    <SolidColorBrush x:Key="LaunchButtonPressedGradient" Color="#808080"/>
+    <!-- Launch Button -->
+    <SolidColorBrush x:Key="LaunchButtonGradient" Color="#D4D0C8"/>
+    <SolidColorBrush x:Key="LaunchButtonHoverGradient" Color="#ECE9D8"/>
+    <SolidColorBrush x:Key="LaunchButtonPressedGradient" Color="#ACA899"/>
     <Color x:Key="LaunchButtonShadowColor">#404040</Color>
 
     <!-- Status Indicator -->
     <SolidColorBrush x:Key="StatusOnlineBrush" Color="#00FF00"/>
 
 
-<!-- Win98 Control Styles -->
+    <!-- ============================= -->
+    <!-- WIN98 CONTROL STYLES          -->
+    <!-- ============================= -->
 
-    <!-- Use a compact, system-like font similar to Windows 98 -->
-    <!-- Prefer embedded bitmap-like font (Press Start 2P) if bundled; fallback to Tahoma/Microsoft Sans Serif -->
-    <!-- After placing a TTF named e.g. PressStart2P.ttf in src/SAP/Fonts, the pack URI below will prefer it. -->
-    <FontFamily x:Key="Win98Font">pack://application:,,,/SAP;component/Fonts/#Press Start 2P, Tahoma, 'Microsoft Sans Serif', 'Segoe UI', Verdana</FontFamily>
+    <!-- Windows 98 Font: Tahoma 8pt (the authentic Win98 system font) -->
+    <FontFamily x:Key="Win98Font">Tahoma, Microsoft Sans Serif, Segoe UI</FontFamily>
+    <sys:Double x:Key="Win98FontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">11</sys:Double>
 
-    <!-- Button: classic raised bevel, square-ish corners -->
+    <!-- Global Font Size -->
+    <Style TargetType="Control">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+    </Style>
+
+    <!-- TextBlock: Base style -->
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- Label: Base style -->
+    <Style TargetType="Label">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <!-- Button: Classic raised 3D bevel with square corners -->
     <Style TargetType="Button">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="MinWidth" Value="75"/>
+        <Setter Property="MinHeight" Value="23"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <!-- Outer 3D border: top-left light, bottom-right dark -->
-                        <Border x:Name="Outer" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="0">
-                            <!-- Inner face inset by 1px so we can simulate 3D using strokes -->
-                            <Border x:Name="Inner" Margin="1" Background="{TemplateBinding Background}" BorderThickness="0">
-                                <Grid>
-                                    <!-- content sits above the inner face -->
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
-                                </Grid>
-                            </Border>
-                        </Border>
-                        <!-- 1px highlights/shadows (drawn on top to avoid layout shifts) -->
-                        <Rectangle x:Name="HighlightTop" Fill="{StaticResource BorderLightBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" IsHitTestVisible="False"/>
-                        <Rectangle x:Name="HighlightLeft" Fill="{StaticResource BorderLightBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Left" Width="1" IsHitTestVisible="False"/>
-                        <Rectangle x:Name="ShadowBottom" Fill="{StaticResource BorderDarkBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False"/>
-                        <Rectangle x:Name="ShadowRight" Fill="{StaticResource BorderDarkBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="1" IsHitTestVisible="False"/>
-                    </Grid>
+                    <Border x:Name="OuterBorder" Background="{TemplateBinding Background}" BorderThickness="0" SnapsToDevicePixels="True">
+                        <Grid>
+                            <!-- 3D raised effect -->
+                            <Border x:Name="TopLeft" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="2,2,0,0"/>
+                            <Border x:Name="BottomRight" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,2,2"/>
+                            <Border x:Name="InnerBorder" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,1" Margin="2,2,0,0"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True"/>
+                        </Grid>
+                    </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Inner" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                            <Setter TargetName="Outer" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
-                        </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Inner" Property="Background" Value="{StaticResource SurfaceActiveBrush}" />
-                            <Setter TargetName="Outer" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
-                            <!-- invert highlight/shadow to simulate pressed bevel -->
-                            <Setter TargetName="HighlightTop" Property="Fill" Value="{StaticResource BorderDarkBrush}" />
-                            <Setter TargetName="HighlightLeft" Property="Fill" Value="{StaticResource BorderDarkBrush}" />
-                            <Setter TargetName="ShadowBottom" Property="Fill" Value="{StaticResource BorderLightBrush}" />
-                            <Setter TargetName="ShadowRight" Property="Fill" Value="{StaticResource BorderLightBrush}" />
+                            <Setter TargetName="TopLeft" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+                            <Setter TargetName="BottomRight" Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+                            <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{StaticResource SurfaceActiveBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource SurfaceActiveBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
-                            <Setter TargetName="Inner" Property="Opacity" Value="0.6" />
+                            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsDefault" Value="True">
+                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="BorderThickness" Value="1"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -250,99 +225,56 @@
         </Setter>
     </Style>
 
-    <!-- Separator: 1px rule used in menus and toolbars -->
-    <Style TargetType="Separator">
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Margin" Value="4,2" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Separator">
-                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- ToolBar button style: compact square buttons with Win98 3D edges -->
-    <Style x:Key="ToolBarButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Width" Value="28" />
-        <Setter Property="Height" Value="28" />
-        <Setter Property="Padding" Value="2" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <Border x:Name="TbOuter" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                            <Border x:Name="TbInner" Margin="1" Background="{TemplateBinding Background}" BorderThickness="0">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </Border>
-                        <Rectangle Fill="{StaticResource BorderLightBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" IsHitTestVisible="False"/>
-                        <Rectangle Fill="{StaticResource BorderLightBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Left" Width="1" IsHitTestVisible="False"/>
-                        <Rectangle Fill="{StaticResource BorderDarkBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False"/>
-                        <Rectangle Fill="{StaticResource BorderDarkBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="1" IsHitTestVisible="False"/>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="TbInner" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="TbInner" Property="Background" Value="{StaticResource SurfaceActiveBrush}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- Card style: square corners and single-pixel 3D border like Win98 cards -->
-    <Style x:Key="CardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="0" />
-        <Setter Property="Padding" Value="8" />
-    </Style>
-
-    <!-- TextBox: flat interior, thin 3D border -->
+    <!-- TextBox: Classic sunken 3D effect -->
     <Style TargetType="TextBox">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="Padding" Value="4" />
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="2"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="0" />
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <!-- Sunken 3D effect (opposite of button) -->
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,1,0,0" Margin="1"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="3,2"/>
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- CheckBox: square box with 3D edges and bold check glyph -->
+    <!-- CheckBox: Classic square box with check mark -->
     <Style TargetType="CheckBox">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border x:Name="Box" Width="14" Height="14" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,6,0">
-                            <Grid>
-                                <Path x:Name="CheckMark" Data="M2,7 L5,10 L11,3" Stroke="{StaticResource TextPrimaryBrush}" StrokeThickness="2" Visibility="Collapsed" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                            </Grid>
-                        </Border>
-                        <ContentPresenter VerticalAlignment="Center" />
+                        <Grid Width="13" Height="13" Margin="0,0,4,0">
+                            <!-- Sunken box -->
+                            <Border Background="#FFFFFF">
+                                <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            </Border>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <Path x:Name="CheckMark" Data="M2,6 L5,9 L10,2" Stroke="{StaticResource TextPrimaryBrush}"
+                                  StrokeThickness="2" Margin="1" Visibility="Collapsed"/>
+                        </Grid>
+                        <ContentPresenter VerticalAlignment="Center"/>
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.6" />
+                            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -350,26 +282,28 @@
         </Setter>
     </Style>
 
-    <!-- RadioButton: round toggle with center dot -->
+    <!-- RadioButton: Classic circle with dot -->
     <Style TargetType="RadioButton">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Grid Width="14" Height="14" Margin="0,0,6,0">
-                            <Ellipse Fill="{StaticResource SurfaceBrush}" Stroke="{StaticResource BorderBrush}" StrokeThickness="1" />
-                            <Ellipse x:Name="Dot" Width="8" Height="8" Fill="{StaticResource TextPrimaryBrush}" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Grid Width="12" Height="12" Margin="0,0,4,0">
+                            <Ellipse Fill="#FFFFFF" Stroke="{StaticResource BorderDarkBrush}" StrokeThickness="1"/>
+                            <Ellipse x:Name="Dot" Width="6" Height="6" Fill="{StaticResource TextPrimaryBrush}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
                         </Grid>
-                        <ContentPresenter VerticalAlignment="Center" />
+                        <ContentPresenter VerticalAlignment="Center"/>
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Dot" Property="Visibility" Value="Visible"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.6" />
+                            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -377,391 +311,48 @@
         </Setter>
     </Style>
 
-<!-- Title-bar caption buttons (Minimize/Maximize/Close) -->
-<Style x:Key="TitleBarCaptionButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-    <Setter Property="Width" Value="36" />
-    <Setter Property="Height" Value="28" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Button">
-                <Border x:Name="Bd" Width="36" Height="28" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <ControlTemplate.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
-                        <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceActiveBrush}"/>
-                    </Trigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<Style x:Key="TitleBarCloseButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarCaptionButtonStyle}">
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Button">
-                <Border x:Name="Bd" Width="36" Height="28" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <ControlTemplate.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Bd" Property="Background" Value="#DC2626"/>
-                        <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter TargetName="Bd" Property="Background" Value="#B91C1C"/>
-                    </Trigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<!-- Menu and ToolBar styles to complete Win98 look -->
-<Style TargetType="Menu">
-    <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-    <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-    <Setter Property="Padding" Value="2" />
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Menu">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                    <ItemsPresenter />
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<Style TargetType="MenuItem">
-    <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-    <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-    <Setter Property="Padding" Value="6,2" />
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="MenuItem">
-                <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="22" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <ContentPresenter ContentSource="Icon" Margin="2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <ContentPresenter ContentSource="Header" Grid.Column="1" Margin="4,2" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
-                <ControlTemplate.Triggers>
-                    <Trigger Property="IsHighlighted" Value="True">
-                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                        <!-- add subtle 3D inset when highlighted -->
-                        <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
-                    </Trigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<Style TargetType="ToolBar">
-    <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-    <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-    <Setter Property="Padding" Value="4" />
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="ToolBar">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                    <ItemsPresenter />
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<!-- ToolBar-specific separators and toggle buttons for pressed state -->
-<Style x:Key="ToolBarSeparatorStyle" TargetType="Separator">
-    <Setter Property="SnapsToDevicePixels" Value="True" />
-    <Setter Property="Margin" Value="2,0" />
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Separator">
-                <Grid Width="6" HorizontalAlignment="Center">
-                    <Border Width="1" Background="{StaticResource BorderDarkBrush}" HorizontalAlignment="Center" />
-                </Grid>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<Style x:Key="ToolBarToggleButtonStyle" TargetType="ToggleButton" BasedOn="{StaticResource ToolBarButtonStyle}">
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="ToggleButton">
-                <Grid>
-                    <Border x:Name="TbOuter" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                        <Border x:Name="TbInner" Margin="1" Background="{TemplateBinding Background}" BorderThickness="0">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </Border>
-                    <Rectangle Fill="{StaticResource BorderLightBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" IsHitTestVisible="False"/>
-                    <Rectangle Fill="{StaticResource BorderLightBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Left" Width="1" IsHitTestVisible="False"/>
-                    <Rectangle Fill="{StaticResource BorderDarkBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False"/>
-                    <Rectangle Fill="{StaticResource BorderDarkBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="1" IsHitTestVisible="False"/>
-                </Grid>
-                <ControlTemplate.Triggers>
-                    <Trigger Property="IsChecked" Value="True">
-                        <Setter TargetName="TbInner" Property="Background" Value="{StaticResource SurfaceActiveBrush}" />
-                        <Setter TargetName="TbOuter" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
-                    </Trigger>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="TbInner" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                    </Trigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-
-<!-- MenuItem submenu arrow glyph -->
-<Style x:Key="MenuSubmenuArrow" TargetType="Path">
-    <Setter Property="Data" Value="M 0 0 L 6 4 L 0 8 Z" />
-    <Setter Property="Fill" Value="{StaticResource TextPrimaryBrush}" />
-    <Setter Property="Stretch" Value="Uniform" />
-    <Setter Property="Width" Value="6" />
-    <Setter Property="Height" Value="8" />
-</Style>
-
-    <!-- Window (app-level) style: background and font defaults (cannot change non-client chrome) -->
-    <Style TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-    </Style>
-
-    <!-- ScrollBar: compact, 3D-edged track and small arrow buttons -->
-    <Style TargetType="ScrollBar">
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ScrollBar">
-                    <Grid Background="{TemplateBinding Background}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <RepeatButton x:Name="PART_LineUpButton" Height="14" Width="14" Grid.Row="0" Focusable="False" Style="{StaticResource ToolBarButtonStyle}">
-                            <Path Data="M 3 10 L 7 4 L 11 10 Z" Fill="{StaticResource TextPrimaryBrush}" Stretch="Uniform" />
-                        </RepeatButton>
-                        <Track Grid.Row="1" x:Name="PART_Track">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Style="{StaticResource ToolBarButtonStyle}" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Width="12" Height="24" />
-                            </Track.Thumb>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Style="{StaticResource ToolBarButtonStyle}" />
-                            </Track.IncreaseRepeatButton>
-                        </Track>
-                        <RepeatButton x:Name="PART_LineDownButton" Height="14" Width="14" Grid.Row="2" Focusable="False" Style="{StaticResource ToolBarButtonStyle}">
-                            <Path Data="M 3 4 L 7 10 L 11 4 Z" Fill="{StaticResource TextPrimaryBrush}" Stretch="Uniform" />
-                        </RepeatButton>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- ListBoxItem / ListViewItem: highlight with Win98 surface hover and 3D border on focus -->
-    <Style TargetType="ListBoxItem">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Padding" Value="4,2" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="1">
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" Margin="2,0" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.6" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- GridView Column Header (ListView) - simple bevel with dark bottom border to mimic Win98 headers -->
-    <Style TargetType="GridViewColumnHeader">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,1,1" />
-        <Setter Property="Padding" Value="6,2" />
-        <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="GridViewColumnHeader">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                        <ContentPresenter Margin="2,0" VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- TabControl and TabItem: flat tabs with selected tab inset like old Windows -->
-    <Style TargetType="TabControl">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TabControl">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <TabPanel Grid.Row="0" IsItemsHost="True" Background="Transparent" Margin="2,2,2,0" />
-                        <Border Grid.Row="1" Background="{TemplateBinding Background}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="4">
-                            <ContentPresenter ContentSource="SelectedContent"/>
-                        </Border>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style TargetType="TabItem">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Padding" Value="8,3" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TabItem">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,1,1,0" Margin="0,0,2,0" Padding="2">
-                        <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.6" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- Slider: small groove with 3D thumb -->
-    <Style TargetType="Slider">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Slider">
-                    <Grid>
-                        <Track x:Name="PART_Track">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Style="{StaticResource ToolBarButtonStyle}" Visibility="Collapsed" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb Width="12" Height="12" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" />
-                            </Track.Thumb>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Style="{StaticResource ToolBarButtonStyle}" Visibility="Collapsed" />
-                            </Track.IncreaseRepeatButton>
-                        </Track>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- ProgressBar: beveled track and fill -->
-    <Style TargetType="ProgressBar">
-        <Setter Property="Height" Value="14" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ProgressBar">
-                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                        <Grid>
-                            <Rectangle x:Name="PART_TrackFill" Fill="{StaticResource LaunchButtonGradient}" HorizontalAlignment="Left" />
-                        </Grid>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsIndeterminate" Value="True">
-                            <Setter TargetName="PART_TrackFill" Property="Fill" Value="{StaticResource LaunchButtonHoverGradient}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- StatusBar: classic thin bar with border -->
-    <Style TargetType="StatusBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="2,1" />
-    </Style>
-
-    <!-- ContextMenu: classic windowed popup with 1px border and surface background -->
-    <Style TargetType="ContextMenu">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="2" />
-    </Style>
-
-    <!-- ComboBox: flat face with small toggle button and Win98 popup background -->
+    <!-- ComboBox: Classic dropdown with arrow -->
     <Style TargetType="ComboBox">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="Padding" Value="4,2" />
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="2"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
-                    <Grid>
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Padding="2">
-                            <DockPanel LastChildFill="True">
-                                <ToggleButton x:Name="Toggle" DockPanel.Dock="Right" Style="{StaticResource ToolBarToggleButtonStyle}" Width="20" Focusable="False">
-                                    <Path Data="M 2 4 L 6 8 L 10 4 Z" Fill="{StaticResource TextPrimaryBrush}" Stretch="Uniform" />
-                                </ToggleButton>
-                                <ContentPresenter x:Name="ContentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" VerticalAlignment="Center" Margin="2,0" />
-                            </DockPanel>
+                    <Grid SnapsToDevicePixels="True">
+                        <!-- Sunken border like TextBox -->
+                        <Border Background="{TemplateBinding Background}">
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
                         </Border>
-                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False">
-                            <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                                <ScrollViewer MaxHeight="200">
-                                    <ItemsPresenter />
+                        <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="17"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0" Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              Margin="3,2" VerticalAlignment="Center"/>
+                            <!-- Classic dropdown button -->
+                            <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}">
+                                <Grid>
+                                    <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                                    <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                                    <Path Data="M0,0 L4,4 L8,0 Z" Fill="{StaticResource TextPrimaryBrush}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="4"/>
+                                </Grid>
+                            </Border>
+                            <ToggleButton Grid.ColumnSpan="2" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Background="Transparent" BorderThickness="0" Focusable="False"/>
+                        </Grid>
+                        <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
+                               AllowsTransparency="True" Focusable="False" PopupAnimation="None">
+                            <Border Background="{StaticResource InputBackgroundBrush}" BorderBrush="{StaticResource BorderDarkBrush}"
+                                    BorderThickness="1" MaxHeight="200">
+                                <ScrollViewer>
+                                    <ItemsPresenter/>
                                 </ScrollViewer>
                             </Border>
                         </Popup>
@@ -771,29 +362,21 @@
         </Setter>
     </Style>
 
-    <!-- DataGrid basic theme: headers and rows with 1px borders -->
-    <Style TargetType="DataGrid">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="RowBackground" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="GridLinesVisibility" Value="None" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-    </Style>
-
-    <Style TargetType="DataGridRow">
-        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <!-- ComboBoxItem with classic selection -->
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Padding" Value="2"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="DataGridRow">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                        <DataGridCellsPresenter />
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SelectionBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -801,29 +384,146 @@
         </Setter>
     </Style>
 
-    <!-- TreeView / TreeViewItem: classic folder-like toggle with small square expander -->
-    <Style TargetType="TreeViewItem">
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Padding" Value="2" />
+    <!-- ListBox: Classic sunken border -->
+    <Style TargetType="ListBox">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="TreeViewItem">
+                <ControlTemplate TargetType="ListBox">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <ScrollViewer Margin="2">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ListBoxItem with classic selection -->
+    <Style TargetType="ListBoxItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SelectionBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ListView with classic selection -->
+    <Style TargetType="ListView">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListView">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <ScrollViewer Margin="2">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ListViewItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SelectionBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TabControl: Classic raised tabs -->
+    <Style TargetType="TabControl">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <ToggleButton x:Name="Expander" Width="14" Height="14" Style="{StaticResource ToolBarToggleButtonStyle}" />
-                        <Border x:Name="Bd" Grid.Column="1" Background="Transparent" Padding="2" BorderBrush="Transparent" BorderThickness="1">
-                            <ContentPresenter x:Name="HeaderHost" ContentSource="Header" />
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TabPanel Grid.Row="0" IsItemsHost="True" Background="Transparent" Margin="2,2,2,0"/>
+                        <!-- Content area with 3D raised border -->
+                        <Border Grid.Row="1" Background="{TemplateBinding Background}" Margin="0,-1,0,0">
+                            <Grid>
+                                <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                                <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                                <ContentPresenter ContentSource="SelectedContent" Margin="4"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TabItem: Classic tab look -->
+    <Style TargetType="TabItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Grid x:Name="Root">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" Margin="0,2,2,0" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                                <Border x:Name="BottomBorder" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                                <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2"/>
+                            </Grid>
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.6" />
+                            <Setter TargetName="Border" Property="Margin" Value="0,0,2,0"/>
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                            <Setter TargetName="BottomBorder" Property="BorderThickness" Value="0,0,1,0"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -831,24 +531,179 @@
         </Setter>
     </Style>
 
-    <!-- ToolTip: small classic tooltip with 1px border -->
-    <Style TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="4" />
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
+    <!-- GroupBox: Classic etched border -->
+    <Style TargetType="GroupBox">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Etched border effect -->
+                        <Border Grid.Row="1" Margin="0,8,0,0">
+                            <Grid>
+                                <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,1,1"/>
+                                <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1" Margin="1,1,0,0"/>
+                                <ContentPresenter Margin="8"/>
+                            </Grid>
+                        </Border>
+                        <!-- Header -->
+                        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" HorizontalAlignment="Left" Margin="8,0,0,0" Padding="4,0">
+                            <ContentPresenter ContentSource="Header"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
-    <!-- Classic MessageBox-style Window (theme-only helper) -->
-    <Style x:Key="ClassicMessageBoxStyle" TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="FontFamily" Value="{StaticResource Win98Font}" />
-        <Setter Property="Width" Value="420" />
-        <Setter Property="Height" Value="180" />
+    <!-- ScrollBar: Classic Win98 style -->
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="MinWidth" Value="16"/>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="Height" Value="16"/>
+                <Setter Property="MinHeight" Value="16"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
+
+    <!-- ProgressBar: Classic segmented look -->
+    <Style TargetType="ProgressBar">
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="#000080"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <Border x:Name="PART_Track" Margin="2">
+                                <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Menu: Classic menu bar -->
+    <Style TargetType="Menu">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- MenuItem -->
+    <Style TargetType="MenuItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <!-- ToolTip: Classic yellow tooltip -->
+    <Style TargetType="ToolTip">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="#FFFFE1"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <!-- Window style -->
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+    </Style>
+
+    <!-- Separator -->
+    <Style TargetType="Separator">
+        <Setter Property="Height" Value="2"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Grid Height="2">
+                        <Rectangle Height="1" Fill="{StaticResource BorderDarkBrush}" VerticalAlignment="Top"/>
+                        <Rectangle Height="1" Fill="{StaticResource BorderLightBrush}" VerticalAlignment="Bottom"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- DataGrid -->
+    <Style TargetType="DataGrid">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="All"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- DataGridColumnHeader -->
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                            <ContentPresenter VerticalAlignment="Center" Margin="2"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Named key styles for custom use -->
+    <Style x:Key="CardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
+    <Style x:Key="ToolBarButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="MinWidth" Value="23"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="Padding" Value="2"/>
+    </Style>
+
+    <Style x:Key="TitleBarCaptionButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="MinWidth" Value="16"/>
+        <Setter Property="MinHeight" Value="14"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style x:Key="TitleBarCloseButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarCaptionButtonStyle}"/>
 
 </ResourceDictionary>
-
