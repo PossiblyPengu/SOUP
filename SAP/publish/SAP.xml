@@ -1636,7 +1636,7 @@
         </member>
         <member name="M:SAP.MainWindow.ActivateWindows95EasterEgg">
             <summary>
-            Activates the Windows 95 easter egg theme.
+            Activates the Windows 98 easter egg theme.
             </summary>
         </member>
         <member name="M:SAP.MainWindow.InitializeComponent">
@@ -4323,9 +4323,14 @@
             Handles clicks on the version badge for easter egg activation.
             </summary>
         </member>
+        <member name="M:SAP.Windows.AboutWindow.AppIcon_MouseLeftButtonDown(System.Object,System.Windows.Input.MouseButtonEventArgs)">
+            <summary>
+            Handles clicks on the app icon for doom easter egg activation.
+            </summary>
+        </member>
         <member name="M:SAP.Windows.AboutWindow.ActivateWindows95EasterEgg">
             <summary>
-            Activates the Windows 95 easter egg theme.
+            Activates the Windows 98 easter egg theme.
             </summary>
         </member>
         <member name="M:SAP.Windows.AboutWindow.CloseButton_Click(System.Object,System.Windows.RoutedEventArgs)">
@@ -4344,6 +4349,16 @@
             </summary>
         </member>
         <member name="M:SAP.Windows.AllocationBuddyWindow.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SAP.Windows.DoomGame">
+            <summary>
+            DoomGame
+            </summary>
+        </member>
+        <member name="M:SAP.Windows.DoomGame.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
@@ -4376,6 +4391,36 @@
         <member name="M:SAP.Windows.SwiftLabelWindow.InitializeComponent">
             <summary>
             InitializeComponent
+            </summary>
+        </member>
+        <member name="T:XamlGeneratedNamespace.GeneratedInternalTypeHelper">
+            <summary>
+            GeneratedInternalTypeHelper
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateInstance(System.Type,System.Globalization.CultureInfo)">
+            <summary>
+            CreateInstance
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.GetPropertyValue(System.Reflection.PropertyInfo,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            GetPropertyValue
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.SetPropertyValue(System.Reflection.PropertyInfo,System.Object,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            SetPropertyValue
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateDelegate(System.Type,System.Object,System.String)">
+            <summary>
+            CreateDelegate
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.AddEventHandler(System.Reflection.EventInfo,System.Object,System.Delegate)">
+            <summary>
+            AddEventHandler
             </summary>
         </member>
         <member name="T:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs">
