@@ -8,6 +8,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using SAP.Core;
+using SAP.Core.Models;
 
 namespace SAP.Windows;
 
@@ -82,13 +84,15 @@ public partial class DoomGame : Window
     double _pitch = 0;                  // Vertical look angle
     double _pz = 0;                     // Vertical position (for jumping/crouching)
     double _pzVel = 0;                  // Vertical velocity
+#pragma warning disable CS0414 // _isJumping is assigned in code but not read; keep for future logic
     bool _isJumping = false;
+#pragma warning restore CS0414
     bool _isCrouching = false;
     double _eyeHeight = 0;              // Eye height offset
     int _hp = 100, _armor = 0, _score = 0;
     bool[] _keys = new bool[3];         // R, B, Y keys
     int _currentWeapon = 1;
-    int[] _ammo = { 999, 48, 12, 200, 10, 5 }; // Boot, Pistol, Shotgun, Ripper, RPG, Pipebomb
+    int[] _ammo = { 999, 48, 12, 200, 10, 5, 8 }; // Boot, Pistol, Shotgun, Ripper, RPG, Pipebomb, MiniRocket
     int _currentLevel = 1; // Now used as 'stage' or 'depth' in endless mode
     int _kills = 0, _totalEnemies = 0, _secretsFound = 0, _totalSecrets = 0;
 
@@ -100,7 +104,7 @@ public partial class DoomGame : Window
     double _steroidsTimer = 0;
 
     // Weapons - Duke style
-    readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB" };
+    readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB", "MINI ROCKET" };
 
     // Sound effect helper
     void PlaySound(string filename)
@@ -117,9 +121,9 @@ public partial class DoomGame : Window
         catch { /* Ignore sound errors */ }
     }
 
-    readonly int[] _weaponDamage = { 25, 12, 50, 8, 120, 150 };
-    readonly double[] _weaponFireRate = { 0.5, 0.25, 0.9, 0.08, 1.2, 0.3 };
-    readonly double[] _weaponSpread = { 0, 0.02, 0.12, 0.06, 0, 0 };
+    readonly int[] _weaponDamage = { 25, 12, 50, 8, 120, 150, 80 };
+    readonly double[] _weaponFireRate = { 0.5, 0.25, 0.9, 0.08, 1.2, 0.3, 0.9 };
+    readonly double[] _weaponSpread = { 0, 0.02, 0.12, 0.06, 0, 0, 0 };
     bool _shooting = false;
     int _shootFrame = 0;
     double _lastShot = 0;
@@ -144,6 +148,10 @@ public partial class DoomGame : Window
     double _quoteTimer = 0;
     Random _rnd = new();
     double _gameTime = 0;
+    HighScoreService? _highScoreService;
+    SettingsService? _settingsService;
+    GameSettings _settings = new();
+    double _hitMarkerTimer = 0;
 
     // Map
     int[] _map = new int[MAP_SIZE * MAP_SIZE];
@@ -181,7 +189,9 @@ public partial class DoomGame : Window
     {
         public int X, Y, KeyRequired;
         public double OpenAmount;
-        public bool Opening, Closing;
+        // Initialize flags explicitly to silence CS0649 (field never assigned)
+        public bool Opening = false;
+        public bool Closing = false;
     }
     #endregion
 
@@ -263,6 +273,42 @@ public partial class DoomGame : Window
                 else CeilTex[y * TEX + x] = 0xFF000000 | (v << 16) | (v << 8) | ((uint)(v * 1.3));
             }
         }
+    }
+
+    void SaveScoreButton_Click(object? s, RoutedEventArgs e)
+    {
+        try
+        {
+            var name = (NameInput?.Text ?? "").Trim();
+            if (string.IsNullOrEmpty(name)) name = Environment.UserName.ToUpperInvariant();
+            _highScoreService?.AddScore(_score, name);
+            UpdateTopScoresUI();
+            SaveScoreButton.IsEnabled = false;
+            ShowMessage("Score saved!");
+        }
+        catch { ShowMessage("Failed to save score"); }
+    }
+
+    void TogglePause()
+    {
+        _paused = !_paused;
+        PauseMenu.Visibility = _paused ? Visibility.Visible : Visibility.Collapsed;
+        if (_paused)
+        {
+            CaptureMouse(false);
+        }
+        else
+        {
+            CaptureMouse(true);
+        }
+    }
+
+    void PauseSensitivitySlider_ValueChanged(object? sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        _mouseSensitivity = e.NewValue;
+        PauseSensitivityValue.Text = _mouseSensitivity.ToString("F2");
+        _settings.MouseSensitivity = _mouseSensitivity;
+        _settingsService?.Save(_settings);
     }
     #endregion
 
@@ -569,6 +615,23 @@ public partial class DoomGame : Window
         _timer.Start();
         Focus();
         CaptureMouse(true);
+        // Initialize high score service
+        try { _highScoreService = new HighScoreService(); } catch { _highScoreService = null; }
+        try
+        {
+            _settingsService = new SettingsService();
+            _settings = _settingsService.Load();
+            _mouseSensitivity = _settings.MouseSensitivity;
+            // wire pause menu controls
+            PauseSensitivitySlider.Value = _mouseSensitivity;
+            PauseSensitivityValue.Text = _mouseSensitivity.ToString("F2");
+            PauseSensitivitySlider.ValueChanged += PauseSensitivitySlider_ValueChanged;
+            ResumeButton.Click += (ss, ee) => TogglePause();
+            QuitButton.Click += (ss, ee) => Close();
+            // wire save score button (if present)
+            try { SaveScoreButton.Click += SaveScoreButton_Click; } catch { }
+        }
+        catch { _settingsService = null; }
     }
 
     void CaptureMouse(bool capture)
@@ -621,6 +684,18 @@ public partial class DoomGame : Window
 
         if (_quoteTimer > 0) _quoteTimer -= dt;
         else DukeQuote.Text = "";
+
+        // update hit marker
+        if (_hitMarkerTimer > 0)
+        {
+            _hitMarkerTimer -= dt;
+            double t = Math.Max(0, _hitMarkerTimer / 0.25);
+            HitMarkerEllipse.Opacity = t;
+        }
+        else
+        {
+            HitMarkerEllipse.Opacity = 0;
+        }
 
         if (_steroidsTimer > 0) _steroidsTimer -= dt;
     }
@@ -771,14 +846,24 @@ public partial class DoomGame : Window
         if (_rnd.NextDouble() < 0.3)
             SayQuote(HurtQuotes[_rnd.Next(HurtQuotes.Length)]);
 
-        if (_hp <= 0)
+            if (_hp <= 0)
+            {
+                _hp = 0;
+                _gameOver = true;
+                PlaySound("duke_gameover.wav");
+                GameOverScreen.Visibility = Visibility.Visible;
+                FinalScoreText.Text = $"Final Score: {_score}";
+                // populate name input with default username
+                try { NameInput.Text = Environment.UserName.ToUpperInvariant(); } catch { NameInput.Text = "PLAYER"; }
+                // show top scores too
+                try { UpdateTopScoresUI(); } catch { }
+                CaptureMouse(false);
+            }
+        else
         {
-            _hp = 0;
-            _gameOver = true;
-            PlaySound("duke_gameover.wav");
-            GameOverScreen.Visibility = Visibility.Visible;
-            FinalScoreText.Text = $"Final Score: {_score}";
-            CaptureMouse(false);
+            // show hit marker when player takes damage
+            _hitMarkerTimer = 0.25;
+            HitMarkerEllipse.Opacity = 1.0;
         }
     }
     #endregion
@@ -795,7 +880,7 @@ public partial class DoomGame : Window
 
             if (IsWall(p.X, p.Y))
             {
-                if (p.IsRocket && p.FromPlayer) ExplosionAt(p.X, p.Y, 100);
+                if (p.IsRocket && p.FromPlayer) ExplosionAt(p.X, p.Y, (int)p.Damage);
                 p.Dead = true;
                 continue;
             }
@@ -808,13 +893,16 @@ public partial class DoomGame : Window
                     double d = Math.Sqrt((p.X - en.X) * (p.X - en.X) + (p.Y - en.Y) * (p.Y - en.Y));
                     if (d < 0.5)
                     {
-                        if (p.IsRocket) ExplosionAt(p.X, p.Y, 100);
+                        if (p.IsRocket) ExplosionAt(p.X, p.Y, (int)p.Damage);
                         else
                         {
                             en.Hp -= p.Damage;
                             en.HurtTimer = 0.15;
                             en.Alerted = true;
                             if (en.Hp <= 0) KillEnemy(en);
+                            // show hit marker on enemy hit
+                            _hitMarkerTimer = 0.12;
+                            HitMarkerEllipse.Opacity = 1.0;
                         }
                         p.Dead = true;
                         break;
@@ -950,7 +1038,18 @@ public partial class DoomGame : Window
                         break;
                     case PickupType.Ammo:
                         _ammo[1] += 12; _ammo[2] += 4; _ammo[3] += 25;
-                        ShowMessage("Ammo");
+                        // Small chance to also find Mini Rocket ammo when picking up generic ammo
+                        bool gotMini = false;
+                        try
+                        {
+                            if (_ammo.Length > 6 && _rnd.NextDouble() < 0.35)
+                            {
+                                _ammo[6] += 2;
+                                gotMini = true;
+                            }
+                        }
+                        catch { }
+                        ShowMessage(gotMini ? "Ammo + Mini Rockets!" : "Ammo");
                         break;
                     case PickupType.Shotgun:
                         _currentWeapon = 2; _ammo[2] += 10;
@@ -1013,6 +1112,13 @@ public partial class DoomGame : Window
         LevelStatsText.Text = $"Kills: {_kills}/{_totalEnemies}  Secrets: {_secretsFound}/{_totalSecrets}";
         LevelQuote.Text = $"\"{LevelCompleteQuotes[_rnd.Next(LevelCompleteQuotes.Length)]}\"";
         CaptureMouse(false);
+        // Consider this as an end-of-run save as well
+        try
+        {
+            _highScoreService?.AddScore(_score);
+            UpdateTopScoresUI();
+        }
+        catch { }
     }
 
     void NextLevel()
@@ -1683,6 +1789,7 @@ public partial class DoomGame : Window
             case 3: return RenderRipper(cx, cy);
             case 4: return RenderRPG(cx, cy);
             case 5: return RenderPipeBomb(cx, cy);
+            case 6: return RenderMiniRocket(cx, cy);
             default: return 0;
         }
     }
@@ -1978,6 +2085,32 @@ public partial class DoomGame : Window
         return 0;
     }
 
+    uint RenderMiniRocket(double x, double y)
+    {
+        // Small rocket held in hands — compact visual distinct from RPG
+        uint body = 0xFF666633u;
+        uint tip = 0xFFFF6644u;
+        uint fin = 0xFF333322u;
+
+        // Hand
+        if (y > 0.5 && Math.Abs(x) < 0.18) return 0xFFDDBB99u;
+
+        // Rocket body (slim)
+        if (y > 0.12 && y < 0.42 && Math.Abs(x) < 0.06)
+        {
+            if (Math.Abs(x) < 0.03) return body;
+            return 0xFF444433u;
+        }
+
+        // Tip
+        if (y > 0.06 && y < 0.14 && Math.Abs(x) < 0.05) return tip;
+
+        // Small fins
+        if (y > 0.38 && y < 0.46 && (Math.Abs(x - 0.07) < 0.02 || Math.Abs(x + 0.07) < 0.02)) return fin;
+
+        return 0;
+    }
+
     void RenderMinimap()
     {
         Array.Clear(_minimapPx, 0, _minimapPx.Length);
@@ -2101,6 +2234,26 @@ public partial class DoomGame : Window
                 FromPlayer = true,
                 IsRocket = true
             });
+        }
+        else if (_currentWeapon == 6) // Mini Rocket
+        {
+            if (_ammo[6] > 0)
+            {
+                _ammo[6]--;
+                _projectiles.Add(new Projectile
+                {
+                    X = _px_pos, Y = _py,
+                    Dx = Math.Cos(_pa) * 0.35,
+                    Dy = Math.Sin(_pa) * 0.35,
+                    Damage = _weaponDamage[_currentWeapon],
+                    FromPlayer = true,
+                    IsRocket = true
+                });
+            }
+            else
+            {
+                ShowMessage("Out of mini rockets!");
+            }
         }
         else if (_currentWeapon == 5) // Pipe bomb
         {
@@ -2237,8 +2390,44 @@ public partial class DoomGame : Window
         if (e.Key == Key.D4 && _ammo[3] > 0) _currentWeapon = 3;
         if (e.Key == Key.D5 && _ammo[4] > 0) _currentWeapon = 4;
         if (e.Key == Key.D6 && _ammo[5] > 0) _currentWeapon = 5;
+        if (e.Key == Key.D7 && _ammo.Length > 6 && _ammo[6] > 0) _currentWeapon = 6;
 
         if (e.Key == Key.Tab) MinimapBorder.Visibility = MinimapBorder.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        if (e.Key == Key.P) TogglePause();
+        // Adjust mouse sensitivity with + / - keys and save
+        if (e.Key == Key.OemPlus || e.Key == Key.Add)
+        {
+            _mouseSensitivity = Math.Min(5.0, _mouseSensitivity + 0.02);
+            _settings.MouseSensitivity = _mouseSensitivity;
+            _settingsService?.Save(_settings);
+            ShowMessage($"Sensitivity: {_mouseSensitivity:F2}");
+        }
+        if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
+        {
+            _mouseSensitivity = Math.Max(0.02, _mouseSensitivity - 0.02);
+            _settings.MouseSensitivity = _mouseSensitivity;
+            _settingsService?.Save(_settings);
+            ShowMessage($"Sensitivity: {_mouseSensitivity:F2}");
+        }
+    }
+
+    void UpdateTopScoresUI()
+    {
+        try
+        {
+            if (_highScoreService == null) return;
+            var top = _highScoreService.LoadTop(5);
+            if (top == null || top.Count == 0)
+            {
+                TopScoresText.Text = "Top Scores: (none)";
+                TopScoresTextVictory.Text = "Top Scores: (none)";
+                return;
+            }
+            string fmt = "Top Scores:\n" + string.Join('\n', top.Select((t, i) => $"{i+1}. {t.Name} - {t.Score}"));
+            TopScoresText.Text = fmt;
+            TopScoresTextVictory.Text = fmt;
+        }
+        catch { }
     }
 
     void OnKeyUp(object s, KeyEventArgs e)
@@ -2265,7 +2454,7 @@ public partial class DoomGame : Window
         _currentLevel = 1;
         _hp = 100; _armor = 0; _score = 0;
         _keys = new bool[3];
-        _ammo = new[] { 999, 48, 12, 200, 10, 5 };
+        _ammo = new[] { 999, 48, 12, 200, 10, 5, 8 };
         _currentWeapon = 1;
         _medkits = 0; _steroids = 0; _hasJetpack = false; _jetpackFuel = 100;
         _gameOver = false; _levelComplete = false;
@@ -2273,6 +2462,8 @@ public partial class DoomGame : Window
         VictoryScreen.Visibility = Visibility.Collapsed;
         LoadLevel(_currentLevel);
         CaptureMouse(true);
+        // refresh top scores UI after restart
+        try { UpdateTopScoresUI(); } catch { }
     }
     #endregion
 }

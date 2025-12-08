@@ -83,7 +83,7 @@ namespace SAP.Views.AllocationBuddy {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SAP;V4.3.0.0;component/views/allocationbuddy/archivedialog.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SAP;V4.3.1.0;component/views/allocationbuddy/archivedialog.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\Views\AllocationBuddy\ArchiveDialog.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

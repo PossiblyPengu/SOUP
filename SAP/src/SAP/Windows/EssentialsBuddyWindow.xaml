@@ -15,6 +15,7 @@
         ResizeMode="CanResizeWithGrip"
         Background="Transparent">
 
+    
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -74,8 +75,9 @@
                             </Button.Template>
                         </Button>
 
+                        
                         <!-- Minimize -->
-                        <Button Click="MinimizeButton_Click" ToolTip="Minimize"
+                        <Button x:Name="MinimizeButton" Click="MinimizeButton_Click" ToolTip="Minimize"
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
@@ -93,7 +95,7 @@
                         </Button>
                         
                         <!-- Maximize/Restore -->
-                        <Button Click="MaximizeButton_Click" ToolTip="Maximize"
+                        <Button x:Name="MaximizeButton" Click="MaximizeButton_Click" ToolTip="Maximize"
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
@@ -111,7 +113,7 @@
                         </Button>
                         
                         <!-- Close -->
-                        <Button Click="CloseButton_Click" ToolTip="Close"
+                        <Button x:Name="CloseButton" Click="CloseButton_Click" ToolTip="Close"
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">

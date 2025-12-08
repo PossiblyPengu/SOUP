@@ -169,7 +169,7 @@
     </Window.Resources>
 
     <!-- Custom Window Chrome -->
-    <Border Background="{DynamicResource BackgroundBrush}" 
+        <Border Background="{DynamicResource BackgroundBrush}" 
             BorderBrush="{DynamicResource BorderBrush}" 
             BorderThickness="1" 
             CornerRadius="12">

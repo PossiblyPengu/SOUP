@@ -15,6 +15,8 @@
         ResizeMode="CanResizeWithGrip"
         Background="Transparent">
 
+    
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -40,7 +42,7 @@
             
             <!-- Custom Title Bar -->
             <Border Grid.Row="0" Background="{DynamicResource TitleBarBackgroundBrush}" 
-                    CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                        CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -109,7 +111,7 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        
+
                         <!-- Close -->
                         <Button Click="CloseButton_Click" ToolTip="Close"
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
@@ -133,7 +135,7 @@
             </Border>
             
             <!-- Content -->
-            <Border Grid.Row="1" CornerRadius="0,0,12,12" ClipToBounds="True">
+            <Border Grid.Row="1" CornerRadius="0" ClipToBounds="True">
                 <views:SwiftLabelView/>
             </Border>
         </Grid>
