@@ -126,7 +126,7 @@ public partial class ThemeService : ObservableObject
             string themePath;
             if (IsWindows95Mode)
             {
-                themePath = "pack://application:,,,/Themes/Windows95Theme.xaml";
+                themePath = "pack://application:,,,/Themes/Windows98Theme.xaml";
             }
             else
             {

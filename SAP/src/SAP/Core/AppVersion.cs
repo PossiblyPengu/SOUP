@@ -50,11 +50,11 @@ public static class AppVersion
     {
         new("4.3.0", "2025-12-08", "Easter Egg Update", new[]
         {
-            "🖥️ Added Windows 95 easter egg theme",
+            "🖥️ Added Windows 98 easter egg theme",
             "🥚 Click version badge 7 times to activate retro mode",
             "🎯 Easter egg available in launcher and About dialog",
-            "🎨 Classic blue gradient title bar in Win95 mode",
-            "💾 Teal desktop background and silver UI elements",
+            "🎨 Classic blue gradient title bar in Win98 mode",
+            "💾 Blue desktop background and warm gray UI elements",
             "🔄 Theme preference persists between sessions"
         }),
 

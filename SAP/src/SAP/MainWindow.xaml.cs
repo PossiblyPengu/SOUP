@@ -93,7 +93,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Activates the Windows 95 easter egg theme.
+    /// Activates the Windows 98 easter egg theme.
     /// </summary>
     private void ActivateWindows95EasterEgg()
     {
@@ -102,7 +102,7 @@ public partial class MainWindow : Window
         
         var isEnabled = themeService.IsWindows95Mode;
         var message = isEnabled 
-            ? "🖥️ Windows 95 Mode Activated!\n\nWelcome to 1995! Enjoy the retro vibes."
+            ? "🖥️ Windows 98 Mode Activated!\n\nWelcome to 1998! Enjoy the retro vibes."
             : "✨ Modern Mode Restored!\n\nWelcome back to the future.";
         
         MessageBox.Show(message, "Easter Egg!", MessageBoxButton.OK, 

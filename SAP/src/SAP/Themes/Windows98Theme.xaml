@@ -2,18 +2,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ============================= -->
-    <!-- WINDOWS 95 THEME COLORS       -->
+    <!-- WINDOWS 98 THEME COLORS       -->
     <!-- Easter Egg Retro Theme!       -->
     <!-- ============================= -->
     
-    <!-- Classic Windows 95 Color Palette -->
-    <Color x:Key="BackgroundColor">#008080</Color>          <!-- Teal desktop -->
-    <Color x:Key="SurfaceColor">#C0C0C0</Color>             <!-- Silver/Gray -->
-    <Color x:Key="SurfaceHoverColor">#D4D0C8</Color>        <!-- Light gray -->
-    <Color x:Key="SurfaceActiveColor">#808080</Color>       <!-- Pressed gray -->
+    <!-- Classic Windows 98 Color Palette (warmer grays than Win95) -->
+    <Color x:Key="BackgroundColor">#3A6EA5</Color>          <!-- Win98 default blue desktop -->
+    <Color x:Key="SurfaceColor">#D4D0C8</Color>             <!-- Win98 warm gray (not pure silver) -->
+    <Color x:Key="SurfaceHoverColor">#ECE9D8</Color>        <!-- Lighter warm gray -->
+    <Color x:Key="SurfaceActiveColor">#ACA899</Color>       <!-- Pressed state -->
     <Color x:Key="BorderColor">#808080</Color>              <!-- Dark border -->
-    <Color x:Key="BorderDarkColor">#404040</Color>          <!-- Darker border -->
-    <Color x:Key="BorderLightColor">#FFFFFF</Color>         <!-- Light border (3D effect) -->
+    <Color x:Key="BorderDarkColor">#404040</Color>          <!-- Darker border (3D shadow) -->
+    <Color x:Key="BorderLightColor">#FFFFFF</Color>         <!-- Light border (3D highlight) -->
     
     <!-- Text Colors -->
     <Color x:Key="TextPrimaryColor">#000000</Color>
@@ -23,10 +23,10 @@
     <Color x:Key="TextOnPrimaryColor">#FFFFFF</Color>
     <Color x:Key="TextLinkColor">#0000FF</Color>
     
-    <!-- Sidebar Colors (Windows 95 Navy) -->
-    <Color x:Key="SidebarBackgroundColor">#000080</Color>   <!-- Navy blue -->
-    <Color x:Key="SidebarHoverColor">#0000A0</Color>
-    <Color x:Key="SidebarActiveColor">#000080</Color>
+    <!-- Sidebar Colors (Windows 98 Navy) -->
+    <Color x:Key="SidebarBackgroundColor">#0A246A</Color>   <!-- Win98 darker navy -->
+    <Color x:Key="SidebarHoverColor">#1E3F7A</Color>
+    <Color x:Key="SidebarActiveColor">#0A246A</Color>
     
     <!-- Module Light Background Colors -->
     <Color x:Key="ExpireWiseLightColor">#FFFFC0</Color>     <!-- Light yellow -->
@@ -49,7 +49,7 @@
     <Color x:Key="NonEssentialIn990TextColor">#000000</Color>
 
     <!-- ============================= -->
-    <!-- WINDOWS 95 THEME BRUSHES      -->
+    <!-- WINDOWS 98 THEME BRUSHES      -->
     <!-- ============================= -->
     
     <!-- Surface Brushes -->
@@ -61,10 +61,10 @@
     <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
     <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
     
-    <!-- Title Bar (Windows 95 Blue Gradient - Classic!) -->
+    <!-- Title Bar (Windows 98 Blue Gradient - Classic!) -->
     <LinearGradientBrush x:Key="TitleBarBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
-        <GradientStop Color="#000080" Offset="0"/>
-        <GradientStop Color="#1084D0" Offset="1"/>
+        <GradientStop Color="#0A246A" Offset="0"/>
+        <GradientStop Color="#A6CAF0" Offset="1"/>
     </LinearGradientBrush>
     
     <!-- Title Bar Text (White for visibility on blue) -->
@@ -78,8 +78,8 @@
     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
     <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
     
-    <!-- Sidebar Brushes (Classic Windows 95 taskbar look) -->
-    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#C0C0C0"/>
+    <!-- Sidebar Brushes (Classic Windows 98 warm gray) -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#D4D0C8"/>
     <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}"/>
     <SolidColorBrush x:Key="SidebarActiveBrush" Color="{StaticResource SidebarActiveColor}"/>
     
@@ -103,25 +103,25 @@
     <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="{StaticResource NonEssentialIn990Color}"/>
     <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="{StaticResource NonEssentialIn990TextColor}"/>
     
-    <!-- Launcher Background (Teal Desktop!) -->
-    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#008080"/>
+    <!-- Launcher Background (Win98 Blue Desktop) -->
+    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#3A6EA5"/>
 
     <!-- Card/Input Background -->
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#C0C0C0"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#D4D0C8"/>
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="InputBorderBrush" Color="#808080"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#7F9DB9"/>
 
     <!-- Splash Screen Text -->
     <SolidColorBrush x:Key="SplashTitleBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#C0C0C0"/>
+    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#D4D0C8"/>
 
-    <!-- Module Splash Gradients (Flat Windows 95 style) -->
-    <SolidColorBrush x:Key="ExpireWiseSplashGradient" Color="#008080"/>
-    <SolidColorBrush x:Key="AllocationBuddySplashGradient" Color="#008080"/>
-    <SolidColorBrush x:Key="EssentialsBuddySplashGradient" Color="#008080"/>
-    <SolidColorBrush x:Key="SwiftLabelSplashGradient" Color="#008080"/>
+    <!-- Module Splash Gradients (Win98 blue style) -->
+    <SolidColorBrush x:Key="ExpireWiseSplashGradient" Color="#3A6EA5"/>
+    <SolidColorBrush x:Key="AllocationBuddySplashGradient" Color="#3A6EA5"/>
+    <SolidColorBrush x:Key="EssentialsBuddySplashGradient" Color="#3A6EA5"/>
+    <SolidColorBrush x:Key="SwiftLabelSplashGradient" Color="#3A6EA5"/>
 
-    <!-- Module Icon Gradients (Flat solid colors for Win95 look) -->
+    <!-- Module Icon Gradients (Flat solid colors for Win98 look) -->
     <SolidColorBrush x:Key="ExpireWiseIconGradient" Color="#FFFF00"/>
     <Color x:Key="ExpireWiseIconShadowColor">#808000</Color>
 
