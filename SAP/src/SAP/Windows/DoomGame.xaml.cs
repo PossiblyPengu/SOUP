@@ -72,6 +72,9 @@ public partial class DoomGame : Window
     double[] _zBuffer;
     DispatcherTimer? _timer;
 
+    // Per-tile floor heights for verticality
+    int[] _floorHeights = new int[MAP_SIZE * MAP_SIZE];
+
     // Player - Duke style with vertical look, jumping, crouching
     double _px_pos, _py, _pa;          // Position and horizontal angle
     double _pitch = 0;                  // Vertical look angle
@@ -84,7 +87,7 @@ public partial class DoomGame : Window
     bool[] _keys = new bool[3];         // R, B, Y keys
     int _currentWeapon = 1;
     int[] _ammo = { 999, 48, 12, 200, 10, 5 }; // Boot, Pistol, Shotgun, Ripper, RPG, Pipebomb
-    int _currentLevel = 1;
+    int _currentLevel = 1; // Now used as 'stage' or 'depth' in endless mode
     int _kills = 0, _totalEnemies = 0, _secretsFound = 0, _totalSecrets = 0;
 
     // Inventory items
@@ -96,6 +99,22 @@ public partial class DoomGame : Window
 
     // Weapons - Duke style
     readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB" };
+
+    // Sound effect helper
+    void PlaySound(string filename)
+    {
+        try
+        {
+            var soundPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", filename);
+            if (System.IO.File.Exists(soundPath))
+            {
+                var player = new System.Media.SoundPlayer(soundPath);
+                player.Play();
+            }
+        }
+        catch { /* Ignore sound errors */ }
+    }
+
     readonly int[] _weaponDamage = { 25, 12, 50, 8, 120, 150 };
     readonly double[] _weaponFireRate = { 0.5, 0.25, 0.9, 0.08, 1.2, 0.3 };
     readonly double[] _weaponSpread = { 0, 0.02, 0.12, 0.06, 0, 0 };
@@ -117,7 +136,7 @@ public partial class DoomGame : Window
     int _centerX, _centerY;
 
     // Game flow
-    bool _gameOver = false, _levelComplete = false, _victory = false, _paused = false;
+    bool _gameOver = false, _levelComplete = false, _paused = false;
     double _messageTimer = 0;
     string _message = "";
     double _quoteTimer = 0;
@@ -254,23 +273,9 @@ public partial class DoomGame : Window
         _doors.Clear();
         _pipeBombs.Clear();
 
-        for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++) _map[i] = 0;
+        for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++) { _map[i] = 0; _floorHeights[i] = 0; }
 
-        for (int i = 0; i < MAP_SIZE; i++)
-        {
-            _map[i] = 1;
-            _map[(MAP_SIZE - 1) * MAP_SIZE + i] = 1;
-            _map[i * MAP_SIZE] = 1;
-            _map[i * MAP_SIZE + MAP_SIZE - 1] = 1;
-        }
-
-        switch (level)
-        {
-            case 1: GenerateLevel1(); break;
-            case 2: GenerateLevel2(); break;
-            case 3: GenerateLevel3(); break;
-            default: GenerateBossLevel(); break;
-        }
+        GenerateRandomLevel();
 
         _totalEnemies = _enemies.Count;
         _totalSecrets = _pickups.Count(p => p.Type == PickupType.AtomicHealth);
@@ -280,8 +285,103 @@ public partial class DoomGame : Window
         _pz = 0;
         _pzVel = 0;
 
-        Title = $"S.A.P NUKEM - Level {level}";
+        Title = $"S.A.P NUKEM - Random Level";
         SayQuote("It's time to kick ass and chew bubblegum...");
+        // --- Random Level Generator with verticality ---
+        void GenerateRandomLevel()
+        {
+            // Outer walls
+            for (int i = 0; i < MAP_SIZE; i++)
+            {
+                _map[i] = 1;
+                _map[(MAP_SIZE - 1) * MAP_SIZE + i] = 1;
+                _map[i * MAP_SIZE] = 1;
+                _map[i * MAP_SIZE + MAP_SIZE - 1] = 1;
+            }
+
+            // Fill with random rooms and corridors
+            for (int y = 1; y < MAP_SIZE - 1; y++)
+            {
+                for (int x = 1; x < MAP_SIZE - 1; x++)
+                {
+                    // Randomly place walls (sparse)
+                    if (_rnd.NextDouble() < 0.13)
+                        _map[y * MAP_SIZE + x] = _rnd.Next(1, 6); // random wall type
+                    else
+                        _map[y * MAP_SIZE + x] = 0;
+
+                    // Random floor height (verticality)
+                    if (_map[y * MAP_SIZE + x] == 0)
+                    {
+                        // Make some areas higher/lower
+                        if (_rnd.NextDouble() < 0.10)
+                            _floorHeights[y * MAP_SIZE + x] = _rnd.Next(-16, 33); // -16 to +32 px
+                        else
+                            _floorHeights[y * MAP_SIZE + x] = 0;
+                    }
+                    else
+                    {
+                        _floorHeights[y * MAP_SIZE + x] = 0;
+                    }
+                }
+            }
+
+            // Place player at a random open spot
+            while (true)
+            {
+                int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[py * MAP_SIZE + px] == 0)
+                {
+                    _px_pos = px + 0.5;
+                    _py = py + 0.5;
+                    _pa = _rnd.NextDouble() * PI2;
+                    break;
+                }
+            }
+
+            // Place exit
+            while (true)
+            {
+                int ex = _rnd.Next(2, MAP_SIZE - 2), ey = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[ey * MAP_SIZE + ex] == 0 && Math.Abs(ex - (int)_px_pos) + Math.Abs(ey - (int)_py) > 10)
+                {
+                    AddPickup(PickupType.Exit, ex, ey);
+                    break;
+                }
+            }
+
+            // Place enemies
+            for (int i = 0; i < 12 + _rnd.Next(8); i++)
+            {
+                int ex = _rnd.Next(2, MAP_SIZE - 2), ey = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[ey * MAP_SIZE + ex] == 0)
+                    AddEnemy((EnemyType)_rnd.Next(0, 5), ex, ey);
+            }
+
+            // Place pickups
+            for (int i = 0; i < 10 + _rnd.Next(8); i++)
+            {
+                int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[py * MAP_SIZE + px] == 0)
+                    AddPickup((PickupType)_rnd.Next(0, 13), px, py);
+            }
+
+            // Place a few keys
+            for (int k = 0; k < 3; k++)
+            {
+                int kx = _rnd.Next(2, MAP_SIZE - 2), ky = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[ky * MAP_SIZE + kx] == 0)
+                    AddPickup((PickupType)(9 + k), kx, ky);
+            }
+
+            // Place a few doors
+            for (int d = 0; d < 4; d++)
+            {
+                int dx = _rnd.Next(2, MAP_SIZE - 2), dy = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[dy * MAP_SIZE + dx] == 0)
+                    AddDoor(dx, dy, _rnd.Next(1, 4));
+            }
+        }
     }
 
     void GenerateLevel1()
@@ -422,6 +522,9 @@ public partial class DoomGame : Window
 
     void AddEnemy(EnemyType type, double x, double y)
     {
+        // Only place enemy if not in wall
+        int ix = (int)x, iy = (int)y;
+        if (_map[iy * MAP_SIZE + ix] != 0) return;
         var e = new Enemy { X = x + 0.5, Y = y + 0.5, Type = type };
         switch (type)
         {
@@ -662,7 +765,7 @@ public partial class DoomGame : Window
             damage -= absorbed / 2;
         }
         _hp -= damage;
-
+        PlaySound("duke_hurt.wav");
         if (_rnd.NextDouble() < 0.3)
             SayQuote(HurtQuotes[_rnd.Next(HurtQuotes.Length)]);
 
@@ -670,6 +773,7 @@ public partial class DoomGame : Window
         {
             _hp = 0;
             _gameOver = true;
+            PlaySound("duke_gameover.wav");
             GameOverScreen.Visibility = Visibility.Visible;
             FinalScoreText.Text = $"Final Score: {_score}";
             CaptureMouse(false);
@@ -770,7 +874,7 @@ public partial class DoomGame : Window
         en.Dead = true;
         _score += en.ScoreValue;
         _kills++;
-
+        PlaySound("duke_kill.wav");
         if (_rnd.NextDouble() < 0.4)
             SayQuote(KillQuotes[_rnd.Next(KillQuotes.Length)]);
     }
@@ -783,6 +887,7 @@ public partial class DoomGame : Window
         {
             if (door.Opening)
             {
+                PlaySound("duke_door.wav");
                 door.OpenAmount = Math.Min(1, door.OpenAmount + dt * 2.5);
                 if (door.OpenAmount >= 1) door.Opening = false;
             }
@@ -801,6 +906,30 @@ public partial class DoomGame : Window
             if (d < 0.6)
             {
                 bool collected = true;
+                switch (p.Type)
+                {
+                    case PickupType.Health:
+                    case PickupType.Armor:
+                    case PickupType.Ammo:
+                    case PickupType.Shotgun:
+                    case PickupType.Ripper:
+                    case PickupType.RPG:
+                    case PickupType.Medkit:
+                    case PickupType.Jetpack:
+                    case PickupType.Steroids:
+                    case PickupType.KeyRed:
+                    case PickupType.KeyBlue:
+                    case PickupType.KeyYellow:
+                        PlaySound("duke_pickup.wav");
+                        break;
+                    case PickupType.AtomicHealth:
+                        PlaySound("duke_secret.wav");
+                        break;
+                    case PickupType.Exit:
+                        // No sound, handled by CompleteLevel
+                        break;
+                }
+
                 switch (p.Type)
                 {
                     case PickupType.Health:
@@ -876,8 +1005,9 @@ public partial class DoomGame : Window
     void CompleteLevel()
     {
         _levelComplete = true;
+        PlaySound("duke_levelup.wav");
         LevelCompleteScreen.Visibility = Visibility.Visible;
-        LevelScoreText.Text = $"Score: {_score}";
+        LevelScoreText.Text = $"Score: {_score} | Stage: {_currentLevel}";
         LevelStatsText.Text = $"Kills: {_kills}/{_totalEnemies}  Secrets: {_secretsFound}/{_totalSecrets}";
         LevelQuote.Text = $"\"{LevelCompleteQuotes[_rnd.Next(LevelCompleteQuotes.Length)]}\"";
         CaptureMouse(false);
@@ -889,17 +1019,10 @@ public partial class DoomGame : Window
         _levelComplete = false;
         LevelCompleteScreen.Visibility = Visibility.Collapsed;
 
-        if (_currentLevel > 4)
-        {
-            _victory = true;
-            VictoryScreen.Visibility = Visibility.Visible;
-            TotalScoreText.Text = $"Total Score: {_score}";
-        }
-        else
-        {
-            LoadLevel(_currentLevel);
-            CaptureMouse(true);
-        }
+        // Increase difficulty: more enemies, more pickups, etc.
+        // This can be done by passing _currentLevel to LoadLevel or adjusting random generation
+        LoadLevel(_currentLevel);
+        CaptureMouse(true);
     }
     #endregion
 
@@ -993,8 +1116,8 @@ public partial class DoomGame : Window
             _zBuffer[x] = perpWallDist;
 
             int lineHeight = (int)(H / perpWallDist);
-            int drawStart = Math.Max(0, -lineHeight / 2 + horizon - (int)(_pz / perpWallDist * 20));
-            int drawEnd = Math.Min(H - 1, lineHeight / 2 + horizon - (int)(_pz / perpWallDist * 20));
+            int drawStart = Math.Max(0, -lineHeight / 2 + horizon);
+            int drawEnd = Math.Min(H - 1, lineHeight / 2 + horizon);
 
             double wallX = side == 0 ? _py + perpWallDist * rayDirY : _px_pos + perpWallDist * rayDirX;
             wallX -= Math.Floor(wallX);
@@ -1059,11 +1182,18 @@ public partial class DoomGame : Window
 
             if (transformY <= 0.1) continue;
 
+            // --- Floor-level sprite fix ---
+            // Project sprite to floor (not camera center):
+            // Find the floor height at (sx, sy) in screen space
+            // Assume floor is always at y = 0 (no slopes)
+            // Calculate vertical offset from camera to floor
+            double cameraZ = 32.0 + _pz + _eyeHeight; // camera height (player eye level)
+            double spriteZ = 0.0; // floor level
+            int floorOffset = (int)((cameraZ - spriteZ) / transformY);
+
             int spriteScreenX = (int)(W / 2 * (1 + transformX / transformY));
             int spriteHeight = (int)Math.Abs(H / transformY);
             int spriteWidth = spriteHeight;
-
-            int vertOffset = (int)(_pz / transformY * 20);
 
             if (type == 1 || type == 3)
             {
@@ -1076,8 +1206,8 @@ public partial class DoomGame : Window
                 spriteWidth = spriteHeight;
             }
 
-            int drawStartY = Math.Max(0, -spriteHeight / 2 + horizon - vertOffset);
-            int drawEndY = Math.Min(H - 1, spriteHeight / 2 + horizon - vertOffset);
+            int drawStartY = Math.Max(0, -spriteHeight / 2 + horizon + floorOffset);
+            int drawEndY = Math.Min(H - 1, spriteHeight / 2 + horizon + floorOffset);
             int drawStartX = Math.Max(0, -spriteWidth / 2 + spriteScreenX);
             int drawEndX = Math.Min(W - 1, spriteWidth / 2 + spriteScreenX);
 
@@ -1118,119 +1248,729 @@ public partial class DoomGame : Window
 
     uint GetEnemyColor(Enemy en, double x, double y)
     {
-        if (en.Dead) return y > 0.5 && Math.Abs(x) < 0.4 ? 0xFF302010u : 0;
-
-        bool hurt = en.HurtTimer > 0;
-        uint baseColor = en.Type switch
+        // Dead enemy - flat on ground
+        if (en.Dead)
         {
-            EnemyType.Trooper => hurt ? 0xFFFFAAAAu : 0xFF336633u,    // Green
-            EnemyType.PigCop => hurt ? 0xFFFFAAAAu : 0xFF4444AAu,     // Blue
-            EnemyType.Enforcer => hurt ? 0xFFFFAAAAu : 0xFF666666u,   // Gray
-            EnemyType.Octabrain => hurt ? 0xFFFFAAAAu : 0xFFAA4488u,  // Purple
-            EnemyType.BattleLord => hurt ? 0xFFFFAAAAu : 0xFF888844u, // Brown
-            _ => 0xFF336633u
-        };
-
-        if (y < 0.3 && x * x + (y - 0.15) * (y - 0.15) < 0.025)
-        {
-            if (y > 0.1 && y < 0.2 && (Math.Abs(x - 0.06) < 0.025 || Math.Abs(x + 0.06) < 0.025))
-                return en.Type == EnemyType.Octabrain ? 0xFF00FF00u : 0xFFFF0000u;
-            return baseColor;
+            if (y > 0.4 && Math.Abs(x) < 0.35)
+            {
+                double shade = 0.3 + (y - 0.4) * 0.5;
+                return 0xFF000000 | ((uint)(48 * shade) << 16) | ((uint)(32 * shade) << 8) | (uint)(16 * shade);
+            }
+            return 0;
         }
 
-        if (y >= 0.25 && y < 0.9 && Math.Abs(x) < 0.22 - (y - 0.25) * 0.25)
-            return baseColor;
+        bool hurt = en.HurtTimer > 0;
 
-        if (y > 0.3 && y < 0.55 && Math.Abs(x) > 0.18 && Math.Abs(x) < 0.38)
-            return baseColor;
+        // Each enemy type has unique appearance
+        switch (en.Type)
+        {
+            case EnemyType.Trooper:
+                // Green alien trooper with helmet
+                {
+                    uint bodyColor = hurt ? 0xFFFFAAAAu : 0xFF336633u;
+                    uint helmetColor = 0xFF225522u;
+                    uint eyeColor = 0xFFFF0000u;
+                    uint visorColor = 0xFF88FF88u;
 
-        return 0;
+                    // Helmet/head (top)
+                    if (y < 0.25)
+                    {
+                        double headDist = x * x + (y - 0.12) * (y - 0.12);
+                        if (headDist < 0.025)
+                        {
+                            // Visor
+                            if (y > 0.08 && y < 0.18 && Math.Abs(x) < 0.1)
+                                return visorColor;
+                            return helmetColor;
+                        }
+                        // Red eyes behind visor
+                        if (y > 0.1 && y < 0.16 && (Math.Abs(x - 0.04) < 0.02 || Math.Abs(x + 0.04) < 0.02))
+                            return eyeColor;
+                    }
+                    // Body
+                    if (y >= 0.2 && y < 0.75 && Math.Abs(x) < 0.18 - (y - 0.2) * 0.15)
+                        return bodyColor;
+                    // Arms (holding weapon)
+                    if (y > 0.25 && y < 0.5 && Math.Abs(x) > 0.12 && Math.Abs(x) < 0.3)
+                        return bodyColor;
+                    // Legs
+                    if (y >= 0.7 && y < 0.95)
+                    {
+                        if (Math.Abs(x - 0.08) < 0.06 || Math.Abs(x + 0.08) < 0.06)
+                            return bodyColor;
+                    }
+                    return 0;
+                }
+
+            case EnemyType.PigCop:
+                // Blue uniformed pig cop
+                {
+                    uint bodyColor = hurt ? 0xFFFFAAAAu : 0xFF4444AAu;
+                    uint skinColor = 0xFFFFBB99u;
+                    uint badgeColor = 0xFFFFDD00u;
+
+                    // Pig head (pink, round)
+                    if (y < 0.28)
+                    {
+                        double headDist = x * x + (y - 0.14) * (y - 0.14);
+                        if (headDist < 0.03)
+                        {
+                            // Snout
+                            if (y > 0.15 && y < 0.22 && Math.Abs(x) < 0.05)
+                                return 0xFFFFAAAAu;
+                            // Eyes
+                            if (y > 0.08 && y < 0.14 && (Math.Abs(x - 0.06) < 0.025 || Math.Abs(x + 0.06) < 0.025))
+                                return 0xFF000000u;
+                            return skinColor;
+                        }
+                    }
+                    // Blue uniform body
+                    if (y >= 0.25 && y < 0.8 && Math.Abs(x) < 0.2 - (y - 0.25) * 0.12)
+                    {
+                        // Badge on chest
+                        if (y > 0.3 && y < 0.4 && x > 0.02 && x < 0.1)
+                            return badgeColor;
+                        return bodyColor;
+                    }
+                    // Arms
+                    if (y > 0.3 && y < 0.55 && Math.Abs(x) > 0.15 && Math.Abs(x) < 0.32)
+                        return bodyColor;
+                    // Legs
+                    if (y >= 0.75 && y < 0.98)
+                    {
+                        if (Math.Abs(x - 0.07) < 0.07 || Math.Abs(x + 0.07) < 0.07)
+                            return 0xFF333388u;
+                    }
+                    return 0;
+                }
+
+            case EnemyType.Enforcer:
+                // Gray armored enforcer
+                {
+                    uint armorColor = hurt ? 0xFFFFAAAAu : 0xFF666666u;
+                    uint darkArmor = 0xFF444444u;
+                    uint visorColor = 0xFFFF4400u;
+
+                    // Helmet with visor
+                    if (y < 0.26)
+                    {
+                        double headDist = x * x + (y - 0.13) * (y - 0.13);
+                        if (headDist < 0.028)
+                        {
+                            // Orange visor slit
+                            if (y > 0.1 && y < 0.16 && Math.Abs(x) < 0.12)
+                                return visorColor;
+                            return darkArmor;
+                        }
+                    }
+                    // Bulky armored body
+                    if (y >= 0.22 && y < 0.78 && Math.Abs(x) < 0.22 - (y - 0.22) * 0.1)
+                    {
+                        // Chest plate detail
+                        if (y > 0.28 && y < 0.5 && Math.Abs(x) < 0.15)
+                            return armorColor;
+                        return darkArmor;
+                    }
+                    // Big arms
+                    if (y > 0.28 && y < 0.6 && Math.Abs(x) > 0.15 && Math.Abs(x) < 0.35)
+                        return armorColor;
+                    // Legs
+                    if (y >= 0.72 && y < 0.98)
+                    {
+                        if (Math.Abs(x - 0.1) < 0.08 || Math.Abs(x + 0.1) < 0.08)
+                            return darkArmor;
+                    }
+                    return 0;
+                }
+
+            case EnemyType.Octabrain:
+                // Purple floating brain with tentacles
+                {
+                    uint brainColor = hurt ? 0xFFFFAAAAu : 0xFFAA4488u;
+                    uint eyeColor = 0xFF00FF00u;
+                    uint tentacleColor = 0xFF884466u;
+
+                    // Large brain dome
+                    double brainY = 0.25;
+                    double brainDist = x * x + (y - brainY) * (y - brainY);
+                    if (brainDist < 0.08)
+                    {
+                        // Green glowing eyes
+                        if (y > 0.28 && y < 0.38)
+                        {
+                            if ((Math.Abs(x - 0.08) < 0.04 || Math.Abs(x + 0.08) < 0.04))
+                                return eyeColor;
+                        }
+                        // Brain wrinkles
+                        if (y < 0.2 && ((int)((x + 0.3) * 20) % 3 == 0))
+                            return 0xFF993377u;
+                        return brainColor;
+                    }
+                    // Tentacles below (wavy)
+                    if (y > 0.45 && y < 0.9)
+                    {
+                        double wave = Math.Sin(_gameTime * 5 + x * 10) * 0.03;
+                        if (Math.Abs(x - 0.12 + wave) < 0.04 ||
+                            Math.Abs(x + 0.12 + wave) < 0.04 ||
+                            Math.Abs(x + wave) < 0.03)
+                            return tentacleColor;
+                    }
+                    return 0;
+                }
+
+            case EnemyType.BattleLord:
+                // Large brown boss with horns
+                {
+                    uint bodyColor = hurt ? 0xFFFFAAAAu : 0xFF888844u;
+                    uint darkBody = 0xFF665533u;
+                    uint hornColor = 0xFF444422u;
+                    uint eyeColor = 0xFFFF0000u;
+
+                    // Horns at top
+                    if (y < 0.15)
+                    {
+                        if ((x > 0.1 && x < 0.25 && y < 0.1 - (x - 0.15) * 0.3) ||
+                            (x < -0.1 && x > -0.25 && y < 0.1 - (-x - 0.15) * 0.3))
+                            return hornColor;
+                    }
+                    // Large head
+                    if (y < 0.3)
+                    {
+                        double headDist = x * x + (y - 0.18) * (y - 0.18);
+                        if (headDist < 0.04)
+                        {
+                            // Red glowing eyes
+                            if (y > 0.14 && y < 0.22)
+                            {
+                                if (Math.Abs(x - 0.08) < 0.035 || Math.Abs(x + 0.08) < 0.035)
+                                    return eyeColor;
+                            }
+                            return bodyColor;
+                        }
+                    }
+                    // Massive body
+                    if (y >= 0.26 && y < 0.85 && Math.Abs(x) < 0.28 - (y - 0.26) * 0.08)
+                    {
+                        // Chest armor plates
+                        if (Math.Abs(x) > 0.1 && y < 0.55)
+                            return darkBody;
+                        return bodyColor;
+                    }
+                    // Thick arms
+                    if (y > 0.3 && y < 0.65 && Math.Abs(x) > 0.2 && Math.Abs(x) < 0.42)
+                        return bodyColor;
+                    // Legs
+                    if (y >= 0.8 && y < 1.0)
+                    {
+                        if (Math.Abs(x - 0.12) < 0.1 || Math.Abs(x + 0.12) < 0.1)
+                            return darkBody;
+                    }
+                    return 0;
+                }
+
+            default:
+                return 0;
+        }
     }
 
     uint GetPickupColor(Pickup p, double x, double y)
     {
-        if (x * x + y * y > 0.18) return 0;
+        double dist = x * x + y * y;
+        if (dist > 0.20) return 0;
 
-        return p.Type switch
+        // Add bobbing animation visual feedback
+        double bobPhase = Math.Sin(_gameTime * 4 + p.BobOffset) * 0.02;
+        y -= bobPhase;
+
+        switch (p.Type)
         {
-            PickupType.Health => 0xFF44FF44u,
-            PickupType.AtomicHealth => 0xFF00FFFFu,
-            PickupType.Armor => 0xFF4488FFu,
-            PickupType.Ammo => 0xFFFFDD44u,
-            PickupType.Shotgun => 0xFFBB9966u,
-            PickupType.Ripper => 0xFF888888u,
-            PickupType.RPG => 0xFF66BB66u,
-            PickupType.Medkit => 0xFFFF4444u,
-            PickupType.Jetpack => 0xFFFF8800u,
-            PickupType.Steroids => 0xFFFFFF00u,
-            PickupType.KeyRed => 0xFFFF4444u,
-            PickupType.KeyBlue => 0xFF4444FFu,
-            PickupType.KeyYellow => 0xFFFFFF44u,
-            PickupType.Exit => 0xFFFFFFFFu,
-            _ => 0xFFFFFFFFu
-        };
+            case PickupType.Health:
+                // Green cross shape
+                if ((Math.Abs(x) < 0.08 && Math.Abs(y) < 0.25) || (Math.Abs(y) < 0.08 && Math.Abs(x) < 0.25))
+                    return 0xFF44FF44u;
+                if (dist < 0.16) return 0xFF228822u;
+                return 0;
+
+            case PickupType.AtomicHealth:
+                // Glowing cyan atom with pulsing
+                double pulse = 0.8 + Math.Sin(_gameTime * 6) * 0.2;
+                if (dist < 0.04) return 0xFFFFFFFFu;
+                if (dist < 0.12)
+                {
+                    uint intensity = (uint)(255 * pulse);
+                    return 0xFF000000 | (intensity << 8) | intensity;
+                }
+                if (Math.Abs(x * x + y * y - 0.14) < 0.03) return 0xFF00CCCCu;
+                return 0;
+
+            case PickupType.Armor:
+                // Blue vest/shield shape
+                if (y > -0.2 && y < 0.15 && Math.Abs(x) < 0.18 - y * 0.4)
+                    return y < 0 ? 0xFF4488FFu : 0xFF2266CCu;
+                if (y >= 0.15 && y < 0.25 && Math.Abs(x) < 0.08)
+                    return 0xFF2266CCu;
+                return 0;
+
+            case PickupType.Ammo:
+                // Yellow ammo box
+                if (Math.Abs(x) < 0.15 && y > -0.12 && y < 0.12)
+                {
+                    if (Math.Abs(x) < 0.02 || Math.Abs(y) < 0.02) return 0xFFCC9900u;
+                    return 0xFFFFDD44u;
+                }
+                return 0;
+
+            case PickupType.Shotgun:
+                // Brown/tan shotgun shape
+                if (Math.Abs(y) < 0.05 && x > -0.25 && x < 0.25)
+                    return x > 0.15 ? 0xFF664422u : 0xFFBB9966u;
+                if (y < -0.05 && y > -0.15 && x > 0.05 && x < 0.12)
+                    return 0xFF664422u;
+                return 0;
+
+            case PickupType.Ripper:
+                // Gray chaingun shape
+                if (Math.Abs(y) < 0.04 && x > -0.2 && x < 0.2)
+                    return 0xFFAAAABBu;
+                if (Math.Abs(y - 0.06) < 0.02 && x > 0 && x < 0.15)
+                    return 0xFF666677u;
+                if (Math.Abs(y + 0.06) < 0.02 && x > 0 && x < 0.15)
+                    return 0xFF666677u;
+                return 0;
+
+            case PickupType.RPG:
+                // Green RPG with red tip
+                if (Math.Abs(y) < 0.05 && x > -0.2 && x < 0.2)
+                    return x > 0.12 ? 0xFFFF4444u : 0xFF66BB66u;
+                if (y > 0.05 && y < 0.12 && x > -0.15 && x < -0.05)
+                    return 0xFF448844u;
+                return 0;
+
+            case PickupType.Medkit:
+                // White box with red cross
+                if (Math.Abs(x) < 0.18 && Math.Abs(y) < 0.15)
+                {
+                    if ((Math.Abs(x) < 0.04 && Math.Abs(y) < 0.10) || (Math.Abs(y) < 0.04 && Math.Abs(x) < 0.10))
+                        return 0xFFFF2222u;
+                    return 0xFFFFEEEEu;
+                }
+                return 0;
+
+            case PickupType.Jetpack:
+                // Orange jetpack with flames
+                if (Math.Abs(x) < 0.12 && y > -0.15 && y < 0.1)
+                    return 0xFFFF8800u;
+                if (Math.Abs(x - 0.08) < 0.04 && y > 0.1 && y < 0.2 + Math.Sin(_gameTime * 12) * 0.05)
+                    return 0xFFFF4400u;
+                if (Math.Abs(x + 0.08) < 0.04 && y > 0.1 && y < 0.2 + Math.Sin(_gameTime * 12 + 1) * 0.05)
+                    return 0xFFFFAA00u;
+                return 0;
+
+            case PickupType.Steroids:
+                // Yellow syringe
+                if (Math.Abs(y) < 0.03 && x > -0.2 && x < 0.15)
+                    return 0xFFFFFF00u;
+                if (x > 0.15 && x < 0.22 && Math.Abs(y) < 0.015)
+                    return 0xFFCCCCCCu;
+                if (x < -0.15 && x > -0.22 && Math.Abs(y) < 0.05)
+                    return 0xFFDDDD00u;
+                return 0;
+
+            case PickupType.KeyRed:
+                // Red key shape
+                if (Math.Abs(x) < 0.08 && y > -0.2 && y < 0.05)
+                    return 0xFFFF4444u;
+                if (y > 0.05 && y < 0.15 && Math.Abs(x) < 0.12)
+                    return dist < 0.015 ? 0xFFCC0000u : 0xFFFF4444u;
+                return 0;
+
+            case PickupType.KeyBlue:
+                // Blue key shape
+                if (Math.Abs(x) < 0.08 && y > -0.2 && y < 0.05)
+                    return 0xFF4444FFu;
+                if (y > 0.05 && y < 0.15 && Math.Abs(x) < 0.12)
+                    return dist < 0.015 ? 0xFF0000CCu : 0xFF4444FFu;
+                return 0;
+
+            case PickupType.KeyYellow:
+                // Yellow key shape
+                if (Math.Abs(x) < 0.08 && y > -0.2 && y < 0.05)
+                    return 0xFFFFFF44u;
+                if (y > 0.05 && y < 0.15 && Math.Abs(x) < 0.12)
+                    return dist < 0.015 ? 0xFFCCCC00u : 0xFFFFFF44u;
+                return 0;
+
+            case PickupType.Exit:
+                // Glowing white/green exit sign
+                double exitPulse = 0.7 + Math.Sin(_gameTime * 3) * 0.3;
+                if (Math.Abs(x) < 0.2 && Math.Abs(y) < 0.12)
+                {
+                    if (Math.Abs(x) > 0.16 || Math.Abs(y) > 0.08) return 0xFF44AA44u;
+                    uint g = (uint)(255 * exitPulse);
+                    return 0xFF000000 | (g << 8) | (g / 2);
+                }
+                return 0;
+
+            default:
+                return dist < 0.16 ? 0xFFFFFFFFu : 0;
+        }
     }
 
     double Dist(double x, double y) => (x - _px_pos) * (x - _px_pos) + (y - _py) * (y - _py);
 
     void RenderWeapon()
     {
-        int weaponW = 120, weaponH = 90;
+        int weaponW = 160, weaponH =  120;
         int baseX = W / 2 - weaponW / 2;
-        int baseY = H - weaponH + (_shooting ? -20 : 0);
-        int bob = (int)(Math.Sin(_gameTime * 10) * 4);
-
-        uint weaponColor = _currentWeapon switch
-        {
-            0 => 0xFFDDAAAAu,
-            1 => 0xFF666677u,
-            2 => 0xFF886644u,
-            3 => 0xFF555566u,
-            4 => 0xFF446655u,
-            5 => 0xFF446644u,
-            _ => 0xFF666666u
-        };
+        int baseY = H - weaponH + (_shooting ? -25 : 0);
+        int bob = (int)(Math.Sin(_gameTime * 10) * 5);
 
         for (int y = Math.Max(0, baseY + bob); y < H; y++)
         {
             for (int x = Math.Max(0, baseX); x < Math.Min(W, baseX + weaponW); x++)
             {
-                double rx = (x - baseX - weaponW / 2.0) / weaponW;
-                double ry = (y - baseY - bob) / (double)weaponH;
+                double rx = (double)(x - baseX) / weaponW;  // 0 to 1
+                double ry = (double)(y - baseY - bob) / weaponH;  // 0 to 1
 
-                if (_currentWeapon == 0)
-                {
-                    if (Math.Abs(rx) < 0.35 && ry > 0.25)
-                        _px[y * W + x] = weaponColor;
-                }
-                else
-                {
-                    if (Math.Abs(rx) < 0.12 && ry > 0.15)
-                        _px[y * W + x] = weaponColor;
-                    if (Math.Abs(rx) < 0.22 && ry > 0.55)
-                        _px[y * W + x] = weaponColor;
-                    if (_currentWeapon == 4 && Math.Abs(rx) < 0.18 && ry > 0.1 && ry < 0.35)
-                        _px[y * W + x] = 0xFF335533u;
-                }
+                uint color = GetWeaponPixel(rx, ry);
+                if ((color & 0xFF000000) != 0)
+                    _px[y * W + x] = color;
             }
         }
 
+        // Muzzle flash
         if (_shooting && _shootFrame < 4 && _currentWeapon > 0 && _currentWeapon != 5)
         {
-            int flashY = baseY + bob - 25;
-            for (int y = Math.Max(0, flashY); y < Math.Min(H, flashY + 35); y++)
+            int flashX = W / 2 + (_currentWeapon == 2 ? -5 : 0);
+            int flashY = baseY + bob - 30;
+            int flashSize = _currentWeapon == 4 ? 25 : _currentWeapon == 3 ? 20 : 22;
+
+            for (int y = Math.Max(0, flashY); y < Math.Min(H, flashY + flashSize * 2); y++)
             {
-                for (int x = W / 2 - 18; x < W / 2 + 18; x++)
+                for (int x = flashX - flashSize; x < flashX + flashSize; x++)
                 {
-                    double d = Math.Sqrt((x - W / 2) * (x - W / 2) + (y - flashY - 17) * (y - flashY - 17));
-                    if (d < 18)
+                    if (x < 0 || x >= W) continue;
+                    double d = Math.Sqrt((x - flashX) * (x - flashX) + (y - flashY - flashSize) * (y - flashY - flashSize));
+                    if (d < flashSize)
                     {
-                        uint intensity = (uint)(255 * (1 - d / 18));
-                        _px[y * W + x] = 0xFF000000 | (intensity << 16) | ((intensity * 3 / 4) << 8) | (intensity / 4);
+                        double intensity = 1 - d / flashSize;
+                        uint r = (uint)(255 * intensity);
+                        uint g = (uint)(200 * intensity * intensity);
+                        uint b = (uint)(50 * intensity * intensity * intensity);
+                        _px[y * W + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
                     }
                 }
             }
         }
+    }
+
+    uint GetWeaponPixel(double x, double y)
+    {
+        // Center coordinates (-0.5 to 0.5)
+        double cx = x - 0.5;
+        double cy = y;
+
+        switch (_currentWeapon)
+        {
+            case 0: return RenderFist(cx, cy);
+            case 1: return RenderPistol(cx, cy);
+            case 2: return RenderShotgun(cx, cy);
+            case 3: return RenderRipper(cx, cy);
+            case 4: return RenderRPG(cx, cy);
+            case 5: return RenderPipeBomb(cx, cy);
+            default: return 0;
+        }
+    }
+
+    uint RenderFist(double x, double y)
+    {
+        // Arm
+        if (y > 0.4 && Math.Abs(x) < 0.15 + (y - 0.4) * 0.3)
+        {
+            uint skin = 0xFFDDBB99u;
+            if (Math.Abs(x) > 0.12 + (y - 0.4) * 0.25) skin = 0xFFCCAA88u; // Shading
+            return skin;
+        }
+        // Fist
+        if (y > 0.2 && y < 0.5)
+        {
+            double fistWidth = 0.22 - Math.Abs(y - 0.35) * 0.3;
+            if (Math.Abs(x) < fistWidth)
+            {
+                // Knuckles
+                if (y > 0.22 && y < 0.32)
+                {
+                    double knuckleX = (x + 0.15) * 4;
+                    if (Math.Sin(knuckleX * 3.14159) > 0.3) return 0xFFEECCAAu;
+                    return 0xFFCCAA88u;
+                }
+                return 0xFFDDBB99u;
+            }
+        }
+        // Thumb
+        if (y > 0.25 && y < 0.4 && x > 0.1 && x < 0.25)
+            return 0xFFCCAA88u;
+        return 0;
+    }
+
+    uint RenderPistol(double x, double y)
+    {
+        uint metal = 0xFF555566u;
+        uint metalDark = 0xFF333344u;
+        uint metalLight = 0xFF777788u;
+        uint grip = 0xFF443322u;
+        uint gripLight = 0xFF554433u;
+
+        // Slide (top part)
+        if (y > 0.15 && y < 0.38 && Math.Abs(x) < 0.08)
+        {
+            if (y < 0.2) return metalLight; // Top edge
+            if (Math.Abs(x) > 0.06) return metalDark; // Side shading
+            // Ejection port
+            if (y > 0.22 && y < 0.28 && x > 0.02 && x < 0.055) return metalDark;
+            return metal;
+        }
+        // Barrel
+        if (y > 0.08 && y < 0.2 && Math.Abs(x) < 0.04)
+        {
+            if (Math.Abs(x) < 0.02) return metalDark; // Bore
+            return metal;
+        }
+        // Frame
+        if (y > 0.35 && y < 0.5 && Math.Abs(x) < 0.07)
+        {
+            if (x < -0.04) return metalDark;
+            return metal;
+        }
+        // Trigger guard
+        if (y > 0.42 && y < 0.55 && x > -0.08 && x < 0.03)
+        {
+            if (y > 0.5 && Math.Abs(x + 0.025) < 0.04) return 0; // Guard hole
+            if (Math.Abs(x + 0.02) < 0.015 && y > 0.44 && y < 0.52) return metalDark; // Trigger
+            return metal;
+        }
+        // Grip
+        if (y > 0.48 && Math.Abs(x) < 0.09 - (y - 0.48) * 0.1)
+        {
+            // Grip texture
+            int texY = (int)(y * 60) % 3;
+            if (texY == 0) return gripLight;
+            if (x < 0) return grip;
+            return gripLight;
+        }
+        // Hand
+        if (y > 0.55 && Math.Abs(x) < 0.18)
+        {
+            if (Math.Abs(x) < 0.08) return 0xFFDDBB99u;
+            if (y > 0.6) return 0xFFDDBB99u;
+        }
+        return 0;
+    }
+
+    uint RenderShotgun(double x, double y)
+    {
+        uint wood = 0xFF664422u;
+        uint woodLight = 0xFF885533u;
+        uint woodDark = 0xFF442211u;
+        uint metal = 0xFF555555u;
+        uint metalDark = 0xFF333333u;
+
+        // Double barrels
+        if (y > 0.05 && y < 0.25)
+        {
+            if (Math.Abs(x - 0.04) < 0.035 || Math.Abs(x + 0.04) < 0.035)
+            {
+                if (y < 0.1) return metalDark; // Bore openings
+                return metal;
+            }
+            // Barrel rib
+            if (Math.Abs(x) < 0.015 && y > 0.1) return metalDark;
+        }
+        // Receiver
+        if (y > 0.22 && y < 0.4 && Math.Abs(x) < 0.1)
+        {
+            if (y < 0.26) return metal;
+            if (Math.Abs(x) > 0.08) return metalDark;
+            return metal;
+        }
+        // Forend (pump grip)
+        if (y > 0.35 && y < 0.5 && Math.Abs(x) < 0.12)
+        {
+            int groove = (int)((x + 0.12) * 40) % 4;
+            if (groove == 0) return woodDark;
+            return wood;
+        }
+        // Stock
+        if (y > 0.48 && Math.Abs(x) < 0.14 - (y - 0.48) * 0.15)
+        {
+            if (x < -0.05) return woodDark;
+            if (x > 0.08) return woodLight;
+            return wood;
+        }
+        // Hands
+        if (y > 0.38 && y < 0.55)
+        {
+            if (x > 0.12 && x < 0.28) return 0xFFDDBB99u; // Front hand
+        }
+        if (y > 0.6 && Math.Abs(x) < 0.2) return 0xFFDDBB99u; // Rear hand
+        return 0;
+    }
+
+    uint RenderRipper(double x, double y)
+    {
+        uint metal = 0xFF444455u;
+        uint metalDark = 0xFF222233u;
+        uint metalLight = 0xFF666677u;
+
+        // Multiple barrels (rotary)
+        if (y > 0.02 && y < 0.28)
+        {
+            double barrelAngle = _gameTime * (_shooting ? 30 : 0);
+            for (int i = 0; i < 6; i++)
+            {
+                double angle = barrelAngle + i * 3.14159 / 3;
+                double bx = Math.Cos(angle) * 0.05;
+                double by = Math.Sin(angle) * 0.05 * 0.3 + 0.15;
+                double dist = Math.Sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
+                if (dist < 0.025)
+                {
+                    if (dist < 0.012) return metalDark; // Bore
+                    return metal;
+                }
+            }
+            // Center hub
+            if (Math.Abs(x) < 0.03 && y > 0.1 && y < 0.2) return metalLight;
+        }
+        // Barrel housing
+        if (y > 0.1 && y < 0.3 && Math.Abs(x) < 0.1)
+        {
+            double dist = Math.Sqrt(x * x + (y - 0.15) * (y - 0.15) * 4);
+            if (dist < 0.12 && dist > 0.08) return metalDark;
+        }
+        // Body
+        if (y > 0.28 && y < 0.55 && Math.Abs(x) < 0.12)
+        {
+            if (Math.Abs(x) > 0.1) return metalDark;
+            // Ammo counter window
+            if (y > 0.35 && y < 0.42 && x > 0.02 && x < 0.08) return 0xFF00AA00u;
+            return metal;
+        }
+        // Handle
+        if (y > 0.5 && y < 0.75 && Math.Abs(x) < 0.1 - (y - 0.5) * 0.2)
+        {
+            if (x < 0) return metalDark;
+            return metal;
+        }
+        // Hand
+        if (y > 0.6 && Math.Abs(x) < 0.2) return 0xFFDDBB99u;
+        // Forward grip
+        if (y > 0.35 && y < 0.5 && x > 0.1 && x < 0.22) return 0xFFDDBB99u;
+        return 0;
+    }
+
+    uint RenderRPG(double x, double y)
+    {
+        uint tube = 0xFF445544u;
+        uint tubeDark = 0xFF223322u;
+        uint tubeLight = 0xFF557755u;
+        uint metal = 0xFF555555u;
+
+        // Main tube
+        if (y > 0.05 && y < 0.45 && Math.Abs(x) < 0.1)
+        {
+            double dist = Math.Abs(x);
+            if (dist > 0.08) return tubeDark;
+            if (dist < 0.03) return tubeLight;
+            // Warhead tip
+            if (y < 0.12)
+            {
+                if (y < 0.08) return 0xFF666655u; // Cone
+                return 0xFFAA4444u; // Red band
+            }
+            // Tube segments
+            int seg = (int)(y * 20) % 5;
+            if (seg == 0) return tubeDark;
+            return tube;
+        }
+        // Front sight
+        if (y > 0.1 && y < 0.18 && Math.Abs(x - 0.12) < 0.02) return metal;
+        // Rear sight
+        if (y > 0.35 && y < 0.42 && Math.Abs(x - 0.12) < 0.025) return metal;
+        // Grip assembly
+        if (y > 0.4 && y < 0.65 && x > -0.05 && x < 0.08)
+        {
+            // Trigger
+            if (y > 0.45 && y < 0.52 && Math.Abs(x + 0.01) < 0.015) return metal;
+            return metal;
+        }
+        // Shoulder rest
+        if (y > 0.55 && y < 0.8 && Math.Abs(x) < 0.12 - (y - 0.55) * 0.2)
+        {
+            if (x < 0) return tubeDark;
+            return tube;
+        }
+        // Hands
+        if (y > 0.5 && y < 0.65 && x > 0.06 && x < 0.22) return 0xFFDDBB99u;
+        if (y > 0.65 && Math.Abs(x) < 0.18) return 0xFFDDBB99u;
+        return 0;
+    }
+
+    uint RenderPipeBomb(double x, double y)
+    {
+        uint skin = 0xFFDDBB99u;
+        uint skinDark = 0xFFCCAA88u;
+        uint bomb = 0xFF446644u;
+        uint bombDark = 0xFF334433u;
+        uint fuse = 0xFFAAAA55u;
+
+        // Hand holding bomb
+        if (y > 0.35)
+        {
+            // Palm
+            if (Math.Abs(x) < 0.2 && y > 0.5)
+            {
+                if (x < -0.1) return skinDark;
+                return skin;
+            }
+            // Fingers wrapped around
+            for (int i = 0; i < 4; i++)
+            {
+                double fx = -0.1 + i * 0.06;
+                double fy = 0.35 + Math.Sin((x - fx) * 10) * 0.03;
+                if (Math.Abs(x - fx) < 0.025 && y > fy && y < fy + 0.18)
+                {
+                    if (y < fy + 0.05) return skinDark; // Knuckle
+                    return skin;
+                }
+            }
+            // Thumb
+            if (x > 0.08 && x < 0.18 && y > 0.3 && y < 0.5) return skin;
+        }
+        // Pipe bomb
+        if (y > 0.15 && y < 0.55 && Math.Abs(x) < 0.07)
+        {
+            // End caps
+            if (y < 0.2 || y > 0.5)
+            {
+                if (Math.Abs(x) < 0.05) return 0xFF555555u;
+            }
+            // Fuse
+            if (y < 0.2 && Math.Abs(x) < 0.015) return fuse;
+            // Body
+            if (Math.Abs(x) > 0.055) return bombDark;
+            // Label/marking
+            if (y > 0.3 && y < 0.4 && Math.Abs(x) < 0.04) return 0xFFAA2222u;
+            return bomb;
+        }
+        // Fuse wire going up
+        if (y < 0.18 && y > 0.02 && Math.Abs(x) < 0.01) return fuse;
+        // Spark at tip
+        if (y < 0.06 && Math.Abs(x) < 0.02)
+        {
+            double spark = Math.Sin(_gameTime * 20) * 0.5 + 0.5;
+            if (spark > 0.3) return 0xFFFFAA00u;
+        }
+        return 0;
     }
 
     void RenderMinimap()
@@ -1464,7 +2204,8 @@ public partial class DoomGame : Window
 
         if (e.Key == Key.Escape) { CaptureMouse(false); Close(); }
 
-        if (_gameOver || _victory)
+
+        if (_gameOver)
         {
             if (e.Key == Key.R) Restart();
             return;
@@ -1522,7 +2263,7 @@ public partial class DoomGame : Window
         _ammo = new[] { 999, 48, 12, 200, 10, 5 };
         _currentWeapon = 1;
         _medkits = 0; _steroids = 0; _hasJetpack = false; _jetpackFuel = 100;
-        _gameOver = false; _levelComplete = false; _victory = false;
+        _gameOver = false; _levelComplete = false;
         GameOverScreen.Visibility = Visibility.Collapsed;
         VictoryScreen.Visibility = Visibility.Collapsed;
         LoadLevel(_currentLevel);

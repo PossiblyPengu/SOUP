@@ -39,7 +39,7 @@
         <Style x:Key="SettingLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="#e4e4e7"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
@@ -97,7 +97,7 @@
         <!-- Modern CheckBox Style -->
         <Style x:Key="SettingsCheckBox" TargetType="CheckBox">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#e4e4e7"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>

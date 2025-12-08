@@ -14,8 +14,11 @@ public partial class AllocationBuddyWindow : Window
     public AllocationBuddyWindow(object viewModel)
     {
         // Apply theme BEFORE InitializeComponent so DynamicResources can resolve
-        ApplyTheme(ThemeService.Instance.IsDarkMode);
-        
+        if (ThemeService.Instance.IsWindows95Mode)
+            ApplyTheme(false); // Always use Win98 theme in easter egg mode
+        else
+            ApplyTheme(ThemeService.Instance.IsDarkMode);
+
         InitializeComponent();
         DataContext = viewModel;
 
@@ -24,6 +27,7 @@ public partial class AllocationBuddyWindow : Window
 
         // Subscribe to theme changes
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
+        ThemeService.Instance.Windows95ModeChanged += OnWindows95ModeChanged;
 
         // Enable smooth window opening animation
         Loaded += (s, e) =>
@@ -31,7 +35,16 @@ public partial class AllocationBuddyWindow : Window
             WindowAnimationHelper.AnimateWindowOpen(this);
             UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
         };
-        Closed += (s, e) => ThemeService.Instance.ThemeChanged -= OnThemeChanged;
+        Closed += (s, e) => {
+            ThemeService.Instance.ThemeChanged -= OnThemeChanged;
+            ThemeService.Instance.Windows95ModeChanged -= OnWindows95ModeChanged;
+        };
+    }
+
+    private void OnWindows95ModeChanged(object? sender, bool isWin98)
+    {
+        ApplyTheme(isWin98 ? false : ThemeService.Instance.IsDarkMode);
+        UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
     }
 
     private void OnThemeChanged(object? sender, bool isDarkMode)

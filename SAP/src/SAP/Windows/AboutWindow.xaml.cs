@@ -213,12 +213,24 @@ public partial class AboutWindow : Window
     {
         var themeService = ThemeService.Instance;
         themeService.ToggleWindows95Mode();
-        
+
+        // Play sound effect
+        try
+        {
+            var soundPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "win98_easteregg.wav");
+            if (System.IO.File.Exists(soundPath))
+            {
+                var player = new System.Media.SoundPlayer(soundPath);
+                player.Play();
+            }
+        }
+        catch { /* Ignore sound errors */ }
+
         var isEnabled = themeService.IsWindows95Mode;
         var message = isEnabled 
             ? "🖥️ Windows 98 Mode Activated!\n\nWelcome to 1998! Enjoy the retro vibes."
             : "✨ Modern Mode Restored!\n\nWelcome back to the future.";
-        
+
         MessageBox.Show(message, "Easter Egg!", MessageBoxButton.OK, 
             isEnabled ? MessageBoxImage.Information : MessageBoxImage.None);
     }

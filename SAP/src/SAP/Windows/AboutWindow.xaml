@@ -18,14 +18,10 @@
         <KeyBinding Key="Escape" Command="{Binding CloseCommand}"/>
     </Window.InputBindings>
 
-    <Border Background="{DynamicResource BackgroundBrush}" 
-            CornerRadius="16" 
-            BorderBrush="{DynamicResource SurfaceHoverBrush}" 
-            BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="Black"/>
-        </Border.Effect>
-        
+    <Border Background="{DynamicResource BackgroundBrush}"
+            CornerRadius="0"
+            BorderBrush="{DynamicResource BorderLightBrush}"
+            BorderThickness="2">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -33,22 +29,18 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Title Bar -->
-            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" 
-                    CornerRadius="16,16,0,0" Padding="20,14" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid>
-                    <TextBlock Text="About S.A.P" FontSize="14" FontWeight="SemiBold" 
-                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <Button Content="✕" HorizontalAlignment="Right" Click="CloseButton_Click"
-                            Background="Transparent" BorderThickness="0" 
-                            Foreground="{DynamicResource TextSecondaryBrush}"
-                            FontSize="16" Cursor="Hand" Padding="8,4"/>
-                </Grid>
-            </Border>
+            <!-- Win98 Title Bar -->
+            <DockPanel Grid.Row="0" LastChildFill="True" Background="{DynamicResource TitleBarBackgroundBrush}" Height="32">
+                <Image Source="pack://application:,,,/SAP;component/Assets/win98_icon.png" Width="20" Height="20" Margin="8,6,4,6"/>
+                <TextBlock Text="About S.A.P" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center" FontFamily="Tahoma" Margin="0,0,0,0"/>
+                <Button Content="✕" Width="32" Height="24" Margin="0,4,4,4" Click="CloseButton_Click"
+                        Background="{DynamicResource SurfaceActiveBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2"
+                        FontFamily="Tahoma" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+            </DockPanel>
 
             <!-- Content -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
-                <StackPanel>
+                <StackPanel FontFamily="Tahoma">
                     <!-- App Icon and Name -->
                     <Border Width="80" Height="80" CornerRadius="20"
                             HorizontalAlignment="Center" Margin="0,0,0,16" Cursor="Hand"
@@ -155,33 +147,10 @@
             </ScrollViewer>
 
             <!-- Footer -->
-            <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
-                    CornerRadius="0,0,16,16" Padding="20,14">
+            <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,10" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2">
                 <Button Content="Close" HorizontalAlignment="Center" Click="CloseButton_Click"
-                        Padding="24,10" FontWeight="SemiBold" Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="Bg" Background="{TemplateBinding Background}" 
-                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                        Padding="18,6" FontWeight="Bold" FontFamily="Tahoma" FontSize="13" Cursor="Hand"
+                        Background="{DynamicResource SurfaceHoverBrush}" BorderBrush="{DynamicResource BorderLightBrush}" BorderThickness="2"/>
             </Border>
         </Grid>
     </Border>
