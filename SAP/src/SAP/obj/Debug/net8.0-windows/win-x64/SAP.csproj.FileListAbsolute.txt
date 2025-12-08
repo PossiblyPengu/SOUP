@@ -572,3 +572,5 @@ D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.pdb
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.genruntimeconfig.cache
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\ref\SAP.dll
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\Windows98Theme.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\DoomGame.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\DoomGame.g.cs

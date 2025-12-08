@@ -32,7 +32,9 @@
       "Bash(dotnet run:*)",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\" --no-incremental)"
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\" --no-incremental)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" publish \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\" -c Release -r win-x64 --self-contained false)",
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" publish \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\" -c Release -r win-x64 --self-contained true)"
     ],
     "deny": [],
     "ask": []

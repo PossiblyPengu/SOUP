@@ -19,6 +19,9 @@ public partial class AboutWindow : Window
     private const int EasterEggClickThreshold = 7;
     private const int ClickTimeoutSeconds = 3;
 
+    private int _iconClickCount = 0;
+    private DateTime _lastIconClick = DateTime.MinValue;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AboutWindow"/> class.
     /// </summary>
@@ -179,6 +182,27 @@ public partial class AboutWindow : Window
             // Give a hint that something is happening
             var remaining = EasterEggClickThreshold - _versionClickCount;
             System.Diagnostics.Debug.WriteLine($"Easter egg: {remaining} more clicks to go!");
+        }
+    }
+
+    /// <summary>
+    /// Handles clicks on the app icon for doom easter egg activation.
+    /// </summary>
+    private void AppIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var now = DateTime.Now;
+
+        if ((now - _lastIconClick).TotalSeconds > 2)
+            _iconClickCount = 0;
+
+        _lastIconClick = now;
+        _iconClickCount++;
+
+        if (_iconClickCount >= 5)
+        {
+            _iconClickCount = 0;
+            var doom = new DoomGame { Owner = this };
+            doom.ShowDialog();
         }
     }
 
