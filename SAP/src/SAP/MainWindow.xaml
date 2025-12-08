@@ -194,9 +194,9 @@
                     
                     <!-- Title -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="⚙" FontSize="16" Foreground="{DynamicResource AccentBrush}" Margin="0,0,8,0"/>
+                        <TextBlock Text="⚙" FontSize="16" Foreground="{DynamicResource TitleBarTextBrush}" Margin="0,0,8,0"/>
                         <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" 
-                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                   Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     
                     <!-- Window Controls -->
@@ -207,7 +207,7 @@
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
-                                        <TextBlock Text="─" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                        <TextBlock Text="─" FontSize="12" Foreground="{DynamicResource TitleBarTextBrush}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
@@ -225,7 +225,7 @@
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
-                                        <TextBlock x:Name="MaxIcon" Text="□" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                        <TextBlock x:Name="MaxIcon" Text="□" FontSize="12" Foreground="{DynamicResource TitleBarTextBrush}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
@@ -243,7 +243,7 @@
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
-                                        <TextBlock Text="✕" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                        <TextBlock Text="✕" FontSize="11" Foreground="{DynamicResource TitleBarTextBrush}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
@@ -295,8 +295,9 @@
                             </StackPanel>
                         </StackPanel>
                         
-                        <!-- Version Badge -->
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Left">
+                        <!-- Version Badge (Clickable Easter Egg) -->
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Left"
+                                Cursor="Hand" MouseLeftButtonDown="VersionBadge_MouseLeftButtonDown">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{DynamicResource StatusOnlineBrush}"/>
                                 <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>

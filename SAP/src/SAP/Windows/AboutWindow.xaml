@@ -68,9 +68,10 @@
                                Foreground="{DynamicResource TextSecondaryBrush}" 
                                HorizontalAlignment="Center" Margin="0,4,0,6"/>
                     
-                    <!-- Version Badge -->
+                    <!-- Version Badge (Clickable Easter Egg) -->
                     <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" 
-                            Padding="12,6" HorizontalAlignment="Center" Margin="0,0,0,20">
+                            Padding="12,6" HorizontalAlignment="Center" Margin="0,0,0,20"
+                            Cursor="Hand" MouseLeftButtonDown="VersionBadge_MouseLeftButtonDown">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" 
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" FontWeight="SemiBold"/>

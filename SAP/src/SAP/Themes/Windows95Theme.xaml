@@ -1,0 +1,155 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================= -->
+    <!-- WINDOWS 95 THEME COLORS       -->
+    <!-- Easter Egg Retro Theme!       -->
+    <!-- ============================= -->
+    
+    <!-- Classic Windows 95 Color Palette -->
+    <Color x:Key="BackgroundColor">#008080</Color>          <!-- Teal desktop -->
+    <Color x:Key="SurfaceColor">#C0C0C0</Color>             <!-- Silver/Gray -->
+    <Color x:Key="SurfaceHoverColor">#D4D0C8</Color>        <!-- Light gray -->
+    <Color x:Key="SurfaceActiveColor">#808080</Color>       <!-- Pressed gray -->
+    <Color x:Key="BorderColor">#808080</Color>              <!-- Dark border -->
+    <Color x:Key="BorderDarkColor">#404040</Color>          <!-- Darker border -->
+    <Color x:Key="BorderLightColor">#FFFFFF</Color>         <!-- Light border (3D effect) -->
+    
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimaryColor">#000000</Color>
+    <Color x:Key="TextSecondaryColor">#000000</Color>
+    <Color x:Key="TextTertiaryColor">#808080</Color>
+    <Color x:Key="TextDisabledColor">#808080</Color>
+    <Color x:Key="TextOnPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="TextLinkColor">#0000FF</Color>
+    
+    <!-- Sidebar Colors (Windows 95 Navy) -->
+    <Color x:Key="SidebarBackgroundColor">#000080</Color>   <!-- Navy blue -->
+    <Color x:Key="SidebarHoverColor">#0000A0</Color>
+    <Color x:Key="SidebarActiveColor">#000080</Color>
+    
+    <!-- Module Light Background Colors -->
+    <Color x:Key="ExpireWiseLightColor">#FFFFC0</Color>     <!-- Light yellow -->
+    <Color x:Key="AllocationBuddyLightColor">#C0C0FF</Color> <!-- Light blue -->
+    <Color x:Key="EssentialsBuddyLightColor">#C0FFC0</Color> <!-- Light green -->
+    <Color x:Key="SwiftLabelLightColor">#FFC0C0</Color>      <!-- Light red -->
+    
+    <!-- Stock Level Colors -->
+    <Color x:Key="OutOfStockColor">#FF0000</Color>
+    <Color x:Key="OutOfStockTextColor">#FFFFFF</Color>
+    <Color x:Key="LowStockColor">#FFFF00</Color>
+    <Color x:Key="LowStockTextColor">#000000</Color>
+    <Color x:Key="OverstockedColor">#0000FF</Color>
+    <Color x:Key="OverstockedTextColor">#FFFFFF</Color>
+    <Color x:Key="InStockColor">#00FF00</Color>
+    <Color x:Key="InStockTextColor">#000000</Color>
+    
+    <!-- Essentials Buddy Special Colors -->
+    <Color x:Key="NonEssentialIn990Color">#FFFF00</Color>
+    <Color x:Key="NonEssentialIn990TextColor">#000000</Color>
+
+    <!-- ============================= -->
+    <!-- WINDOWS 95 THEME BRUSHES      -->
+    <!-- ============================= -->
+    
+    <!-- Surface Brushes -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}"/>
+    <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{StaticResource SurfaceActiveColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
+    <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
+    
+    <!-- Title Bar (Windows 95 Blue Gradient - Classic!) -->
+    <LinearGradientBrush x:Key="TitleBarBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#000080" Offset="0"/>
+        <GradientStop Color="#1084D0" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <!-- Title Bar Text (White for visibility on blue) -->
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="#FFFFFF"/>
+    
+    <!-- Text Brushes -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
+    
+    <!-- Sidebar Brushes (Classic Windows 95 taskbar look) -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#C0C0C0"/>
+    <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}"/>
+    <SolidColorBrush x:Key="SidebarActiveBrush" Color="{StaticResource SidebarActiveColor}"/>
+    
+    <!-- Module Light Background Brushes -->
+    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="{StaticResource ExpireWiseLightColor}"/>
+    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="{StaticResource AllocationBuddyLightColor}"/>
+    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="{StaticResource EssentialsBuddyLightColor}"/>
+    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="{StaticResource SwiftLabelLightColor}"/>
+    
+    <!-- Stock Level Brushes -->
+    <SolidColorBrush x:Key="OutOfStockBrush" Color="{StaticResource OutOfStockColor}"/>
+    <SolidColorBrush x:Key="OutOfStockTextBrush" Color="{StaticResource OutOfStockTextColor}"/>
+    <SolidColorBrush x:Key="LowStockBrush" Color="{StaticResource LowStockColor}"/>
+    <SolidColorBrush x:Key="LowStockTextBrush" Color="{StaticResource LowStockTextColor}"/>
+    <SolidColorBrush x:Key="OverstockedBrush" Color="{StaticResource OverstockedColor}"/>
+    <SolidColorBrush x:Key="OverstockedTextBrush" Color="{StaticResource OverstockedTextColor}"/>
+    <SolidColorBrush x:Key="InStockBrush" Color="{StaticResource InStockColor}"/>
+    <SolidColorBrush x:Key="InStockTextBrush" Color="{StaticResource InStockTextColor}"/>
+    
+    <!-- Essentials Buddy Special Brushes -->
+    <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="{StaticResource NonEssentialIn990Color}"/>
+    <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="{StaticResource NonEssentialIn990TextColor}"/>
+    
+    <!-- Launcher Background (Teal Desktop!) -->
+    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#008080"/>
+
+    <!-- Card/Input Background -->
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#C0C0C0"/>
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#808080"/>
+
+    <!-- Splash Screen Text -->
+    <SolidColorBrush x:Key="SplashTitleBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#C0C0C0"/>
+
+    <!-- Module Splash Gradients (Flat Windows 95 style) -->
+    <SolidColorBrush x:Key="ExpireWiseSplashGradient" Color="#008080"/>
+    <SolidColorBrush x:Key="AllocationBuddySplashGradient" Color="#008080"/>
+    <SolidColorBrush x:Key="EssentialsBuddySplashGradient" Color="#008080"/>
+    <SolidColorBrush x:Key="SwiftLabelSplashGradient" Color="#008080"/>
+
+    <!-- Module Icon Gradients (Flat solid colors for Win95 look) -->
+    <SolidColorBrush x:Key="ExpireWiseIconGradient" Color="#FFFF00"/>
+    <Color x:Key="ExpireWiseIconShadowColor">#808000</Color>
+
+    <SolidColorBrush x:Key="AllocationBuddyIconGradient" Color="#0000FF"/>
+    <Color x:Key="AllocationBuddyIconShadowColor">#000080</Color>
+
+    <SolidColorBrush x:Key="EssentialsBuddyIconGradient" Color="#00FF00"/>
+    <Color x:Key="EssentialsBuddyIconShadowColor">#008000</Color>
+
+    <SolidColorBrush x:Key="SwiftLabelIconGradient" Color="#FF00FF"/>
+    <Color x:Key="SwiftLabelIconShadowColor">#800080</Color>
+
+    <!-- App Logo (Windows 95 Flag Colors) -->
+    <LinearGradientBrush x:Key="AppLogoGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF0000" Offset="0"/>
+        <GradientStop Color="#00FF00" Offset="0.33"/>
+        <GradientStop Color="#0000FF" Offset="0.66"/>
+        <GradientStop Color="#FFFF00" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="AppLogoShadowColor">#000000</Color>
+
+    <!-- Launch Button (Classic 3D Button Look) -->
+    <SolidColorBrush x:Key="LaunchButtonGradient" Color="#C0C0C0"/>
+    <SolidColorBrush x:Key="LaunchButtonHoverGradient" Color="#D4D0C8"/>
+    <SolidColorBrush x:Key="LaunchButtonPressedGradient" Color="#808080"/>
+    <Color x:Key="LaunchButtonShadowColor">#404040</Color>
+
+    <!-- Status Indicator -->
+    <SolidColorBrush x:Key="StatusOnlineBrush" Color="#00FF00"/>
+
+</ResourceDictionary>

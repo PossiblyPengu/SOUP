@@ -107,3 +107,5 @@ test_files/
 # Installer Output
 # ============================================
 SAP/installer/Output/
+
+.fake

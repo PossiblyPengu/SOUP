@@ -52,7 +52,7 @@ namespace SAP.Views.ExpireWise {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SAP;V4.2.0.0;component/views/expirewise/settingswindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SAP;V4.3.0.0;component/views/expirewise/settingswindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\Views\ExpireWise\SettingsWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

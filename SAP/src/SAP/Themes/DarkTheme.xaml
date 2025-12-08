@@ -62,6 +62,7 @@
     
     <!-- Title Bar (matches sidebar top) -->
     <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#09090b"/>
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{StaticResource TextPrimaryColor}"/>
     
     <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>

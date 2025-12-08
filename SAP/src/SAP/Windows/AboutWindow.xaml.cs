@@ -14,6 +14,11 @@ namespace SAP.Windows;
 /// </summary>
 public partial class AboutWindow : Window
 {
+    private int _versionClickCount = 0;
+    private DateTime _lastVersionClick = DateTime.MinValue;
+    private const int EasterEggClickThreshold = 7;
+    private const int ClickTimeoutSeconds = 3;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AboutWindow"/> class.
     /// </summary>
@@ -146,6 +151,52 @@ public partial class AboutWindow : Window
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         DragMove();
+    }
+
+    /// <summary>
+    /// Handles clicks on the version badge for easter egg activation.
+    /// </summary>
+    private void VersionBadge_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var now = DateTime.Now;
+        
+        // Reset counter if too much time has passed
+        if ((now - _lastVersionClick).TotalSeconds > ClickTimeoutSeconds)
+        {
+            _versionClickCount = 0;
+        }
+        
+        _lastVersionClick = now;
+        _versionClickCount++;
+        
+        if (_versionClickCount >= EasterEggClickThreshold)
+        {
+            _versionClickCount = 0;
+            ActivateWindows95EasterEgg();
+        }
+        else if (_versionClickCount >= 4)
+        {
+            // Give a hint that something is happening
+            var remaining = EasterEggClickThreshold - _versionClickCount;
+            System.Diagnostics.Debug.WriteLine($"Easter egg: {remaining} more clicks to go!");
+        }
+    }
+
+    /// <summary>
+    /// Activates the Windows 95 easter egg theme.
+    /// </summary>
+    private void ActivateWindows95EasterEgg()
+    {
+        var themeService = ThemeService.Instance;
+        themeService.ToggleWindows95Mode();
+        
+        var isEnabled = themeService.IsWindows95Mode;
+        var message = isEnabled 
+            ? "🖥️ Windows 95 Mode Activated!\n\nWelcome to 1995! Enjoy the retro vibes."
+            : "✨ Modern Mode Restored!\n\nWelcome back to the future.";
+        
+        MessageBox.Show(message, "Easter Egg!", MessageBoxButton.OK, 
+            isEnabled ? MessageBoxImage.Information : MessageBoxImage.None);
     }
 
     /// <summary>

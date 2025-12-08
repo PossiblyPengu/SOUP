@@ -42,9 +42,20 @@ public partial class ThemeService : ObservableObject
     private bool _isDarkMode = true;
 
     /// <summary>
+    /// Gets or sets whether Windows 95 easter egg mode is active.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isWindows95Mode = false;
+
+    /// <summary>
     /// Occurs when the theme changes between light and dark mode.
     /// </summary>
     public event EventHandler<bool>? ThemeChanged;
+
+    /// <summary>
+    /// Occurs when Windows 95 mode is toggled.
+    /// </summary>
+    public event EventHandler<bool>? Windows95ModeChanged;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ThemeService"/> class.
@@ -67,6 +78,17 @@ public partial class ThemeService : ObservableObject
         IsDarkMode = !IsDarkMode;
         ApplyTheme();
         SaveTheme();
+    }
+
+    /// <summary>
+    /// Toggles Windows 95 easter egg mode.
+    /// </summary>
+    public void ToggleWindows95Mode()
+    {
+        IsWindows95Mode = !IsWindows95Mode;
+        ApplyTheme();
+        SaveTheme();
+        Windows95ModeChanged?.Invoke(this, IsWindows95Mode);
     }
 
     /// <summary>
@@ -101,9 +123,17 @@ public partial class ThemeService : ObservableObject
 
         try
         {
-            var themePath = IsDarkMode
-                ? "pack://application:,,,/Themes/DarkTheme.xaml"
-                : "pack://application:,,,/Themes/LightTheme.xaml";
+            string themePath;
+            if (IsWindows95Mode)
+            {
+                themePath = "pack://application:,,,/Themes/Windows95Theme.xaml";
+            }
+            else
+            {
+                themePath = IsDarkMode
+                    ? "pack://application:,,,/Themes/DarkTheme.xaml"
+                    : "pack://application:,,,/Themes/LightTheme.xaml";
+            }
 
             var newTheme = new ResourceDictionary
             {
@@ -146,6 +176,7 @@ public partial class ThemeService : ObservableObject
                 if (settings != null)
                 {
                     IsDarkMode = settings.IsDarkMode;
+                    IsWindows95Mode = settings.IsWindows95Mode;
                     ApplyTheme();
                 }
             }
@@ -156,6 +187,7 @@ public partial class ThemeService : ObservableObject
             System.Diagnostics.Debug.WriteLine($"Failed to load theme settings: {ex.Message}");
             Serilog.Log.Warning(ex, "Failed to load theme settings, using default dark theme");
             IsDarkMode = true;
+            IsWindows95Mode = false;
         }
     }
 
@@ -168,7 +200,8 @@ public partial class ThemeService : ObservableObject
         {
             var settings = new ThemeSettings
             {
-                IsDarkMode = IsDarkMode
+                IsDarkMode = IsDarkMode,
+                IsWindows95Mode = IsWindows95Mode
             };
 
             var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions
@@ -195,5 +228,10 @@ public partial class ThemeService : ObservableObject
         /// Gets or sets whether dark mode is enabled.
         /// </summary>
         public bool IsDarkMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether Windows 95 easter egg mode is enabled.
+        /// </summary>
+        public bool IsWindows95Mode { get; set; }
     }
 }
