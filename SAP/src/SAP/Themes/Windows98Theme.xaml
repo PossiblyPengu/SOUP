@@ -6,6 +6,22 @@
     <!-- Easter Egg Retro Theme!       -->
     <!-- ============================= -->
 
+    <!-- ============================= -->
+    <!-- CORNER RADIUS VALUES (ALL 0!) -->
+    <!-- ============================= -->
+    <CornerRadius x:Key="WindowCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="TitleBarCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="SidebarCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="LargeCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="MediumCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="XSmallCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="NavItemCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="IconCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="AppLogoCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="SplashIconCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">0</CornerRadius>
+
     <!-- Classic Windows 98 Color Palette -->
     <Color x:Key="BackgroundColor">#D4D0C8</Color>          <!-- Win98 warm gray surface -->
     <Color x:Key="SurfaceColor">#D4D0C8</Color>             <!-- Win98 warm gray -->
@@ -677,6 +693,304 @@
                             <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
                             <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
                             <ContentPresenter VerticalAlignment="Center" Margin="2"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- PasswordBox: Same as TextBox -->
+    <Style TargetType="PasswordBox">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,1,0,0" Margin="1"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="3,2"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ToggleButton: Classic raised 3D like Button -->
+    <Style TargetType="ToggleButton">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="OuterBorder" Background="{TemplateBinding Background}" BorderThickness="0" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border x:Name="TopLeft" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="2,2,0,0"/>
+                            <Border x:Name="BottomRight" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,2,2"/>
+                            <Border x:Name="InnerBorder" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,1" Margin="2,2,0,0"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="TopLeft" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+                            <Setter TargetName="BottomRight" Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+                            <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{StaticResource SurfaceActiveBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource SurfaceActiveBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="TopLeft" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+                            <Setter TargetName="BottomRight" Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource SurfaceActiveBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Slider: Classic Win98 trackbar -->
+    <Style TargetType="Slider">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TickBar x:Name="TopTick" Grid.Row="0" Height="4" Visibility="Collapsed" Fill="{StaticResource TextPrimaryBrush}" Placement="Top"/>
+                        <Border Grid.Row="1" Height="4" Background="{StaticResource InputBackgroundBrush}" VerticalAlignment="Center" Margin="5,0">
+                            <Grid>
+                                <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                                <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            </Grid>
+                        </Border>
+                        <Track Grid.Row="1" x:Name="PART_Track">
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Grid Width="11" Height="21">
+                                                <Border Background="{StaticResource SurfaceBrush}">
+                                                    <Grid>
+                                                        <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                                                        <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                        <TickBar x:Name="BottomTick" Grid.Row="2" Height="4" Visibility="Collapsed" Fill="{StaticResource TextPrimaryBrush}" Placement="Bottom"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="TickPlacement" Value="TopLeft">
+                            <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="BottomRight">
+                            <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="Both">
+                            <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Expander: Classic collapsible group -->
+    <Style TargetType="Expander">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Border Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <ToggleButton Grid.Row="0" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Background="{StaticResource SurfaceBrush}" Padding="4,2">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path x:Name="Arrow" Data="M0,0 L4,4 L8,0 Z" Fill="{StaticResource TextPrimaryBrush}"
+                                          Width="8" Height="4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <ContentPresenter Content="{TemplateBinding Header}"/>
+                                </StackPanel>
+                            </ToggleButton>
+                            <Border Grid.Row="1" x:Name="ContentArea" Visibility="Collapsed" Padding="16,4,4,4">
+                                <ContentPresenter/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ContentArea" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Arrow" Property="Data" Value="M0,4 L4,0 L8,4 Z"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- RepeatButton for ScrollBar -->
+    <Style TargetType="RepeatButton">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border x:Name="OuterBorder" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border x:Name="TopLeft" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                            <Border x:Name="BottomRight" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="TopLeft" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
+                            <Setter TargetName="BottomRight" Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource SurfaceActiveBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Thumb for ScrollBar and Slider -->
+    <Style TargetType="Thumb">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,1"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- StatusBar -->
+    <Style TargetType="StatusBar">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="StatusBar">
+                    <Border Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,1,0,0"/>
+                            <ItemsPresenter Margin="2"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- StatusBarItem -->
+    <Style TargetType="StatusBarItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="StatusBarItem">
+                    <Border Padding="{TemplateBinding Padding}">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <ContentPresenter Margin="2"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TreeView -->
+    <Style TargetType="TreeView">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TreeView">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,1,1"/>
+                            <ScrollViewer Margin="2">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TreeViewItem -->
+    <Style TargetType="TreeViewItem">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="2"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource SelectionBrush}"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ToolBar -->
+    <Style TargetType="ToolBar">
+        <Setter Property="FontFamily" Value="{StaticResource Win98Font}"/>
+        <Setter Property="FontSize" Value="{StaticResource Win98FontSize}"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolBar">
+                    <Border Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,1,0,0"/>
+                            <Border BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1"/>
+                            <ToolBarPanel IsItemsHost="True" Margin="2"/>
                         </Grid>
                     </Border>
                 </ControlTemplate>

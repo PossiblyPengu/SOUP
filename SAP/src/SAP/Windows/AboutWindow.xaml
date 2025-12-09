@@ -42,7 +42,7 @@
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
                 <StackPanel>
                     <!-- App Icon and Name -->
-                    <Border Width="80" Height="80" CornerRadius="20"
+                    <Border Width="80" Height="80" CornerRadius="{DynamicResource AppLogoCornerRadius}"
                             HorizontalAlignment="Center" Margin="0,0,0,16" Cursor="Hand"
                             MouseLeftButtonDown="AppIcon_MouseLeftButtonDown">
                         <Border.Background>
@@ -62,7 +62,7 @@
                                HorizontalAlignment="Center" Margin="0,4,0,6"/>
                     
                     <!-- Version Badge (Clickable Easter Egg) -->
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" 
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}"
                             Padding="12,6" HorizontalAlignment="Center" Margin="0,0,0,20"
                             Cursor="Hand" MouseLeftButtonDown="VersionBadge_MouseLeftButtonDown">
                         <StackPanel Orientation="Horizontal">
@@ -75,7 +75,7 @@
                     </Border>
 
                     <!-- Version Info -->
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource MediumCornerRadius}" Padding="16" Margin="0,0,0,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -108,7 +108,7 @@
                     <TextBlock Text="INSTALLED MODULES" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextDisabledBrush}" Margin="0,8,0,8"/>
                     
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="12" Margin="0,0,0,12">
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource MediumCornerRadius}" Padding="12" Margin="0,0,0,12">
                         <StackPanel x:Name="ModulesPanel">
                             <!-- Populated in code-behind -->
                         </StackPanel>
@@ -118,7 +118,7 @@
                     <TextBlock Text="WHAT'S NEW" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextDisabledBrush}" Margin="0,8,0,8"/>
                     
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="16">
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource MediumCornerRadius}" Padding="16">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                 <TextBlock x:Name="ChangelogVersionText" Text="v1.1.0" FontSize="13" FontWeight="SemiBold"

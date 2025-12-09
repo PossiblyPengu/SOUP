@@ -48,7 +48,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Border" Background="{TemplateBinding Background}"
-                                CornerRadius="14" Padding="16,14">
+                                CornerRadius="{DynamicResource NavItemCornerRadius}" Padding="16,14">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -56,7 +56,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Border x:Name="IconBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="12"
+                                <Border x:Name="IconBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="{DynamicResource IconCornerRadius}"
                                         Background="{DynamicResource SurfaceHoverBrush}" Margin="0,0,14,0">
                                     <ContentPresenter ContentSource="Tag" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
@@ -66,7 +66,7 @@
                                 </StackPanel>
 
                                 <Border x:Name="ShortcutBadge" Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}"
-                                        CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Opacity="0.7">
+                                        CornerRadius="{DynamicResource XSmallCornerRadius}" Padding="8,4" VerticalAlignment="Center" Opacity="0.7">
                                     <TextBlock x:Name="ShortcutText" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                 </Border>
                             </Grid>
@@ -95,7 +95,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" CornerRadius="16" Padding="40,16"
+                        <Border x:Name="Border" CornerRadius="{DynamicResource LargeCornerRadius}" Padding="40,16"
                                 Background="{DynamicResource LaunchButtonGradient}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="{DynamicResource LaunchButtonShadowColor}"/>
@@ -127,7 +127,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="12">
+                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource MediumCornerRadius}">
                             <TextBlock Text="↗" FontSize="18" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -153,7 +153,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bg" Background="{TemplateBinding Background}"
-                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                CornerRadius="{DynamicResource MediumCornerRadius}" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -169,10 +169,10 @@
     </Window.Resources>
 
     <!-- Custom Window Chrome -->
-        <Border Background="{DynamicResource BackgroundBrush}" 
-            BorderBrush="{DynamicResource BorderBrush}" 
-            BorderThickness="1" 
-            CornerRadius="12">
+        <Border Background="{DynamicResource BackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource WindowCornerRadius}">
         <Border.Effect>
             <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#000000"/>
         </Border.Effect>
@@ -184,8 +184,8 @@
             </Grid.RowDefinitions>
             
             <!-- Custom Title Bar -->
-            <Border Grid.Row="0" Background="{DynamicResource TitleBarBackgroundBrush}" 
-                    CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Border Grid.Row="0" Background="{DynamicResource TitleBarBackgroundBrush}"
+                    CornerRadius="{DynamicResource TitleBarCornerRadius}" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -206,7 +206,7 @@
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource XSmallCornerRadius}">
                                         <TextBlock Text="─" FontSize="12" Foreground="{DynamicResource TitleBarTextBrush}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
                                     </Border>
@@ -224,7 +224,7 @@
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource XSmallCornerRadius}">
                                         <TextBlock x:Name="MaxIcon" Text="□" FontSize="12" Foreground="{DynamicResource TitleBarTextBrush}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -242,7 +242,7 @@
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource XSmallCornerRadius}">
                                         <TextBlock Text="✕" FontSize="11" Foreground="{DynamicResource TitleBarTextBrush}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -271,7 +271,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left Sidebar - App Selection -->
-            <Border Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}" CornerRadius="0,0,0,12">
+            <Border Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}" CornerRadius="{DynamicResource SidebarCornerRadius}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -282,7 +282,7 @@
                     <!-- Logo & Branding -->
                     <StackPanel Grid.Row="0" Margin="24,32,24,24">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                            <Border Width="56" Height="56" CornerRadius="16"
+                            <Border Width="56" Height="56" CornerRadius="{DynamicResource AppLogoCornerRadius}"
                                 Background="{DynamicResource AppLogoGradient}">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{DynamicResource AppLogoShadowColor}"/>
@@ -296,7 +296,7 @@
                         </StackPanel>
                         
                         <!-- Version Badge (Clickable Easter Egg) -->
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Left"
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}" Padding="12,8" HorizontalAlignment="Left"
                                 Cursor="Hand" MouseLeftButtonDown="VersionBadge_MouseLeftButtonDown">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{DynamicResource StatusOnlineBrush}"/>
@@ -404,7 +404,7 @@
                         </Button>
 
                         <!-- Keyboard Shortcuts Help -->
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="12,10" Margin="0,12,0,0">
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="12,10" Margin="0,12,0,0">
                             <StackPanel>
                                 <TextBlock Text="SHORTCUTS" FontSize="9" FontWeight="Bold" 
                                            Foreground="{DynamicResource TextDisabledBrush}" Margin="0,0,0,8"/>
@@ -448,7 +448,7 @@
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <!-- Large Icon -->
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
                                 Background="{DynamicResource ExpireWiseIconGradient}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource ExpireWiseIconShadowColor}"/>
@@ -467,13 +467,13 @@
                         
                         <!-- Features -->
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="📅 Expiry Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="📊 Analytics" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="⚠️ Smart Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -498,7 +498,7 @@
                       Background="{DynamicResource AllocationBuddySplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
                                 Background="{DynamicResource AllocationBuddyIconGradient}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource AllocationBuddyIconShadowColor}"/>
@@ -514,13 +514,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="🏪 Multi-Store" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="📋 BC Ready" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="📥 Excel Import" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -543,7 +543,7 @@
                       Background="{DynamicResource EssentialsBuddySplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
                                 Background="{DynamicResource EssentialsBuddyIconGradient}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource EssentialsBuddyIconShadowColor}"/>
@@ -559,13 +559,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="⭐ Essential Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="🎨 Status Colors" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="⚠️ Misplaced Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -588,7 +588,7 @@
                       Background="{DynamicResource SwiftLabelSplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <Border Width="120" Height="120" CornerRadius="32" HorizontalAlignment="Center" Margin="0,0,0,32"
+                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
                                 Background="{DynamicResource SwiftLabelIconGradient}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource SwiftLabelIconShadowColor}"/>
@@ -604,13 +604,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="🖨️ Quick Print" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="📦 Box Labels" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,8" Margin="4">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
                                 <TextBlock Text="🏪 Store Info" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -654,7 +654,7 @@
                             Cursor="Hand" Background="Transparent" BorderThickness="0">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10">
+                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,10">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="←" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <TextBlock Text="Back to Launcher" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -679,10 +679,10 @@
                             ToolTip="Toggle Light/Dark Mode">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="12,10">
+                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="12,10">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock x:Name="ThemeIcon" Text="🌙" FontSize="16" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="ThemeText" Text="Dark" FontSize="13" FontWeight="Medium" 
+                                        <TextBlock x:Name="ThemeText" Text="Dark" FontSize="13" FontWeight="Medium"
                                                    VerticalAlignment="Center" Margin="8,0,0,0"
                                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>

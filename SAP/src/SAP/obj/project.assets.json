@@ -3074,11 +3074,11 @@
   "project": {
     "version": "4.3.1",
     "restore": {
-      "projectUniqueName": "D:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
+      "projectUniqueName": "d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
       "projectName": "SAP",
-      "projectPath": "D:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
+      "projectPath": "d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
       "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
-      "outputPath": "D:\\CODE\\Cshp\\SAP\\src\\SAP\\obj\\",
+      "outputPath": "d:\\CODE\\Cshp\\SAP\\src\\SAP\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"

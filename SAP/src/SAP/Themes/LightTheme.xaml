@@ -2,6 +2,22 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ============================= -->
+    <!-- CORNER RADIUS VALUES          -->
+    <!-- ============================= -->
+    <CornerRadius x:Key="WindowCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="TitleBarCornerRadius">12,12,0,0</CornerRadius>
+    <CornerRadius x:Key="SidebarCornerRadius">0,0,0,12</CornerRadius>
+    <CornerRadius x:Key="LargeCornerRadius">16</CornerRadius>
+    <CornerRadius x:Key="MediumCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="XSmallCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="NavItemCornerRadius">14</CornerRadius>
+    <CornerRadius x:Key="IconCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="AppLogoCornerRadius">16</CornerRadius>
+    <CornerRadius x:Key="SplashIconCornerRadius">32</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">10</CornerRadius>
+
+    <!-- ============================= -->
     <!-- LIGHT THEME COLORS            -->
     <!-- ============================= -->
     
