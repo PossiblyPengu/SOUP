@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © 2024-2025")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("4.3.1.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("4.3.1+2ef5416fe5097e8740ef65f703e8da238a034caa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("4.3.1+390876c7431fd47f1e72ad897353b5b920b6385f")]
 [assembly: System.Reflection.AssemblyProductAttribute("S.A.P - S.A.M. Add-on Pack")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SAP")]
 [assembly: System.Reflection.AssemblyVersionAttribute("4.3.1.0")]

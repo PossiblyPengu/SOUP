@@ -2,62 +2,83 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
-namespace SAP.Features.NotesTracker.Services
+namespace SAP.Features.NotesTracker.Services;
+
+/// <summary>
+/// Persists group expand/collapse states for the notes UI.
+/// </summary>
+public sealed class GroupStateStore
 {
-    public class GroupStateStore
+    private readonly string _path;
+    private readonly ILogger<GroupStateStore>? _logger;
+    private Dictionary<string, bool> _states = new(StringComparer.OrdinalIgnoreCase);
+
+    public GroupStateStore(ILogger<GroupStateStore>? logger = null)
     {
-        private readonly string _path;
-        private Dictionary<string, bool> _states = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        _logger = logger;
 
-        public GroupStateStore()
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var dir = Path.Combine(appData, "SAP", "NotesTracker");
+        Directory.CreateDirectory(dir);
+        _path = Path.Combine(dir, "groups.json");
+
+        Load();
+    }
+
+    private void Load()
+    {
+        try
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var dir = Path.Combine(appData, "SAP", "NotesTracker");
-            Directory.CreateDirectory(dir);
-            _path = Path.Combine(dir, "groups.json");
-            Load();
+            if (!File.Exists(_path)) return;
+            var json = File.ReadAllText(_path);
+            _states = JsonSerializer.Deserialize<Dictionary<string, bool>>(json)
+                      ?? new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         }
-
-        private void Load()
+        catch (Exception ex)
         {
-            try
-            {
-                if (!File.Exists(_path)) return;
-                var txt = File.ReadAllText(_path);
-                _states = JsonSerializer.Deserialize<Dictionary<string, bool>>(txt) ?? new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-            }
-            catch { _states = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase); }
+            _logger?.LogWarning(ex, "Failed to load group states from {Path}", _path);
+            _states = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         }
+    }
 
-        private void Save()
+    private void Save()
+    {
+        try
         {
-            try
-            {
-                var txt = JsonSerializer.Serialize(_states, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_path, txt);
-            }
-            catch { }
+            var json = JsonSerializer.Serialize(_states, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_path, json);
         }
-
-        public bool Get(string name, bool defaultValue = true)
+        catch (Exception ex)
         {
-            if (name == null) return defaultValue;
-            if (_states.TryGetValue(name, out var v)) return v;
-            return defaultValue;
+            _logger?.LogWarning(ex, "Failed to save group states to {Path}", _path);
         }
+    }
 
-        public void Set(string name, bool value)
+    public bool Get(string? name, bool defaultValue = true)
+    {
+        if (string.IsNullOrEmpty(name)) return defaultValue;
+        return _states.TryGetValue(name, out var value) ? value : defaultValue;
+    }
+
+    public void Set(string? name, bool value)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+        _states[name] = value;
+        Save();
+    }
+
+    public void ResetAll()
+    {
+        _states.Clear();
+        try
         {
-            if (name == null) return;
-            _states[name] = value;
-            Save();
+            if (File.Exists(_path)) File.Delete(_path);
         }
-
-        public void ResetAll()
+        catch (Exception ex)
         {
-            _states.Clear();
-            try { if (File.Exists(_path)) File.Delete(_path); } catch { }
+            _logger?.LogWarning(ex, "Failed to delete group states file");
         }
     }
 }

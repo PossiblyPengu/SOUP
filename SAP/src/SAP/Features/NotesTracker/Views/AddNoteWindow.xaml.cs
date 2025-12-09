@@ -1,47 +1,97 @@
+using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using SAP.Features.NotesTracker.Models;
 
-namespace SAP.Features.NotesTracker.Views
+namespace SAP.Features.NotesTracker.Views;
+
+public partial class AddNoteWindow : Window
 {
-    public partial class AddNoteWindow : Window
+    private const string DefaultColorHex = "#B56576";
+
+    public NoteItem? Result { get; private set; }
+
+    private string _selectedColorHex = DefaultColorHex;
+
+    public AddNoteWindow()
     {
-        public NoteItem? Result { get; private set; }
+        InitializeComponent();
+    }
 
-        public AddNoteWindow()
+    private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 1)
         {
-            InitializeComponent();
+            DragMove();
         }
+    }
 
-        private async void PickColorBtn_Click(object sender, RoutedEventArgs e)
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        VendorBox.Focus();
+        VendorBox.SelectAll();
+        UpdateOkButtonState();
+    }
+
+    private void PickColorBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new NotesColorPickerWindow(_selectedColorHex) { Owner = this };
+
+        if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
         {
-            var picker = new NotesColorPickerWindow("#B56576");
-            picker.Owner = this;
-            if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
+            _selectedColorHex = picker.SelectedHex;
+            try
             {
-                ColorPreview.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(picker.SelectedHex);
-                ColorPreview.Tag = picker.SelectedHex;
+                ColorPreview.Background = new BrushConverter().ConvertFromString(_selectedColorHex) as Brush;
+            }
+            catch
+            {
+                // Invalid color, keep current
             }
         }
+    }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+    private void Cancel_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
+    }
+
+    private void Add_Click(object sender, RoutedEventArgs e)
+    {
+        var vendorName = VendorBox.Text?.Trim();
+
+        if (string.IsNullOrWhiteSpace(vendorName))
         {
-            DialogResult = false;
-            Close();
+            MessageBox.Show(this, "Please enter a vendor name.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+            VendorBox.Focus();
+            return;
         }
 
-        private void Add_Click(object sender, RoutedEventArgs e)
+        Result = new NoteItem
         {
-            var note = new NoteItem
-            {
-                VendorName = VendorBox.Text,
-                TransferNumbers = TransfersBox.Text,
-                WhsShipmentNumbers = WhsBox.Text,
-                ColorHex = (ColorPreview.Tag as string) ?? "#B56576",
-                CreatedAt = System.DateTime.UtcNow
-            };
-            Result = note;
-            DialogResult = true;
-            Close();
+            VendorName = vendorName,
+            TransferNumbers = TransfersBox.Text?.Trim() ?? string.Empty,
+            WhsShipmentNumbers = WhsBox.Text?.Trim() ?? string.Empty,
+            ColorHex = _selectedColorHex,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        DialogResult = true;
+        Close();
+    }
+
+    private void Input_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdateOkButtonState();
+    }
+
+    private void UpdateOkButtonState()
+    {
+        if (OkButton != null)
+        {
+            OkButton.IsEnabled = !string.IsNullOrWhiteSpace(VendorBox?.Text);
         }
     }
 }

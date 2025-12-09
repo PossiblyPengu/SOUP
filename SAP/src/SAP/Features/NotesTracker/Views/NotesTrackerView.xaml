@@ -4,9 +4,8 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:SAP.Features.NotesTracker.ViewModels"
              xmlns:models="clr-namespace:SAP.Features.NotesTracker.Models"
-             mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="800">
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
 
     <UserControl.Resources>
         <CollectionViewSource x:Key="GroupedNotes" Source="{Binding Items}">
@@ -15,156 +14,457 @@
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
 
-        <!-- Shadows and sizing -->
-        <DropShadowEffect x:Key="CardShadowEffect" Color="#000000" BlurRadius="12" ShadowDepth="0" Opacity="0.12"/>
-        <DropShadowEffect x:Key="CardHoverShadowEffect" Color="#000000" BlurRadius="18" ShadowDepth="0" Opacity="0.18"/>
-        <sys:Double x:Key="CardWidth">320</sys:Double>
-        <Thickness x:Key="CardPadding">12</Thickness>
-        <CornerRadius x:Key="CardCornerRadius">10</CornerRadius>
+        <sys:Double x:Key="CardWidth">300</sys:Double>
+        <DropShadowEffect x:Key="CardShadow" Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.08" Direction="270"/>
+        <DropShadowEffect x:Key="CardHoverShadow" Color="#000000" BlurRadius="20" ShadowDepth="4" Opacity="0.15" Direction="270"/>
+        <sys:Double x:Key="CompletedOpacity">0.6</sys:Double>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- Inline TextBox Style -->
+        <Style x:Key="InlineTextBox" TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+            <Setter Property="Margin" Value="0,4"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
     </UserControl.Resources>
 
-    <Grid Background="{DynamicResource BackgroundBrush}" Margin="12">
+    <Grid Background="{DynamicResource BackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,8">
-            <Button Content="Add Note" Margin="0,0,8,0" Click="AddNote_Click" Style="{DynamicResource QuickActionStyle}"/>
-            <Button Content="Delete Selected" Command="{Binding DeleteSelectedAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
-            <Button Content="Toggle Complete" Command="{Binding BulkToggleCompleteAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
-            <Button Content="Start" Command="{Binding BulkStartAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
-            <Button Content="Stop" Command="{Binding BulkStopAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
-            <!-- Toolbar color picker removed: color selection is available per-card only -->
-            <Button Content="Save" Command="{Binding SaveAsyncCommand}" Style="{DynamicResource QuickActionStyle}"/>
-            <Button Content="Reset Groups" Command="{Binding ResetGroupsCommand}" Margin="8,0,0,0" Style="{DynamicResource QuickActionStyle}"/>
-        </StackPanel>
+        <!-- Modern Toolbar -->
+        <Border Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <!-- Tile-style notes list grouped by vendor -->
-        <ListBox Grid.Row="1" x:Name="NotesListBox" ItemsSource="{Binding Source={StaticResource GroupedNotes}}" SelectionMode="Extended" SelectionChanged="NotesListBox_SelectionChanged"
-             AllowDrop="True"
-             PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
-             PreviewMouseMove="ListBox_PreviewMouseMove"
-             Drop="ListBox_Drop"
-             DragOver="ListBox_DragOver">
+                <TextBlock Text="Notes Tracker"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           VerticalAlignment="Center"/>
 
-            <ListBox.Resources>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Padding" Value="0"/>
-                    <Setter Property="Margin" Value="8"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </ListBox.Resources>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Start Selected"
+                            Command="{Binding BulkStartAsyncCommand}"
+                            Style="{DynamicResource SecondaryButtonStyle}"
+                            Padding="12,8"
+                            Margin="0,0,8,0"/>
+                    <Button Content="Stop Selected"
+                            Command="{Binding BulkStopAsyncCommand}"
+                            Style="{DynamicResource SecondaryButtonStyle}"
+                            Padding="12,8"
+                            Margin="0,0,8,0"/>
+                    <Button Content="Complete"
+                            Command="{Binding BulkToggleCompleteAsyncCommand}"
+                            Style="{DynamicResource SecondaryButtonStyle}"
+                            Padding="12,8"
+                            Margin="0,0,8,0"/>
+                    <Button Content="Delete"
+                            Command="{Binding DeleteSelectedAsyncCommand}"
+                            Style="{DynamicResource DangerButtonStyle}"
+                            Padding="12,8"
+                            Margin="0,0,8,0"/>
+                    <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="8,0"/>
+                    <Button Content="Reset Groups"
+                            Command="{Binding ResetGroupsCommand}"
+                            Style="{DynamicResource GhostButtonStyle}"
+                            Padding="12,8"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-            <ListBox.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <Expander Loaded="GroupExpander_Loaded" Expanded="GroupExpander_Expanded" Collapsed="GroupExpander_Collapsed" Margin="0,8,0,8">
-                                <Expander.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
-                                        <TextBlock Text=" (" />
-                                        <TextBlock Text="{Binding ItemCount}" />
-                                        <TextBlock Text=")" />
-                                    </StackPanel>
-                                </Expander.Header>
-                                <ItemsPresenter/>
-                            </Expander>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                    <GroupStyle.Panel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel IsItemsHost="True" Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </GroupStyle.Panel>
-                </GroupStyle>
-            </ListBox.GroupStyle>
+        <!-- Notes List -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="16">
+            <StackPanel>
+                <!-- Add Note Card -->
+                <Border x:Name="AddNoteCard"
+                        Width="{StaticResource CardWidth}"
+                        Margin="0,0,0,16"
+                        Background="{DynamicResource SurfaceBrush}"
+                        CornerRadius="{DynamicResource CornerRadiusMedium}"
+                        BorderBrush="{DynamicResource PrimaryBrush}"
+                        BorderThickness="2"
+                        Effect="{StaticResource CardShadow}"
+                        HorizontalAlignment="Left">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-            <!-- Card container style: wraps the content and provides hover/selected visuals -->
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Width" Value="{StaticResource CardWidth}"/>
-                    <Setter Property="Margin" Value="8"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <Border x:Name="CardBorder" Background="{DynamicResource SurfaceBrush}" CornerRadius="{StaticResource CardCornerRadius}" Padding="{StaticResource CardPadding}" Effect="{StaticResource CardShadowEffect}">
+                        <!-- Color Header -->
+                        <Border x:Name="AddNoteColorBar"
+                                Background="#B56576"
+                                CornerRadius="12,12,0,0"
+                                Height="6"
+                                MouseLeftButtonDown="AddNoteColorBar_Click"
+                                Cursor="Hand"/>
+
+                        <!-- Content -->
+                        <StackPanel Grid.Row="1" Margin="16,12">
+                            <TextBlock Text="+ New Note"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,0,0,8"/>
+
+                            <TextBox x:Name="AddVendorBox"
+                                     Style="{StaticResource InlineTextBox}"
+                                     Text="{Binding NewNoteVendorName, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Vendor Name"
+                                     GotFocus="TextBox_GotFocus"
+                                     LostFocus="TextBox_LostFocus"/>
+
+                            <TextBox x:Name="AddTransfersBox"
+                                     Style="{StaticResource InlineTextBox}"
+                                     Text="{Binding NewNoteTransferNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Transfer Numbers"
+                                     GotFocus="TextBox_GotFocus"
+                                     LostFocus="TextBox_LostFocus"/>
+
+                            <TextBox x:Name="AddWhsBox"
+                                     Style="{StaticResource InlineTextBox}"
+                                     Text="{Binding NewNoteWhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="WH Shipment Numbers"
+                                     GotFocus="TextBox_GotFocus"
+                                     LostFocus="TextBox_LostFocus"/>
+                        </StackPanel>
+
+                        <!-- Actions -->
+                        <Border Grid.Row="2"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="0,1,0,0"
+                                Padding="8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Content="Add"
+                                        Click="AddNoteInline_Click"
+                                        Style="{DynamicResource PrimaryButtonStyle}"
+                                        Padding="8,6"
+                                        FontSize="12"
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,0,4,0"/>
+
+                                <Button Grid.Column="1"
+                                        Content="Clear"
+                                        Click="ClearAddNote_Click"
+                                        Style="{DynamicResource SecondaryButtonStyle}"
+                                        Padding="8,6"
+                                        FontSize="12"
+                                        HorizontalAlignment="Stretch"
+                                        Margin="4,0,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Existing Notes -->
+                <ListBox x:Name="NotesListBox"
+                         ItemsSource="{Binding Source={StaticResource GroupedNotes}}"
+                         SelectionMode="Extended"
+                         SelectionChanged="NotesListBox_SelectionChanged"
+                         AllowDrop="True"
+                         PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
+                         PreviewMouseMove="ListBox_PreviewMouseMove"
+                         Drop="ListBox_Drop"
+                         DragOver="ListBox_DragOver"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                    <ListBox.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <Expander Loaded="GroupExpander_Loaded"
+                                              Expanded="GroupExpander_Expanded"
+                                              Collapsed="GroupExpander_Collapsed"
+                                              Margin="0,8,0,12"
+                                              IsExpanded="True">
+                                        <Expander.Header>
+                                            <StackPanel Orientation="Horizontal" Margin="0,8">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="16"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <Border Background="{DynamicResource PrimaryLightBrush}"
+                                                        CornerRadius="10"
+                                                        Padding="8,2"
+                                                        Margin="12,0,0,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding ItemCount}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Expander.Header>
+                                        <ItemsPresenter Margin="0,8,0,0"/>
+                                    </Expander>
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                            <GroupStyle.Panel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </GroupStyle.Panel>
+                        </GroupStyle>
+                    </ListBox.GroupStyle>
+
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Width" Value="{StaticResource CardWidth}"/>
+                            <Setter Property="Margin" Value="0,0,16,16"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="CardBorder"
+                                                Background="{DynamicResource SurfaceBrush}"
+                                                CornerRadius="{DynamicResource CornerRadiusMedium}"
+                                                Effect="{StaticResource CardShadow}">
+                                            <Grid>
+                                                <ContentPresenter/>
+                                                <Border x:Name="SelectionBorder"
+                                                        BorderBrush="{DynamicResource PrimaryBrush}"
+                                                        BorderThickness="2"
+                                                        CornerRadius="{DynamicResource CornerRadiusMedium}"
+                                                        Visibility="Collapsed"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CardBorder" Property="Effect" Value="{StaticResource CardHoverShadow}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="SelectionBorder" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:NoteItem}">
+                            <Grid x:Name="CardRoot">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Color Header -->
+                                <Border Background="{Binding ColorHex}"
+                                        CornerRadius="12,12,0,0"
+                                        Height="6"
+                                        MouseLeftButtonDown="NoteColorBar_Click"
+                                        Cursor="Hand"/>
+
+                                <!-- View Mode Content -->
+                                <StackPanel x:Name="ViewMode" Grid.Row="1" Margin="16,12,16,12">
+                                    <DockPanel>
+                                        <Border DockPanel.Dock="Right"
+                                                Background="{DynamicResource SuccessBrush}"
+                                                CornerRadius="4"
+                                                Padding="6,2"
+                                                VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:NoteStatus.Done}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="Done"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="White"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding VendorName}"
+                                                   FontSize="15"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MouseLeftButtonDown="NoteText_DoubleClick"/>
+                                    </DockPanel>
+
+                                    <TextBlock Text="{Binding TransferNumbers}"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="13"
+                                               TextWrapping="Wrap"
+                                               Margin="0,6,0,0"
+                                               MouseLeftButtonDown="NoteText_DoubleClick"/>
+
+                                    <TextBlock Text="{Binding WhsShipmentNumbers}"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="13"
+                                               TextWrapping="Wrap"
+                                               Margin="0,4,0,0"
+                                               MouseLeftButtonDown="NoteText_DoubleClick"/>
+
+                                    <Border Background="{DynamicResource BackgroundBrush}"
+                                            CornerRadius="6"
+                                            Padding="8,4"
+                                            Margin="0,10,0,0"
+                                            HorizontalAlignment="Left">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⏱" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding TimeInProgressDisplay}"
+                                                       FontSize="13"
+                                                       FontWeight="Medium"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       FontFamily="Consolas"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Edit Mode Content -->
+                                <StackPanel x:Name="EditMode" Grid.Row="1" Margin="16,12" Visibility="Collapsed">
+                                    <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource InlineTextBox}"/>
+                                    <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource InlineTextBox}"/>
+                                    <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource InlineTextBox}"/>
+                                </StackPanel>
+
+                                <!-- Action Buttons -->
+                                <Border Grid.Row="2"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="0,1,0,0"
+                                        Padding="8">
                                     <Grid>
-                                        <ContentPresenter/>
+                                        <!-- View Mode Actions -->
+                                        <Grid x:Name="ViewActions">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Content="▶"
+                                                    Command="{Binding DataContext.StartAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{DynamicResource GhostButtonStyle}"
+                                                    ToolTip="Start"
+                                                    Padding="6,6"
+                                                    FontSize="11"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="0,0,2,0"/>
+
+                                            <Button Grid.Column="1"
+                                                    Content="⏹"
+                                                    Command="{Binding DataContext.StopAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{DynamicResource GhostButtonStyle}"
+                                                    ToolTip="Stop"
+                                                    Padding="6,6"
+                                                    FontSize="11"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="2,0"/>
+
+                                            <Button Grid.Column="2"
+                                                    Content="🎨"
+                                                    Click="PickColor_Click"
+                                                    Style="{DynamicResource GhostButtonStyle}"
+                                                    ToolTip="Color"
+                                                    Padding="6,6"
+                                                    FontSize="11"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="2,0"/>
+
+                                            <Button Grid.Column="3"
+                                                    Content="✏"
+                                                    Click="EditNote_Click"
+                                                    Style="{DynamicResource GhostButtonStyle}"
+                                                    ToolTip="Edit"
+                                                    Padding="6,6"
+                                                    FontSize="11"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="2,0,0,0"/>
+                                        </Grid>
+
+                                        <!-- Edit Mode Actions -->
+                                        <Grid x:Name="EditActions" Visibility="Collapsed">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Content="Save"
+                                                    Click="SaveNote_Click"
+                                                    Style="{DynamicResource PrimaryButtonStyle}"
+                                                    Padding="8,6"
+                                                    FontSize="12"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="0,0,4,0"/>
+
+                                            <Button Grid.Column="1"
+                                                    Content="Cancel"
+                                                    Click="CancelEdit_Click"
+                                                    Style="{DynamicResource SecondaryButtonStyle}"
+                                                    Padding="8,6"
+                                                    FontSize="12"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="4,0,0,0"/>
+                                        </Grid>
                                     </Grid>
                                 </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="CardBorder" Property="Effect" Value="{StaticResource CardHoverShadowEffect}"/>
-                                        <Setter TargetName="CardBorder" Property="RenderTransform">
-                                            <Setter.Value>
-                                                <ScaleTransform ScaleX="1.01" ScaleY="1.01" />
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                        <Setter TargetName="CardBorder" Property="BorderThickness" Value="1"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListBox.ItemContainerStyle>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </ScrollViewer>
 
-            <ListBox.ItemTemplate>
-                <DataTemplate DataType="models:NoteItem">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="8"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+        <!-- Status Bar -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                        <!-- Color stripe -->
-                        <Border Grid.Column="0" Background="{Binding ColorHex}" CornerRadius="6,0,0,6" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="13"
+                           VerticalAlignment="Center"/>
 
-                        <StackPanel Grid.Column="1" Margin="12,0,12,0">
-                            <DockPanel>
-                                <TextBlock Text="{Binding VendorName}" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock FontSize="14" DockPanel.Dock="Right" Margin="8,0,0,0">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value=""/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsComplete}" Value="True">
-                                                    <Setter Property="Text" Value="✔"/>
-                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </DockPanel>
-
-                            <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding TimeInProgressDisplay}" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Start" Command="{Binding DataContext.StartAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,4,0" Style="{DynamicResource QuickActionStyle}" Padding="8,6" FontSize="12"/>
-                                <Button Content="Stop" Command="{Binding DataContext.StopAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,4,0" Style="{DynamicResource QuickActionStyle}" Padding="8,6" FontSize="12"/>
-                                <Button Content="Pick" Click="PickColor_Click" Margin="0,0,4,0" Style="{DynamicResource QuickActionStyle}" Padding="8,6" FontSize="12"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-
-        </ListBox>
+                <TextBlock Grid.Column="1"
+                           Text="Loading..."
+                           Foreground="{DynamicResource TextTertiaryBrush}"
+                           FontSize="12"
+                           Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

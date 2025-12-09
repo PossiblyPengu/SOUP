@@ -1,62 +1,101 @@
 using System;
-using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace SAP.Features.NotesTracker.Models
+namespace SAP.Features.NotesTracker.Models;
+public enum NoteStatus
 {
-    public class NoteItem : ObservableObject
+    NotReady = 0,
+    InProgress = 1,
+    Done = 2
+}
+
+public partial class NoteItem : ObservableObject
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [ObservableProperty]
+    private string _vendorName = string.Empty;
+
+    [ObservableProperty]
+    private string _transferNumbers = string.Empty;
+
+    [ObservableProperty]
+    private string _whsShipmentNumbers = string.Empty;
+
+    public enum NoteStatus
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        NotReady = 0,
+        InProgress = 1,
+        Done = 2
+    }
 
-        private string? _vendorName;
-        public string? VendorName { get => _vendorName; set => SetProperty(ref _vendorName, value); }
+    [ObservableProperty]
+    private NoteStatus _status = NoteStatus.NotReady;
+    [ObservableProperty]
+    private string _colorHex = "#B56576";
 
-        private string? _transferNumbers;
-        public string? TransferNumbers { get => _transferNumbers; set => SetProperty(ref _transferNumbers, value); }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 
-        private string? _whsShipmentNumbers;
-        public string? WhsShipmentNumbers { get => _whsShipmentNumbers; set => SetProperty(ref _whsShipmentNumbers, value); }
+    /// <summary>
+    /// Order for manual sorting/reordering (lower = earlier in list)
+    /// </summary>
+    public int Order { get; set; }
 
-        private bool _isComplete;
-        public bool IsComplete { get => _isComplete; set => SetProperty(ref _isComplete, value); }
-
-        private string? _colorHex;
-        public string? ColorHex { get => _colorHex; set => SetProperty(ref _colorHex, value); }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? StartedAt { get; set; }
-        public DateTime? CompletedAt { get; set; }
-
-        // Order for manual sorting/reordering (lower = earlier in list)
-        public int Order { get; set; }
-
-        [JsonIgnore]
-        public TimeSpan TimeInProgress
+    [JsonIgnore]
+    public TimeSpan TimeInProgress
+    {
+        get
         {
-            get
-            {
-                if (StartedAt == null) return TimeSpan.Zero;
-                if (IsComplete && CompletedAt != null) return CompletedAt.Value - StartedAt.Value;
-                return DateTime.UtcNow - StartedAt.Value;
-            }
+            if (StartedAt == null) return TimeSpan.Zero;
+            if (Status == NoteStatus.Done && CompletedAt != null) return CompletedAt.Value - StartedAt.Value;
+            if (Status == NoteStatus.InProgress) return DateTime.UtcNow - StartedAt.Value;
+            return TimeSpan.Zero;
+        }
+    }
+
+    [JsonIgnore]
+    public string TimeInProgressDisplay
+    {
+        get
+        {
+            var ts = TimeInProgress;
+            return ts.TotalHours >= 1
+                ? $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+                : $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+        }
+    }
+
+    /// <summary>
+    /// Called by a UI timer to raise PropertyChanged for computed properties
+    /// </summary>
+    public void RefreshTimeInProgress()
+    {
+        OnPropertyChanged(nameof(TimeInProgress));
+        OnPropertyChanged(nameof(TimeInProgressDisplay));
+    }
+
+    partial void OnStatusChanged(NoteStatus value)
+    {
+        // Manage StartedAt/CompletedAt based on status transitions
+        if (value == NoteStatus.InProgress)
+        {
+            if (StartedAt == null) StartedAt = DateTime.UtcNow;
+            CompletedAt = null;
+        }
+        else if (value == NoteStatus.Done)
+        {
+            if (StartedAt == null) StartedAt = DateTime.UtcNow;
+            CompletedAt = DateTime.UtcNow;
+        }
+        else // NotReady
+        {
+            StartedAt = null;
+            CompletedAt = null;
         }
 
-        // Called by a UI timer to raise PropertyChanged for the computed TimeInProgress property
-        public void RefreshTimeInProgress()
-        {
-            OnPropertyChanged(nameof(TimeInProgress));
-            OnPropertyChanged(nameof(TimeInProgressDisplay));
-        }
-
-        [JsonIgnore]
-        public string TimeInProgressDisplay
-        {
-            get
-            {
-                var ts = TimeInProgress;
-                if (ts.TotalHours >= 1) return string.Format("{0:D2}:{1:D2}:{2:D2}", (int)ts.TotalHours, ts.Minutes, ts.Seconds);
-                return string.Format("{0:D2}:{1:D2}", ts.Minutes, ts.Seconds);
-            }
-        }
+        RefreshTimeInProgress();
     }
 }

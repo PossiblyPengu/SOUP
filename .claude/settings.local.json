@@ -3,7 +3,12 @@
     "allow": [
       "Bash(taskkill:*)",
       "Bash(timeout /t 2 /nobreak)",
-      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\")"
+      "Bash(\"D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\dotnet.exe\" build \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj\")",
+      "Bash(cd:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(del \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\Features\\NotesTracker\\Services\\NotesService.cs\")",
+      "Bash(powershell -Command \"Get-Process -Name SAP -ErrorAction SilentlyContinue | Stop-Process -Force\")"
     ],
     "deny": [],
     "ask": []
