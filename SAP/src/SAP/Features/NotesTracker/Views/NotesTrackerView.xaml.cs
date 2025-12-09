@@ -32,9 +32,31 @@ public partial class NotesTrackerView : UserControl
             RefreshExpanders(vm);
         }
 
+        // Set up grouping on the ListBox
+        var view = CollectionViewSource.GetDefaultView(NotesListBox.ItemsSource);
+        if (view != null && view.GroupDescriptions.Count == 0)
+        {
+            view.GroupDescriptions.Add(new PropertyGroupDescription("VendorName"));
+        }
+
         SetPlaceholder(AddVendorBox);
         SetPlaceholder(AddTransfersBox);
         SetPlaceholder(AddWhsBox);
+
+        // Initialize toolbar color preview from ViewModel
+        if (DataContext is NotesTrackerViewModel vm2)
+        {
+            try
+            {
+                var hex = vm2.GetNewNoteColor();
+                var tb = this.FindName("ToolbarColorPreview") as Border;
+                if (tb != null && !string.IsNullOrEmpty(hex))
+                {
+                    tb.Background = new BrushConverter().ConvertFromString(hex) as Brush;
+                }
+            }
+            catch { }
+        }
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -60,9 +82,9 @@ public partial class NotesTrackerView : UserControl
 
     private void TextBox_GotFocus(object sender, RoutedEventArgs e)
     {
-        if (sender is TextBox tb && tb.Tag is string placeholder && tb.Text == placeholder)
+        if (sender is TextBox tb)
         {
-            tb.Text = string.Empty;
+            // ensure foreground indicates focus/input
             tb.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f4f4f5"));
         }
     }
@@ -71,7 +93,15 @@ public partial class NotesTrackerView : UserControl
     {
         if (sender is TextBox tb)
         {
-            SetPlaceholder(tb);
+            // if empty, render placeholder look (watermark handles text display)
+            if (string.IsNullOrEmpty(tb.Text))
+            {
+                tb.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#71717a"));
+            }
+            else
+            {
+                tb.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f4f4f5"));
+            }
         }
     }
 
@@ -117,13 +147,14 @@ public partial class NotesTrackerView : UserControl
         vm.NewNoteTransferNumbers = string.Empty;
         vm.NewNoteWhsShipmentNumbers = string.Empty;
 
-        SetPlaceholder(AddVendorBox);
-        SetPlaceholder(AddTransfersBox);
-        SetPlaceholder(AddWhsBox);
+        // toolbar placeholders are handled by watermark style; ensure foregrounds are set
+        AddVendorBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#71717a"));
+        AddTransfersBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#71717a"));
+        AddWhsBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#71717a"));
         AddVendorBox.Focus();
     }
 
-    private async void AddNoteColorBar_Click(object sender, MouseButtonEventArgs e)
+    private void AddNoteToolbarPickColor_Click(object sender, MouseButtonEventArgs e)
     {
         if (DataContext is not NotesTrackerViewModel vm) return;
 
@@ -132,7 +163,66 @@ public partial class NotesTrackerView : UserControl
         if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
         {
             vm.SetNewNoteColor(picker.SelectedHex);
-            AddNoteColorBar.Background = new BrushConverter().ConvertFromString(picker.SelectedHex) as Brush;
+            if (sender is Border b)
+            {
+                b.Background = new BrushConverter().ConvertFromString(picker.SelectedHex) as Brush;
+            }
+            else
+            {
+                var tb = this.FindName("ToolbarColorPreview") as Border;
+                if (tb != null)
+                    tb.Background = new BrushConverter().ConvertFromString(picker.SelectedHex) as Brush;
+            }
+        }
+    }
+
+    private async void NoteColorBar_Click(object sender, MouseButtonEventArgs e)
+    {
+        var border = sender as Border;
+        var note = border?.DataContext as NoteItem;
+        if (note == null || DataContext is not NotesTrackerViewModel vm) return;
+
+        var picker = new NotesColorPickerWindow(note.ColorHex) { Owner = Window.GetWindow(this) };
+
+        if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
+        {
+            await vm.SetColorAsync(note, picker.SelectedHex);
+        }
+    }
+
+    private void AddField_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            AddNoteInline_Click(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+    }
+
+    private void ToggleToolbarBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (AddToolbarPanel.Visibility == Visibility.Visible)
+        {
+            AddToolbarPanel.Visibility = Visibility.Collapsed;
+            ToggleToolbarBtn.ToolTip = "Show toolbar";
+            OpenAddDialogBtn.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            AddToolbarPanel.Visibility = Visibility.Visible;
+            ToggleToolbarBtn.ToolTip = "Hide toolbar";
+            OpenAddDialogBtn.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private async void OpenAddDialog_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not NotesTrackerViewModel vm) return;
+
+        var dlg = new AddNoteWindow() { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() == true && dlg.Result != null)
+        {
+            await vm.AddNoteAsync(dlg.Result);
         }
     }
 
@@ -238,20 +328,6 @@ public partial class NotesTrackerView : UserControl
         }
     }
 
-    private async void NoteColorBar_Click(object sender, MouseButtonEventArgs e)
-    {
-        var border = sender as Border;
-        var note = border?.DataContext as NoteItem;
-        if (note == null || DataContext is not NotesTrackerViewModel vm) return;
-
-        var picker = new NotesColorPickerWindow(note.ColorHex) { Owner = Window.GetWindow(this) };
-
-        if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
-        {
-            await vm.SetColorAsync(note, picker.SelectedHex);
-        }
-    }
-
     #endregion
 
     #region Selection & Legacy Support
@@ -282,6 +358,18 @@ public partial class NotesTrackerView : UserControl
         if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
         {
             await vm.SetColorAsync(note, picker.SelectedHex);
+        }
+    }
+
+    private async void StatusButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        if (btn.DataContext is not NoteItem note) return;
+        if (DataContext is not NotesTrackerViewModel vm) return;
+
+        if (btn.Tag is NoteItem.NoteStatus status)
+        {
+            await vm.SetStatusAsync(note, status);
         }
     }
 

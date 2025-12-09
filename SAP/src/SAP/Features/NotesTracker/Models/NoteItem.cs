@@ -3,13 +3,6 @@ using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SAP.Features.NotesTracker.Models;
-public enum NoteStatus
-{
-    NotReady = 0,
-    InProgress = 1,
-    Done = 2
-}
-
 public partial class NoteItem : ObservableObject
 {
     public Guid Id { get; set; } = Guid.NewGuid();

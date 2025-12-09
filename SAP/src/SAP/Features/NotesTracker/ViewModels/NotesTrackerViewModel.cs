@@ -18,6 +18,8 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     private readonly ILogger<NotesTrackerViewModel>? _logger;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
+    private DispatcherTimer? _undoTimer;
+    private List<(Guid id, NoteItem.NoteStatus previous)> _lastStatusChanges = new();
 
     public ObservableCollection<NoteItem> Items { get; } = new();
     public ObservableCollection<NoteItem> SelectedItems { get; } = new();
@@ -30,6 +32,12 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private bool _isLoading;
+
+    [ObservableProperty]
+    private bool _undoAvailable;
+
+    [ObservableProperty]
+    private string _undoMessage = string.Empty;
 
     [ObservableProperty]
     private string _newNoteVendorName = string.Empty;
@@ -139,25 +147,6 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task ToggleCompleteAsync(NoteItem? item)
-    {
-        if (item == null) return;
-        item.Status = item.Status == NoteItem.NoteStatus.Done ? NoteItem.NoteStatus.NotReady : NoteItem.NoteStatus.Done;
-        await SaveAsync();
-    }
-
-    [RelayCommand]
-    private async Task BulkToggleCompleteAsync()
-    {
-        if (SelectedItems.Count == 0) return;
-        foreach (var item in SelectedItems)
-        {
-            item.Status = item.Status == NoteItem.NoteStatus.Done ? NoteItem.NoteStatus.NotReady : NoteItem.NoteStatus.Done;
-        }
-        await SaveAsync();
-    }
-
-    [RelayCommand]
     private async Task BulkSetColorAsync(string? colorHex)
     {
         if (SelectedItems.Count == 0 || string.IsNullOrEmpty(colorHex)) return;
@@ -167,6 +156,63 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
             item.ColorHex = colorHex;
         }
         await SaveAsync();
+    }
+
+    [RelayCommand]
+    private async Task BulkSetStatusAsync(NoteItem.NoteStatus status)
+    {
+        if (SelectedItems.Count == 0) return;
+
+        var changes = new List<(Guid id, NoteItem.NoteStatus previous)>();
+        foreach (var item in SelectedItems)
+        {
+            changes.Add((item.Id, item.Status));
+            item.Status = status;
+        }
+
+        await SaveAsync();
+
+        SetupUndo(changes, $"Set {SelectedItems.Count} item(s) to {status}");
+    }
+
+    
+
+    private void SetupUndo(List<(Guid id, NoteItem.NoteStatus previous)> changes, string message)
+    {
+        _lastStatusChanges = changes;
+        UndoMessage = message;
+        UndoAvailable = true;
+
+        _undoTimer?.Stop();
+        _undoTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        _undoTimer.Tick += (s, e) =>
+        {
+            UndoAvailable = false;
+            _lastStatusChanges.Clear();
+            _undoTimer?.Stop();
+        };
+        _undoTimer.Start();
+    }
+
+    [RelayCommand]
+    private async Task UndoStatusChangeAsync()
+    {
+        if (_lastStatusChanges == null || _lastStatusChanges.Count == 0) return;
+
+        foreach (var (id, prev) in _lastStatusChanges)
+        {
+            var item = Items.FirstOrDefault(i => i.Id == id);
+            if (item != null)
+            {
+                item.Status = prev;
+            }
+        }
+
+        await SaveAsync();
+        _lastStatusChanges.Clear();
+        UndoAvailable = false;
+        _undoTimer?.Stop();
+        StatusMessage = "Undo applied";
     }
 
     [RelayCommand]
@@ -223,7 +269,7 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
         await SaveAsync();
     }
 
-    public async Task SetStatusAsync(NoteItem item, NoteStatus status)
+    public async Task SetStatusAsync(NoteItem item, NoteItem.NoteStatus status)
     {
         if (item == null) return;
         item.Status = status;
