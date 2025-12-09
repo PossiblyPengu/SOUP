@@ -10,6 +10,12 @@
              d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}">
 
     <UserControl.Resources>
+        <local:StoreDisplayConverter x:Key="StoreDisplayConverter"/>
+        <CollectionViewSource x:Key="GroupedItemsView" Source="{Binding FilteredItems}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Location" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
         <Storyboard x:Key="FadeInStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                            From="0" To="1" Duration="0:0:0.4">
@@ -211,7 +217,7 @@
                                     <TextBlock Text="Edit"/>
                                 </StackPanel>
                             </Button>
-                            <Button Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}">
+                            <Button Command="{Binding DeleteSelectedCommand}" Style="{StaticResource DangerButton}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
                                     <TextBlock Text="Delete"/>
@@ -334,8 +340,10 @@
                 
                 <!-- Data Grid -->
                 <Grid Grid.Row="3" Margin="20">
-                    <DataGrid ItemsSource="{Binding FilteredItems}"
+                    <DataGrid x:Name="ItemsGrid" ItemsSource="{Binding Source={StaticResource GroupedItemsView}}"
                               SelectedItem="{Binding SelectedItem}"
+                              SelectionMode="Extended" SelectionUnit="FullRow"
+                              SelectionChanged="OnItemsGridSelectionChanged"
                               Style="{StaticResource ModernDataGrid}"
                               ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
                               CellStyle="{StaticResource ModernDataGridCell}"
@@ -343,7 +351,7 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="120"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
-                            <DataGridTextColumn Header="Expiration Date" Binding="{Binding ExpirationDate, StringFormat='{}{0:MM/dd/yyyy}'}" Width="120"/>
+                            <DataGridTextColumn Header="Store" Binding="{Binding Location, Converter={StaticResource StoreDisplayConverter}}" Width="240"/>
                             <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80"/>
                             <DataGridTemplateColumn Header="Status" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -372,6 +380,32 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
+
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Expander IsExpanded="True" Background="Transparent">
+                                            <Expander.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📍" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="{Binding Name, Converter={StaticResource StoreDisplayConverter}}" FontWeight="Bold"/>
+                                                    <TextBlock Text=" (" Margin="6,0,0,0"/>
+                                                    <TextBlock Text="{Binding ItemCount}"/>
+                                                    <TextBlock Text=")"/>
+                                                </StackPanel>
+                                            </Expander.Header>
+                                            <ItemsPresenter/>
+                                        </Expander>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                                <GroupStyle.Panel>
+                                    <ItemsPanelTemplate>
+                                        <DataGridRowsPresenter/>
+                                    </ItemsPanelTemplate>
+                                </GroupStyle.Panel>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
                     </DataGrid>
                 </Grid>
 

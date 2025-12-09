@@ -1,0 +1,170 @@
+<UserControl x:Class="SAP.Features.NotesTracker.Views.NotesTrackerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SAP.Features.NotesTracker.ViewModels"
+             xmlns:models="clr-namespace:SAP.Features.NotesTracker.Models"
+             mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="GroupedNotes" Source="{Binding Items}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="VendorName" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
+        <!-- Shadows and sizing -->
+        <DropShadowEffect x:Key="CardShadowEffect" Color="#000000" BlurRadius="12" ShadowDepth="0" Opacity="0.12"/>
+        <DropShadowEffect x:Key="CardHoverShadowEffect" Color="#000000" BlurRadius="18" ShadowDepth="0" Opacity="0.18"/>
+        <sys:Double x:Key="CardWidth">320</sys:Double>
+        <Thickness x:Key="CardPadding">12</Thickness>
+        <CornerRadius x:Key="CardCornerRadius">10</CornerRadius>
+
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource BackgroundBrush}" Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,8">
+            <Button Content="Add Note" Margin="0,0,8,0" Click="AddNote_Click" Style="{DynamicResource QuickActionStyle}"/>
+            <Button Content="Delete Selected" Command="{Binding DeleteSelectedAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
+            <Button Content="Toggle Complete" Command="{Binding BulkToggleCompleteAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
+            <Button Content="Start" Command="{Binding BulkStartAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
+            <Button Content="Stop" Command="{Binding BulkStopAsyncCommand}" Margin="0,0,8,0" Style="{DynamicResource QuickActionStyle}"/>
+            <!-- Toolbar color picker removed: color selection is available per-card only -->
+            <Button Content="Save" Command="{Binding SaveAsyncCommand}" Style="{DynamicResource QuickActionStyle}"/>
+            <Button Content="Reset Groups" Command="{Binding ResetGroupsCommand}" Margin="8,0,0,0" Style="{DynamicResource QuickActionStyle}"/>
+        </StackPanel>
+
+        <!-- Tile-style notes list grouped by vendor -->
+        <ListBox Grid.Row="1" x:Name="NotesListBox" ItemsSource="{Binding Source={StaticResource GroupedNotes}}" SelectionMode="Extended" SelectionChanged="NotesListBox_SelectionChanged"
+             AllowDrop="True"
+             PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
+             PreviewMouseMove="ListBox_PreviewMouseMove"
+             Drop="ListBox_Drop"
+             DragOver="ListBox_DragOver">
+
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="8"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListBox.Resources>
+
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <Expander Loaded="GroupExpander_Loaded" Expanded="GroupExpander_Expanded" Collapsed="GroupExpander_Collapsed" Margin="0,8,0,8">
+                                <Expander.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                        <TextBlock Text=" (" />
+                                        <TextBlock Text="{Binding ItemCount}" />
+                                        <TextBlock Text=")" />
+                                    </StackPanel>
+                                </Expander.Header>
+                                <ItemsPresenter/>
+                            </Expander>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel IsItemsHost="True" Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </ListBox.GroupStyle>
+
+            <!-- Card container style: wraps the content and provides hover/selected visuals -->
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Width" Value="{StaticResource CardWidth}"/>
+                    <Setter Property="Margin" Value="8"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="CardBorder" Background="{DynamicResource SurfaceBrush}" CornerRadius="{StaticResource CardCornerRadius}" Padding="{StaticResource CardPadding}" Effect="{StaticResource CardShadowEffect}">
+                                    <Grid>
+                                        <ContentPresenter/>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="CardBorder" Property="Effect" Value="{StaticResource CardHoverShadowEffect}"/>
+                                        <Setter TargetName="CardBorder" Property="RenderTransform">
+                                            <Setter.Value>
+                                                <ScaleTransform ScaleX="1.01" ScaleY="1.01" />
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter TargetName="CardBorder" Property="BorderThickness" Value="1"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:NoteItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Color stripe -->
+                        <Border Grid.Column="0" Background="{Binding ColorHex}" CornerRadius="6,0,0,6" />
+
+                        <StackPanel Grid.Column="1" Margin="12,0,12,0">
+                            <DockPanel>
+                                <TextBlock Text="{Binding VendorName}" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock FontSize="14" DockPanel.Dock="Right" Margin="8,0,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value=""/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                                    <Setter Property="Text" Value="✔"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DockPanel>
+
+                            <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TimeInProgressDisplay}" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Start" Command="{Binding DataContext.StartAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,4,0" Style="{DynamicResource QuickActionStyle}" Padding="8,6" FontSize="12"/>
+                                <Button Content="Stop" Command="{Binding DataContext.StopAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,4,0" Style="{DynamicResource QuickActionStyle}" Padding="8,6" FontSize="12"/>
+                                <Button Content="Pick" Click="PickColor_Click" Margin="0,0,4,0" Style="{DynamicResource QuickActionStyle}" Padding="8,6" FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+
+        </ListBox>
+    </Grid>
+</UserControl>

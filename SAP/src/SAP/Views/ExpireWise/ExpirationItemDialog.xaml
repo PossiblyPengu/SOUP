@@ -40,19 +40,19 @@
                             <!-- Item Number with Autocomplete -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Item Number *" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                 <Grid>
                                     <TextBox Text="{Binding ItemNumber, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource ModernTextBox}"
-                                             x:Name="ItemNumberTextBox"/>
+                                             x:Name="ItemNumberTextBox" MinWidth="220"/>
                                 </Grid>
                                 
                                 <!-- Autocomplete Suggestions -->
                                 <Border Visibility="{Binding ShowSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        Background="{DynamicResource SurfaceBrush}"
-                                        BorderBrush="{DynamicResource BorderBrush}"
-                                        BorderThickness="1" CornerRadius="6"
-                                        MaxHeight="150" Margin="0,4,0,0">
+                                    Background="{DynamicResource SurfaceBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="6"
+                                    MaxHeight="150" Margin="0,4,0,0" MinWidth="220">
                                     <Border.Effect>
                                         <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.15"/>
                                     </Border.Effect>
@@ -105,9 +105,9 @@
                             <!-- Description -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Description *" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                 <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource ModernTextBox}"/>
+                                         Style="{StaticResource ModernTextBox}" MinWidth="320"/>
                             </StackPanel>
 
                             <!-- Two Column Layout: Location + Units -->
@@ -121,26 +121,27 @@
                                 <!-- Location -->
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="Location" FontWeight="SemiBold" FontSize="13"
-                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                     <ComboBox ItemsSource="{Binding AvailableStores}"
                                               SelectedItem="{Binding SelectedStore}"
                                               DisplayMemberPath="Display"
-                                              Style="{StaticResource ModernComboBox}"/>
+                                              Style="{StaticResource ModernComboBox}"
+                                              MinWidth="220"/>
                                 </StackPanel>
 
                                 <!-- Units -->
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="Units" FontWeight="SemiBold" FontSize="13"
-                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                     <TextBox Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource ModernTextBox}"/>
+                                             Style="{StaticResource ModernTextBox}" Width="100" HorizontalContentAlignment="Right"/>
                                 </StackPanel>
                             </Grid>
 
                             <!-- Expiry Date (Month/Year) - Full Width -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Expiry Month *" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                 <StackPanel Orientation="Horizontal">
                                     <ComboBox ItemsSource="{Binding AvailableMonths}"
                                               SelectedValue="{Binding ExpiryMonth}"
@@ -158,7 +159,7 @@
                             <!-- Notes -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                 <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource ModernTextBox}"
                                          Height="60" TextWrapping="Wrap" AcceptsReturn="True"

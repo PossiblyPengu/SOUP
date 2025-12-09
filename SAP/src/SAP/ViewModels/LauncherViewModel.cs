@@ -41,6 +41,10 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     /// SwiftLabel is always enabled (core functionality)
     /// </summary>
     public bool IsSwiftLabelEnabled => true;
+    /// <summary>
+    /// Whether the NotesTracker module is enabled
+    /// </summary>
+    public bool IsNotesTrackerEnabled => true;
 
     public LauncherViewModel(
         ThemeService themeService,
@@ -121,6 +125,14 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
+    private void LaunchNotesTracker()
+    {
+        _logger?.LogInformation("Navigating to NotesTracker module");
+        var viewModel = _serviceProvider.GetRequiredService<Features.NotesTracker.ViewModels.NotesTrackerViewModel>();
+        _navigationService.NavigateToModule("NotesTracker", viewModel);
+    }
+
+    [RelayCommand]
     private void ToggleTheme()
     {
         _logger?.LogInformation("Toggling theme. Current: {IsDarkMode}", _themeService.IsDarkMode);
@@ -161,6 +173,15 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening SwiftLabel in new window");
         var viewModel = _serviceProvider.GetRequiredService<SwiftLabelViewModel>();
         var window = new Windows.SwiftLabelWindow(viewModel);
+        window.Show();
+    }
+
+    [RelayCommand]
+    private void PopOutNotesTracker()
+    {
+        _logger?.LogInformation("Opening NotesTracker in new window");
+        var viewModel = _serviceProvider.GetRequiredService<Features.NotesTracker.ViewModels.NotesTrackerViewModel>();
+        var window = new Windows.NotesTrackerWindow(viewModel);
         window.Show();
     }
 }

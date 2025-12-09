@@ -24,6 +24,7 @@
         <KeyBinding Key="D2" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"/>
         <KeyBinding Key="D3" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"/>
         <KeyBinding Key="D4" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}"/>
+        <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}"/>
         
         <!-- Global Shortcuts -->
         <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding ToggleThemeCommand}"/>
@@ -359,6 +360,17 @@
                                     <TextBlock Text="Label generator" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                 </StackPanel>
                             </RadioButton>
+
+                            <!-- Notes Tracker -->
+                            <RadioButton x:Name="NavNotesTracker" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}">
+                                <RadioButton.Tag>
+                                    <TextBlock Text="🗒️" FontSize="20"/>
+                                </RadioButton.Tag>
+                                <StackPanel>
+                                    <TextBlock Text="Notes" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Track transfers &amp; shipments" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                </StackPanel>
+                            </RadioButton>
                     </StackPanel>
 
                     <!-- Bottom Actions -->
@@ -624,6 +636,32 @@
                         </StackPanel>
                         
                         <TextBlock Text="Press Alt+4 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
+                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Notes Tracker Splash -->
+                <Grid Visibility="{Binding IsChecked, ElementName=NavNotesTracker, Converter={StaticResource BoolToVisibility}}"
+                      Background="{DynamicResource SurfaceBrush}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600">
+                        <Border Width="120" Height="120" CornerRadius="12" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource SurfaceHoverBrush}">
+                            <TextBlock Text="🗒️" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock Text="Notes Tracker" FontSize="34" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Track transfer groups, mark notes complete, and colour-code entries" 
+                                   FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}" Style="{StaticResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.PopOutNotesTrackerCommand}" Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0" ToolTip="Open in new window"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Press Alt+5 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
                                    HorizontalAlignment="Center" Margin="0,20,0,0"/>
                     </StackPanel>
                 </Grid>

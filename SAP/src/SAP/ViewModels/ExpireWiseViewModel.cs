@@ -74,6 +74,12 @@ public partial class ExpireWiseViewModel : ObservableObject
     private ExpirationItem? _selectedItem;
 
     /// <summary>
+    /// Gets or sets the currently selected items (supports multi-select).
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<ExpirationItem> _selectedItems = new();
+
+    /// <summary>
     /// Gets or sets the search text for filtering items.
     /// </summary>
     [ObservableProperty]
@@ -226,7 +232,8 @@ public partial class ExpireWiseViewModel : ObservableObject
             var activeItems = allItems.Where(i => !i.IsDeleted).ToList();
 
             Items.Clear();
-            foreach (var item in activeItems.OrderBy(i => i.ExpiryDate))
+            // Order items by Location (store) then by expiry date for consistent display
+            foreach (var item in activeItems.OrderBy(i => i.Location ?? string.Empty).ThenBy(i => i.ExpiryDate))
             {
                 Items.Add(item);
             }
@@ -484,6 +491,48 @@ public partial class ExpireWiseViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task DeleteSelected()
+    {
+        try
+        {
+            var toDelete = SelectedItems?.ToList() ?? new List<ExpirationItem>();
+            if (toDelete.Count == 0)
+            {
+                StatusMessage = "Please select one or more items to delete";
+                return;
+            }
+
+            var confirm = await (_dialogService?.ShowConfirmationAsync("Confirm delete", $"Delete {toDelete.Count} item(s)? This cannot be undone.") ?? Task.FromResult(false));
+            if (!confirm) return;
+
+            var deleted = 0;
+            foreach (var item in toDelete)
+            {
+                var success = await _repository.DeleteAsync(item.Id);
+                if (success)
+                {
+                    Items.Remove(item);
+                    deleted++;
+                }
+            }
+
+            // Refresh views
+            BuildAvailableMonths();
+            ApplyFilters();
+            UpdateLastSaved();
+
+            StatusMessage = deleted > 0 ? $"Deleted {deleted} item(s)" : "No items were deleted";
+            SelectedItems.Clear();
+            SelectedItem = null;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error deleting items: {ex.Message}";
+            _logger?.LogError(ex, "Exception while deleting selected items");
+        }
+    }
+
+    [RelayCommand]
     private async Task ImportFromExcel()
     {
         _logger?.LogInformation("Import from Excel clicked");
@@ -677,7 +726,8 @@ public partial class ExpireWiseViewModel : ObservableObject
         }
 
         FilteredItems.Clear();
-        foreach (var item in filtered.OrderBy(i => i.ExpiryDate))
+        // When showing filtered items for a month, sort by Location (store) then expiry date
+        foreach (var item in filtered.OrderBy(i => i.Location ?? string.Empty).ThenBy(i => i.ExpiryDate))
         {
             FilteredItems.Add(item);
         }

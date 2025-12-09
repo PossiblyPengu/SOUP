@@ -758,6 +758,7 @@
         <Setter Property="CanUserAddRows" Value="False"/>
         <Setter Property="AutoGenerateColumns" Value="False"/>
         <Setter Property="FontSize" Value="13"/>
+        <Setter Property="RowHeight" Value="44"/>
     </Style>
     
     <!-- Alias for ModernDataGrid -->
@@ -777,7 +778,8 @@
     <Style x:Key="ModernDataGridColumnHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModernDataGridColumnHeaderStyle}"/>
     
     <Style x:Key="ModernDataGridCellStyle" TargetType="DataGridCell">
-        <Setter Property="Padding" Value="12,8"/>
+        <!-- increase padding for readability -->
+        <Setter Property="Padding" Value="16,10"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -794,7 +796,9 @@
     <Style x:Key="ModernDataGridCell" TargetType="DataGridCell" BasedOn="{StaticResource ModernDataGridCellStyle}"/>
     
     <Style x:Key="ModernDataGridRowStyle" TargetType="DataGridRow">
-        <Setter Property="Margin" Value="0"/>
+        <!-- add vertical spacing between rows -->
+        <Setter Property="Margin" Value="0,6,0,6"/>
+        <Setter Property="MinHeight" Value="40"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>

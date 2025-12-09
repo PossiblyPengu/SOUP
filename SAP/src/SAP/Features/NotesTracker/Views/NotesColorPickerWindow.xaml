@@ -1,0 +1,35 @@
+<Window x:Class="SAP.Features.NotesTracker.Views.NotesColorPickerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pick Color" Height="240" Width="360" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Choose a color" FontWeight="SemiBold" FontSize="14"/>
+
+        <UniformGrid Grid.Row="1" Columns="5" Rows="2" Margin="0,12,0,12">
+            <!-- simple palette -->
+            <Button Background="#B56576" Tag="#B56576" Click="Swatch_Click"/>
+            <Button Background="#6AA84F" Tag="#6AA84F" Click="Swatch_Click"/>
+            <Button Background="#FFD966" Tag="#FFD966" Click="Swatch_Click"/>
+            <Button Background="#6FA8DC" Tag="#6FA8DC" Click="Swatch_Click"/>
+            <Button Background="#C27BA0" Tag="#C27BA0" Click="Swatch_Click"/>
+
+            <Button Background="#FFFFFF" Tag="#FFFFFF" BorderBrush="Gray" Click="Swatch_Click"/>
+            <Button Background="#000000" Tag="#000000" Click="Swatch_Click"/>
+            <Button Background="#FF7F50" Tag="#FF7F50" Click="Swatch_Click"/>
+            <Button Background="#9ACD32" Tag="#9ACD32" Click="Swatch_Click"/>
+            <Button Background="#40E0D0" Tag="#40E0D0" Click="Swatch_Click"/>
+        </UniformGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <TextBox x:Name="HexBox" Width="120" Margin="0,0,12,0" VerticalContentAlignment="Center"/>
+            <Button Content="OK" Width="72" Margin="0,0,8,0" Click="Ok_Click"/>
+            <Button Content="Cancel" Width="72" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

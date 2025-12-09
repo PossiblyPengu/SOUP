@@ -582,3 +582,11 @@ D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.xml
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.pdb
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.genruntimeconfig.cache
 D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\ref\SAP.dll
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\NotesTrackerWindow.g.cs
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesTrackerView.g.cs
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesTrackerView.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\NotesTrackerWindow.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesColorPickerWindow.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesColorPickerWindow.g.cs
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\AddNoteWindow.baml
+d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\AddNoteWindow.g.cs

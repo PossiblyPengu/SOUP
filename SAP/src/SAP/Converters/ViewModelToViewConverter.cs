@@ -7,6 +7,8 @@ using SAP.Views.AllocationBuddy;
 using SAP.Views.EssentialsBuddy;
 using SAP.Views.ExpireWise;
 using SAP.Views.SwiftLabel;
+using SAP.Features.NotesTracker.ViewModels;
+using SAP.Features.NotesTracker.Views;
 
 namespace SAP.Converters;
 
@@ -39,6 +41,7 @@ public class ViewModelToViewConverter : IValueConverter
             EssentialsBuddyViewModel vm => new EssentialsBuddyView { DataContext = vm },
             ExpireWiseViewModel vm => new ExpireWiseView { DataContext = vm },
             SwiftLabelViewModel vm => new SwiftLabelView { DataContext = vm },
+            NotesTrackerViewModel vm => new NotesTrackerView { DataContext = vm },
             null => null,
             _ => throw new ArgumentException($"Unknown ViewModel type: {value.GetType().Name}")
         };
