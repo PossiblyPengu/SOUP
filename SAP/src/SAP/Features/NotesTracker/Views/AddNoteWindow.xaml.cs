@@ -38,9 +38,9 @@ public partial class AddNoteWindow : Window
     {
         var picker = new NotesColorPickerWindow(_selectedColorHex) { Owner = this };
 
-        if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedHex))
+        if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedColor))
         {
-            _selectedColorHex = picker.SelectedHex;
+            _selectedColorHex = picker.SelectedColor;
             try
             {
                 ColorPreview.Background = new BrushConverter().ConvertFromString(_selectedColorHex) as Brush;

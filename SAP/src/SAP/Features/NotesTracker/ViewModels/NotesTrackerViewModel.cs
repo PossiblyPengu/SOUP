@@ -240,7 +240,7 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task StartAsync(NoteItem? item)
+    public async Task StartAsync(NoteItem? item)
     {
         if (item == null) return;
         item.Status = NoteItem.NoteStatus.InProgress;
@@ -248,7 +248,7 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task StopAsync(NoteItem? item)
+    public async Task StopAsync(NoteItem? item)
     {
         if (item == null) return;
         item.Status = NoteItem.NoteStatus.Done;

@@ -1,77 +1,63 @@
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace SAP.Features.NotesTracker.Views;
 
 public partial class NotesColorPickerWindow : Window
 {
-    private static readonly Regex HexColorRegex = new(@"^#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$", RegexOptions.Compiled);
+    public string SelectedColor { get; private set; }
 
-    public string? SelectedHex { get; private set; }
-
-    public NotesColorPickerWindow(string? initialHex = null)
+    public NotesColorPickerWindow(string initialColor)
     {
         InitializeComponent();
-
-        if (!string.IsNullOrEmpty(initialHex))
-        {
-            HexBox.Text = initialHex;
-            UpdatePreview(initialHex);
-        }
+        SelectedColor = initialColor ?? "#8b5cf6";
+        HexBox.Text = SelectedColor;
+        UpdatePreview(SelectedColor);
     }
 
-    private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void Color_Click(object sender, RoutedEventArgs e)
     {
-        if (e.ClickCount == 1)
+        if (sender is Button btn && btn.Tag is string color)
         {
-            DragMove();
-        }
-    }
-
-    private void Swatch_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { Tag: string hex })
-        {
-            HexBox.Text = hex;
+            SelectedColor = color;
+            HexBox.Text = color;
+            UpdatePreview(color);
         }
     }
 
     private void HexBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var text = HexBox.Text?.Trim();
-        if (IsValidHexColor(text))
+        var hex = HexBox.Text?.Trim();
+        if (string.IsNullOrEmpty(hex)) return;
+
+        if (!hex.StartsWith("#"))
+            hex = "#" + hex;
+
+        if (hex.Length == 7 || hex.Length == 9)
         {
-            UpdatePreview(NormalizeHexColor(text!));
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(hex);
+                UpdatePreview(hex);
+                SelectedColor = hex;
+            }
+            catch { }
         }
     }
 
-    private void UpdatePreview(string hexColor)
+    private void UpdatePreview(string hex)
     {
         try
         {
-            ColorPreviewBorder.Background = new BrushConverter().ConvertFromString(hexColor) as Brush;
+            CustomColorPreview.Background = new BrushConverter().ConvertFromString(hex) as Brush;
         }
-        catch
-        {
-            // Invalid color format
-        }
+        catch { }
     }
 
-    private void Ok_Click(object sender, RoutedEventArgs e)
+    private void Apply_Click(object sender, RoutedEventArgs e)
     {
-        var text = HexBox.Text?.Trim();
-
-        if (!IsValidHexColor(text))
-        {
-            MessageBox.Show(this, "Please enter a valid hex color (e.g., #FF5733 or FF5733).",
-                "Invalid Color", MessageBoxButton.OK, MessageBoxImage.Warning);
-            HexBox.Focus();
-            return;
-        }
-
-        SelectedHex = NormalizeHexColor(text!);
         DialogResult = true;
         Close();
     }
@@ -82,21 +68,9 @@ public partial class NotesColorPickerWindow : Window
         Close();
     }
 
-    private static bool IsValidHexColor(string? text)
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        return !string.IsNullOrWhiteSpace(text) && HexColorRegex.IsMatch(text);
-    }
-
-    private static string NormalizeHexColor(string text)
-    {
-        text = text.TrimStart('#');
-
-        // Expand shorthand (e.g., "F00" -> "FF0000")
-        if (text.Length == 3)
-        {
-            text = $"{text[0]}{text[0]}{text[1]}{text[1]}{text[2]}{text[2]}";
-        }
-
-        return $"#{text.ToUpperInvariant()}";
+        if (e.LeftButton == MouseButtonState.Pressed)
+            DragMove();
     }
 }
