@@ -217,5 +217,17 @@ public partial class NotesTrackerView : UserControl
                 await vm.SaveAsync();
             }
     }
+
+    private async void UnarchiveNote_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.DataContext is Models.NoteItem note)
+            if (DataContext is NotesTrackerViewModel vm)
+            {
+                note.IsArchived = false;
+                vm.ArchivedItems.Remove(note);
+                vm.Items.Insert(0, note);
+                await vm.SaveAsync();
+            }
+    }
 }
 

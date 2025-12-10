@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "E:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj": {}
+    "d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj": {}
   },
   "projects": {
-    "E:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj": {
+    "d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj": {
       "version": "4.3.1",
       "restore": {
-        "projectUniqueName": "E:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
+        "projectUniqueName": "d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
         "projectName": "SAP",
-        "projectPath": "E:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
-        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
-        "outputPath": "E:\\CODE\\Cshp\\SAP\\src\\SAP\\obj\\",
+        "projectPath": "d:\\CODE\\Cshp\\SAP\\src\\SAP\\SAP.csproj",
+        "packagesPath": "C:\\Users\\acalabrese\\.nuget\\packages\\",
+        "outputPath": "d:\\CODE\\Cshp\\SAP\\src\\SAP\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\acalabrese\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0-windows"
@@ -70,7 +70,7 @@
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[8.0.19, )",
+              "version": "[8.0.11, )",
               "autoReferenced": true
             },
             "Serilog.Extensions.Hosting": {
@@ -96,15 +96,15 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[8.0.19, 8.0.19]"
+              "version": "[8.0.11, 8.0.11]"
             },
             {
               "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[8.0.19, 8.0.19]"
+              "version": "[8.0.11, 8.0.11]"
             },
             {
               "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
-              "version": "[8.0.19, 8.0.19]"
+              "version": "[8.0.11, 8.0.11]"
             }
           ],
           "frameworkReferences": {
@@ -118,7 +118,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "D:\\CODE\\important files\\dotnet-sdk-8.0.404-win-x64\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {

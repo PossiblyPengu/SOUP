@@ -92,6 +92,15 @@ public partial class ThemeService : ObservableObject
     }
 
     /// <summary>
+    /// Toggles Windows 95 mode and saves without applying (for app restart scenarios).
+    /// </summary>
+    public void ToggleWindows95ModeDeferred()
+    {
+        IsWindows95Mode = !IsWindows95Mode;
+        SaveTheme();
+    }
+
+    /// <summary>
     /// Sets the theme explicitly to light or dark.
     /// </summary>
     /// <param name="isDark"><c>true</c> for dark theme; <c>false</c> for light theme.</param>
@@ -119,38 +128,50 @@ public partial class ThemeService : ObservableObject
     private void ApplyTheme()
     {
         var app = Application.Current;
-        if (app == null) return;
+        if (app == null)
+        {
+            System.Diagnostics.Debug.WriteLine("ApplyTheme: Application.Current is null");
+            return;
+        }
 
         try
         {
-            string themePath;
+            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Starting. IsWindows95Mode={IsWindows95Mode}, IsDarkMode={IsDarkMode}");
+            
+            // Clear all merged dictionaries first
+            app.Resources.MergedDictionaries.Clear();
+            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Cleared merged dictionaries");
+
+            // Load the appropriate complete standalone theme
             if (IsWindows95Mode)
             {
-                themePath = "pack://application:,,,/Themes/Windows98Theme.xaml";
+                // Windows 98 mode: Load only Windows98Theme.xaml
+                var win98Theme = new ResourceDictionary
+                {
+                    Source = new Uri("pack://application:,,,/Themes/Windows98Theme.xaml", UriKind.Absolute)
+                };
+                app.Resources.MergedDictionaries.Add(win98Theme);
+                System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added Windows98Theme.xaml");
             }
             else
             {
-                themePath = IsDarkMode
-                    ? "pack://application:,,,/Themes/DarkTheme.xaml"
-                    : "pack://application:,,,/Themes/LightTheme.xaml";
+                // Modern mode: Load ModernStyles.xaml first (base styles), then color theme (colors override)
+                var modernStyles = new ResourceDictionary
+                {
+                    Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
+                };
+                app.Resources.MergedDictionaries.Add(modernStyles);
+                System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added ModernStyles.xaml");
+                
+                var colorTheme = new ResourceDictionary
+                {
+                    Source = new Uri(IsDarkMode 
+                        ? "pack://application:,,,/Themes/DarkTheme.xaml"
+                        : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
+                };
+                app.Resources.MergedDictionaries.Add(colorTheme);
+                System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added {(IsDarkMode ? "DarkTheme" : "LightTheme")}.xaml");
             }
-
-            var newTheme = new ResourceDictionary
-            {
-                Source = new Uri(themePath, UriKind.Absolute)
-            };
-
-            // Find and remove existing theme dictionary
-            var existingTheme = app.Resources.MergedDictionaries
-                .FirstOrDefault(d => d.Source?.OriginalString.Contains("Theme.xaml") == true);
-
-            if (existingTheme != null)
-            {
-                app.Resources.MergedDictionaries.Remove(existingTheme);
-            }
-
-            // Add new theme dictionary
-            app.Resources.MergedDictionaries.Add(newTheme);
 
             // Raise event for any listeners
             ThemeChanged?.Invoke(this, IsDarkMode);

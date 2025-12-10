@@ -18,6 +18,21 @@
     <CornerRadius x:Key="BadgeCornerRadius">10</CornerRadius>
 
     <!-- ============================= -->
+    <!-- MODERN THEMED ICONS           -->
+    <!-- ============================= -->
+    <sys:String x:Key="AppLogoIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">⚡</sys:String>
+    <sys:String x:Key="ExpireWiseIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📦</sys:String>
+    <sys:String x:Key="ExpireWiseSplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📦</sys:String>
+    <sys:String x:Key="AllocationBuddyIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📊</sys:String>
+    <sys:String x:Key="AllocationBuddySplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📊</sys:String>
+    <sys:String x:Key="EssentialsBuddyIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📋</sys:String>
+    <sys:String x:Key="EssentialsBuddySplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📋</sys:String>
+    <sys:String x:Key="SwiftLabelIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🏷️</sys:String>
+    <sys:String x:Key="SwiftLabelSplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🏷️</sys:String>
+    <sys:String x:Key="NotesIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🗒️</sys:String>
+    <sys:String x:Key="NotesSplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📓</sys:String>
+
+    <!-- ============================= -->
     <!-- LIGHT THEME COLORS            -->
     <!-- ============================= -->
     
@@ -130,6 +145,18 @@
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#f8fafc"/>
     <SolidColorBrush x:Key="InputBorderBrush" Color="#e2e8f0"/>
 
+    <!-- Modern 3D Border Colors - Raised (subtle for modern look) -->
+    <SolidColorBrush x:Key="RaisedBorderLightBrush" Color="#e2e8f0"/>
+    <SolidColorBrush x:Key="RaisedBorderHighlightBrush" Color="#e2e8f0"/>
+    <SolidColorBrush x:Key="RaisedBorderDarkBrush" Color="#cbd5e1"/>
+    <SolidColorBrush x:Key="RaisedBorderShadowBrush" Color="#cbd5e1"/>
+
+    <!-- Modern 3D Border Colors - Sunken (subtle for modern look) -->
+    <SolidColorBrush x:Key="SunkenBorderDarkBrush" Color="#cbd5e1"/>
+    <SolidColorBrush x:Key="SunkenBorderShadowBrush" Color="#cbd5e1"/>
+    <SolidColorBrush x:Key="SunkenBorderHighlightBrush" Color="#e2e8f0"/>
+    <SolidColorBrush x:Key="SunkenBorderLightBrush" Color="#e2e8f0"/>
+
     <!-- Splash Screen Text (high contrast against gradient) -->
     <SolidColorBrush x:Key="SplashTitleBrush" Color="#0f172a"/>
     <SolidColorBrush x:Key="SplashSubtitleBrush" Color="#475569"/>
@@ -167,37 +194,63 @@
         <GradientStop Color="#f9a8d4" Offset="1"/>
     </LinearGradientBrush>
 
-    <!-- Module Icon Gradients -->
-    <LinearGradientBrush x:Key="ExpireWiseIconGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#7c3aed" Offset="0"/>
-        <GradientStop Color="#a78bfa" Offset="1"/>
+    <LinearGradientBrush x:Key="NotesSplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#fafafa" Offset="0"/>
+        <GradientStop Color="#f0fdfa" Offset="0.25"/>
+        <GradientStop Color="#ccfbf1" Offset="0.5"/>
+        <GradientStop Color="#99f6e4" Offset="0.75"/>
+        <GradientStop Color="#5eead4" Offset="1"/>
     </LinearGradientBrush>
-    <Color x:Key="ExpireWiseIconShadowColor">#7c3aed</Color>
 
+    <!-- Module Icon Gradients (Modern Light Theme) -->
+    <!-- ExpireWise: Warm amber/orange gradient -->
+    <LinearGradientBrush x:Key="ExpireWiseIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#f59e0b" Offset="0"/>
+        <GradientStop Color="#fbbf24" Offset="0.5"/>
+        <GradientStop Color="#f97316" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="ExpireWiseIconShadowColor">#d97706</Color>
+
+    <!-- AllocationBuddy: Cool blue/indigo gradient -->
     <LinearGradientBrush x:Key="AllocationBuddyIconGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#6366f1" Offset="0"/>
-        <GradientStop Color="#818cf8" Offset="1"/>
+        <GradientStop Color="#818cf8" Offset="0.5"/>
+        <GradientStop Color="#4f46e5" Offset="1"/>
     </LinearGradientBrush>
-    <Color x:Key="AllocationBuddyIconShadowColor">#6366f1</Color>
+    <Color x:Key="AllocationBuddyIconShadowColor">#4f46e5</Color>
 
+    <!-- EssentialsBuddy: Fresh emerald/teal gradient -->
     <LinearGradientBrush x:Key="EssentialsBuddyIconGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#10b981" Offset="0"/>
-        <GradientStop Color="#34d399" Offset="1"/>
+        <GradientStop Color="#34d399" Offset="0.5"/>
+        <GradientStop Color="#059669" Offset="1"/>
     </LinearGradientBrush>
-    <Color x:Key="EssentialsBuddyIconShadowColor">#10b981</Color>
+    <Color x:Key="EssentialsBuddyIconShadowColor">#047857</Color>
 
+    <!-- SwiftLabel: Vibrant pink/rose gradient -->
     <LinearGradientBrush x:Key="SwiftLabelIconGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#ec4899" Offset="0"/>
+        <GradientStop Color="#f472b6" Offset="0.5"/>
+        <GradientStop Color="#db2777" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="SwiftLabelIconShadowColor">#be185d</Color>
+
+    <!-- Notes: Cool cyan/teal gradient -->
+    <LinearGradientBrush x:Key="NotesIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#14b8a6" Offset="0"/>
+        <GradientStop Color="#2dd4bf" Offset="0.5"/>
+        <GradientStop Color="#0d9488" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="NotesIconShadowColor">#0f766e</Color>
+
+    <!-- App Logo Gradient (Purple to Pink with depth) -->
+    <LinearGradientBrush x:Key="AppLogoGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#7c3aed" Offset="0"/>
+        <GradientStop Color="#a855f7" Offset="0.3"/>
+        <GradientStop Color="#ec4899" Offset="0.7"/>
         <GradientStop Color="#f472b6" Offset="1"/>
     </LinearGradientBrush>
-    <Color x:Key="SwiftLabelIconShadowColor">#ec4899</Color>
-
-    <!-- App Logo Gradient -->
-    <LinearGradientBrush x:Key="AppLogoGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#8b5cf6" Offset="0"/>
-        <GradientStop Color="#ec4899" Offset="1"/>
-    </LinearGradientBrush>
-    <Color x:Key="AppLogoShadowColor">#8b5cf6</Color>
+    <Color x:Key="AppLogoShadowColor">#6d28d9</Color>
 
     <!-- Launch Button Gradients -->
     <LinearGradientBrush x:Key="LaunchButtonGradient" StartPoint="0,0" EndPoint="1,1">
@@ -216,5 +269,9 @@
 
     <!-- Status Indicator -->
     <SolidColorBrush x:Key="StatusOnlineBrush" Color="#22c55e"/>
+
+    <!-- Title Bar Colors (for compatibility) -->
+    <SolidColorBrush x:Key="Win98TitleBarBrush" Color="#6366f1"/>
+    <SolidColorBrush x:Key="Win98TitleTextBrush" Color="#FFFFFF"/>
 
 </ResourceDictionary>

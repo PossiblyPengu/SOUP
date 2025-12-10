@@ -28,6 +28,9 @@ public partial class NoteItem : ObservableObject
     private NoteStatus _status = NoteStatus.NotReady;
     [ObservableProperty]
     private string _colorHex = "#B56576";
+    
+    [ObservableProperty]
+    private bool _isArchived = false;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? StartedAt { get; set; }
@@ -82,6 +85,12 @@ public partial class NoteItem : ObservableObject
             NoteStatus.Done => ColorHex,          // Keep existing color
             _ => ColorHex
         };
+
+        // Auto-archive when marked as Done
+        if (value == NoteStatus.Done)
+        {
+            IsArchived = true;
+        }
 
         // Manage StartedAt/CompletedAt based on status transitions
         if (value == NoteStatus.InProgress)

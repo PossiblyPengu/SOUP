@@ -37,136 +37,6 @@
         <converters:ViewModelToViewConverter x:Key="ViewModelToView"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
-
-        <!-- App Selection Button Style -->
-        <Style x:Key="AppNavButtonStyle" TargetType="RadioButton">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="12,4"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Border" Background="{TemplateBinding Background}"
-                                CornerRadius="{DynamicResource NavItemCornerRadius}" Padding="16,14">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Border x:Name="IconBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="{DynamicResource IconCornerRadius}"
-                                        Background="{DynamicResource SurfaceHoverBrush}" Margin="0,0,14,0">
-                                    <ContentPresenter ContentSource="Tag" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <ContentPresenter HorizontalAlignment="Left"/>
-                                </StackPanel>
-
-                                <Border x:Name="ShortcutBadge" Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}"
-                                        CornerRadius="{DynamicResource XSmallCornerRadius}" Padding="8,4" VerticalAlignment="Center" Opacity="0.7">
-                                    <TextBlock x:Name="ShortcutText" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                </Border>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                                <Setter TargetName="ShortcutBadge" Property="Opacity" Value="1"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Launch Button Style -->
-        <Style x:Key="LaunchButtonStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" CornerRadius="{DynamicResource LargeCornerRadius}" Padding="40,16"
-                                Background="{DynamicResource LaunchButtonGradient}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="{DynamicResource LaunchButtonShadowColor}"/>
-                            </Border.Effect>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="Launch App" VerticalAlignment="Center"/>
-                                <TextBlock Text=" →" FontSize="18" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource LaunchButtonHoverGradient}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource LaunchButtonPressedGradient}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Pop-out Button Style -->
-        <Style x:Key="PopOutButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="44"/>
-            <Setter Property="Height" Value="44"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource MediumCornerRadius}">
-                            <TextBlock Text="↗" FontSize="18" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Quick Action Button -->
-        <Style x:Key="QuickActionStyle" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
-                                CornerRadius="{DynamicResource MediumCornerRadius}" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
 
     <!-- Custom Window Chrome -->
@@ -288,7 +158,7 @@
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{DynamicResource AppLogoShadowColor}"/>
                                 </Border.Effect>
-                                <TextBlock Text="⚙" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                                <TextBlock Text="{DynamicResource AppLogoIcon}" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center" Margin="14,0,0,0">
                                 <TextBlock Text="S.A.P" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -314,11 +184,11 @@
                                    Margin="24,0,0,12"/>
 
                             <!-- ExpireWise -->
-                            <RadioButton x:Name="NavExpireWise" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}"
+                            <RadioButton x:Name="NavExpireWise" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}"
                                          IsChecked="True"
                                          Visibility="{Binding LauncherViewModel.IsExpireWiseEnabled, Converter={StaticResource BoolToVisibility}}">
                                 <RadioButton.Tag>
-                                    <TextBlock Text="📦" FontSize="20"/>
+                                    <TextBlock Text="{DynamicResource ExpireWiseIcon}" FontSize="20"/>
                                 </RadioButton.Tag>
                                 <StackPanel>
                                     <TextBlock Text="ExpireWise" FontSize="14" FontWeight="SemiBold"/>
@@ -327,10 +197,10 @@
                             </RadioButton>
 
                             <!-- Allocation Buddy -->
-                            <RadioButton x:Name="NavAllocationBuddy" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}"
+                            <RadioButton x:Name="NavAllocationBuddy" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}"
                                          Visibility="{Binding LauncherViewModel.IsAllocationBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
                                 <RadioButton.Tag>
-                                    <TextBlock Text="📊" FontSize="20"/>
+                                    <TextBlock Text="{DynamicResource AllocationBuddyIcon}" FontSize="20"/>
                                 </RadioButton.Tag>
                                 <StackPanel>
                                     <TextBlock Text="Allocation Buddy" FontSize="14" FontWeight="SemiBold"/>
@@ -339,10 +209,10 @@
                             </RadioButton>
 
                             <!-- Essentials Buddy -->
-                            <RadioButton x:Name="NavEssentialsBuddy" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}"
+                            <RadioButton x:Name="NavEssentialsBuddy" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}"
                                          Visibility="{Binding LauncherViewModel.IsEssentialsBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
                                 <RadioButton.Tag>
-                                    <TextBlock Text="📋" FontSize="20"/>
+                                    <TextBlock Text="{DynamicResource EssentialsBuddyIcon}" FontSize="20"/>
                                 </RadioButton.Tag>
                                 <StackPanel>
                                     <TextBlock Text="Essentials Buddy" FontSize="14" FontWeight="SemiBold"/>
@@ -351,9 +221,9 @@
                             </RadioButton>
 
                             <!-- Swift Label -->
-                            <RadioButton x:Name="NavSwiftLabel" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}">
+                            <RadioButton x:Name="NavSwiftLabel" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}">
                                 <RadioButton.Tag>
-                                    <TextBlock Text="🏷️" FontSize="20"/>
+                                    <TextBlock Text="{DynamicResource SwiftLabelIcon}" FontSize="20"/>
                                 </RadioButton.Tag>
                                 <StackPanel>
                                     <TextBlock Text="Swift Label" FontSize="14" FontWeight="SemiBold"/>
@@ -362,9 +232,9 @@
                             </RadioButton>
 
                             <!-- Notes Tracker -->
-                            <RadioButton x:Name="NavNotesTracker" GroupName="AppNav" Style="{StaticResource AppNavButtonStyle}">
+                            <RadioButton x:Name="NavNotesTracker" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}">
                                 <RadioButton.Tag>
-                                    <TextBlock Text="🗒️" FontSize="20"/>
+                                    <TextBlock Text="{DynamicResource NotesIcon}" FontSize="20"/>
                                 </RadioButton.Tag>
                                 <StackPanel>
                                     <TextBlock Text="Notes" FontSize="14" FontWeight="SemiBold"/>
@@ -378,7 +248,7 @@
                         <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="12,0,12,16"/>
                         
                         <!-- Theme Toggle -->
-                        <Button Command="{Binding ToggleThemeCommand}" Style="{StaticResource QuickActionStyle}" Margin="0,0,0,8"
+                        <Button Command="{Binding ToggleThemeCommand}" Style="{DynamicResource QuickActionStyle}" Margin="0,0,0,8"
                                 ToolTip="Toggle Light/Dark Mode">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock FontSize="16" Margin="0,0,12,0">
@@ -408,7 +278,7 @@
                             </StackPanel>
                         </Button>
                         
-                        <Button Command="{Binding OpenSettingsCommand}" Style="{StaticResource QuickActionStyle}" Margin="0,0,0,8">
+                        <Button Command="{Binding OpenSettingsCommand}" Style="{DynamicResource QuickActionStyle}" Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
                                 <TextBlock Text="Settings" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
@@ -458,51 +328,71 @@
                 <Grid Visibility="{Binding IsChecked, ElementName=NavExpireWise, Converter={StaticResource BoolToVisibility}}"
                       Background="{DynamicResource ExpireWiseSplashGradient}">
                     
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                        <!-- Large Icon -->
-                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource ExpireWiseIconGradient}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource ExpireWiseIconShadowColor}"/>
-                            </Border.Effect>
-                            <TextBlock Text="📦" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <!-- Win98 Panel Container (styled by theme) -->
+                    <Border Style="{DynamicResource SplashPanelContainerStyle}">
+                        <!-- Outer raised border layer 1 -->
+                        <Border BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0">
+                            <!-- Outer raised border layer 2 -->
+                            <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
+                                <!-- Outer raised border layer 3 -->
+                                <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
+                                    <!-- Outer raised border layer 4 -->
+                                    <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
+                                            Background="{DynamicResource SurfaceBrush}">
+                                        <StackPanel>
+                                            <!-- Title Bar -->
+                                            <Border Background="{DynamicResource Win98TitleBarBrush}" Padding="8,4">
+                                                <TextBlock Text="ExpireWise" FontSize="13" FontWeight="Bold" 
+                                                           Foreground="{DynamicResource Win98TitleTextBrush}"/>
+                                            </Border>
+                                            
+                                            <!-- Content Area -->
+                                            <StackPanel Margin="16">
+                                                <!-- Icon -->
+                                                <Border Width="64" Height="64" HorizontalAlignment="Center" Margin="0,8,0,16"
+                                                        BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0"
+                                                        Background="{DynamicResource ExpireWiseIconGradient}">
+                                                    <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
+                                                        <TextBlock Text="{DynamicResource ExpireWiseSplashIcon}" FontSize="32" 
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </Border>
+                                                
+                                                <!-- Description -->
+                                                <TextBlock Text="Track product expiration dates and manage inventory lifecycle" 
+                                                           FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                           TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,16"/>
+                                                
+                                                <!-- Features - Etched Group -->
+                                                <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,16">
+                                                    <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1" Padding="8">
+                                                        <WrapPanel HorizontalAlignment="Center">
+                                                            <TextBlock Text="• Expiry Tracking  " FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                            <TextBlock Text="• Analytics  " FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                            <TextBlock Text="• Smart Alerts" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                        </WrapPanel>
+                                                    </Border>
+                                                </Border>
+                                                
+                                                <!-- Buttons -->
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}" 
+                                                            Style="{DynamicResource LaunchButtonStyle}"/>
+                                                    <Button Command="{Binding LauncherViewModel.PopOutExpireWiseCommand}"
+                                                            Style="{DynamicResource PopOutButtonStyle}" Margin="8,0,0,0"
+                                                            ToolTip="Open in new window"/>
+                                                </StackPanel>
+                                                
+                                                <!-- Shortcut hint -->
+                                                <TextBlock Text="Alt+1" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}" 
+                                                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Border>
+                            </Border>
                         </Border>
-                        
-                        <!-- Title -->
-                        <TextBlock Text="ExpireWise" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
-                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                        
-                        <!-- Subtitle -->
-                        <TextBlock Text="Track product expiration dates and manage inventory lifecycle" 
-                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
-                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
-                        
-                        <!-- Features -->
-                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
-                                <TextBlock Text="📅 Expiry Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
-                            </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
-                                <TextBlock Text="📊 Analytics" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
-                            </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
-                                <TextBlock Text="⚠️ Smart Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
-                            </Border>
-                        </WrapPanel>
-                        
-                        <!-- Launch Buttons -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}" 
-                                    Style="{StaticResource LaunchButtonStyle}"/>
-                            <Button Command="{Binding LauncherViewModel.PopOutExpireWiseCommand}"
-                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
-                                    ToolTip="Open in new window"/>
-                        </StackPanel>
-                        
-                        <!-- Keyboard shortcut hint -->
-                        <TextBlock Text="Press Alt+1 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
-                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
-                    </StackPanel>
+                    </Border>
                 </Grid>
 
                 <!-- Allocation Buddy Splash -->
@@ -515,7 +405,7 @@
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource AllocationBuddyIconShadowColor}"/>
                             </Border.Effect>
-                            <TextBlock Text="📊" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource AllocationBuddySplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <TextBlock Text="Allocation Buddy" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
@@ -539,9 +429,9 @@
                         
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}" 
-                                    Style="{StaticResource LaunchButtonStyle}"/>
+                                    Style="{DynamicResource LaunchButtonStyle}"/>
                             <Button Command="{Binding LauncherViewModel.PopOutAllocationBuddyCommand}"
-                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    Style="{DynamicResource PopOutButtonStyle}" Margin="12,0,0,0"
                                     ToolTip="Open in new window"/>
                         </StackPanel>
                         
@@ -560,7 +450,7 @@
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource EssentialsBuddyIconShadowColor}"/>
                             </Border.Effect>
-                            <TextBlock Text="📋" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource EssentialsBuddySplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <TextBlock Text="Essentials Buddy" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
@@ -584,9 +474,9 @@
                         
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}" 
-                                    Style="{StaticResource LaunchButtonStyle}"/>
+                                    Style="{DynamicResource LaunchButtonStyle}"/>
                             <Button Command="{Binding LauncherViewModel.PopOutEssentialsBuddyCommand}"
-                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    Style="{DynamicResource PopOutButtonStyle}" Margin="12,0,0,0"
                                     ToolTip="Open in new window"/>
                         </StackPanel>
                         
@@ -605,7 +495,7 @@
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource SwiftLabelIconShadowColor}"/>
                             </Border.Effect>
-                            <TextBlock Text="🏷️" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource SwiftLabelSplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <TextBlock Text="Swift Label" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
@@ -629,9 +519,9 @@
                         
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}" 
-                                    Style="{StaticResource LaunchButtonStyle}"/>
+                                    Style="{DynamicResource LaunchButtonStyle}"/>
                             <Button Command="{Binding LauncherViewModel.PopOutSwiftLabelCommand}"
-                                    Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    Style="{DynamicResource PopOutButtonStyle}" Margin="12,0,0,0"
                                     ToolTip="Open in new window"/>
                         </StackPanel>
                         
@@ -642,25 +532,50 @@
 
                 <!-- Notes Tracker Splash -->
                 <Grid Visibility="{Binding IsChecked, ElementName=NavNotesTracker, Converter={StaticResource BoolToVisibility}}"
-                      Background="{DynamicResource SurfaceBrush}">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600">
-                        <Border Width="120" Height="120" CornerRadius="12" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource SurfaceHoverBrush}">
-                            <TextBlock Text="🗒️" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      Background="{DynamicResource NotesSplashGradient}">
+                    
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
+                        <!-- Large Icon -->
+                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource NotesIconGradient}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource NotesIconShadowColor}"/>
+                            </Border.Effect>
+                            <TextBlock Text="{DynamicResource NotesSplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-
-                        <TextBlock Text="Notes Tracker" FontSize="34" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                        
+                        <!-- Title -->
+                        <TextBlock Text="Notes Tracker" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,12"/>
-
+                        
+                        <!-- Subtitle -->
                         <TextBlock Text="Track transfer groups, mark notes complete, and colour-code entries" 
-                                   FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
-
+                        
+                        <!-- Features -->
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                                <TextBlock Text="📋 Transfer Groups" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                                <TextBlock Text="🎨 Colour Coding" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                                <TextBlock Text="✅ Status Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                        </WrapPanel>
+                        
+                        <!-- Launch Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}" Style="{StaticResource LaunchButtonStyle}"/>
-                            <Button Command="{Binding LauncherViewModel.LaunchNotesWidgetCommand}" Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0" ToolTip="Open sidebar widget"/>
+                            <Button Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}" 
+                                    Style="{DynamicResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.LaunchNotesWidgetCommand}"
+                                    Style="{DynamicResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    ToolTip="Open sidebar widget"/>
                         </StackPanel>
-
+                        
+                        <!-- Keyboard shortcut hint -->
                         <TextBlock Text="Press Alt+5 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
                                    HorizontalAlignment="Center" Margin="0,20,0,0"/>
                     </StackPanel>

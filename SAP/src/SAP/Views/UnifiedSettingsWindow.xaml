@@ -10,16 +10,14 @@
         Height="800"
         Width="950"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource BackgroundBrush}"
         d:DataContext="{d:DesignInstance Type=vm:UnifiedSettingsViewModel}">
 
     <Window.Resources>
-        <!-- Modern Card Style -->
+
+        <!-- Settings Card Style -->
         <Style x:Key="SettingsCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="20"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
@@ -28,86 +26,45 @@
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,14"/>
         </Style>
 
         <!-- Setting Label Style -->
         <Style x:Key="SettingLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
 
         <!-- Helper Text Style -->
         <Style x:Key="HelperText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Margin" Value="0,4,0,0"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
 
-        <!-- Modern TextBox Style -->
-        <Style x:Key="SettingsTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="border"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="0">
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-                                <Setter TargetName="border" Property="BorderThickness" Value="2"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Modern ComboBox Style -->
-        <Style x:Key="SettingsComboBox" TargetType="ComboBox">
-            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
-
-        <!-- Modern CheckBox Style -->
+        <!-- Settings CheckBox Style -->
         <Style x:Key="SettingsCheckBox" TargetType="CheckBox">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Settings ComboBox Style -->
+        <Style x:Key="SettingsComboBox" TargetType="ComboBox">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,4,0,4"/>
+        </Style>
+
+        <!-- Settings TextBox Style -->
+        <Style x:Key="SettingsTextBox" TargetType="TextBox">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,4,0,4"/>
         </Style>
 
         <!-- Tab Item Style -->
         <Style TargetType="TabItem">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
                         <Border x:Name="Border"
                                 Background="Transparent"
-                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderBrush="Gray"
                                 BorderThickness="1,1,1,0"
                                 CornerRadius="0"
                                 Padding="14,8"
@@ -120,9 +77,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
-                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="LightGray"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="DarkGray"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>
                             <MultiTrigger>
@@ -130,7 +86,7 @@
                                     <Condition Property="IsMouseOver" Value="True"/>
                                     <Condition Property="IsSelected" Value="False"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="WhiteSmoke"/>
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -188,44 +144,44 @@
                         <StackPanel DataContext="{Binding AllocationBuddySettings}">
 
                         <!-- Behavior Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="🎛️" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Behavior" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Behavior" Margin="0"/>
                                 </StackPanel>
 
                                 <CheckBox Content="Show confirmation dialogs for destructive actions"
                                           IsChecked="{Binding ShowConfirmationDialogs}"
-                                          Style="{StaticResource SettingsCheckBox}"/>
+                                         />
                                 <TextBlock Text="Ask before clearing data, deactivating stores, or other irreversible actions"
-                                           Style="{StaticResource HelperText}" Margin="24,4,0,0"/>
+                                           Margin="24,4,0,0"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Clipboard Settings Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="📋" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Clipboard Options" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Clipboard Options" Margin="0"/>
                                 </StackPanel>
 
                                 <CheckBox Content="Include item descriptions when copying"
                                           IsChecked="{Binding IncludeDescriptionsInCopy}"
-                                          Style="{StaticResource SettingsCheckBox}"/>
+                                         />
                                 <TextBlock Text="Adds descriptions alongside item numbers when copying location data to clipboard"
-                                           Style="{StaticResource HelperText}" Margin="24,4,0,16"/>
+                                           Margin="24,4,0,16"/>
 
-                                <TextBlock Text="Clipboard Format" Style="{StaticResource SettingLabel}"/>
+                                <TextBlock Text="Clipboard Format"/>
                                 <ComboBox SelectedValue="{Binding ClipboardFormat}" 
                                           SelectedValuePath="Tag"
-                                          Style="{StaticResource SettingsComboBox}">
+                                         >
                                     <ComboBoxItem Content="Tab Separated (for Excel/BC)" Tag="TabSeparated"/>
                                     <ComboBoxItem Content="Comma Separated (CSV)" Tag="CommaSeparated"/>
                                 </ComboBox>
                                 <TextBlock Text="Format used when copying location items for transfer orders"
-                                           Style="{StaticResource HelperText}"/>
+                                          />
                             </StackPanel>
                         </Border>
 
@@ -250,11 +206,11 @@
                         <StackPanel DataContext="{Binding EssentialsBuddySettings}">
 
                         <!-- Stock Thresholds Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="📊" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Stock Level Thresholds" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Stock Level Thresholds" Margin="0"/>
                                 </StackPanel>
 
                                 <Grid>
@@ -267,38 +223,38 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Low Stock" Style="{StaticResource SettingLabel}"/>
-                                        <TextBox Text="{Binding LowStockThreshold}" Style="{StaticResource SettingsTextBox}"/>
-                                        <TextBlock Text="Below this = Low" Style="{StaticResource HelperText}"/>
+                                        <TextBlock Text="Low Stock"/>
+                                        <TextBox Text="{Binding LowStockThreshold}"/>
+                                        <TextBlock Text="Below this = Low"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Out of Stock" Style="{StaticResource SettingLabel}"/>
-                                        <TextBox Text="{Binding OutOfStockThreshold}" Style="{StaticResource SettingsTextBox}"/>
-                                        <TextBlock Text="At/below this = Out" Style="{StaticResource HelperText}"/>
+                                        <TextBlock Text="Out of Stock"/>
+                                        <TextBox Text="{Binding OutOfStockThreshold}"/>
+                                        <TextBlock Text="At/below this = Out"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Overstock" Style="{StaticResource SettingLabel}"/>
-                                        <TextBox Text="{Binding OverstockThreshold}" Style="{StaticResource SettingsTextBox}"/>
-                                        <TextBlock Text="Above this = Over" Style="{StaticResource HelperText}"/>
+                                        <TextBlock Text="Overstock"/>
+                                        <TextBox Text="{Binding OverstockThreshold}"/>
+                                        <TextBlock Text="Above this = Over"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Default Filters Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="🔍" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Default Filters" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Default Filters" Margin="0"/>
                                 </StackPanel>
 
-                                <TextBlock Text="Default Status Filter" Style="{StaticResource SettingLabel}"/>
+                                <TextBlock Text="Default Status Filter"/>
                                 <ComboBox SelectedValue="{Binding DefaultStatusFilter}" 
                                           SelectedValuePath="Tag"
-                                          Style="{StaticResource SettingsComboBox}">
+                                         >
                                     <ComboBoxItem Content="All Items" Tag="All"/>
                                     <ComboBoxItem Content="Normal Stock" Tag="Normal"/>
                                     <ComboBoxItem Content="Low Stock" Tag="Low"/>
@@ -306,13 +262,13 @@
                                     <ComboBoxItem Content="Overstocked" Tag="Overstocked"/>
                                 </ComboBox>
                                 <TextBlock Text="Filter automatically applied when opening the module"
-                                           Style="{StaticResource HelperText}" Margin="0,4,0,16"/>
+                                           Margin="0,4,0,16"/>
 
                                 <CheckBox Content="Start with 'Essentials Only' filter enabled"
                                           IsChecked="{Binding DefaultEssentialsOnly}"
-                                          Style="{StaticResource SettingsCheckBox}"/>
+                                         />
                                 <TextBlock Text="Only show items marked as essential when the module opens"
-                                           Style="{StaticResource HelperText}" Margin="24,4,0,0"/>
+                                           Margin="24,4,0,0"/>
                             </StackPanel>
                         </Border>
 
@@ -337,11 +293,11 @@
                         <StackPanel DataContext="{Binding ExpireWiseSettings}">
 
                         <!-- Alert Thresholds Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="⏰" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Expiration Thresholds" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Expiration Thresholds" Margin="0"/>
                                 </StackPanel>
 
                                 <Grid>
@@ -357,8 +313,8 @@
                                                 <TextBlock Text="⚠️ Warning" FontSize="11" FontWeight="SemiBold" Foreground="#92400e"/>
                                             </Border>
                                         </StackPanel>
-                                        <TextBox Text="{Binding WarningThresholdDays}" Style="{StaticResource SettingsTextBox}"/>
-                                        <TextBlock Text="Days before expiration" Style="{StaticResource HelperText}"/>
+                                        <TextBox Text="{Binding WarningThresholdDays}"/>
+                                        <TextBlock Text="Days before expiration"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
@@ -367,25 +323,25 @@
                                                 <TextBlock Text="🔴 Critical" FontSize="11" FontWeight="SemiBold" Foreground="#991b1b"/>
                                             </Border>
                                         </StackPanel>
-                                        <TextBox Text="{Binding CriticalThresholdDays}" Style="{StaticResource SettingsTextBox}"/>
-                                        <TextBlock Text="Days before expiration" Style="{StaticResource HelperText}"/>
+                                        <TextBox Text="{Binding CriticalThresholdDays}"/>
+                                        <TextBlock Text="Days before expiration"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Display Options Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="🎨" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Display Options" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Display Options" Margin="0"/>
                                 </StackPanel>
 
-                                <TextBlock Text="Default Status Filter" Style="{StaticResource SettingLabel}"/>
+                                <TextBlock Text="Default Status Filter"/>
                                 <ComboBox SelectedValue="{Binding DefaultStatusFilter}" 
                                           SelectedValuePath="Tag"
-                                          Style="{StaticResource SettingsComboBox}">
+                                         >
                                     <ComboBoxItem Content="All Items" Tag="All"/>
                                     <ComboBoxItem Content="Good (Not Expiring Soon)" Tag="Good"/>
                                     <ComboBoxItem Content="Warning" Tag="Warning"/>
@@ -393,26 +349,26 @@
                                     <ComboBoxItem Content="Expired" Tag="Expired"/>
                                 </ComboBox>
                                 <TextBlock Text="Filter automatically applied when opening the module"
-                                           Style="{StaticResource HelperText}" Margin="0,4,0,16"/>
+                                           Margin="0,4,0,16"/>
 
-                                <TextBlock Text="Date Display Format" Style="{StaticResource SettingLabel}"/>
+                                <TextBlock Text="Date Display Format"/>
                                 <ComboBox SelectedValue="{Binding DateDisplayFormat}" 
                                           SelectedValuePath="Tag"
-                                          Style="{StaticResource SettingsComboBox}">
+                                         >
                                     <ComboBoxItem Content="Short (12/15/2025)" Tag="Short"/>
                                     <ComboBoxItem Content="Long (December 15, 2025)" Tag="Long"/>
                                 </ComboBox>
                                 <TextBlock Text="How expiration dates are formatted in the list view"
-                                           Style="{StaticResource HelperText}"/>
+                                          />
                             </StackPanel>
                         </Border>
 
                         <!-- Data Management Section -->
-                        <Border Style="{StaticResource SettingsCard}">
+                        <Border>
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="🗃️" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Data Management" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="Data Management" Margin="0"/>
                                 </StackPanel>
 
                                 <Grid>
@@ -428,7 +384,7 @@
                                             <Run Text="{Binding TotalItemCount, Mode=OneWay}" FontWeight="Bold"/>
                                         </TextBlock>
                                         <TextBlock Text="Clear all expiration tracking data from the database"
-                                                   Style="{StaticResource HelperText}" Margin="0,4,0,0"/>
+                                                   Margin="0,4,0,0"/>
                                     </StackPanel>
 
                                     <Button Grid.Column="1"

@@ -4,13 +4,8 @@
              xmlns:local="clr-namespace:SAP"
              xmlns:converters="clr-namespace:SAP.Converters">
     <Application.Resources>
-        <!-- Merge Modern Styles -->
+        <!-- Theme resources will be loaded by ThemeService -->
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Themes/ModernStyles.xaml"/>
-                <ResourceDictionary Source="Themes/DarkTheme.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-
             <!-- Converters -->
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>

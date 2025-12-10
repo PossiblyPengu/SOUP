@@ -9,31 +9,6 @@
              d:DataContext="{d:DesignInstance Type=vm:ExpireWiseAnalyticsViewModel}">
 
     <UserControl.Resources>
-        <!-- Card Style -->
-        <Style x:Key="ChartCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="8"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.08" Direction="270"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Stat Card Style -->
-        <Style x:Key="StatCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="Margin" Value="6"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.06" Direction="270"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

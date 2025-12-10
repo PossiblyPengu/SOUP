@@ -185,12 +185,5 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         window.Show();
     }
 
-    [RelayCommand]
-    private void LaunchNotesWidget()
-    {
-        _logger?.LogInformation("Opening Notes Widget");
-        var viewModel = _serviceProvider.GetRequiredService<Features.NotesTracker.ViewModels.NotesTrackerViewModel>();
-        var window = new Windows.NotesWidgetWindow(viewModel);
-        window.Show();
-    }
 }
+

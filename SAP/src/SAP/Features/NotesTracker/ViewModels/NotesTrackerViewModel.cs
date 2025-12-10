@@ -22,7 +22,11 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     private List<(Guid id, NoteItem.NoteStatus previous)> _lastStatusChanges = new();
 
     public ObservableCollection<NoteItem> Items { get; } = new();
+    public ObservableCollection<NoteItem> ArchivedItems { get; } = new();
     public ObservableCollection<NoteItem> SelectedItems { get; } = new();
+
+    [ObservableProperty]
+    private bool _showArchived = false;
 
     [ObservableProperty]
     private NoteItem? _selectedItem;
@@ -91,11 +95,17 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
         {
             var items = await _notesService.LoadAsync();
             Items.Clear();
+            ArchivedItems.Clear();
+            
             foreach (var item in items)
             {
-                Items.Add(item);
+                if (item.IsArchived)
+                    ArchivedItems.Add(item);
+                else
+                    Items.Add(item);
             }
-            StatusMessage = $"Loaded {items.Count} notes";
+            
+            StatusMessage = $"Loaded {Items.Count} notes ({ArchivedItems.Count} archived)";
             _logger?.LogInformation("Loaded {Count} notes into view", items.Count);
         }
         catch (Exception ex)
@@ -118,15 +128,46 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
             {
                 Items[i].Order = i;
             }
-            await _notesService.SaveAsync(Items.ToList());
-            StatusMessage = $"Saved {Items.Count} notes";
-            _logger?.LogInformation("Saved {Count} notes", Items.Count);
+            
+            for (int i = 0; i < ArchivedItems.Count; i++)
+            {
+                ArchivedItems[i].Order = Items.Count + i;
+            }
+            
+            var allItems = Items.Concat(ArchivedItems).ToList();
+            await _notesService.SaveAsync(allItems);
+            StatusMessage = $"Saved {Items.Count} notes ({ArchivedItems.Count} archived)";
+            _logger?.LogInformation("Saved {Count} notes", allItems.Count);
         }
         catch (Exception ex)
         {
             StatusMessage = $"Failed to save: {ex.Message}";
             _logger?.LogError(ex, "Failed to save notes");
         }
+    }
+
+    [RelayCommand]
+    private async Task ArchiveNoteAsync(NoteItem? item)
+    {
+        if (item == null) return;
+        
+        item.IsArchived = true;
+        Items.Remove(item);
+        ArchivedItems.Add(item);
+        await SaveAsync();
+        StatusMessage = "Note archived";
+    }
+
+    [RelayCommand]
+    private async Task UnarchiveNoteAsync(NoteItem? item)
+    {
+        if (item == null) return;
+        
+        item.IsArchived = false;
+        ArchivedItems.Remove(item);
+        Items.Insert(0, item);
+        await SaveAsync();
+        StatusMessage = "Note restored";
     }
 
     [RelayCommand]
@@ -139,6 +180,7 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
         foreach (var item in toRemove)
         {
             Items.Remove(item);
+            ArchivedItems.Remove(item);
         }
         SelectedItems.Clear();
 
@@ -272,7 +314,27 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     public async Task SetStatusAsync(NoteItem item, NoteItem.NoteStatus status)
     {
         if (item == null) return;
+        
+        var wasDone = item.Status == NoteItem.NoteStatus.Done;
+        var willBeDone = status == NoteItem.NoteStatus.Done;
+        
         item.Status = status;
+        
+        // Move between collections based on archive status
+        if (willBeDone && !wasDone)
+        {
+            // Moving to Done - archive it
+            Items.Remove(item);
+            ArchivedItems.Add(item);
+        }
+        else if (!willBeDone && wasDone)
+        {
+            // Moving away from Done - unarchive it
+            item.IsArchived = false;
+            ArchivedItems.Remove(item);
+            Items.Insert(0, item);
+        }
+        
         await SaveAsync();
     }
 
@@ -319,6 +381,12 @@ public partial class NotesTrackerViewModel : ObservableObject, IDisposable
     }
 
     public string GetNewNoteColor() => _newNoteColorHex;
+
+    [RelayCommand]
+    private void ToggleArchived()
+    {
+        ShowArchived = !ShowArchived;
+    }
 
     public async Task MoveNoteAsync(NoteItem dropped, NoteItem? target)
     {

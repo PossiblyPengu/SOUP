@@ -50,27 +50,35 @@
 
     <Grid Background="{DynamicResource BackgroundBrush}">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Margin="0,10,0,0">
+            <StackPanel Margin="8,10,8,10">
             
-            <!-- Header Card -->
-            <Border Background="{DynamicResource SurfaceBrush}" Padding="20" CornerRadius="8" Margin="0,0,0,15">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Dictionary Management" FontSize="18" FontWeight="SemiBold" Foreground="#8b5cf6" Margin="0,0,0,8"/>
-                        <TextBlock Text="Manage item and store dictionaries used for import accuracy across AllocationBuddy, ExpireWise, and EssentialsBuddy."
-                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#a78bfa" FontWeight="Medium" Margin="0,4,0,0"/>
-                    </StackPanel>
-                    
-                    <Button Grid.Column="1" Content="💾 Save All Changes" Command="{Binding SaveDictionaryCommand}"
-                            Background="#10b981" Foreground="White" BorderThickness="0" 
-                            Padding="20,12" FontSize="13" FontWeight="SemiBold" Cursor="Hand" VerticalAlignment="Center"/>
-                </Grid>
+            <!-- Header Card - Win98 Raised 3D Border -->
+            <Border BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,15">
+                <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
+                    <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
+                        <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
+                                Background="{DynamicResource SurfaceBrush}" Padding="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Dictionary Management" FontSize="18" FontWeight="SemiBold" 
+                                               Foreground="{DynamicResource SplashTitleBrush}" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Manage item and store dictionaries used for import accuracy across AllocationBuddy, ExpireWise, and EssentialsBuddy."
+                                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource SplashTitleBrush}" FontWeight="Medium" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                
+                                <Button Grid.Column="1" Content="💾 Save All Changes" Command="{Binding SaveDictionaryCommand}"
+                                        Style="{DynamicResource LaunchButtonStyle}"
+                                        Padding="20,12" FontSize="13" FontWeight="SemiBold" Cursor="Hand" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </Border>
+                </Border>
             </Border>
 
             <!-- Items and Stores Side-by-Side -->
@@ -81,92 +89,128 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Items Section -->
-                <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="0">
-                    <StackPanel>
-                        <!-- Items Header -->
-                        <Border Background="#6366f1" CornerRadius="8,8,0,0" Padding="15,12">
-                            <TextBlock Text="Items" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
-                        </Border>
-                        
-                        <StackPanel Margin="15">
-                            <!-- Search -->
-                            <TextBox Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                     Padding="10,8" FontSize="13" Background="{DynamicResource SurfaceHoverBrush}" Foreground="{DynamicResource TextPrimaryBrush}" 
-                                     BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1" Margin="0,0,0,12"/>
-
-                            <!-- Add/Edit Form -->
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                <!-- Items Section - Win98 Raised Panel -->
+                <Border Grid.Column="0" BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0">
+                    <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
+                        <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
+                            <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
+                                    Background="{DynamicResource SurfaceBrush}" Padding="0">
                                 <StackPanel>
-                                    <TextBlock Text="Add/Edit Item" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
-                                    
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="10"/>
-                                            <ColumnDefinition Width="2*"/>
-                                        </Grid.ColumnDefinitions>
-                                        
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Item Number" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
-                                            <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Padding="8,6" FontSize="12" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                                        </StackPanel>
-                                        
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
-                                            <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Padding="8,6" FontSize="12" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                    
-                                    <TextBlock Text="SKUs (comma-separated)" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,10,0,4"/>
-                                    <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" 
-                                             Padding="8,6" FontSize="12" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                                    
-                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                        <Button Content="Add New" Command="{Binding AddItemCommand}"
-                                                Background="#10b981" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
-                                        <Button Content="Update Selected" Command="{Binding UpdateItemCommand}"
-                                                Background="#6366f1" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
-                                        <Button Content="Delete Selected" Command="{Binding DeleteItemCommand}"
-                                                Background="#ef4444" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
-                                        <Button Content="Clear Form" Command="{Binding ClearItemFormCommand}"
-                                                Background="{DynamicResource TextDisabledBrush}" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand"/>
-                                    </StackPanel>
-                                    <Button Content="📥 Import from Excel" Command="{Binding ImportItemsFromExcelCommand}"
-                                            Background="#f59e0b" Foreground="White" BorderThickness="0" 
-                                            Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,10,0,0" HorizontalAlignment="Left"
-                                            ToolTip="Import items from Excel file (Number, Description, SKUs columns)"/>
-                                </StackPanel>
-                            </Border>
+                                    <!-- Items Header - Blue Title Bar -->
+                                    <Border Background="{DynamicResource Win98TitleBarBrush}" Padding="8,4">
+                                        <TextBlock Text="Items" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Win98TitleTextBrush}"/>
+                                    </Border>
+                        
+                                    <StackPanel Margin="8">
+                                        <!-- Search - Sunken Text Box -->
+                                        <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,8">
+                                            <Border BorderBrush="{DynamicResource SunkenBorderShadowBrush}" BorderThickness="1,1,0,0">
+                                                <Border BorderBrush="{DynamicResource SunkenBorderHighlightBrush}" BorderThickness="0,0,1,1">
+                                                    <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                        <TextBox Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Padding="6,4" FontSize="12" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                 Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                    </Border>
+                                                </Border>
+                                            </Border>
+                                        </Border>
 
-                            <!-- Items List Header -->
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4,4,0,0" Padding="8,6" BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1,1,1,0">
-                                <Grid>
+                                        <!-- Add/Edit Form - Etched Group Box -->
+                                        <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,8">
+                                            <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1"
+                                                    Background="{DynamicResource SurfaceBrush}" Padding="8">
+                                                <StackPanel>
+                                                    <TextBlock Text="Add/Edit Item" FontSize="11" FontWeight="Bold" 
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                                    
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="8"/>
+                                                            <ColumnDefinition Width="2*"/>
+                                                        </Grid.ColumnDefinitions>
+                                        
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="Item Number" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                                            <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                                                <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                                    <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" 
+                                                                             Padding="4,3" FontSize="11" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                             Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                                </Border>
+                                                            </Border>
+                                                        </StackPanel>
+                                        
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="Description" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                                            <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                                                <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                                    <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" 
+                                                                             Padding="4,3" FontSize="11" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                             Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                                </Border>
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </Grid>
+                                    
+                                                    <TextBlock Text="SKUs (comma-separated)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,2"/>
+                                                    <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                                        <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                            <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" 
+                                                                     Padding="4,3" FontSize="11" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                     Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                        </Border>
+                                                    </Border>
+                                    
+                                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                        <Button Content="Add New" Command="{Binding AddItemCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,0,4,0"/>
+                                                        <Button Content="Update" Command="{Binding UpdateItemCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,0,4,0"/>
+                                                        <Button Content="Delete" Command="{Binding DeleteItemCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,0,4,0"/>
+                                                        <Button Content="Clear" Command="{Binding ClearItemFormCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand"/>
+                                                    </StackPanel>
+                                                    <Button Content="📥 Import Excel" Command="{Binding ImportItemsFromExcelCommand}"
+                                                            Style="{DynamicResource LaunchButtonStyle}"
+                                                            Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,8,0,0" HorizontalAlignment="Left"
+                                                            ToolTip="Import items from Excel file (Number, Description, SKUs columns)"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Border>
+
+                                        <!-- Items List Header -->
+                                        <Border Background="{DynamicResource SurfaceHoverBrush}" Padding="6,4" 
+                                                BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,1,0">
+                                            <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="100"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="150"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Number" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <TextBlock Grid.Column="1" Text="Description" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,0"/>
-                                    <TextBlock Grid.Column="2" Text="SKUs" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="0" Text="Number" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="Description" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" Margin="10,0"/>
+                                    <TextBlock Grid.Column="2" Text="SKUs" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Grid>
                             </Border>
                             
-                            <!-- Items List -->
-                            <Border BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1" CornerRadius="0,0,4,4">
+                                        <!-- Items List - Sunken Panel -->
+                                        <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                            <Border BorderBrush="{DynamicResource SunkenBorderShadowBrush}" BorderThickness="1,1,0,0">
+                                                <Border BorderBrush="{DynamicResource SunkenBorderHighlightBrush}" BorderThickness="0,0,1,1">
+                                                    <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1"
+                                                            Background="{DynamicResource InputBackgroundBrush}">
                                 <ListView ItemsSource="{Binding FilteredItems}"
                                           SelectedItem="{Binding SelectedItem}"
                                           ItemTemplate="{StaticResource ItemTemplate}"
-                                          Height="250"
+                                          Height="200"
                                           BorderThickness="0"
-                                          Background="{DynamicResource SurfaceBrush}"
+                                                            Background="{DynamicResource InputBackgroundBrush}"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <ListView.ItemContainerStyle>
@@ -174,7 +218,7 @@
                                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                             <Setter Property="Padding" Value="0"/>
                                             <Setter Property="Margin" Value="0"/>
-                                            <Setter Property="BorderThickness" Value="2"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
                                             <Setter Property="BorderBrush" Value="Transparent"/>
                                             <Setter Property="Template">
                                                 <Setter.Value>
@@ -188,8 +232,8 @@
                                                         </Border>
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsSelected" Value="True">
-                                                                <Setter TargetName="Bd" Property="Background" Value="#2e1065"/>
-                                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#8b5cf6"/>
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                                                                <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="#FFFFFF"/>
                                                             </Trigger>
                                                             <MultiTrigger>
                                                                 <MultiTrigger.Conditions>
@@ -205,10 +249,15 @@
                                         </Style>
                                     </ListView.ItemContainerStyle>
                                 </ListView>
-                            </Border>
+                                                    </Border>
+                                                </Border>
+                                            </Border>
+                                        </Border>
 
-                            <!-- Pagination -->
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4" Padding="10,8" Margin="0,10,0,0">
+                                        <!-- Pagination - Raised Panel -->
+                                        <Border BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0" Margin="0,8,0,0">
+                                            <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1"
+                                                    Background="{DynamicResource SurfaceBrush}" Padding="6,4">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -217,130 +266,165 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                        <Button Content="⏮" Command="{Binding FirstPageCommand}" 
-                                                Padding="8,4" Margin="0,0,4,0" FontSize="12"
-                                                Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextSecondaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}" Cursor="Hand"/>
-                                        <Button Content="◀" Command="{Binding PreviousPageCommand}" 
-                                                Padding="10,4" FontSize="12"
-                                                Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextSecondaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}" Cursor="Hand"/>
+                                                            <Button Content="⏮" Command="{Binding FirstPageCommand}" 
+                                                                    Style="{DynamicResource LaunchButtonStyle}"
+                                                                    Padding="6,3" FontSize="10" Cursor="Hand" Margin="0,0,2,0"/>
+                                                            <Button Content="◀" Command="{Binding PreviousPageCommand}" 
+                                                                    Style="{DynamicResource LaunchButtonStyle}"
+                                                                    Padding="8,3" FontSize="10" Cursor="Hand"/>
                                     </StackPanel>
                                     
                                     <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}">
+                                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}">
                                         <Run Text="Page "/>
-                                        <Run Text="{Binding CurrentPage, Mode=OneWay}" FontWeight="SemiBold"/>
+                                        <Run Text="{Binding CurrentPage, Mode=OneWay}" FontWeight="Bold"/>
                                         <Run Text=" of "/>
-                                        <Run Text="{Binding TotalPages, Mode=OneWay}" FontWeight="SemiBold"/>
+                                        <Run Text="{Binding TotalPages, Mode=OneWay}" FontWeight="Bold"/>
                                         <Run Text=" ("/>
                                         <Run Text="{Binding TotalItemCount, Mode=OneWay}"/>
                                         <Run Text=" items)"/>
                                     </TextBlock>
                                     
                                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                        <Button Content="▶" Command="{Binding NextPageCommand}" 
-                                                Padding="10,4" Margin="0,0,4,0" FontSize="12"
-                                                Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextSecondaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}" Cursor="Hand"/>
-                                        <Button Content="⏭" Command="{Binding LastPageCommand}" 
-                                                Padding="8,4" FontSize="12"
-                                                Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextSecondaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}" Cursor="Hand"/>
+                                                            <Button Content="▶" Command="{Binding NextPageCommand}" 
+                                                                    Style="{DynamicResource LaunchButtonStyle}"
+                                                                    Padding="8,3" FontSize="10" Cursor="Hand" Margin="0,0,2,0"/>
+                                                            <Button Content="⏭" Command="{Binding LastPageCommand}" 
+                                                                    Style="{DynamicResource LaunchButtonStyle}"
+                                                                    Padding="6,3" FontSize="10" Cursor="Hand"/>
                                     </StackPanel>
                                 </Grid>
+                                            </Border>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
                             </Border>
-                        </StackPanel>
-                    </StackPanel>
+                        </Border>
+                    </Border>
                 </Border>
 
-                <!-- Stores Section -->
-                <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="0">
-                    <StackPanel>
-                        <!-- Stores Header -->
-                        <Border Background="#10b981" CornerRadius="8,8,0,0" Padding="15,12">
-                            <TextBlock Text="Stores" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
-                        </Border>
-                        
-                        <StackPanel Margin="15">
-                            <!-- Search -->
-                            <TextBox Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                     Padding="10,8" FontSize="13" Background="{DynamicResource SurfaceHoverBrush}" Foreground="{DynamicResource TextPrimaryBrush}" 
-                                     BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1" Margin="0,0,0,12"/>
-
-                            <!-- Add/Edit Form -->
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                <!-- Stores Section - Win98 Raised Panel -->
+                <Border Grid.Column="2" BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0">
+                    <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
+                        <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
+                            <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
+                                    Background="{DynamicResource SurfaceBrush}" Padding="0">
                                 <StackPanel>
-                                    <TextBlock Text="Add/Edit Store" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                                    <!-- Stores Header - Green Title Bar -->
+                                    <Border Background="#008000" Padding="8,4">
+                                        <TextBlock Text="Stores" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    </Border>
+                        
+                                    <StackPanel Margin="8">
+                                        <!-- Search - Sunken Text Box -->
+                                        <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,8">
+                                            <Border BorderBrush="{DynamicResource SunkenBorderShadowBrush}" BorderThickness="1,1,0,0">
+                                                <Border BorderBrush="{DynamicResource SunkenBorderHighlightBrush}" BorderThickness="0,0,1,1">
+                                                    <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                        <TextBox Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Padding="6,4" FontSize="12" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                 Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                    </Border>
+                                                </Border>
+                                            </Border>
+                                        </Border>
+
+                                        <!-- Add/Edit Form - Etched Group Box -->
+                                        <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,8">
+                                            <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1"
+                                                    Background="{DynamicResource SurfaceBrush}" Padding="8">
+                                                <StackPanel>
+                                                    <TextBlock Text="Add/Edit Store" FontSize="11" FontWeight="Bold" 
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
                                     
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="80"/>
-                                            <ColumnDefinition Width="10"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="10"/>
                                             <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="60"/>
                                         </Grid.ColumnDefinitions>
                                         
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Store ID" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
-                                            <TextBox Text="{Binding NewStoreId, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Padding="8,6" FontSize="12" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                                        </StackPanel>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="Store ID" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                                            <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                                                <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                                    <TextBox Text="{Binding NewStoreId, UpdateSourceTrigger=PropertyChanged}" 
+                                                                             Padding="4,3" FontSize="11" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                             Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                                </Border>
+                                                            </Border>
+                                                        </StackPanel>
                                         
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Store Name" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
-                                            <TextBox Text="{Binding NewStoreName, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Padding="8,6" FontSize="12" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="Store Name" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                                            <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                                                <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1">
+                                                                    <TextBox Text="{Binding NewStoreName, UpdateSourceTrigger=PropertyChanged}" 
+                                                                             Padding="4,3" FontSize="11" Background="{DynamicResource InputBackgroundBrush}" 
+                                                                             Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0"/>
+                                                                </Border>
+                                                            </Border>
+                                                        </StackPanel>
                                         
-                                        <StackPanel Grid.Column="4">
-                                            <TextBlock Text="Rank" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,4"/>
-                                            <ComboBox ItemsSource="{Binding StoreRanks}" 
-                                                      SelectedItem="{Binding NewStoreRank}" 
-                                                      Padding="8,6" FontSize="12" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                                        </StackPanel>
+                                                        <StackPanel Grid.Column="4">
+                                                            <TextBlock Text="Rank" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                                            <ComboBox ItemsSource="{Binding StoreRanks}" 
+                                                                      SelectedItem="{Binding NewStoreRank}" 
+                                                                      Padding="4,2" FontSize="10"/>
+                                                        </StackPanel>
                                     </Grid>
                                     
-                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                        <Button Content="Add New" Command="{Binding AddStoreCommand}"
-                                                Background="#10b981" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
-                                        <Button Content="Update Selected" Command="{Binding UpdateStoreCommand}"
-                                                Background="#6366f1" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
-                                        <Button Content="Delete Selected" Command="{Binding DeleteStoreCommand}"
-                                                Background="#ef4444" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,0,8,0"/>
-                                        <Button Content="Clear Form" Command="{Binding ClearStoreFormCommand}"
-                                                Background="{DynamicResource TextDisabledBrush}" Foreground="White" BorderThickness="0" 
-                                                Padding="16,8" FontSize="12" Cursor="Hand"/>
-                                    </StackPanel>
-                                    <Button Content="📥 Import from Excel" Command="{Binding ImportStoresFromExcelCommand}"
-                                            Background="#f59e0b" Foreground="White" BorderThickness="0" 
-                                            Padding="16,8" FontSize="12" Cursor="Hand" Margin="0,10,0,0" HorizontalAlignment="Left"
-                                            ToolTip="Import stores from Excel file (Code, Name, Rank columns)"/>
-                                </StackPanel>
-                            </Border>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                        <Button Content="Add New" Command="{Binding AddStoreCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,0,4,0"/>
+                                                        <Button Content="Update" Command="{Binding UpdateStoreCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,0,4,0"/>
+                                                        <Button Content="Delete" Command="{Binding DeleteStoreCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,0,4,0"/>
+                                                        <Button Content="Clear" Command="{Binding ClearStoreFormCommand}"
+                                                                Style="{DynamicResource LaunchButtonStyle}"
+                                                                Padding="12,6" FontSize="11" Cursor="Hand"/>
+                                                    </StackPanel>
+                                                    <Button Content="📥 Import Excel" Command="{Binding ImportStoresFromExcelCommand}"
+                                                            Style="{DynamicResource LaunchButtonStyle}"
+                                                            Padding="12,6" FontSize="11" Cursor="Hand" Margin="0,8,0,0" HorizontalAlignment="Left"
+                                                            ToolTip="Import stores from Excel file (Code, Name, Rank columns)"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Border>
 
-                            <!-- Stores List Header -->
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4,4,0,0" Padding="8,6" BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1,1,1,0">
+                                        <!-- Stores List Header -->
+                                        <Border Background="{DynamicResource SurfaceHoverBrush}" Padding="6,4" 
+                                                BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,1,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="60"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="50"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="ID" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <TextBlock Grid.Column="1" Text="Name" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,0"/>
-                                    <TextBlock Grid.Column="2" Text="Rank" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                                <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <TextBlock Grid.Column="1" Text="Name" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" Margin="10,0"/>
+                                                <TextBlock Grid.Column="2" Text="Rank" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                                 </Grid>
                             </Border>
                             
-                            <!-- Stores List -->
-                            <Border BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="1" CornerRadius="0,0,4,4">
+                                        <!-- Stores List - Sunken Panel -->
+                                        <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0">
+                                            <Border BorderBrush="{DynamicResource SunkenBorderShadowBrush}" BorderThickness="1,1,0,0">
+                                                <Border BorderBrush="{DynamicResource SunkenBorderHighlightBrush}" BorderThickness="0,0,1,1">
+                                                    <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1"
+                                                            Background="{DynamicResource InputBackgroundBrush}">
                                 <ListView ItemsSource="{Binding FilteredStores}"
                                           SelectedItem="{Binding SelectedStore}"
                                           ItemTemplate="{StaticResource StoreTemplate}"
-                                          Height="250"
+                                          Height="200"
                                           BorderThickness="0"
-                                          Background="{DynamicResource SurfaceBrush}"
+                                                            Background="{DynamicResource InputBackgroundBrush}"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <ListView.ItemContainerStyle>
@@ -348,7 +432,7 @@
                                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                             <Setter Property="Padding" Value="0"/>
                                             <Setter Property="Margin" Value="0"/>
-                                            <Setter Property="BorderThickness" Value="2"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
                                             <Setter Property="BorderBrush" Value="Transparent"/>
                                             <Setter Property="Template">
                                                 <Setter.Value>
@@ -362,8 +446,8 @@
                                                         </Border>
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsSelected" Value="True">
-                                                                <Setter TargetName="Bd" Property="Background" Value="#022c22"/>
-                                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#10b981"/>
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                                                                <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="#FFFFFF"/>
                                                             </Trigger>
                                                             <MultiTrigger>
                                                                 <MultiTrigger.Conditions>
@@ -379,35 +463,23 @@
                                         </Style>
                                     </ListView.ItemContainerStyle>
                                 </ListView>
-                            </Border>
+                                                    </Border>
+                                                </Border>
+                                            </Border>
+                                        </Border>
 
-                            <!-- Store Count -->
-                            <TextBlock Text="{Binding FilteredStores.Count, StringFormat='Total: {0} stores'}"
-                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,10,0,0" HorizontalAlignment="Right"/>
-                        </StackPanel>
-                    </StackPanel>
+                                        <!-- Store Count -->
+                                        <TextBlock Text="{Binding FilteredStores.Count, StringFormat='Total: {0} stores'}"
+                                                   FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,0" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+                    </Border>
                 </Border>
             </Grid>
             </StackPanel>
         </ScrollViewer>
-        <!-- Top shadow gradient -->
-        <Border VerticalAlignment="Top" Height="16" IsHitTestVisible="False">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#12000000" Offset="0"/>
-                    <GradientStop Color="Transparent" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
-        <!-- Bottom shadow gradient -->
-        <Border VerticalAlignment="Bottom" Height="16" IsHitTestVisible="False">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="Transparent" Offset="0"/>
-                    <GradientStop Color="#12000000" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
     </Grid>
 </UserControl>
 

@@ -25,35 +25,6 @@
         <SolidColorBrush x:Key="LowStockTextBrush" Color="#fcd34d"/>
         <SolidColorBrush x:Key="OverstockedTextBrush" Color="#93c5fd"/>
         <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#f9a8d4"/>
-        
-        <!-- Sidebar Navigation Style -->
-        <Style x:Key="SidebarNavItem" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="8,2"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bg" Background="Transparent" CornerRadius="10" 
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#052e16"/>
-                                <Setter Property="Foreground" Value="#34d399"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 
     <Grid Background="{DynamicResource BackgroundBrush}">
