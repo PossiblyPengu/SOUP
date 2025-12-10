@@ -19,8 +19,9 @@ public partial class NoteItem : ObservableObject
     public enum NoteStatus
     {
         NotReady = 0,
-        InProgress = 1,
-        Done = 2
+        OnDeck = 1,
+        InProgress = 2,
+        Done = 3
     }
 
     [ObservableProperty]
@@ -72,6 +73,16 @@ public partial class NoteItem : ObservableObject
 
     partial void OnStatusChanged(NoteStatus value)
     {
+        // Set color based on status
+        ColorHex = value switch
+        {
+            NoteStatus.NotReady => "#FF4444",    // Red
+            NoteStatus.OnDeck => "#FFD700",      // Yellow/Gold
+            NoteStatus.InProgress => "#4CAF50",  // Green
+            NoteStatus.Done => ColorHex,          // Keep existing color
+            _ => ColorHex
+        };
+
         // Manage StartedAt/CompletedAt based on status transitions
         if (value == NoteStatus.InProgress)
         {
@@ -83,7 +94,7 @@ public partial class NoteItem : ObservableObject
             if (StartedAt == null) StartedAt = DateTime.UtcNow;
             CompletedAt = DateTime.UtcNow;
         }
-        else // NotReady
+        else // NotReady or OnDeck
         {
             StartedAt = null;
             CompletedAt = null;

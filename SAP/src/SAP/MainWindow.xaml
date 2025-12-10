@@ -659,6 +659,12 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}" Style="{StaticResource LaunchButtonStyle}"/>
                             <Button Command="{Binding LauncherViewModel.PopOutNotesTrackerCommand}" Style="{StaticResource PopOutButtonStyle}" Margin="12,0,0,0" ToolTip="Open in new window"/>
+                            <Button Command="{Binding LauncherViewModel.LaunchNotesWidgetCommand}" 
+                                    Content="Widget Mode"
+                                    Padding="16,10"
+                                    Margin="12,0,0,0"
+                                    Style="{DynamicResource AccentButtonStyle}"
+                                    ToolTip="Open compact sidebar widget"/>
                         </StackPanel>
 
                         <TextBlock Text="Press Alt+5 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
