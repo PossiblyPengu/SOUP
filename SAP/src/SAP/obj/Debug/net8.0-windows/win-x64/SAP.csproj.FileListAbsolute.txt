@@ -6,7 +6,6 @@ d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_kill.wav
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_levelup.wav
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_pickup.wav
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\duke_secret.wav
-d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Assets\win98_easteregg.wav
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\SAP.exe
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\SAP.deps.json
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\SAP.runtimeconfig.json
@@ -519,7 +518,6 @@ d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\DarkTheme.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\LightTheme.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\ModernStyles.baml
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\Windows98Theme.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\ConfirmDialog.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\SettingsWindow.baml

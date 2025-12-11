@@ -29,9 +29,9 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Win98 Title Bar -->
+            <!-- Title Bar -->
             <DockPanel Grid.Row="0" LastChildFill="True" Background="{DynamicResource TitleBarBackgroundBrush}" Height="32">
-                <Image Source="pack://application:,,,/SAP;component/Assets/win98_icon.png" Width="20" Height="20" Margin="8,6,4,6"/>
+                <TextBlock Text="⚙" FontSize="16" VerticalAlignment="Center" Foreground="{DynamicResource TitleBarTextBrush}" Margin="10,0,6,0"/>
                 <TextBlock Text="About S.A.P" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center" Margin="0,0,0,0"/>
                 <Button Content="✕" Width="32" Height="24" Margin="0,4,4,4" Click="CloseButton_Click"
                     Background="{DynamicResource SurfaceActiveBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2"
@@ -61,10 +61,9 @@
                                Foreground="{DynamicResource TextSecondaryBrush}" 
                                HorizontalAlignment="Center" Margin="0,4,0,6"/>
                     
-                    <!-- Version Badge (Clickable Easter Egg) -->
+                    <!-- Version Badge -->
                     <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}"
-                            Padding="12,6" HorizontalAlignment="Center" Margin="0,0,0,20"
-                            Cursor="Hand" MouseLeftButtonDown="VersionBadge_MouseLeftButtonDown">
+                            Padding="12,6" HorizontalAlignment="Center" Margin="0,0,0,20">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" 
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" FontWeight="SemiBold"/>

@@ -166,9 +166,8 @@
                             </StackPanel>
                         </StackPanel>
                         
-                        <!-- Version Badge (Clickable Easter Egg) -->
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}" Padding="12,8" HorizontalAlignment="Left"
-                                Cursor="Hand" MouseLeftButtonDown="VersionBadge_MouseLeftButtonDown">
+                        <!-- Version Badge -->
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}" Padding="12,8" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{DynamicResource StatusOnlineBrush}"/>
                                 <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
@@ -328,71 +327,45 @@
                 <Grid Visibility="{Binding IsChecked, ElementName=NavExpireWise, Converter={StaticResource BoolToVisibility}}"
                       Background="{DynamicResource ExpireWiseSplashGradient}">
                     
-                    <!-- Win98 Panel Container (styled by theme) -->
-                    <Border Style="{DynamicResource SplashPanelContainerStyle}">
-                        <!-- Outer raised border layer 1 -->
-                        <Border BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0">
-                            <!-- Outer raised border layer 2 -->
-                            <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
-                                <!-- Outer raised border layer 3 -->
-                                <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
-                                    <!-- Outer raised border layer 4 -->
-                                    <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
-                                            Background="{DynamicResource SurfaceBrush}">
-                                        <StackPanel>
-                                            <!-- Title Bar -->
-                                            <Border Background="{DynamicResource Win98TitleBarBrush}" Padding="8,4">
-                                                <TextBlock Text="ExpireWise" FontSize="13" FontWeight="Bold" 
-                                                           Foreground="{DynamicResource Win98TitleTextBrush}"/>
-                                            </Border>
-                                            
-                                            <!-- Content Area -->
-                                            <StackPanel Margin="16">
-                                                <!-- Icon -->
-                                                <Border Width="64" Height="64" HorizontalAlignment="Center" Margin="0,8,0,16"
-                                                        BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0"
-                                                        Background="{DynamicResource ExpireWiseIconGradient}">
-                                                    <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
-                                                        <TextBlock Text="{DynamicResource ExpireWiseSplashIcon}" FontSize="32" 
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                </Border>
-                                                
-                                                <!-- Description -->
-                                                <TextBlock Text="Track product expiration dates and manage inventory lifecycle" 
-                                                           FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" 
-                                                           TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,16"/>
-                                                
-                                                <!-- Features - Etched Group -->
-                                                <Border BorderBrush="{DynamicResource SunkenBorderDarkBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,16">
-                                                    <Border BorderBrush="{DynamicResource SunkenBorderLightBrush}" BorderThickness="0,0,1,1" Padding="8">
-                                                        <WrapPanel HorizontalAlignment="Center">
-                                                            <TextBlock Text="• Expiry Tracking  " FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                            <TextBlock Text="• Analytics  " FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                            <TextBlock Text="• Smart Alerts" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                        </WrapPanel>
-                                                    </Border>
-                                                </Border>
-                                                
-                                                <!-- Buttons -->
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}" 
-                                                            Style="{DynamicResource LaunchButtonStyle}"/>
-                                                    <Button Command="{Binding LauncherViewModel.PopOutExpireWiseCommand}"
-                                                            Style="{DynamicResource PopOutButtonStyle}" Margin="8,0,0,0"
-                                                            ToolTip="Open in new window"/>
-                                                </StackPanel>
-                                                
-                                                <!-- Shortcut hint -->
-                                                <TextBlock Text="Alt+1" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}" 
-                                                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-                                </Border>
-                            </Border>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
+                        <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
+                                Background="{DynamicResource ExpireWiseIconGradient}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource ExpireWiseIconShadowColor}"/>
+                            </Border.Effect>
+                            <TextBlock Text="{DynamicResource ExpireWiseSplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                    </Border>
+
+                        <TextBlock Text="ExpireWise" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
+                                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Track product expiration dates and manage inventory lifecycle" 
+                                   FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                        
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                                <TextBlock Text="📅 Expiry Tracking" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                                <TextBlock Text="📊 Analytics" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                                <TextBlock Text="🔔 Smart Alerts" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
+                            </Border>
+                        </WrapPanel>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding LauncherViewModel.LaunchExpireWiseCommand}" 
+                                    Style="{DynamicResource LaunchButtonStyle}"/>
+                            <Button Command="{Binding LauncherViewModel.PopOutExpireWiseCommand}"
+                                    Style="{DynamicResource PopOutButtonStyle}" Margin="12,0,0,0"
+                                    ToolTip="Open in new window"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Press Alt+1 for quick launch" FontSize="12" Foreground="{DynamicResource TextDisabledBrush}" 
+                                   HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </StackPanel>
                 </Grid>
 
                 <!-- Allocation Buddy Splash -->

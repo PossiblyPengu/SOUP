@@ -52,7 +52,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="8,10,8,10">
             
-            <!-- Header Card - Win98 Raised 3D Border -->
+            <!-- Header Card -->
             <Border BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0" Margin="0,0,0,15">
                 <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
                     <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
@@ -89,16 +89,16 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Items Section - Win98 Raised Panel -->
+                <!-- Items Section -->
                 <Border Grid.Column="0" BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0">
                     <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
                         <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
                             <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
                                     Background="{DynamicResource SurfaceBrush}" Padding="0">
                                 <StackPanel>
-                                    <!-- Items Header - Blue Title Bar -->
-                                    <Border Background="{DynamicResource Win98TitleBarBrush}" Padding="8,4">
-                                        <TextBlock Text="Items" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Win98TitleTextBrush}"/>
+                                    <!-- Items Header -->
+                                    <Border Background="{DynamicResource PrimaryBrush}" Padding="8,4">
+                                        <TextBlock Text="Items" FontSize="13" FontWeight="Bold" Foreground="White"/>
                                     </Border>
                         
                                     <StackPanel Margin="8">
@@ -303,15 +303,15 @@
                     </Border>
                 </Border>
 
-                <!-- Stores Section - Win98 Raised Panel -->
+                <!-- Stores Section -->
                 <Border Grid.Column="2" BorderBrush="{DynamicResource RaisedBorderLightBrush}" BorderThickness="1,1,0,0">
                     <Border BorderBrush="{DynamicResource RaisedBorderHighlightBrush}" BorderThickness="1,1,0,0">
                         <Border BorderBrush="{DynamicResource RaisedBorderDarkBrush}" BorderThickness="0,0,1,1">
                             <Border BorderBrush="{DynamicResource RaisedBorderShadowBrush}" BorderThickness="0,0,1,1"
                                     Background="{DynamicResource SurfaceBrush}" Padding="0">
                                 <StackPanel>
-                                    <!-- Stores Header - Green Title Bar -->
-                                    <Border Background="#008000" Padding="8,4">
+                                    <!-- Stores Header -->
+                                    <Border Background="#10b981" Padding="8,4">
                                         <TextBlock Text="Stores" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
                                     </Border>
                         

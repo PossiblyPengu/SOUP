@@ -14,11 +14,6 @@ namespace SAP.Windows;
 /// </summary>
 public partial class AboutWindow : Window
 {
-    private int _versionClickCount = 0;
-    private DateTime _lastVersionClick = DateTime.MinValue;
-    private const int EasterEggClickThreshold = 7;
-    private const int ClickTimeoutSeconds = 3;
-
     private int _iconClickCount = 0;
     private DateTime _lastIconClick = DateTime.MinValue;
 
@@ -157,35 +152,6 @@ public partial class AboutWindow : Window
     }
 
     /// <summary>
-    /// Handles clicks on the version badge for easter egg activation.
-    /// </summary>
-    private void VersionBadge_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        var now = DateTime.Now;
-        
-        // Reset counter if too much time has passed
-        if ((now - _lastVersionClick).TotalSeconds > ClickTimeoutSeconds)
-        {
-            _versionClickCount = 0;
-        }
-        
-        _lastVersionClick = now;
-        _versionClickCount++;
-        
-        if (_versionClickCount >= EasterEggClickThreshold)
-        {
-            _versionClickCount = 0;
-            ActivateWindows95EasterEgg();
-        }
-        else if (_versionClickCount >= 4)
-        {
-            // Give a hint that something is happening
-            var remaining = EasterEggClickThreshold - _versionClickCount;
-            System.Diagnostics.Debug.WriteLine($"Easter egg: {remaining} more clicks to go!");
-        }
-    }
-
-    /// <summary>
     /// Handles clicks on the app icon for doom easter egg activation.
     /// </summary>
     private void AppIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -204,35 +170,6 @@ public partial class AboutWindow : Window
             var doom = new DoomGame { Owner = this };
             doom.ShowDialog();
         }
-    }
-
-    /// <summary>
-    /// Activates the Windows 98 easter egg theme.
-    /// </summary>
-    private void ActivateWindows95EasterEgg()
-    {
-        var themeService = ThemeService.Instance;
-        themeService.ToggleWindows95Mode();
-
-        // Play sound effect
-        try
-        {
-            var soundPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "win98_easteregg.wav");
-            if (System.IO.File.Exists(soundPath))
-            {
-                var player = new System.Media.SoundPlayer(soundPath);
-                player.Play();
-            }
-        }
-        catch { /* Ignore sound errors */ }
-
-        var isEnabled = themeService.IsWindows95Mode;
-        var message = isEnabled 
-            ? "🖥️ Windows 98 Mode Activated!\n\nWelcome to 1998! Enjoy the retro vibes."
-            : "✨ Modern Mode Restored!\n\nWelcome back to the future.";
-
-        MessageBox.Show(message, "Easter Egg!", MessageBoxButton.OK, 
-            isEnabled ? MessageBoxImage.Information : MessageBoxImage.None);
     }
 
     /// <summary>

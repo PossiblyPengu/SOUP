@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Windows;
 
@@ -42,20 +41,9 @@ public partial class ThemeService : ObservableObject
     private bool _isDarkMode = true;
 
     /// <summary>
-    /// Gets or sets whether Windows 95 easter egg mode is active.
-    /// </summary>
-    [ObservableProperty]
-    private bool _isWindows95Mode = false;
-
-    /// <summary>
     /// Occurs when the theme changes between light and dark mode.
     /// </summary>
     public event EventHandler<bool>? ThemeChanged;
-
-    /// <summary>
-    /// Occurs when Windows 95 mode is toggled.
-    /// </summary>
-    public event EventHandler<bool>? Windows95ModeChanged;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ThemeService"/> class.
@@ -77,26 +65,6 @@ public partial class ThemeService : ObservableObject
     {
         IsDarkMode = !IsDarkMode;
         ApplyTheme();
-        SaveTheme();
-    }
-
-    /// <summary>
-    /// Toggles Windows 95 easter egg mode.
-    /// </summary>
-    public void ToggleWindows95Mode()
-    {
-        IsWindows95Mode = !IsWindows95Mode;
-        ApplyTheme();
-        SaveTheme();
-        Windows95ModeChanged?.Invoke(this, IsWindows95Mode);
-    }
-
-    /// <summary>
-    /// Toggles Windows 95 mode and saves without applying (for app restart scenarios).
-    /// </summary>
-    public void ToggleWindows95ModeDeferred()
-    {
-        IsWindows95Mode = !IsWindows95Mode;
         SaveTheme();
     }
 
@@ -136,42 +104,28 @@ public partial class ThemeService : ObservableObject
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Starting. IsWindows95Mode={IsWindows95Mode}, IsDarkMode={IsDarkMode}");
+            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Starting. IsDarkMode={IsDarkMode}");
             
             // Clear all merged dictionaries first
             app.Resources.MergedDictionaries.Clear();
             System.Diagnostics.Debug.WriteLine($"ApplyTheme: Cleared merged dictionaries");
 
-            // Load the appropriate complete standalone theme
-            if (IsWindows95Mode)
+            // Load ModernStyles.xaml first (base styles), then color theme (colors override)
+            var modernStyles = new ResourceDictionary
             {
-                // Windows 98 mode: Load only Windows98Theme.xaml
-                var win98Theme = new ResourceDictionary
-                {
-                    Source = new Uri("pack://application:,,,/Themes/Windows98Theme.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(win98Theme);
-                System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added Windows98Theme.xaml");
-            }
-            else
+                Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
+            };
+            app.Resources.MergedDictionaries.Add(modernStyles);
+            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added ModernStyles.xaml");
+            
+            var colorTheme = new ResourceDictionary
             {
-                // Modern mode: Load ModernStyles.xaml first (base styles), then color theme (colors override)
-                var modernStyles = new ResourceDictionary
-                {
-                    Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(modernStyles);
-                System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added ModernStyles.xaml");
-                
-                var colorTheme = new ResourceDictionary
-                {
-                    Source = new Uri(IsDarkMode 
-                        ? "pack://application:,,,/Themes/DarkTheme.xaml"
-                        : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(colorTheme);
-                System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added {(IsDarkMode ? "DarkTheme" : "LightTheme")}.xaml");
-            }
+                Source = new Uri(IsDarkMode 
+                    ? "pack://application:,,,/Themes/DarkTheme.xaml"
+                    : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
+            };
+            app.Resources.MergedDictionaries.Add(colorTheme);
+            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added {(IsDarkMode ? "DarkTheme" : "LightTheme")}.xaml");
 
             // Raise event for any listeners
             ThemeChanged?.Invoke(this, IsDarkMode);
@@ -197,7 +151,6 @@ public partial class ThemeService : ObservableObject
                 if (settings != null)
                 {
                     IsDarkMode = settings.IsDarkMode;
-                    IsWindows95Mode = settings.IsWindows95Mode;
                     ApplyTheme();
                 }
             }
@@ -208,7 +161,6 @@ public partial class ThemeService : ObservableObject
             System.Diagnostics.Debug.WriteLine($"Failed to load theme settings: {ex.Message}");
             Serilog.Log.Warning(ex, "Failed to load theme settings, using default dark theme");
             IsDarkMode = true;
-            IsWindows95Mode = false;
         }
     }
 
@@ -221,8 +173,7 @@ public partial class ThemeService : ObservableObject
         {
             var settings = new ThemeSettings
             {
-                IsDarkMode = IsDarkMode,
-                IsWindows95Mode = IsWindows95Mode
+                IsDarkMode = IsDarkMode
             };
 
             var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions
@@ -249,10 +200,5 @@ public partial class ThemeService : ObservableObject
         /// Gets or sets whether dark mode is enabled.
         /// </summary>
         public bool IsDarkMode { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether Windows 95 easter egg mode is enabled.
-        /// </summary>
-        public bool IsWindows95Mode { get; set; }
     }
 }

@@ -163,9 +163,9 @@
     <!-- Module Splash Gradients (blend with sidebar) -->
     <LinearGradientBrush x:Key="ExpireWiseSplashGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#0f0f1a" Offset="0"/>
-        <GradientStop Color="#1a1530" Offset="0.3"/>
-        <GradientStop Color="#2e1b4b" Offset="0.7"/>
-        <GradientStop Color="#4c1d95" Offset="1"/>
+        <GradientStop Color="#1a1510" Offset="0.3"/>
+        <GradientStop Color="#4a2c10" Offset="0.7"/>
+        <GradientStop Color="#92400e" Offset="1"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="AllocationBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
@@ -264,8 +264,8 @@
     <!-- Status Indicator -->
     <SolidColorBrush x:Key="StatusOnlineBrush" Color="#22c55e"/>
 
-    <!-- Title Bar Colors (for compatibility) -->
-    <SolidColorBrush x:Key="Win98TitleBarBrush" Color="#6366f1"/>
-    <SolidColorBrush x:Key="Win98TitleTextBrush" Color="#FFFFFF"/>
+    <!-- Title Bar Colors -->
+    <SolidColorBrush x:Key="SectionTitleBarBrush" Color="#6366f1"/>
+    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="#FFFFFF"/>
 
 </ResourceDictionary>

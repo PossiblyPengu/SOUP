@@ -14,10 +14,7 @@ public partial class SwiftLabelWindow : Window
     public SwiftLabelWindow(object viewModel)
     {
         // Apply theme BEFORE InitializeComponent so DynamicResources can resolve
-        if (ThemeService.Instance.IsWindows95Mode)
-            ApplyTheme(false); // Always use Win98 theme in easter egg mode
-        else
-            ApplyTheme(ThemeService.Instance.IsDarkMode);
+        ApplyTheme(ThemeService.Instance.IsDarkMode);
 
         InitializeComponent();
         DataContext = viewModel;
@@ -27,7 +24,6 @@ public partial class SwiftLabelWindow : Window
 
         // Subscribe to theme changes
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
-        ThemeService.Instance.Windows95ModeChanged += OnWindows95ModeChanged;
 
         // Enable smooth window opening animation
         Loaded += (s, e) =>
@@ -37,14 +33,7 @@ public partial class SwiftLabelWindow : Window
         };
         Closed += (s, e) => {
             ThemeService.Instance.ThemeChanged -= OnThemeChanged;
-            ThemeService.Instance.Windows95ModeChanged -= OnWindows95ModeChanged;
         };
-    }
-
-    private void OnWindows95ModeChanged(object? sender, bool isWin98)
-    {
-        ApplyTheme(isWin98 ? false : ThemeService.Instance.IsDarkMode);
-        UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
     }
 
     private void OnThemeChanged(object? sender, bool isDarkMode)

@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.3.0").
     /// </summary>
-    public const string Version = "4.3.1";
+    public const string Version = "4.2.1";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.3.0").
@@ -36,7 +36,7 @@ public static class AppVersion
     /// <summary>
     /// The build date in ISO format.
     /// </summary>
-    public const string BuildDate = "2025-12-08";
+    public const string BuildDate = "2025-12-11";
 
     /// <summary>
     /// Full version string with channel (e.g., "v4.3.0 - Stable").
@@ -48,16 +48,6 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
-        new("4.3.0", "2025-12-08", "Easter Egg Update", new[]
-        {
-            "🖥️ Added Windows 98 easter egg theme",
-            "🥚 Click version badge 7 times to activate retro mode",
-            "🎯 Easter egg available in launcher and About dialog",
-            "🎨 Classic blue gradient title bar in Win98 mode",
-            "💾 Blue desktop background and warm gray UI elements",
-            "🔄 Theme preference persists between sessions"
-        }),
-
         new("4.2.0", "2025-12-05", "UI Polish Update", new[]
         {
             "🎨 Enhanced gradient backgrounds in both light and dark themes",

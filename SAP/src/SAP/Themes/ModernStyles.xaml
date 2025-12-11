@@ -1960,8 +1960,8 @@
         <Setter Property="Padding" Value="16"/>
     </Style>
 
-    <!-- Modern List Container Style -->
-    <Style x:Key="Win98InsetListStyle" TargetType="Border">
+    <!-- Inset List Container Style -->
+    <Style x:Key="InsetListStyle" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -1969,35 +1969,35 @@
         <Setter Property="Padding" Value="0"/>
     </Style>
 
-    <!-- Modern Header Bar Style -->
-    <Style x:Key="Win98HeaderBarStyle" TargetType="Border">
+    <!-- Header Bar Style -->
+    <Style x:Key="HeaderBarStyle" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="CornerRadius" Value="8,8,0,0"/>
         <Setter Property="Padding" Value="16,12"/>
     </Style>
 
-    <!-- Modern Section Header Text -->
-    <Style x:Key="Win98SectionHeaderTextStyle" TargetType="TextBlock">
+    <!-- Section Header Text -->
+    <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="15"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="White"/>
     </Style>
 
-    <!-- Modern Window Border (placeholder for compatibility) -->
-    <Style x:Key="Win98WindowBorderStyle" TargetType="Border">
+    <!-- Window Border Style -->
+    <Style x:Key="WindowBorderStyle" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="8"/>
     </Style>
 
-    <!-- Title Bar Brushes (for compatibility) -->
-    <SolidColorBrush x:Key="Win98TitleBarBrush" Color="{DynamicResource PrimaryColor}"/>
-    <SolidColorBrush x:Key="Win98TitleBarInactiveBrush" Color="#6B7280"/>
-    <SolidColorBrush x:Key="Win98TitleTextBrush" Color="#FFFFFF"/>
+    <!-- Title Bar Brushes -->
+    <SolidColorBrush x:Key="SectionTitleBarBrush" Color="{DynamicResource PrimaryColor}"/>
+    <SolidColorBrush x:Key="SectionTitleBarInactiveBrush" Color="#6B7280"/>
+    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="#FFFFFF"/>
 
     <!-- List Header Style -->
-    <Style x:Key="Win98ListHeaderStyle" TargetType="Border">
+    <Style x:Key="ListHeaderStyle" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
         <Setter Property="CornerRadius" Value="4,4,0,0"/>
         <Setter Property="Padding" Value="8,6"/>
