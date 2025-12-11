@@ -235,9 +235,9 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Overstock"/>
-                                        <TextBox Text="{Binding OverstockThreshold}"/>
-                                        <TextBlock Text="Above this = Over"/>
+                                        <TextBlock Text="Sufficient"/>
+                                        <TextBox Text="{Binding SufficientThreshold}"/>
+                                        <TextBlock Text="Above this = Sufficient"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -259,7 +259,7 @@
                                     <ComboBoxItem Content="Normal Stock" Tag="Normal"/>
                                     <ComboBoxItem Content="Low Stock" Tag="Low"/>
                                     <ComboBoxItem Content="Out of Stock" Tag="OutOfStock"/>
-                                    <ComboBoxItem Content="Overstocked" Tag="Overstocked"/>
+                                    <ComboBoxItem Content="Sufficient" Tag="Sufficient"/>
                                 </ComboBox>
                                 <TextBlock Text="Filter automatically applied when opening the module"
                                            Margin="0,4,0,16"/>

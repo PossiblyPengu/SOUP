@@ -22,9 +22,9 @@ public class EssentialsBuddySettings : BaseEntity
     public int OutOfStockThreshold { get; set; } = 0;
     
     /// <summary>
-    /// Gets or sets the quantity threshold for overstock warnings.
+    /// Gets or sets the quantity threshold for sufficient stock status.
     /// </summary>
-    public int OverstockThreshold { get; set; } = 100;
+    public int SufficientThreshold { get; set; } = 100;
     
     /// <summary>
     /// Gets or sets the default path for importing files.
@@ -57,7 +57,7 @@ public class EssentialsBuddySettings : BaseEntity
     public bool AutoLoadLastSession { get; set; } = true;
     
     /// <summary>
-    /// Gets or sets the default status filter: "All", "Normal", "Low", "OutOfStock", or "Overstocked".
+    /// Gets or sets the default status filter: "All", "Normal", "Low", "OutOfStock", or "Sufficient".
     /// </summary>
     public string DefaultStatusFilter { get; set; } = "All";
     

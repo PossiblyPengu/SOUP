@@ -28,7 +28,7 @@ namespace SAP.ViewModels;
 /// <list type="bullet">
 ///   <item>Import of inventory data from Excel or CSV files</item>
 ///   <item>Automatic matching against the item dictionary to identify essential items</item>
-///   <item>Filtering by stock status (Normal, Low, Out of Stock, Overstocked)</item>
+///   <item>Filtering by stock status (Normal, Low, Out of Stock, Sufficient)</item>
 ///   <item>Automatic addition of missing essential items with zero quantity</item>
 ///   <item>Persistent storage of data between sessions</item>
 /// </list>
@@ -74,7 +74,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     private string _searchText = string.Empty;
 
     /// <summary>
-    /// Gets or sets the current status filter (All, Normal, Low, OutOfStock, Overstocked).
+    /// Gets or sets the current status filter (All, Normal, Low, OutOfStock, Sufficient).
     /// </summary>
     [ObservableProperty]
     private string _statusFilter = "All";
@@ -140,7 +140,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         "Normal",
         "Low",
         "OutOfStock",
-        "Overstocked"
+        "Sufficient"
     };
 
     #endregion

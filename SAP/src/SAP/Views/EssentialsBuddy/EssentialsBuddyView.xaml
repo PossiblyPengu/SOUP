@@ -24,16 +24,7 @@
         <SolidColorBrush x:Key="EssentialsAccentBrush" Color="{StaticResource EssentialsAccentColor}"/>
         <SolidColorBrush x:Key="EssentialsAccentLightBrush" Color="{StaticResource EssentialsAccentLightColor}"/>
         
-        <!-- Stock level colors for dark theme -->
-        <SolidColorBrush x:Key="OutOfStockBrush" Color="#7f1d1d"/>
-        <SolidColorBrush x:Key="LowStockBrush" Color="#78350f"/>
-        <SolidColorBrush x:Key="OverstockedBrush" Color="#1e3a5f"/>
-        <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="#831843"/>
-        
-        <SolidColorBrush x:Key="OutOfStockTextBrush" Color="#fca5a5"/>
-        <SolidColorBrush x:Key="LowStockTextBrush" Color="#fcd34d"/>
-        <SolidColorBrush x:Key="OverstockedTextBrush" Color="#93c5fd"/>
-        <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#f9a8d4"/>
+        <!-- Stock level colors now come from theme (DynamicResource) -->
         
         <!-- Sidebar Navigation Style -->
         <Style x:Key="SidebarNavItem" TargetType="RadioButton">
@@ -427,20 +418,20 @@
                         <StackPanel Orientation="Horizontal" Margin="32,0,0,0">
                             <TextBlock Text="Legend:" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
                             
-                            <Border Background="#7f1d1d" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
-                                <TextBlock Text="Out of Stock" Foreground="#fca5a5" FontSize="10"/>
+                            <Border Background="{DynamicResource OutOfStockBrush}" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <TextBlock Text="Out of Stock" Foreground="{DynamicResource OutOfStockTextBrush}" FontSize="10"/>
                             </Border>
                             
-                            <Border Background="#78350f" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
-                                <TextBlock Text="Low Stock" Foreground="#fcd34d" FontSize="10"/>
+                            <Border Background="{DynamicResource LowStockBrush}" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <TextBlock Text="Low Stock" Foreground="{DynamicResource LowStockTextBrush}" FontSize="10"/>
                             </Border>
                             
-                            <Border Background="#1e3a5f" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
-                                <TextBlock Text="Overstocked" Foreground="#93c5fd" FontSize="10"/>
+                            <Border Background="{DynamicResource SufficientBrush}" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <TextBlock Text="Sufficient" Foreground="{DynamicResource SufficientTextBrush}" FontSize="10"/>
                             </Border>
                             
-                            <Border Background="#831843" CornerRadius="4" Padding="8,3">
-                                <TextBlock Text="Non-Essential in 9-90" Foreground="#f9a8d4" FontSize="10"/>
+                            <Border Background="{DynamicResource NonEssentialIn990Brush}" CornerRadius="4" Padding="8,3">
+                                <TextBlock Text="Non-Essential in 9-90" Foreground="{DynamicResource NonEssentialIn990TextBrush}" FontSize="10"/>
                             </Border>
                         </StackPanel>
                     </StackPanel>
@@ -466,24 +457,28 @@
                             <Style.Triggers>
                                 <!-- Non-essential item in 9-90 bin (highest priority - pink) -->
                                 <DataTrigger Binding="{Binding IsNonEssentialIn990Bin}" Value="True">
-                                    <Setter Property="Background" Value="{StaticResource NonEssentialIn990Brush}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource NonEssentialIn990TextBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource NonEssentialIn990Brush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource NonEssentialIn990AccentBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource NonEssentialIn990TextBrush}"/>
                                     <Setter Property="ToolTip" Value="⚠️ Non-essential item in 9-90 bin"/>
                                 </DataTrigger>
                                 <!-- Out of Stock (red) -->
                                 <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
-                                    <Setter Property="Background" Value="{StaticResource OutOfStockBrush}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource OutOfStockTextBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource OutOfStockBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource OutOfStockAccentBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource OutOfStockTextBrush}"/>
                                 </DataTrigger>
                                 <!-- Low Stock (orange) -->
                                 <DataTrigger Binding="{Binding Status}" Value="Low">
-                                    <Setter Property="Background" Value="{StaticResource LowStockBrush}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource LowStockTextBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource LowStockBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource LowStockAccentBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource LowStockTextBrush}"/>
                                 </DataTrigger>
-                                <!-- Overstocked (blue) -->
-                                <DataTrigger Binding="{Binding Status}" Value="Overstocked">
-                                    <Setter Property="Background" Value="{StaticResource OverstockedBrush}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource OverstockedTextBrush}"/>
+                                <!-- Sufficient (green) -->
+                                <DataTrigger Binding="{Binding Status}" Value="Sufficient">
+                                    <Setter Property="Background" Value="{DynamicResource SufficientBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SufficientAccentBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource SufficientTextBrush}"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

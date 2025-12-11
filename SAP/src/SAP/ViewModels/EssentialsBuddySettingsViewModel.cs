@@ -19,7 +19,7 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
     private int _outOfStockThreshold = 0;
 
     [ObservableProperty]
-    private int _overstockThreshold = 100;
+    private int _sufficientThreshold = 100;
 
     [ObservableProperty]
     private string _defaultImportPath = string.Empty;
@@ -67,7 +67,7 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
 
             LowStockThreshold = settings.LowStockThreshold;
             OutOfStockThreshold = settings.OutOfStockThreshold;
-            OverstockThreshold = settings.OverstockThreshold;
+            SufficientThreshold = settings.SufficientThreshold;
             DefaultImportPath = settings.DefaultImportPath;
             DefaultExportPath = settings.DefaultExportPath;
             AutoRefreshIntervalMinutes = settings.AutoRefreshIntervalMinutes;
@@ -94,7 +94,7 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
             {
                 LowStockThreshold = LowStockThreshold,
                 OutOfStockThreshold = OutOfStockThreshold,
-                OverstockThreshold = OverstockThreshold,
+                SufficientThreshold = SufficientThreshold,
                 DefaultImportPath = DefaultImportPath,
                 DefaultExportPath = DefaultExportPath,
                 AutoRefreshIntervalMinutes = AutoRefreshIntervalMinutes,

@@ -64,13 +64,13 @@
     <Color x:Key="EssentialsBuddyLightColor">#022c22</Color>
     <Color x:Key="SwiftLabelLightColor">#450a0a</Color>
     
-    <!-- Stock Level Colors -->
+    <!-- Stock Level Colors (Traffic Light: Red/Yellow/Green) -->
     <Color x:Key="OutOfStockColor">#450a0a</Color>
-    <Color x:Key="OutOfStockTextColor">#f87171</Color>
+    <Color x:Key="OutOfStockTextColor">#fca5a5</Color>
     <Color x:Key="LowStockColor">#422006</Color>
-    <Color x:Key="LowStockTextColor">#fbbf24</Color>
-    <Color x:Key="OverstockedColor">#1e3a5f</Color>
-    <Color x:Key="OverstockedTextColor">#60a5fa</Color>
+    <Color x:Key="LowStockTextColor">#fde047</Color>
+    <Color x:Key="SufficientColor">#14532d</Color>
+    <Color x:Key="SufficientTextColor">#86efac</Color>
     <Color x:Key="InStockColor">#022c22</Color>
     <Color x:Key="InStockTextColor">#34d399</Color>
     
@@ -121,16 +121,20 @@
     <!-- Stock Level Brushes -->
     <SolidColorBrush x:Key="OutOfStockBrush" Color="{StaticResource OutOfStockColor}"/>
     <SolidColorBrush x:Key="OutOfStockTextBrush" Color="{StaticResource OutOfStockTextColor}"/>
+    <SolidColorBrush x:Key="OutOfStockAccentBrush" Color="#ef4444"/>
     <SolidColorBrush x:Key="LowStockBrush" Color="{StaticResource LowStockColor}"/>
     <SolidColorBrush x:Key="LowStockTextBrush" Color="{StaticResource LowStockTextColor}"/>
-    <SolidColorBrush x:Key="OverstockedBrush" Color="{StaticResource OverstockedColor}"/>
-    <SolidColorBrush x:Key="OverstockedTextBrush" Color="{StaticResource OverstockedTextColor}"/>
+    <SolidColorBrush x:Key="LowStockAccentBrush" Color="#f59e0b"/>
+    <SolidColorBrush x:Key="SufficientBrush" Color="{StaticResource SufficientColor}"/>
+    <SolidColorBrush x:Key="SufficientTextBrush" Color="{StaticResource SufficientTextColor}"/>
+    <SolidColorBrush x:Key="SufficientAccentBrush" Color="#22c55e"/>
     <SolidColorBrush x:Key="InStockBrush" Color="{StaticResource InStockColor}"/>
     <SolidColorBrush x:Key="InStockTextBrush" Color="{StaticResource InStockTextColor}"/>
     
     <!-- Essentials Buddy Special Brushes -->
     <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="{StaticResource NonEssentialIn990Color}"/>
     <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="{StaticResource NonEssentialIn990TextColor}"/>
+    <SolidColorBrush x:Key="NonEssentialIn990AccentBrush" Color="#ec4899"/>
     
     <!-- Launcher Background Gradient -->
     <LinearGradientBrush x:Key="LauncherBackgroundBrush" StartPoint="0,0" EndPoint="1,1">

@@ -49,10 +49,10 @@
                         <TextBlock Text="Items at or below this level will be marked as out of stock"
                                    Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" Margin="0,3,0,0"/>
 
-                        <Label Content="Overstock Threshold:" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,15,0,0"/>
-                        <TextBox Text="{Binding OverstockThreshold}" Margin="0,5,0,0" Padding="8"
+                        <Label Content="Sufficient Stock Threshold:" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,15,0,0"/>
+                        <TextBox Text="{Binding SufficientThreshold}" Margin="0,5,0,0" Padding="8"
                                  Background="{DynamicResource SurfaceHoverBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}"/>
-                        <TextBlock Text="Items with stock above this level will be marked as overstocked"
+                        <TextBlock Text="Items with stock above this level will be marked as sufficient"
                                    Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" Margin="0,3,0,0"/>
                     </StackPanel>
                 </Border>

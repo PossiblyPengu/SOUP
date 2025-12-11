@@ -133,7 +133,7 @@ public class InventoryItem : BaseEntity
         {
             0 => InventoryStatus.OutOfStock,
             var q when q < MinimumThreshold => InventoryStatus.Low,
-            var q when MaximumThreshold.HasValue && q > MaximumThreshold => InventoryStatus.Overstocked,
+            var q when MaximumThreshold.HasValue && q > MaximumThreshold => InventoryStatus.Sufficient,
             _ => InventoryStatus.InStock
         };
     }
@@ -153,6 +153,6 @@ public enum InventoryStatus
     /// <summary>Item has zero quantity.</summary>
     OutOfStock,
     
-    /// <summary>Item is above the maximum threshold.</summary>
-    Overstocked
+    /// <summary>Item is above the maximum threshold (sufficient stock).</summary>
+    Sufficient
 }
