@@ -21,6 +21,10 @@
             <converters:CriticalToHeightConverter x:Key="CriticalToHeightConverter"/>
             <!-- Sorting Converters -->
             <converters:SortToggleConverter x:Key="SortToggleConverter"/>
+            <!-- Resource Converters -->
+            <converters:ResourceKeyConverter x:Key="ResourceKeyConverter"/>
+            <!-- Nav Item Converters -->
+            <converters:NavItemIdToVisibilityConverter x:Key="NavItemIdToVisibility"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

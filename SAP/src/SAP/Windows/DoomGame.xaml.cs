@@ -118,7 +118,10 @@ public partial class DoomGame : Window
                 player.Play();
             }
         }
-        catch { /* Ignore sound errors */ }
+        catch (Exception)
+        {
+            // Sound playback is non-critical, silently ignore
+        }
     }
 
     readonly int[] _weaponDamage = { 25, 12, 50, 8, 120, 150, 80 };
@@ -286,7 +289,11 @@ public partial class DoomGame : Window
             SaveScoreButton.IsEnabled = false;
             ShowMessage("Score saved!");
         }
-        catch { ShowMessage("Failed to save score"); }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save score: {ex.Message}");
+            ShowMessage("Failed to save score");
+        }
     }
 
     void TogglePause()
@@ -616,7 +623,12 @@ public partial class DoomGame : Window
         Focus();
         CaptureMouse(true);
         // Initialize high score service
-        try { _highScoreService = new HighScoreService(); } catch { _highScoreService = null; }
+        try { _highScoreService = new HighScoreService(); }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to init high scores: {ex.Message}");
+            _highScoreService = null;
+        }
         try
         {
             _settingsService = new SettingsService();
@@ -629,9 +641,13 @@ public partial class DoomGame : Window
             ResumeButton.Click += (ss, ee) => TogglePause();
             QuitButton.Click += (ss, ee) => Close();
             // wire save score button (if present)
-            try { SaveScoreButton.Click += SaveScoreButton_Click; } catch { }
+            if (SaveScoreButton != null) SaveScoreButton.Click += SaveScoreButton_Click;
         }
-        catch { _settingsService = null; }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to init settings: {ex.Message}");
+            _settingsService = null;
+        }
     }
 
     void CaptureMouse(bool capture)
@@ -854,9 +870,9 @@ public partial class DoomGame : Window
                 GameOverScreen.Visibility = Visibility.Visible;
                 FinalScoreText.Text = $"Final Score: {_score}";
                 // populate name input with default username
-                try { NameInput.Text = Environment.UserName.ToUpperInvariant(); } catch { NameInput.Text = "PLAYER"; }
+                NameInput.Text = Environment.UserName.ToUpperInvariant();
                 // show top scores too
-                try { UpdateTopScoresUI(); } catch { }
+                UpdateTopScoresUI();
                 CaptureMouse(false);
             }
         else
@@ -1040,15 +1056,11 @@ public partial class DoomGame : Window
                         _ammo[1] += 12; _ammo[2] += 4; _ammo[3] += 25;
                         // Small chance to also find Mini Rocket ammo when picking up generic ammo
                         bool gotMini = false;
-                        try
+                        if (_ammo.Length > 6 && _rnd.NextDouble() < 0.35)
                         {
-                            if (_ammo.Length > 6 && _rnd.NextDouble() < 0.35)
-                            {
-                                _ammo[6] += 2;
-                                gotMini = true;
-                            }
+                            _ammo[6] += 2;
+                            gotMini = true;
                         }
-                        catch { }
                         ShowMessage(gotMini ? "Ammo + Mini Rockets!" : "Ammo");
                         break;
                     case PickupType.Shotgun:
@@ -1118,7 +1130,10 @@ public partial class DoomGame : Window
             _highScoreService?.AddScore(_score);
             UpdateTopScoresUI();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save level score: {ex.Message}");
+        }
     }
 
     void NextLevel()
@@ -2427,7 +2442,10 @@ public partial class DoomGame : Window
             TopScoresText.Text = fmt;
             TopScoresTextVictory.Text = fmt;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to update top scores UI: {ex.Message}");
+        }
     }
 
     void OnKeyUp(object s, KeyEventArgs e)
@@ -2463,7 +2481,7 @@ public partial class DoomGame : Window
         LoadLevel(_currentLevel);
         CaptureMouse(true);
         // refresh top scores UI after restart
-        try { UpdateTopScoresUI(); } catch { }
+        UpdateTopScoresUI();
     }
     #endregion
 }

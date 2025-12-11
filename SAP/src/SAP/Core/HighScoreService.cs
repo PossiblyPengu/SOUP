@@ -32,7 +32,11 @@ public class HighScoreService
             var all = JsonSerializer.Deserialize<List<HighScoreEntry>>(json) ?? new List<HighScoreEntry>();
             return all.OrderByDescending(x => x.Score).ThenBy(x => x.Date).Take(n).ToList();
         }
-        catch { return new List<HighScoreEntry>(); }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to load high scores: {ex.Message}");
+            return new List<HighScoreEntry>();
+        }
     }
 
     public void AddScore(int score, string? name = null)
@@ -50,6 +54,9 @@ public class HighScoreService
             var jsonOut = JsonSerializer.Serialize(list);
             File.WriteAllText(_file, jsonOut);
         }
-        catch { /* ignore persistence failures */ }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save high score: {ex.Message}");
+        }
     }
 }

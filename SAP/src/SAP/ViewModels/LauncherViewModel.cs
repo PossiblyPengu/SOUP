@@ -42,9 +42,9 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     /// </summary>
     public bool IsSwiftLabelEnabled => true;
     /// <summary>
-    /// Whether the NotesTracker module is enabled
+    /// Whether the OrderLog module is enabled
     /// </summary>
-    public bool IsNotesTrackerEnabled => true;
+    public bool IsOrderLogEnabled => true;
 
     public LauncherViewModel(
         ThemeService themeService,
@@ -125,11 +125,11 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
-    private void LaunchNotesTracker()
+    private void LaunchOrderLog()
     {
-        _logger?.LogInformation("Navigating to NotesTracker module");
-        var viewModel = _serviceProvider.GetRequiredService<Features.NotesTracker.ViewModels.NotesTrackerViewModel>();
-        _navigationService.NavigateToModule("NotesTracker", viewModel);
+        _logger?.LogInformation("Navigating to OrderLog module");
+        var viewModel = _serviceProvider.GetRequiredService<Features.OrderLog.ViewModels.OrderLogViewModel>();
+        _navigationService.NavigateToModule("OrderLog", viewModel);
     }
 
     [RelayCommand]
@@ -177,11 +177,11 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
-    private void PopOutNotesTracker()
+    private void PopOutOrderLog()
     {
-        _logger?.LogInformation("Opening NotesTracker in new window");
-        var viewModel = _serviceProvider.GetRequiredService<Features.NotesTracker.ViewModels.NotesTrackerViewModel>();
-        var window = new Windows.NotesTrackerWindow(viewModel);
+        _logger?.LogInformation("Opening OrderLog in new window");
+        var viewModel = _serviceProvider.GetRequiredService<Features.OrderLog.ViewModels.OrderLogViewModel>();
+        var window = new Windows.OrderLogWindow(viewModel);
         window.Show();
     }
 

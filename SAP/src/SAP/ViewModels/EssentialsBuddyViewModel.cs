@@ -34,7 +34,7 @@ namespace SAP.ViewModels;
 /// </list>
 /// </para>
 /// </remarks>
-public partial class EssentialsBuddyViewModel : ObservableObject
+public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
 
@@ -288,6 +288,17 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Event raised when search box should be focused (triggered by Ctrl+F)
+    /// </summary>
+    public event Action? FocusSearchRequested;
+
+    [RelayCommand]
+    private void FocusSearch()
+    {
+        FocusSearchRequested?.Invoke();
+    }
+
     [RelayCommand]
     private async Task LoadItems()
     {
@@ -517,6 +528,16 @@ public partial class EssentialsBuddyViewModel : ObservableObject
             StatusMessage = "Please select an item to delete";
             return;
         }
+
+        // Confirmation dialog
+        var result = System.Windows.MessageBox.Show(
+            $"Are you sure you want to delete item {SelectedItem.ItemNumber}?",
+            "Confirm Delete",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (result != System.Windows.MessageBoxResult.Yes)
+            return;
 
         try
         {
@@ -839,6 +860,35 @@ public partial class EssentialsBuddyViewModel : ObservableObject
         public int? MaximumThreshold { get; set; }
         public decimal? UnitCost { get; set; }
         public decimal? UnitPrice { get; set; }
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    private bool _disposed;
+
+    /// <summary>
+    /// Releases resources used by the ViewModel.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases managed and unmanaged resources.
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        if (disposing)
+        {
+            // Dispose managed resources
+            (_repository as IDisposable)?.Dispose();
+        }
+        _disposed = true;
     }
 
     #endregion

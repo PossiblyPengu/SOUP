@@ -16,6 +16,7 @@
           "LiteDB": "5.0.21",
           "Microsoft.Extensions.Hosting": "8.0.1",
           "Microsoft.NET.ILLink.Tasks": "8.0.11",
+          "Microsoft.Xaml.Behaviors.Wpf": "1.1.135",
           "Serilog.Extensions.Hosting": "8.0.0",
           "Serilog.Sinks.File": "6.0.0",
           "runtimepack.Microsoft.NETCore.App.Runtime.win-x64": "8.0.11",
@@ -1410,6 +1411,14 @@
         }
       },
       "Microsoft.NET.ILLink.Tasks/8.0.11": {},
+      "Microsoft.Xaml.Behaviors.Wpf/1.1.135": {
+        "runtime": {
+          "lib/net6.0-windows7.0/Microsoft.Xaml.Behaviors.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.135.29210"
+          }
+        }
+      },
       "RBush/4.0.0": {
         "runtime": {
           "lib/net8.0/RBush.dll": {
@@ -1744,6 +1753,13 @@
       "sha512": "sha512-zk5lnZrYJgtuJG8L4v17Ej8rZ3PUcR2iweNV08BaO5LbYHIi2wNaVNcJoLxvqgQdnjLlKnCCfVGLDr6QHeAarQ==",
       "path": "microsoft.net.illink.tasks/8.0.11",
       "hashPath": "microsoft.net.illink.tasks.8.0.11.nupkg.sha512"
+    },
+    "Microsoft.Xaml.Behaviors.Wpf/1.1.135": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-r8qBEXmQfORso2+MVHnt8PSH4761zJ0SIxgQTSEDVLU97EN2FZdG6/ZCYUPhQy+OrPKgnpYBCAs3PS6Bs7wRsg==",
+      "path": "microsoft.xaml.behaviors.wpf/1.1.135",
+      "hashPath": "microsoft.xaml.behaviors.wpf.1.1.135.nupkg.sha512"
     },
     "RBush/4.0.0": {
       "type": "package",

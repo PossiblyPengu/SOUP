@@ -213,6 +213,9 @@
                                                             Background="{DynamicResource InputBackgroundBrush}"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <ListView.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
+                                    </ListView.InputBindings>
                                     <ListView.ItemContainerStyle>
                                         <Style TargetType="ListViewItem">
                                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

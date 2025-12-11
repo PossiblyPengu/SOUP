@@ -113,10 +113,10 @@ public static class InternalStoreDictionary
         if (string.IsNullOrWhiteSpace(searchTerm))
             return new List<StoreEntry>();
 
-        var term = searchTerm.Trim().ToUpperInvariant();
+        var term = searchTerm.Trim();
 
         return DictionaryDbContext.Instance.Stores
-            .Find(x => x.Name.ToUpper().Contains(term))
+            .Find(x => x.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
             .Take(maxResults)
             .Select(e => new StoreEntry
             {

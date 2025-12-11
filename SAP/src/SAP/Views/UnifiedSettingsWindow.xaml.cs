@@ -48,27 +48,34 @@ public partial class UnifiedSettingsWindow : Window
     /// </summary>
     internal async void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is TabControl tabControl && 
-            tabControl.SelectedItem is TabItem selectedTab)
+        try
         {
-            var tabHeader = selectedTab.Header?.ToString() ?? "(null)";
-            Serilog.Log.Information("Tab selected: {TabHeader}", tabHeader);
-            
-            if (tabHeader.Contains("Dictionary"))
+            if (sender is TabControl tabControl && 
+                tabControl.SelectedItem is TabItem selectedTab)
             {
-                Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}", 
-                    _viewModel.DictionaryManagement.IsInitialized, 
-                    _viewModel.DictionaryManagement.IsLoading);
-                    
-                // Load dictionary only when the tab is selected and not already initialized
-                if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
+                var tabHeader = selectedTab.Header?.ToString() ?? "(null)";
+                Serilog.Log.Information("Tab selected: {TabHeader}", tabHeader);
+                
+                if (tabHeader.Contains("Dictionary"))
                 {
-                    Serilog.Log.Information("Calling LoadDictionaryAsync...");
-                    await _viewModel.DictionaryManagement.LoadDictionaryAsync();
-                    Serilog.Log.Information("LoadDictionaryAsync completed. FilteredItems.Count={Count}", 
-                        _viewModel.DictionaryManagement.FilteredItems?.Count ?? -1);
+                    Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}", 
+                        _viewModel.DictionaryManagement.IsInitialized, 
+                        _viewModel.DictionaryManagement.IsLoading);
+                        
+                    // Load dictionary only when the tab is selected and not already initialized
+                    if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
+                    {
+                        Serilog.Log.Information("Calling LoadDictionaryAsync...");
+                        await _viewModel.DictionaryManagement.LoadDictionaryAsync();
+                        Serilog.Log.Information("LoadDictionaryAsync completed. FilteredItems.Count={Count}", 
+                            _viewModel.DictionaryManagement.FilteredItems?.Count ?? -1);
+                    }
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to handle tab selection");
         }
     }
 }

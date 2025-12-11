@@ -172,10 +172,10 @@ public static class InternalItemDictionary
         if (string.IsNullOrWhiteSpace(searchTerm))
             return new List<DictionaryItem>();
 
-        var term = searchTerm.Trim().ToUpperInvariant();
+        var term = searchTerm.Trim();
 
         return DictionaryDbContext.Instance.Items
-            .Find(x => x.Description.ToUpper().Contains(term))
+            .Find(x => x.Description.Contains(term, StringComparison.OrdinalIgnoreCase))
             .Take(maxResults)
             .Select(e => new DictionaryItem
             {

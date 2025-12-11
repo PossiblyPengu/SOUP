@@ -7,7 +7,17 @@
              xmlns:local="clr-namespace:SAP.Views.ExpireWise"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1200"
-             d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}">
+             d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}"
+             Focusable="True">
+
+    <!-- Keyboard Shortcuts -->
+    <UserControl.InputBindings>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding AddItemCommand}"/>
+        <KeyBinding Key="I" Modifiers="Ctrl" Command="{Binding ImportFromExcelCommand}"/>
+        <KeyBinding Key="E" Modifiers="Ctrl" Command="{Binding ExportToCsvCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}"/>
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
+    </UserControl.InputBindings>
 
     <UserControl.Resources>
         <local:StoreDisplayConverter x:Key="StoreDisplayConverter"/>
@@ -24,6 +34,174 @@
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
+        
+        <!-- Sidebar Navigation RadioButton Style -->
+        <Style x:Key="SidebarNavButton" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bg" Background="Transparent" CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#451a03"/>
+                                <Setter Property="Foreground" Value="#fbbf24"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Sidebar Action Button Style -->
+        <Style x:Key="SidebarActionButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Modern DataGrid Style -->
+        <Style x:Key="ModernDataGrid" TargetType="DataGrid">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="CanUserResizeRows" Value="False"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+        
+        <!-- Modern DataGrid Column Header Style -->
+        <Style x:Key="ModernDataGridColumnHeader" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="12,16"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridColumnHeader">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Modern DataGrid Cell Style -->
+        <Style x:Key="ModernDataGridCell" TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,14"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#7c2d12"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- Modern DataGrid Row Style -->
+        <Style x:Key="ModernDataGridRow" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridRow">
+                        <Border x:Name="RowBorder" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="8"
+                                Margin="4,2">
+                            <SelectiveScrollingGrid>
+                                <SelectiveScrollingGrid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </SelectiveScrollingGrid.ColumnDefinitions>
+                                <SelectiveScrollingGrid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </SelectiveScrollingGrid.RowDefinitions>
+                                <DataGridCellsPresenter Grid.Column="1" ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1"
+                                                          Visibility="{TemplateBinding DetailsVisibility}"
+                                                          SelectiveScrollingGrid.SelectiveScrollingOrientation="Both"/>
+                            </SelectiveScrollingGrid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="RowBorder" Property="Background" Value="#7c2d12"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Status Badge Brushes -->
+        <SolidColorBrush x:Key="SuccessBrush" Color="#22c55e"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#f59e0b"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#ef4444"/>
     </UserControl.Resources>
 
     <UserControl.Triggers>
@@ -265,7 +443,7 @@
 
                 <!-- Search Bar -->
                 <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,0,1">
-                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
                         <TextBox.Style>
                             <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
                                 <Style.Triggers>
@@ -293,10 +471,17 @@
                               SelectedItem="{Binding SelectedItem}"
                               SelectionMode="Extended" SelectionUnit="FullRow"
                               SelectionChanged="OnItemsGridSelectionChanged"
+                              VirtualizingStackPanel.IsVirtualizing="True"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
                               Style="{StaticResource ModernDataGrid}"
                               ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
                               CellStyle="{StaticResource ModernDataGridCell}"
                               RowStyle="{StaticResource ModernDataGridRow}">
+                        <DataGrid.InputBindings>
+                            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
+                        </DataGrid.InputBindings>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="120"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
@@ -332,22 +517,41 @@
 
                         <DataGrid.GroupStyle>
                             <GroupStyle>
-                                <GroupStyle.HeaderTemplate>
-                                    <DataTemplate>
-                                        <Expander IsExpanded="True" Background="Transparent">
-                                            <Expander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="📍" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="{Binding Name, Converter={StaticResource StoreDisplayConverter}}" FontWeight="Bold"/>
-                                                    <TextBlock Text=" (" Margin="6,0,0,0"/>
-                                                    <TextBlock Text="{Binding ItemCount}"/>
-                                                    <TextBlock Text=")"/>
-                                                </StackPanel>
-                                            </Expander.Header>
-                                            <ItemsPresenter/>
-                                        </Expander>
-                                    </DataTemplate>
-                                </GroupStyle.HeaderTemplate>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Margin" Value="0,8,0,0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                    <Expander IsExpanded="True" Background="Transparent" BorderThickness="0">
+                                                        <Expander.Header>
+                                                            <Border Background="#1a451a03" CornerRadius="8" Padding="16,10" Margin="-4,0,0,0">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <!-- Location Pin Icon -->
+                                                                    <Border Background="#2afbbf24" CornerRadius="6" Padding="6,4" Margin="0,0,12,0">
+                                                                        <TextBlock Text="📍" FontSize="12" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <!-- Store Name -->
+                                                                    <TextBlock Text="{Binding Name, Converter={StaticResource StoreDisplayConverter}}" 
+                                                                               FontWeight="SemiBold" FontSize="14" 
+                                                                               Foreground="#fbbf24" VerticalAlignment="Center"/>
+                                                                    <!-- Item Count Badge -->
+                                                                    <Border Background="#20ffffff" CornerRadius="10" Padding="10,4" Margin="12,0,0,0">
+                                                                        <TextBlock VerticalAlignment="Center">
+                                                                            <Run Text="{Binding ItemCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
+                                                                            <Run Text=" items" Foreground="{DynamicResource SecondaryForegroundBrush}"/>
+                                                                        </TextBlock>
+                                                                    </Border>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Expander.Header>
+                                                        <ItemsPresenter Margin="0,4,0,0"/>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
                                 <GroupStyle.Panel>
                                     <ItemsPanelTemplate>
                                         <DataGridRowsPresenter/>

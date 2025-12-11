@@ -59,6 +59,7 @@ public sealed class DictionaryDbContext : IDisposable
     {
         get
         {
+            ThrowIfDisposed();
             lock (_lock)
             {
                 return _database.GetCollection<DictionaryItemEntity>("items");
@@ -73,6 +74,7 @@ public sealed class DictionaryDbContext : IDisposable
     {
         get
         {
+            ThrowIfDisposed();
             lock (_lock)
             {
                 return _database.GetCollection<StoreEntity>("stores");
@@ -83,17 +85,46 @@ public sealed class DictionaryDbContext : IDisposable
     /// <summary>
     /// Get the underlying database for advanced operations
     /// </summary>
-    public LiteDatabase Database => _database;
+    public LiteDatabase Database
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _database;
+        }
+    }
 
     /// <summary>
     /// Check if the database has been initialized with data
     /// </summary>
-    public bool HasItems => Items.Count() > 0;
+    public bool HasItems
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return Items.Exists(_ => true);
+        }
+    }
     
     /// <summary>
     /// Check if stores have been initialized
     /// </summary>
-    public bool HasStores => Stores.Count() > 0;
+    public bool HasStores
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return Stores.Exists(_ => true);
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DictionaryDbContext));
+        }
+    }
 
     public void Dispose()
     {

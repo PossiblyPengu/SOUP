@@ -150,17 +150,20 @@ public partial class App : Application
         services.AddTransient<ExpirationItemDialogViewModel>();
         services.AddTransient<ExpireWiseSettingsViewModel>();
 
-        // ViewModels - NotesTracker (persist with LiteDB)
-        services.AddSingleton<SAP.Features.NotesTracker.Services.INotesService, SAP.Features.NotesTracker.Services.NotesRepository>();
-        services.AddSingleton<SAP.Features.NotesTracker.ViewModels.NotesTrackerViewModel>();
-        services.AddSingleton<SAP.Features.NotesTracker.Services.GroupStateStore>();
+        // ViewModels - OrderLog (persist with LiteDB)
+        services.AddSingleton<SAP.Features.OrderLog.Services.IOrderLogService, SAP.Features.OrderLog.Services.OrderLogRepository>();
+        services.AddSingleton<SAP.Features.OrderLog.ViewModels.OrderLogViewModel>();
+        services.AddSingleton<SAP.Features.OrderLog.Services.GroupStateStore>();
 
         // ViewModels - SwiftLabel
         services.AddTransient<SwiftLabelViewModel>();
 
+        // Services - Navigation
+        services.AddSingleton<NavOrderService>();
+
         // Windows
         services.AddSingleton<MainWindow>();
-        services.AddSingleton<Windows.NotesTrackerWindow>();
+        services.AddSingleton<Windows.OrderLogWindow>();
     }
 
     protected override async void OnStartup(StartupEventArgs e)

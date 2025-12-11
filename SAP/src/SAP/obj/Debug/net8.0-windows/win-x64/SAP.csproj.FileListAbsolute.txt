@@ -513,8 +513,6 @@ d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\UIAutomationTy
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\WindowsBase.resources.dll
 d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\zh-Hant\WindowsFormsIntegration.resources.dll
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.csproj.AssemblyReference.cache
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\AddNoteWindow.baml
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesColorPickerWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\DarkTheme.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\LightTheme.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Themes\ModernStyles.baml
@@ -523,9 +521,6 @@ d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\SettingsWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\EssentialsBuddy\AddToDictionaryDialog.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\DoomGame.baml
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\AddNoteWindow.g.cs
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesColorPickerWindow.g.cs
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesTrackerView.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\MainWindow.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\AllocationBuddyRPGView.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\ArchiveDialog.g.cs
@@ -548,14 +543,12 @@ d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\AllocationBudd
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\DoomGame.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\EssentialsBuddyWindow.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\ExpireWiseWindow.g.cs
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\NotesTrackerWindow.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\SwiftLabelWindow.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\App.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\GeneratedInternalTypeHelper.g.cs
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP_MarkupCompile.cache
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP_MarkupCompile.lref
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\App.baml
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\NotesTracker\Views\NotesTrackerView.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\MainWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\AllocationBuddyRPGView.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Views\AllocationBuddy\SelectLocationDialog.baml
@@ -573,7 +566,6 @@ d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\AboutWindow.ba
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\AllocationBuddyWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\EssentialsBuddyWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\ExpireWiseWindow.baml
-d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\NotesTrackerWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\SwiftLabelWindow.baml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.g.resources
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.GeneratedMSBuildEditorConfig.editorconfig
@@ -588,3 +580,12 @@ d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.xml
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.pdb
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\SAP.genruntimeconfig.cache
 d:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\ref\SAP.dll
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\OrderLog\Views\AddOrderWindow.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\OrderLog\Views\OrderColorPickerWindow.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\OrderLog\Views\AddOrderWindow.g.cs
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\OrderLog\Views\OrderColorPickerWindow.g.cs
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\OrderLog\Views\OrderLogView.g.cs
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\OrderLogWindow.g.cs
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Features\OrderLog\Views\OrderLogView.baml
+D:\CODE\Cshp\SAP\src\SAP\obj\Debug\net8.0-windows\win-x64\Windows\OrderLogWindow.baml
+d:\CODE\Cshp\SAP\src\SAP\bin\Debug\net8.0-windows\win-x64\Microsoft.Xaml.Behaviors.dll

@@ -29,8 +29,8 @@
     <sys:String x:Key="EssentialsBuddySplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📋</sys:String>
     <sys:String x:Key="SwiftLabelIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🏷️</sys:String>
     <sys:String x:Key="SwiftLabelSplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🏷️</sys:String>
-    <sys:String x:Key="NotesIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🗒️</sys:String>
-    <sys:String x:Key="NotesSplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📓</sys:String>
+    <sys:String x:Key="OrderLogIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">🗒️</sys:String>
+    <sys:String x:Key="OrderLogSplashIcon" xmlns:sys="clr-namespace:System;assembly=mscorlib">📓</sys:String>
 
     <!-- ============================= -->
     <!-- DARK THEME COLORS             -->
@@ -189,7 +189,7 @@
         <GradientStop Color="#86198f" Offset="1"/>
     </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="NotesSplashGradient" StartPoint="0,0" EndPoint="1,1">
+    <LinearGradientBrush x:Key="OrderLogSplashGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#0f0f1a" Offset="0"/>
         <GradientStop Color="#0f1a1f" Offset="0.3"/>
         <GradientStop Color="#134e5e" Offset="0.7"/>
@@ -229,13 +229,13 @@
     </LinearGradientBrush>
     <Color x:Key="SwiftLabelIconShadowColor">#ec4899</Color>
 
-    <!-- Notes: Cool cyan/teal gradient -->
-    <LinearGradientBrush x:Key="NotesIconGradient" StartPoint="0,0" EndPoint="1,1">
+    <!-- OrderLog: Cool cyan/teal gradient -->
+    <LinearGradientBrush x:Key="OrderLogIconGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#14b8a6" Offset="0"/>
         <GradientStop Color="#2dd4bf" Offset="0.5"/>
         <GradientStop Color="#0d9488" Offset="1"/>
     </LinearGradientBrush>
-    <Color x:Key="NotesIconShadowColor">#14b8a6</Color>
+    <Color x:Key="OrderLogIconShadowColor">#14b8a6</Color>
 
     <!-- App Logo Gradient (Purple to Pink with depth) -->
     <LinearGradientBrush x:Key="AppLogoGradient" StartPoint="0,0" EndPoint="1,1">

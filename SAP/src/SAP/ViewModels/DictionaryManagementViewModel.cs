@@ -368,6 +368,16 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
             var itemNumber = SelectedItem.Number;
             
+            // Confirmation dialog
+            var result = System.Windows.MessageBox.Show(
+                $"Are you sure you want to delete item {itemNumber}?\n\nThis will permanently remove it from the dictionary.",
+                "Confirm Delete",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning);
+
+            if (result != System.Windows.MessageBoxResult.Yes)
+                return;
+            
             // Delete from LiteDB immediately
             InternalItemDictionary.DeleteItem(itemNumber);
             
@@ -645,13 +655,21 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 s.Rank.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        // Stores are typically small, show all
-        FilteredStores = new ObservableCollection<StoreEntry>(filtered.OrderBy(s => s.Code));
+        // Clear and repopulate to preserve bindings
+        FilteredStores.Clear();
+        foreach (var store in filtered.OrderBy(s => s.Code))
+        {
+            FilteredStores.Add(store);
+        }
     }
 
     private void SyncItemsFromAllItems()
     {
-        Items = new ObservableCollection<DictionaryItem>(_allItems);
+        Items.Clear();
+        foreach (var item in _allItems)
+        {
+            Items.Add(item);
+        }
         OnPropertyChanged(nameof(TotalItemCount));
     }
 

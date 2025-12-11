@@ -34,7 +34,7 @@ namespace SAP.ViewModels;
 /// </list>
 /// </para>
 /// </remarks>
-public partial class ExpireWiseViewModel : ObservableObject
+public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
 
@@ -220,6 +220,17 @@ public partial class ExpireWiseViewModel : ObservableObject
         Analytics.UpdateAnalytics(Items);
     }
 
+    /// <summary>
+    /// Event raised when search box should be focused (triggered by Ctrl+F)
+    /// </summary>
+    public event Action? FocusSearchRequested;
+
+    [RelayCommand]
+    private void FocusSearch()
+    {
+        FocusSearchRequested?.Invoke();
+    }
+
     [RelayCommand]
     private async Task LoadItems()
     {
@@ -293,12 +304,16 @@ public partial class ExpireWiseViewModel : ObservableObject
         var startMonth = CurrentMonth.AddMonths(-6);
         var endMonth = CurrentMonth.AddMonths(6);
 
+        // Pre-group all items by month once (O(n) instead of O(13n))
+        var itemsByMonth = Items
+            .GroupBy(i => (i.ExpiryDate.Year, i.ExpiryDate.Month))
+            .ToDictionary(g => g.Key, g => g.ToList());
+
         var currentMonthIter = startMonth;
         while (currentMonthIter <= endMonth)
         {
-            var itemsInMonth = Items.Where(i =>
-                i.ExpiryDate.Year == currentMonthIter.Year &&
-                i.ExpiryDate.Month == currentMonthIter.Month).ToList();
+            var key = (currentMonthIter.Year, currentMonthIter.Month);
+            var itemsInMonth = itemsByMonth.TryGetValue(key, out var list) ? list : new List<ExpirationItem>();
 
             AvailableMonths.Add(new MonthGroup
             {
@@ -463,6 +478,16 @@ public partial class ExpireWiseViewModel : ObservableObject
             return;
         }
 
+        // Confirmation dialog
+        var result = System.Windows.MessageBox.Show(
+            $"Are you sure you want to delete item {SelectedItem.ItemNumber}?",
+            "Confirm Delete",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (result != System.Windows.MessageBoxResult.Yes)
+            return;
+
         try
         {
             var itemNumber = SelectedItem.ItemNumber;
@@ -522,7 +547,7 @@ public partial class ExpireWiseViewModel : ObservableObject
             UpdateLastSaved();
 
             StatusMessage = deleted > 0 ? $"Deleted {deleted} item(s)" : "No items were deleted";
-            SelectedItems.Clear();
+            SelectedItems?.Clear();
             SelectedItem = null;
         }
         catch (Exception ex)
@@ -893,6 +918,35 @@ public partial class ExpireWiseViewModel : ObservableObject
         public DateTime ExpiryDate { get; set; }
         public string? Notes { get; set; }
         public string? Category { get; set; }
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    private bool _disposed;
+
+    /// <summary>
+    /// Releases resources used by the ViewModel.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases managed and unmanaged resources.
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        if (disposing)
+        {
+            // Dispose managed resources
+            (_repository as IDisposable)?.Dispose();
+        }
+        _disposed = true;
     }
 
     #endregion

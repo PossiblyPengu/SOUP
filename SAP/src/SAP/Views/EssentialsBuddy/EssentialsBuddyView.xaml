@@ -6,7 +6,16 @@
              xmlns:vm="clr-namespace:SAP.ViewModels"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1200"
-             d:DataContext="{d:DesignInstance Type=vm:EssentialsBuddyViewModel}">
+             d:DataContext="{d:DesignInstance Type=vm:EssentialsBuddyViewModel}"
+             Focusable="True">
+
+    <!-- Keyboard Shortcuts -->
+    <UserControl.InputBindings>
+        <KeyBinding Key="I" Modifiers="Ctrl" Command="{Binding ImportCommand}"/>
+        <KeyBinding Key="E" Modifiers="Ctrl" Command="{Binding ExportCommand}"/>
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
+        <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding RefreshCommand}"/>
+    </UserControl.InputBindings>
 
     <UserControl.Resources>
         <!-- Emerald green accent for EssentialsBuddy -->
@@ -25,6 +34,35 @@
         <SolidColorBrush x:Key="LowStockTextBrush" Color="#fcd34d"/>
         <SolidColorBrush x:Key="OverstockedTextBrush" Color="#93c5fd"/>
         <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#f9a8d4"/>
+        
+        <!-- Sidebar Navigation Style -->
+        <Style x:Key="SidebarNavItem" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bg" Background="Transparent" CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource EssentialsAccentLightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Background="{DynamicResource BackgroundBrush}">
@@ -321,7 +359,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox x:Name="SearchBox" Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
                                          VerticalAlignment="Center" Padding="0,8" FontSize="14"
                                          CaretBrush="{DynamicResource TextPrimaryBrush}">
@@ -413,8 +451,15 @@
                           Style="{StaticResource ModernDataGrid}"
                           ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
                           CellStyle="{StaticResource ModernDataGridCell}"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          EnableRowVirtualization="True"
+                          EnableColumnVirtualization="True"
                           CanUserReorderColumns="True" CanUserResizeColumns="True"
                           CanUserSortColumns="True" Margin="16">
+                    <DataGrid.InputBindings>
+                        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
+                    </DataGrid.InputBindings>
 
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}">

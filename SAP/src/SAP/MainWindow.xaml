@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:vm="clr-namespace:SAP.ViewModels"
+        xmlns:models="clr-namespace:SAP.Models"
         xmlns:converters="clr-namespace:SAP.Converters"
         xmlns:behaviors="clr-namespace:SAP.Behaviors"
         xmlns:core="clr-namespace:SAP.Core"
@@ -24,7 +26,7 @@
         <KeyBinding Key="D2" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchAllocationBuddyCommand}"/>
         <KeyBinding Key="D3" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchEssentialsBuddyCommand}"/>
         <KeyBinding Key="D4" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchSwiftLabelCommand}"/>
-        <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}"/>
+        <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding LauncherViewModel.LaunchOrderLogCommand}"/>
         
         <!-- Global Shortcuts -->
         <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding ToggleThemeCommand}"/>
@@ -182,64 +184,58 @@
                         <TextBlock Text="APPLICATIONS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextDisabledBrush}" 
                                    Margin="24,0,0,12"/>
 
-                            <!-- ExpireWise -->
-                            <RadioButton x:Name="NavExpireWise" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}"
-                                         IsChecked="True"
-                                         Visibility="{Binding LauncherViewModel.IsExpireWiseEnabled, Converter={StaticResource BoolToVisibility}}">
-                                <RadioButton.Tag>
-                                    <TextBlock Text="{DynamicResource ExpireWiseIcon}" FontSize="20"/>
-                                </RadioButton.Tag>
-                                <StackPanel>
-                                    <TextBlock Text="ExpireWise" FontSize="14" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Expiry tracking" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                </StackPanel>
-                            </RadioButton>
-
-                            <!-- Allocation Buddy -->
-                            <RadioButton x:Name="NavAllocationBuddy" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}"
-                                         Visibility="{Binding LauncherViewModel.IsAllocationBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
-                                <RadioButton.Tag>
-                                    <TextBlock Text="{DynamicResource AllocationBuddyIcon}" FontSize="20"/>
-                                </RadioButton.Tag>
-                                <StackPanel>
-                                    <TextBlock Text="Allocation Buddy" FontSize="14" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Store allocations" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                </StackPanel>
-                            </RadioButton>
-
-                            <!-- Essentials Buddy -->
-                            <RadioButton x:Name="NavEssentialsBuddy" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}"
-                                         Visibility="{Binding LauncherViewModel.IsEssentialsBuddyEnabled, Converter={StaticResource BoolToVisibility}}">
-                                <RadioButton.Tag>
-                                    <TextBlock Text="{DynamicResource EssentialsBuddyIcon}" FontSize="20"/>
-                                </RadioButton.Tag>
-                                <StackPanel>
-                                    <TextBlock Text="Essentials Buddy" FontSize="14" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Inventory tracking" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                </StackPanel>
-                            </RadioButton>
-
-                            <!-- Swift Label -->
-                            <RadioButton x:Name="NavSwiftLabel" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}">
-                                <RadioButton.Tag>
-                                    <TextBlock Text="{DynamicResource SwiftLabelIcon}" FontSize="20"/>
-                                </RadioButton.Tag>
-                                <StackPanel>
-                                    <TextBlock Text="Swift Label" FontSize="14" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Label generator" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                </StackPanel>
-                            </RadioButton>
-
-                            <!-- Notes Tracker -->
-                            <RadioButton x:Name="NavNotesTracker" GroupName="AppNav" Style="{DynamicResource AppNavButtonStyle}">
-                                <RadioButton.Tag>
-                                    <TextBlock Text="{DynamicResource NotesIcon}" FontSize="20"/>
-                                </RadioButton.Tag>
-                                <StackPanel>
-                                    <TextBlock Text="Notes" FontSize="14" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Track transfers &amp; shipments" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                </StackPanel>
-                            </RadioButton>
+                        <ListBox x:Name="NavListBox"
+                                 ItemsSource="{Binding NavItems}"
+                                 SelectedItem="{Binding SelectedNavItem, Mode=TwoWay}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <i:Interaction.Behaviors>
+                                <behaviors:ListBoxDragDropBehavior OnReorder="{Binding SaveNavOrderAction}"/>
+                            </i:Interaction.Behaviors>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <ContentPresenter/>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:NavItem}">
+                                    <Grid>
+                                        <RadioButton GroupName="AppNav" 
+                                                     Style="{DynamicResource AppNavButtonStyle}"
+                                                     IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                            <RadioButton.Tag>
+                                                <TextBlock Text="{Binding IconKey, Converter={StaticResource ResourceKeyConverter}}" FontSize="20"/>
+                                            </RadioButton.Tag>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                            </StackPanel>
+                                        </RadioButton>
+                                        <!-- Drag Handle Indicator -->
+                                        <StackPanel Orientation="Vertical" 
+                                                    HorizontalAlignment="Right" 
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,0,16,0"
+                                                    Opacity="0.35"
+                                                    IsHitTestVisible="False">
+                                            <Border Width="4" Height="4" CornerRadius="2" Background="{DynamicResource TextTertiaryBrush}" Margin="0,1"/>
+                                            <Border Width="4" Height="4" CornerRadius="2" Background="{DynamicResource TextTertiaryBrush}" Margin="0,1"/>
+                                            <Border Width="4" Height="4" CornerRadius="2" Background="{DynamicResource TextTertiaryBrush}" Margin="0,1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </StackPanel>
 
                     <!-- Bottom Actions -->
@@ -324,7 +320,8 @@
             <!-- Right Side - Splash Screen -->
             <Grid Grid.Column="1">
                 <!-- ExpireWise Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavExpireWise, Converter={StaticResource BoolToVisibility}}"
+                <!-- ExpireWise Splash -->
+                <Grid Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=ExpireWise}"
                       Background="{DynamicResource ExpireWiseSplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
@@ -369,7 +366,7 @@
                 </Grid>
 
                 <!-- Allocation Buddy Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavAllocationBuddy, Converter={StaticResource BoolToVisibility}}"
+                <Grid Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=AllocationBuddy}"
                       Background="{DynamicResource AllocationBuddySplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
@@ -414,7 +411,7 @@
                 </Grid>
 
                 <!-- Essentials Buddy Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavEssentialsBuddy, Converter={StaticResource BoolToVisibility}}"
+                <Grid Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=EssentialsBuddy}"
                       Background="{DynamicResource EssentialsBuddySplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
@@ -459,7 +456,7 @@
                 </Grid>
 
                 <!-- Swift Label Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavSwiftLabel, Converter={StaticResource BoolToVisibility}}"
+                <Grid Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=SwiftLabel}"
                       Background="{DynamicResource SwiftLabelSplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
@@ -503,26 +500,26 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Notes Tracker Splash -->
-                <Grid Visibility="{Binding IsChecked, ElementName=NavNotesTracker, Converter={StaticResource BoolToVisibility}}"
-                      Background="{DynamicResource NotesSplashGradient}">
+                <!-- Order Log Splash -->
+                <Grid Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=OrderLog}"
+                      Background="{DynamicResource OrderLogSplashGradient}">
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <!-- Large Icon -->
                         <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource NotesIconGradient}">
+                                Background="{DynamicResource OrderLogIconGradient}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource NotesIconShadowColor}"/>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource OrderLogIconShadowColor}"/>
                             </Border.Effect>
-                            <TextBlock Text="{DynamicResource NotesSplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource OrderLogSplashIcon}" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         
                         <!-- Title -->
-                        <TextBlock Text="Notes Tracker" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
+                        <TextBlock Text="Order Log" FontSize="42" FontWeight="Bold" Foreground="{DynamicResource SplashTitleBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,12"/>
                         
                         <!-- Subtitle -->
-                        <TextBlock Text="Track transfer groups, mark notes complete, and colour-code entries" 
+                        <TextBlock Text="Track transfer groups, mark orders complete, and colour-code entries" 
                                    FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
@@ -541,11 +538,11 @@
                         
                         <!-- Launch Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Command="{Binding LauncherViewModel.LaunchNotesTrackerCommand}" 
+                            <Button Command="{Binding LauncherViewModel.LaunchOrderLogCommand}" 
                                     Style="{DynamicResource LaunchButtonStyle}"/>
-                            <Button Command="{Binding LauncherViewModel.LaunchNotesWidgetCommand}"
+                            <Button Command="{Binding LauncherViewModel.PopOutOrderLogCommand}"
                                     Style="{DynamicResource PopOutButtonStyle}" Margin="12,0,0,0"
-                                    ToolTip="Open sidebar widget"/>
+                                    ToolTip="Open in new window"/>
                         </StackPanel>
                         
                         <!-- Keyboard shortcut hint -->

@@ -26,7 +26,11 @@ public class SettingsService
             var json = File.ReadAllText(_file);
             return JsonSerializer.Deserialize<GameSettings>(json) ?? new GameSettings();
         }
-        catch { return new GameSettings(); }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to load settings: {ex.Message}");
+            return new GameSettings();
+        }
     }
 
     public void Save(GameSettings s)
@@ -36,6 +40,9 @@ public class SettingsService
             var json = JsonSerializer.Serialize(s);
             File.WriteAllText(_file, json);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save settings: {ex.Message}");
+        }
     }
 }
