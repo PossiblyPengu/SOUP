@@ -123,8 +123,8 @@
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="#dc2626"/>
-                                            <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="White"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CloseButtonHoverBrush}"/>
+                                            <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="{DynamicResource CloseButtonHoverTextBrush}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>

@@ -1,8 +1,10 @@
 using Microsoft.Win32;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
 
 namespace SAP.Services;
 
@@ -21,6 +23,24 @@ namespace SAP.Services;
 /// </remarks>
 public class DialogService
 {
+    // Windows DWM API for dark title bar
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+    
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+    
+    /// <summary>
+    /// Apply dark mode to the window title bar
+    /// </summary>
+    private static void ApplyDarkTitleBar(Window window)
+    {
+        if (!ThemeService.Instance.IsDarkMode) return;
+        
+        var hwnd = new WindowInteropHelper(window).EnsureHandle();
+        int useImmersiveDarkMode = 1;
+        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useImmersiveDarkMode, sizeof(int));
+    }
+
     /// <summary>
     /// Shows an informational message dialog.
     /// </summary>

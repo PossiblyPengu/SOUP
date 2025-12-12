@@ -794,7 +794,7 @@
                                                             </Style>
                                                         </Border.Style>
                                                         <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Foreground="White" FontWeight="Bold" FontSize="12">
+                                                            <TextBlock Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="Bold" FontSize="12">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="Text" Value="{Binding PoolQuantity, StringFormat='{}{0}'}"/>

@@ -63,6 +63,8 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     private string _notes = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSingleItemMode))]
+    [NotifyPropertyChangedFor(nameof(IsBulkMode))]
     private int _selectedTabIndex = 0;
 
     // Bulk input properties
@@ -779,6 +781,11 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     /// Check if in bulk mode
     /// </summary>
     public bool IsBulkMode => SelectedTabIndex == 1;
+
+    /// <summary>
+    /// Check if in single item mode
+    /// </summary>
+    public bool IsSingleItemMode => SelectedTabIndex == 0;
 
     /// <summary>
     /// Validate the form

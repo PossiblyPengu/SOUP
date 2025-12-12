@@ -80,4 +80,20 @@ public partial class ExpirationItemDialog : UserControl
             }
         }
     }
+
+    private void SingleItemMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is ExpirationItemDialogViewModel viewModel)
+        {
+            viewModel.SelectedTabIndex = 0;
+        }
+    }
+
+    private void BulkInputMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is ExpirationItemDialogViewModel viewModel)
+        {
+            viewModel.SelectedTabIndex = 1;
+        }
+    }
 }

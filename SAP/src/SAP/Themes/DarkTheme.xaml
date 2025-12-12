@@ -312,4 +312,13 @@
     <SolidColorBrush x:Key="SecondaryDarkBrush" Color="#7c3aed"/>
     <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="#2e1065"/>
 
+    <!-- Overlay Brushes -->
+    <SolidColorBrush x:Key="OverlayLightBrush" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="OverlayMediumBrush" Color="#80FFFFFF"/>
+    <Color x:Key="ShadowColor">#000000</Color>
+    
+    <!-- Close Button Danger Hover -->
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#dc2626"/>
+    <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="#ffffff"/>
+
 </ResourceDictionary>

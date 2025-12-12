@@ -197,11 +197,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
-        <!-- Status Badge Brushes -->
-        <SolidColorBrush x:Key="SuccessBrush" Color="#22c55e"/>
-        <SolidColorBrush x:Key="WarningBrush" Color="#f59e0b"/>
-        <SolidColorBrush x:Key="DangerBrush" Color="#ef4444"/>
     </UserControl.Resources>
 
     <UserControl.Triggers>
@@ -394,7 +389,7 @@
                                 </Border.Background>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding CurrentMonthDisplay}" 
-                                               FontSize="16" FontWeight="Bold" Foreground="White"
+                                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextOnPrimaryBrush}"
                                                VerticalAlignment="Center"/>
                                     <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" 
                                             Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
@@ -493,13 +488,13 @@
                                         <Border CornerRadius="4" Padding="8,4" HorizontalAlignment="Center">
                                             <Border.Style>
                                                 <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                            <Setter Property="Background" Value="{StaticResource WarningBrush}"/>
+                                                            <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                                                            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Expired">
                                                             <Setter Property="Background" Value="{DynamicResource TextTertiaryBrush}"/>
@@ -508,7 +503,7 @@
                                                 </Style>
                                             </Border.Style>
                                             <TextBlock Text="{Binding Status}" FontWeight="SemiBold" 
-                                                       Foreground="White" FontSize="10"/>
+                                                       Foreground="{DynamicResource TextOnPrimaryBrush}" FontSize="10"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

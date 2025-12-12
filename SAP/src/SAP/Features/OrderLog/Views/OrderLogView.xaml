@@ -88,7 +88,7 @@
                         Width="36"
                         Height="36"
                         CornerRadius="6"
-                        Background="#8b5cf6"
+                        Background="{DynamicResource SecondaryBrush}"
                         Cursor="Hand"
                         MouseLeftButtonDown="ColorPreview_Click"
                         ToolTip="Pick color"/>
@@ -160,13 +160,13 @@
                                                 MouseLeftButtonDown="StatusToggle_Click">
                                             <Border.Style>
                                                 <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="#FF4444"/>
+                                                    <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
-                                                            <Setter Property="Background" Value="#FFD700"/>
+                                                            <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                                                            <Setter Property="Background" Value="#4CAF50"/>
+                                                            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
                                                             <Setter Property="Background" Value="{DynamicResource TextTertiaryBrush}"/>
@@ -174,7 +174,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="White">
+                                            <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextOnPrimaryBrush}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Text" Value="Not Ready"/>

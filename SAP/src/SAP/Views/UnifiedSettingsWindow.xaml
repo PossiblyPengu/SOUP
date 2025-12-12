@@ -165,8 +165,8 @@
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="#dc2626"/>
-                                            <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="White"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CloseButtonHoverBrush}"/>
+                                            <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="{DynamicResource CloseButtonHoverTextBrush}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -604,7 +604,7 @@
                                     <Border x:Name="Border" Background="{DynamicResource PrimaryBrush}" BorderBrush="{DynamicResource PrimaryDarkBrush}" BorderThickness="1" CornerRadius="{DynamicResource XSmallCornerRadius}" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <TextBlock Text="💾" FontSize="12" Margin="0,0,6,0"/>
-                                            <TextBlock Text="Save" Foreground="White" FontWeight="SemiBold" FontSize="12"/>
+                                            <TextBlock Text="Save" Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="SemiBold" FontSize="12"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
