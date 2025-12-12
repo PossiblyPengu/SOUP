@@ -22,6 +22,9 @@ public class DictionaryItem
     public string Number { get; set; } = "";
     public string Description { get; set; } = "";
     public List<string> Skus { get; set; } = new();
+    public List<string> Tags { get; set; } = new();
+    public bool IsEssential { get; set; }
+    public bool IsPrivateLabel { get; set; }
 }
 
 /// <summary>

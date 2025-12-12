@@ -51,6 +51,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
             NewItemNumber = value.Number;
             NewItemDescription = value.Description;
             NewItemSkus = value.Skus != null ? string.Join(", ", value.Skus) : string.Empty;
+            NewItemTags = value.Tags != null ? string.Join(", ", value.Tags) : string.Empty;
+            NewItemIsEssential = value.IsEssential;
+            NewItemIsPrivateLabel = value.IsPrivateLabel;
             StatusMessage = $"Selected item {value.Number}. Modify and click Update, or click Delete.";
         }
     }
@@ -81,6 +84,15 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
     [ObservableProperty]
     private string _newItemSkus = string.Empty;
+
+    [ObservableProperty]
+    private string _newItemTags = string.Empty;
+
+    [ObservableProperty]
+    private bool _newItemIsEssential;
+
+    [ObservableProperty]
+    private bool _newItemIsPrivateLabel;
 
     [ObservableProperty]
     private string _newStoreId = string.Empty;
@@ -262,11 +274,21 @@ public partial class DictionaryManagementViewModel : ObservableObject
                     .Select(s => s.Trim())
                     .ToList();
 
+            var tags = string.IsNullOrWhiteSpace(NewItemTags)
+                ? new System.Collections.Generic.List<string>()
+                : NewItemTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim().ToLowerInvariant())
+                    .Distinct()
+                    .ToList();
+
             var newItem = new DictionaryItem
             {
                 Number = NewItemNumber.Trim(),
                 Description = NewItemDescription.Trim(),
-                Skus = skus
+                Skus = skus,
+                Tags = tags,
+                IsEssential = NewItemIsEssential,
+                IsPrivateLabel = NewItemIsPrivateLabel
             };
 
             // Save to LiteDB immediately
@@ -284,6 +306,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
             NewItemNumber = string.Empty;
             NewItemDescription = string.Empty;
             NewItemSkus = string.Empty;
+            NewItemTags = string.Empty;
+            NewItemIsEssential = false;
+            NewItemIsPrivateLabel = false;
         }
         catch (Exception ex)
         {
@@ -305,6 +330,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
         NewItemNumber = SelectedItem.Number;
         NewItemDescription = SelectedItem.Description;
         NewItemSkus = SelectedItem.Skus != null ? string.Join(", ", SelectedItem.Skus) : string.Empty;
+        NewItemTags = SelectedItem.Tags != null ? string.Join(", ", SelectedItem.Tags) : string.Empty;
+        NewItemIsEssential = SelectedItem.IsEssential;
+        NewItemIsPrivateLabel = SelectedItem.IsPrivateLabel;
 
         StatusMessage = $"Editing item {SelectedItem.Number}. Modify fields and click Update.";
     }
@@ -332,8 +360,18 @@ public partial class DictionaryManagementViewModel : ObservableObject
                     .Select(s => s.Trim())
                     .ToList();
 
+            var tags = string.IsNullOrWhiteSpace(NewItemTags)
+                ? new System.Collections.Generic.List<string>()
+                : NewItemTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim().ToLowerInvariant())
+                    .Distinct()
+                    .ToList();
+
             SelectedItem.Description = NewItemDescription.Trim();
             SelectedItem.Skus = skus;
+            SelectedItem.Tags = tags;
+            SelectedItem.IsEssential = NewItemIsEssential;
+            SelectedItem.IsPrivateLabel = NewItemIsPrivateLabel;
 
             // Save to LiteDB immediately
             InternalItemDictionary.UpsertItem(SelectedItem);
@@ -346,6 +384,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
             NewItemNumber = string.Empty;
             NewItemDescription = string.Empty;
             NewItemSkus = string.Empty;
+            NewItemTags = string.Empty;
+            NewItemIsEssential = false;
+            NewItemIsPrivateLabel = false;
             SelectedItem = null;
         }
         catch (Exception ex)
@@ -403,6 +444,9 @@ public partial class DictionaryManagementViewModel : ObservableObject
         NewItemNumber = string.Empty;
         NewItemDescription = string.Empty;
         NewItemSkus = string.Empty;
+        NewItemTags = string.Empty;
+        NewItemIsEssential = false;
+        NewItemIsPrivateLabel = false;
         SelectedItem = null;
         StatusMessage = "Form cleared. Ready to add a new item.";
     }

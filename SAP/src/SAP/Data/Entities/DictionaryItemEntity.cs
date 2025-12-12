@@ -21,6 +21,11 @@ public class DictionaryItemEntity
     public bool IsEssential { get; set; }
     
     /// <summary>
+    /// Whether this item is a private label/store brand item
+    /// </summary>
+    public bool IsPrivateLabel { get; set; }
+    
+    /// <summary>
     /// Optional tags for categorization (e.g., "essential", "seasonal", "new")
     /// </summary>
     public List<string> Tags { get; set; } = new();

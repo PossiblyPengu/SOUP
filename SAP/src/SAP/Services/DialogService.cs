@@ -152,6 +152,11 @@ public class DialogService
     {
         var tcs = new TaskCompletionSource<T>();
 
+        // Get the background color from the current theme
+        var backgroundColor = ThemeService.Instance.IsDarkMode
+            ? System.Windows.Media.Color.FromRgb(30, 30, 46)   // Dark theme surface color
+            : System.Windows.Media.Color.FromRgb(255, 255, 255); // Light theme
+
         var dialog = new Window
         {
             Content = content,
@@ -164,8 +169,12 @@ public class DialogService
             MinHeight = 300,
             MaxWidth = 800,
             MaxHeight = 900,
-            ShowInTaskbar = false
+            ShowInTaskbar = false,
+            Background = new System.Windows.Media.SolidColorBrush(backgroundColor)
         };
+
+        // Apply dark title bar when in dark mode
+        dialog.SourceInitialized += (s, e) => ApplyDarkTitleBar(dialog);
 
         // Store the result handler
         content.Tag = new Action<T>(result =>

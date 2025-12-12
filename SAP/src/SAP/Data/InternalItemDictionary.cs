@@ -23,7 +23,10 @@ public static class InternalItemDictionary
             {
                 Number = e.Number,
                 Description = e.Description,
-                Skus = e.Skus
+                Skus = e.Skus,
+                Tags = e.Tags ?? new List<string>(),
+                IsEssential = e.IsEssential,
+                IsPrivateLabel = e.IsPrivateLabel
             })
             .ToList();
     }
@@ -50,7 +53,10 @@ public static class InternalItemDictionary
             {
                 Number = item.Number,
                 Description = item.Description,
-                Skus = item.Skus
+                Skus = item.Skus,
+                Tags = item.Tags ?? new List<string>(),
+                IsEssential = item.IsEssential,
+                IsPrivateLabel = item.IsPrivateLabel
             };
             collection.Upsert(entity);
         }
@@ -65,7 +71,10 @@ public static class InternalItemDictionary
         {
             Number = item.Number,
             Description = item.Description,
-            Skus = item.Skus
+            Skus = item.Skus,
+            Tags = item.Tags ?? new List<string>(),
+            IsEssential = item.IsEssential,
+            IsPrivateLabel = item.IsPrivateLabel
         };
         DictionaryDbContext.Instance.Items.Upsert(entity);
     }
@@ -105,7 +114,10 @@ public static class InternalItemDictionary
         {
             Number = entity.Number,
             Description = entity.Description,
-            Skus = entity.Skus
+            Skus = entity.Skus,
+            Tags = entity.Tags ?? new List<string>(),
+            IsEssential = entity.IsEssential,
+            IsPrivateLabel = entity.IsPrivateLabel
         };
     }
 
@@ -126,7 +138,10 @@ public static class InternalItemDictionary
         {
             Number = entity.Number,
             Description = entity.Description,
-            Skus = entity.Skus
+            Skus = entity.Skus,
+            Tags = entity.Tags ?? new List<string>(),
+            IsEssential = entity.IsEssential,
+            IsPrivateLabel = entity.IsPrivateLabel
         };
     }
 
@@ -157,7 +172,10 @@ public static class InternalItemDictionary
             {
                 Number = entity.Number,
                 Description = entity.Description,
-                Skus = entity.Skus
+                Skus = entity.Skus,
+                Tags = entity.Tags ?? new List<string>(),
+                IsEssential = entity.IsEssential,
+                IsPrivateLabel = entity.IsPrivateLabel
             };
         }
 
@@ -181,7 +199,10 @@ public static class InternalItemDictionary
             {
                 Number = e.Number,
                 Description = e.Description,
-                Skus = e.Skus
+                Skus = e.Skus,
+                Tags = e.Tags ?? new List<string>(),
+                IsEssential = e.IsEssential,
+                IsPrivateLabel = e.IsPrivateLabel
             })
             .ToList();
     }
@@ -216,7 +237,10 @@ public static class InternalItemDictionary
             {
                 Number = e.Number,
                 Description = e.Description,
-                Skus = e.Skus
+                Skus = e.Skus,
+                Tags = e.Tags ?? new List<string>(),
+                IsEssential = e.IsEssential,
+                IsPrivateLabel = e.IsPrivateLabel
             })
             .ToList();
     }
