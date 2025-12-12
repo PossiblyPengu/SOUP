@@ -208,18 +208,44 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RefreshItemTotals()
     {
-        // Materialize items once for O(n) instead of multiple iterations
-        var allItems = LocationAllocations.SelectMany(l => l.Items).ToList();
+        // Get items from locations (allocated)
+        var locationItems = LocationAllocations.SelectMany(l => l.Items).ToList();
         
-        var grouped = allItems
-            .GroupBy(i => i.ItemNumber)
-            .Select(g => new ItemTotalSummary
+        // Build lookup for pool quantities by item number (case-insensitive)
+        var poolByItem = ItemPool
+            .GroupBy(p => p.ItemNumber, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                g => g.Key, 
+                g => (Quantity: g.Sum(p => p.Quantity), Description: g.First().Description),
+                StringComparer.OrdinalIgnoreCase);
+        
+        // Build lookup for location quantities by item number (case-insensitive)
+        var locationByItem = locationItems
+            .GroupBy(i => i.ItemNumber, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                g => g.Key,
+                g => (Quantity: g.Sum(i => i.Quantity), Description: g.First().Description, LocationCount: g.Count()),
+                StringComparer.OrdinalIgnoreCase);
+        
+        // Get all unique item numbers from both sources
+        var allItemNumbers = locationByItem.Keys
+            .Union(poolByItem.Keys, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        var grouped = allItemNumbers.Select(itemNum =>
+        {
+            var hasLocation = locationByItem.TryGetValue(itemNum, out var locData);
+            var hasPool = poolByItem.TryGetValue(itemNum, out var poolData);
+            
+            return new ItemTotalSummary
             {
-                ItemNumber = g.Key,
-                Description = g.First().Description,
-                TotalQuantity = g.Sum(i => i.Quantity),
-                LocationCount = g.Count()
-            });
+                ItemNumber = itemNum,
+                Description = hasLocation ? locData.Description : (hasPool ? poolData.Description : ""),
+                TotalQuantity = (hasLocation ? locData.Quantity : 0) + (hasPool ? poolData.Quantity : 0),
+                LocationCount = hasLocation ? locData.LocationCount : 0,
+                PoolQuantity = hasPool ? poolData.Quantity : 0
+            };
+        });
 
         // Apply sorting based on current mode
         IEnumerable<ItemTotalSummary> sorted = _itemTotalsSortMode switch
@@ -238,6 +264,20 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             ItemTotals.Add(t);
         }
+        
+        // Update each pool item's TotalInLocations for display
+        foreach (var poolItem in ItemPool)
+        {
+            if (locationByItem.TryGetValue(poolItem.ItemNumber, out var locData))
+            {
+                poolItem.TotalInLocations = locData.Quantity;
+            }
+            else
+            {
+                poolItem.TotalInLocations = 0;
+            }
+        }
+        
         OnPropertyChanged(nameof(ItemTotals));
     }
 
@@ -309,6 +349,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// <summary>Gets or sets whether the archive panel is open.</summary>
     [ObservableProperty]
     private bool _isArchivePanelOpen;
+    
+    partial void OnIsArchivePanelOpenChanged(bool value)
+    {
+        _logger?.LogInformation("Archive panel open changed to: {Value}", value);
+    }
 
     #endregion
 
@@ -488,7 +533,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             if (it == null) continue;
 
-            var itemNumber = GetCanonicalItemNumber(it.ItemNumber);
+            // Keep original ItemNumber to match with location items
+            var itemNumber = it.ItemNumber;
             var description = string.IsNullOrWhiteSpace(it.Description) ? GetDescription(itemNumber) : it.Description;
             var sku = it.SKU ?? GetSKU(itemNumber);
 
@@ -518,6 +564,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ItemPoolCount));
         OnPropertyChanged(nameof(LocationsCount));
         OnPropertyChanged(nameof(FilteredLocationAllocations));
+        RefreshItemTotals();
     }
 
     private async Task ImportAsync()
@@ -582,6 +629,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(TotalEntries));
             OnPropertyChanged(nameof(FilteredLocationAllocations));
+            RefreshItemTotals();
         }
         catch (Exception ex)
         {
@@ -633,6 +681,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(TotalEntries));
             OnPropertyChanged(nameof(FilteredLocationAllocations));
+            RefreshItemTotals();
         }
         catch (Exception ex)
         {
@@ -681,6 +730,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(TotalEntries));
             OnPropertyChanged(nameof(FilteredLocationAllocations));
+            RefreshItemTotals();
         }
         catch (Exception ex)
         {
@@ -740,6 +790,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(TotalEntries));
             OnPropertyChanged(nameof(FilteredLocationAllocations));
+            RefreshItemTotals();
         }
     }
 
@@ -869,6 +920,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(TotalEntries));
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(LocationsCount));
+            RefreshItemTotals();
         }
     }
 
@@ -940,7 +992,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == target.ItemNumber);
         if (poolItem == null)
         {
-            var itemNumber = GetCanonicalItemNumber(target.ItemNumber);
+            // Keep original ItemNumber to match with location items
+            var itemNumber = target.ItemNumber;
             var description = string.IsNullOrWhiteSpace(target.Description) ? GetDescription(itemNumber) : target.Description;
             var sku = target.SKU ?? GetSKU(itemNumber);
 
@@ -962,6 +1015,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         if (target.Quantity == 0)
             loc.Items.Remove(target);
         OnPropertyChanged(nameof(TotalEntries));
+        OnPropertyChanged(nameof(ItemPoolCount));
+        RefreshItemTotals();
     }
 
     private void AddOne(ItemAllocation item)
@@ -1014,6 +1069,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         SetTemporaryUpdateFlag(poolItem);
         if (poolItem.Quantity == 0) ItemPool.Remove(poolItem);
         OnPropertyChanged(nameof(TotalEntries));
+        OnPropertyChanged(nameof(ItemPoolCount));
+        RefreshItemTotals();
     }
 
     private void MoveFromPool(ItemAllocation item)
@@ -1119,6 +1176,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ItemPoolCount));
         OnPropertyChanged(nameof(LocationsCount));
         OnPropertyChanged(nameof(FilteredLocationAllocations));
+        RefreshItemTotals();
     }
 
     private async Task ClearDataAsync()
@@ -1147,6 +1205,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(FilteredLocationAllocations));
         OnPropertyChanged(nameof(HasNoData));
         OnPropertyChanged(nameof(HasData));
+        RefreshItemTotals();
 
         StatusMessage = "All data cleared";
         _logger?.LogInformation("All allocation data cleared by user");
@@ -1741,6 +1800,25 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         [ObservableProperty]
         private bool _isUpdated;
+
+        /// <summary>Total quantity of this item across all locations (not including pool).</summary>
+        [ObservableProperty]
+        private int _totalInLocations;
+
+        // Notify GrandTotal when TotalInLocations changes
+        partial void OnTotalInLocationsChanged(int value)
+        {
+            OnPropertyChanged(nameof(GrandTotal));
+        }
+
+        // Notify GrandTotal when Quantity changes
+        partial void OnQuantityChanged(int value)
+        {
+            OnPropertyChanged(nameof(GrandTotal));
+        }
+
+        /// <summary>Grand total = pool quantity + all locations.</summary>
+        public int GrandTotal => Quantity + TotalInLocations;
     }
 
     /// <summary>
@@ -1752,6 +1830,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public string Description { get; set; } = string.Empty;
         public int TotalQuantity { get; set; }
         public int LocationCount { get; set; }
+        /// <summary>Quantity remaining in the item pool (unallocated).</summary>
+        public int PoolQuantity { get; set; }
+        /// <summary>Total allocated quantity (TotalQuantity - PoolQuantity).</summary>
+        public int AllocatedQuantity => TotalQuantity - PoolQuantity;
+        /// <summary>Whether this item has any remaining in the pool.</summary>
+        public bool HasPoolItems => PoolQuantity > 0;
     }
 
     #endregion

@@ -278,4 +278,44 @@
     <SolidColorBrush x:Key="SectionTitleBarBrush" Color="#6366f1"/>
     <SolidColorBrush x:Key="SectionTitleTextBrush" Color="#FFFFFF"/>
 
+    <!-- ============================= -->
+    <!-- SEMANTIC ACCENT COLORS        -->
+    <!-- ============================= -->
+    
+    <!-- Success (Green) -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#22c55e"/>
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="#4ade80"/>
+    <SolidColorBrush x:Key="SuccessDarkBrush" Color="#16a34a"/>
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="#dcfce7"/>
+    
+    <!-- Danger/Error (Red) -->
+    <SolidColorBrush x:Key="DangerBrush" Color="#ef4444"/>
+    <SolidColorBrush x:Key="DangerLightBrush" Color="#f87171"/>
+    <SolidColorBrush x:Key="DangerDarkBrush" Color="#dc2626"/>
+    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#fee2e2"/>
+    
+    <!-- Warning (Amber) -->
+    <SolidColorBrush x:Key="WarningBrush" Color="#f59e0b"/>
+    <SolidColorBrush x:Key="WarningLightBrush" Color="#fbbf24"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="#d97706"/>
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#fef3c7"/>
+    
+    <!-- Info (Blue) -->
+    <SolidColorBrush x:Key="InfoBrush" Color="#3b82f6"/>
+    <SolidColorBrush x:Key="InfoLightBrush" Color="#60a5fa"/>
+    <SolidColorBrush x:Key="InfoDarkBrush" Color="#2563eb"/>
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="#dbeafe"/>
+    
+    <!-- Primary Accent (Indigo) -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#6366f1"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="#818cf8"/>
+    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#4f46e5"/>
+    <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="#e0e7ff"/>
+    
+    <!-- Secondary Accent (Purple) -->
+    <SolidColorBrush x:Key="SecondaryBrush" Color="#8b5cf6"/>
+    <SolidColorBrush x:Key="SecondaryLightBrush" Color="#a78bfa"/>
+    <SolidColorBrush x:Key="SecondaryDarkBrush" Color="#7c3aed"/>
+    <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="#ede9fe"/>
+
 </ResourceDictionary>

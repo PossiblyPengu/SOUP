@@ -247,8 +247,8 @@
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <Border Background="#2e1065" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                                    <TextBlock Text="{Binding Code}" FontWeight="Bold" FontSize="12" Foreground="#a78bfa"/>
+                                                <Border Background="{DynamicResource SecondaryBackgroundBrush}" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding Code}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource SecondaryLightBrush}"/>
                                                 </Border>
                                                 <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </StackPanel>
@@ -349,17 +349,17 @@
                             </Border>
                             
                             <!-- Preview Info -->
-                            <Border Background="#2e1065" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                            <Border Background="{DynamicResource SecondaryBackgroundBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,20">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                         <TextBlock Text="📄" FontSize="16" Margin="0,0,8,0"/>
-                                        <TextBlock FontSize="13" Foreground="#c4b5fd">
+                                        <TextBlock FontSize="13" Foreground="{DynamicResource SecondaryLightBrush}">
                                             <Run Text="{Binding TotalBoxes, Mode=OneWay}"/>
                                             <Run Text=" labels will be generated"/>
                                         </TextBlock>
                                     </StackPanel>
                                     <TextBlock Text="(2 per page, Word document format)" 
-                                               FontSize="11" Foreground="#a78bfa" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                               FontSize="11" Foreground="{DynamicResource SecondaryLightBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
                             

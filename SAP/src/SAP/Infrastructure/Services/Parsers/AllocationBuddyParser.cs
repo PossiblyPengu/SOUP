@@ -589,7 +589,9 @@ public class AllocationBuddyParser
             if (storeColumns.Count == 0)
                 return Result<IReadOnlyList<AllocationEntry>>.Failure("No store columns found");
 
-            _logger?.LogInformation("Found {Count} store columns", storeColumns.Count);
+            _logger?.LogInformation("Found {Count} store columns. First 5: {First5}", 
+                storeColumns.Count, 
+                string.Join(", ", storeColumns.Take(5).Select(s => $"[{s.Index}]={s.StoreCode}")));
 
             var entries = new List<AllocationEntry>();
 
@@ -605,11 +607,38 @@ public class AllocationBuddyParser
                 var itemNumber = fields[0].Trim();
                 if (string.IsNullOrWhiteSpace(itemNumber)) continue;
 
-                // Skip rows that look like headers or totals
-                if (itemNumber.ToLowerInvariant() == "item" || 
-                    itemNumber.ToLowerInvariant() == "total" ||
+                // Skip totals row
+                if (itemNumber.ToLowerInvariant() == "total" ||
                     itemNumber.ToLowerInvariant().Contains("suggested"))
                     continue;
+
+                // STOP parsing if we hit a new section with different format
+                // Per-store sections have headers like "Item,qty to ship,inventory,reorder point,store,notes"
+                // We detect this by checking if "Item" row has non-numeric values in store columns
+                if (itemNumber.ToLowerInvariant() == "item")
+                {
+                    // Check if this looks like a per-store section header (has text like "qty" or "store" in columns)
+                    bool looksLikePerStoreHeader = false;
+                    for (int col = 1; col < Math.Min(fields.Length, 6); col++)
+                    {
+                        var val = fields[col].Trim().ToLowerInvariant();
+                        if (val.Contains("qty") || val.Contains("store") || val.Contains("inventory") || 
+                            val.Contains("reorder") || val.Contains("notes") || val.Contains("ship"))
+                        {
+                            looksLikePerStoreHeader = true;
+                            break;
+                        }
+                    }
+                    
+                    if (looksLikePerStoreHeader)
+                    {
+                        _logger?.LogInformation("Stopping pivot parse at row {Row} - found per-store section header", rowIdx);
+                        break;
+                    }
+                    
+                    // Otherwise it might be an item literally named "Item" - skip it
+                    continue;
+                }
 
                 // For each store column, check if there's a quantity
                 foreach (var (colIndex, storeCode) in storeColumns)
@@ -642,8 +671,8 @@ public class AllocationBuddyParser
 
             _logger?.LogInformation("Parsed {Count} entries from pivot CSV", entries.Count);
 
-            return Result<IReadOnlyList<AllocationEntry>>.Success(
-                entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList());
+            var sortedEntries = entries.OrderBy(e => e.StoreId).ThenBy(e => e.ItemNumber).ToList();
+            return Result<IReadOnlyList<AllocationEntry>>.Success(sortedEntries);
         }
         catch (Exception ex)
         {

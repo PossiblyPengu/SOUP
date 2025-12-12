@@ -471,34 +471,49 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
-                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="36"/>
                         </Grid.ColumnDefinitions>
                         <Border x:Name="Border" Grid.ColumnSpan="2"
-                                Background="{DynamicResource SurfaceHoverBrush}"
+                                Background="{DynamicResource SurfaceBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="8"/>
-                        <Border Grid.Column="1" Background="Transparent" Margin="0,2,2,2" CornerRadius="6">
+                                CornerRadius="{DynamicResource SmallCornerRadius}"/>
+                        <Border Grid.Column="1" Background="Transparent" Margin="0,2,4,2" CornerRadius="6">
                             <Path x:Name="Arrow" 
-                                  Data="M0,0 L4,4 L8,0" 
-                                  Fill="{DynamicResource TextSecondaryBrush}"
+                                  Data="M0,0 L5,5 L10,0" 
+                                  Stroke="{DynamicResource TextSecondaryBrush}"
+                                  StrokeThickness="1.5"
+                                  StrokeLineJoin="Round"
+                                  Fill="Transparent"
                                   HorizontalAlignment="Center" 
                                   VerticalAlignment="Center"
-                                  StrokeThickness="0"/>
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <RotateTransform Angle="0"/>
+                                </Path.RenderTransform>
+                            </Path>
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
-                            <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource TextPrimaryBrush}"/>
+                            <Setter TargetName="Arrow" Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                            <Setter TargetName="Arrow" Property="Data" Value="M0,4 L4,0 L8,4"/>
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            <Setter TargetName="Arrow" Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+                            <Setter TargetName="Arrow" Property="RenderTransform">
+                                <Setter.Value>
+                                    <RotateTransform Angle="180"/>
+                                </Setter.Value>
+                            </Setter>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                            <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource TextDisabledBrush}"/>
+                            <Setter TargetName="Border" Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="Arrow" Property="Stroke" Value="{DynamicResource TextDisabledBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -519,17 +534,37 @@
                             Background="{TemplateBinding Background}" 
                             Padding="{TemplateBinding Padding}"
                             CornerRadius="6"
-                            Margin="4,2">
-                        <ContentPresenter/>
+                            Margin="4,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="CheckMark" Grid.Column="1" Text="✓" 
+                                       Foreground="{DynamicResource PrimaryBrush}" 
+                                       FontWeight="Bold" FontSize="12"
+                                       Margin="8,0,0,0" VerticalAlignment="Center"
+                                       Visibility="Collapsed"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                            <Setter Property="FontWeight" Value="Medium"/>
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
                         </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                        </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -537,13 +572,13 @@
     </Style>
 
     <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="12,10"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="MinHeight" Value="40"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="MinHeight" Value="38"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="ItemContainerStyle" Value="{StaticResource ModernComboBoxItem}"/>
         <Setter Property="Template">
@@ -560,14 +595,14 @@
                                           Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                           ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                          Margin="14,0,32,0"
+                                          Margin="14,0,36,0"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Left"/>
                         <TextBox x:Name="PART_EditableTextBox"
                                  Style="{x:Null}"
                                  HorizontalAlignment="Stretch"
                                  VerticalAlignment="Center"
-                                 Margin="14,0,32,0"
+                                 Margin="14,0,36,0"
                                  Focusable="True"
                                  Background="Transparent"
                                  Foreground="{DynamicResource TextPrimaryBrush}"
@@ -579,7 +614,7 @@
                                IsOpen="{TemplateBinding IsDropDownOpen}"
                                AllowsTransparency="True"
                                Focusable="False"
-                               PopupAnimation="Slide">
+                               PopupAnimation="Fade">
                             <Grid x:Name="DropDown"
                                   SnapsToDevicePixels="True"
                                   MinWidth="{TemplateBinding ActualWidth}"
@@ -588,13 +623,15 @@
                                         Background="{DynamicResource SurfaceBrush}"
                                         BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="8"
-                                        Margin="0,4,0,0"
-                                        Padding="4">
+                                        CornerRadius="{DynamicResource SmallCornerRadius}"
+                                        Margin="0,6,0,0"
+                                        Padding="4,6">
                                     <Border.Effect>
-                                        <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.3" Color="#000000"/>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="6" Opacity="0.2" Color="#000000" Direction="270"/>
                                     </Border.Effect>
-                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True" 
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
                                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                     </ScrollViewer>
                                 </Border>
@@ -614,6 +651,9 @@
     
     <!-- Alias for ModernComboBox (used in views) -->
     <Style x:Key="ModernComboBox" TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}"/>
+    
+    <!-- Default ComboBox style override -->
+    <Style TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}"/>
     
     <!-- ============================= -->
     <!-- MODERN CHECKBOX STYLE         -->

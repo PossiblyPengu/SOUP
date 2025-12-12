@@ -58,7 +58,7 @@
                 <Border Grid.Column="0" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#312e81" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="📦" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
@@ -77,14 +77,14 @@
                 <Border Grid.Column="1" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#7f1d1d" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="{DynamicResource DangerBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="🚨" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Critical" FontSize="12" 
                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding CriticalItems}" FontSize="28" FontWeight="Bold" 
-                                           Foreground="#EF4444"/>
+                                           Foreground="{DynamicResource DangerBrush}"/>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="{Binding ExpiredItems, StringFormat='{}{0} already expired'}" 
@@ -96,7 +96,7 @@
                 <Border Grid.Column="2" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#78350f" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="📅" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
@@ -120,7 +120,7 @@
                 <Border Grid.Column="3" Style="{StaticResource StatCard}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#022c22" CornerRadius="8" Padding="8" Margin="0,0,12,0">
+                            <Border Background="{DynamicResource SuccessBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
                                 <TextBlock Text="📍" FontSize="20"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
@@ -190,7 +190,7 @@
                                                 </Border.Style>
                                             </Border>
                                             <!-- Critical indicator -->
-                                            <Border Background="#EF4444" CornerRadius="6,6,0,0" VerticalAlignment="Bottom"
+                                            <Border Background="{DynamicResource DangerBrush}" CornerRadius="6,6,0,0" VerticalAlignment="Bottom"
                                                     Visibility="{Binding CriticalCount, Converter={StaticResource CountToVisibility}}"
                                                     Height="{Binding CriticalCount, Converter={StaticResource CriticalToHeightConverter}}"/>
                                         </Grid>
@@ -340,7 +340,7 @@
                         <TextBlock Grid.Row="0" Text="⏰ Next Expiring" FontSize="16" FontWeight="SemiBold" 
                                    Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
-                        <Border Grid.Row="1" Background="#78350f" CornerRadius="10" Padding="16">
+                        <Border Grid.Row="1" Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="10" Padding="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -348,7 +348,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Days Badge -->
-                                <Border Grid.Column="0" Background="#f59e0b" CornerRadius="10" 
+                                <Border Grid.Column="0" Background="{DynamicResource WarningBrush}" CornerRadius="10" 
                                         Padding="16,12" VerticalAlignment="Center" Margin="0,0,16,0">
                                     <StackPanel HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding NextExpiringDays}" FontSize="28" FontWeight="Bold" 
@@ -361,9 +361,9 @@
                                 <!-- Item Details -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="Next item to expire:" FontSize="11" 
-                                               Foreground="#fcd34d" Margin="0,0,0,4"/>
+                                               Foreground="{DynamicResource WarningLightBrush}" Margin="0,0,0,4"/>
                                     <TextBlock Text="{Binding NextExpiringItem}" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="#fef3c7" TextWrapping="Wrap" 
+                                               Foreground="{DynamicResource WarningLightBrush}" TextWrapping="Wrap" 
                                                TextTrimming="CharacterEllipsis" MaxHeight="40"/>
                                 </StackPanel>
                             </Grid>

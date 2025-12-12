@@ -604,10 +604,32 @@
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="12,10">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock x:Name="ThemeIcon" Text="🌙" FontSize="16" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="ThemeText" Text="Dark" FontSize="13" FontWeight="Medium"
+                                        <TextBlock FontSize="16" VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="🌙"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                            <Setter Property="Text" Value="☀️"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <TextBlock FontSize="13" FontWeight="Medium"
                                                    VerticalAlignment="Center" Margin="8,0,0,0"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                   Foreground="{DynamicResource TextSecondaryBrush}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Dark"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                            <Setter Property="Text" Value="Light"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>

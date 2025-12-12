@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Windows;
@@ -127,7 +128,9 @@ public partial class App : Application
         services.AddSingleton<NavigationService>();
         services.AddSingleton<ThemeService>();
         services.AddSingleton<SAP.Infrastructure.Services.SettingsService>();
-        services.AddSingleton<SAP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp => new SAP.Infrastructure.Services.Parsers.AllocationBuddyParser(null));
+        services.AddSingleton<SAP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp => 
+            new SAP.Infrastructure.Services.Parsers.AllocationBuddyParser(
+                sp.GetService<ILogger<SAP.Infrastructure.Services.Parsers.AllocationBuddyParser>>()));
 
         // ViewModels - Shell
         services.AddSingleton<LauncherViewModel>();

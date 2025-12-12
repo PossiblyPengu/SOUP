@@ -5,89 +5,115 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:SAP.ViewModels"
         xmlns:local="clr-namespace:SAP.Views"
+        xmlns:converters="clr-namespace:SAP.Converters"
         mc:Ignorable="d"
         Title="S.A.P - Settings"
-        Height="800"
-        Width="950"
+        Height="850"
+        Width="1150"
+        MinHeight="700"
+        MinWidth="950"
         WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip"
+        Background="Transparent"
         d:DataContext="{d:DesignInstance Type=vm:UnifiedSettingsViewModel}">
 
     <Window.Resources>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
 
         <!-- Settings Card Style -->
         <Style x:Key="SettingsCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource SmallCornerRadius}"/>
             <Setter Property="Padding" Value="20"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
 
         <!-- Section Title Style -->
         <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <!-- Setting Label Style -->
         <Style x:Key="SettingLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
 
         <!-- Helper Text Style -->
         <Style x:Key="HelperText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}"/>
         </Style>
 
         <!-- Settings CheckBox Style -->
         <Style x:Key="SettingsCheckBox" TargetType="CheckBox">
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
-        <!-- Settings ComboBox Style -->
-        <Style x:Key="SettingsComboBox" TargetType="ComboBox">
-            <Setter Property="Padding" Value="8,6"/>
+        <!-- Settings ComboBox Style - inherits from ModernComboBoxStyle -->
+        <Style x:Key="SettingsComboBox" TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}">
             <Setter Property="Margin" Value="0,4,0,4"/>
         </Style>
 
         <!-- Settings TextBox Style -->
         <Style x:Key="SettingsTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Margin" Value="0,4,0,4"/>
         </Style>
 
-        <!-- Tab Item Style -->
-        <Style TargetType="TabItem">
+        <!-- Warning Badge Style -->
+        <Style x:Key="WarningBadge" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource WarningLightBrush}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource XSmallCornerRadius}"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,0,8,6"/>
+        </Style>
+
+        <!-- Danger Badge Style -->
+        <Style x:Key="DangerBadge" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource DangerLightBrush}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource XSmallCornerRadius}"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,0,8,6"/>
+        </Style>
+
+        <!-- Sidebar Nav Item Style -->
+        <Style x:Key="SidebarNavItem" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="8,2"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="TabItem">
+                    <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Border"
-                                Background="Transparent"
-                                BorderBrush="Gray"
-                                BorderThickness="1,1,1,0"
-                                CornerRadius="0"
-                                Padding="14,8"
-                                Margin="0,0,4,0"
-                                Cursor="Hand">
-                            <ContentPresenter x:Name="ContentSite"
-                                              ContentSource="Header"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{DynamicResource SmallCornerRadius}"
+                                Padding="14,12">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="LightGray"/>
-                                <Setter TargetName="Border" Property="BorderBrush" Value="DarkGray"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                    <Condition Property="IsSelected" Value="False"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="Border" Property="Background" Value="WhiteSmoke"/>
-                            </MultiTrigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -95,166 +121,271 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <!-- Custom Window Chrome -->
+    <Border Background="{DynamicResource BackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource MediumCornerRadius}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#000000"/>
+        </Border.Effect>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="⚙️" FontSize="28" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="Settings"
-                           FontSize="28"
-                           FontWeight="Bold"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           VerticalAlignment="Center"/>
-            </StackPanel>
-            <TextBlock Text="Configure application preferences and defaults"
-                       FontSize="14"
-                       Foreground="{DynamicResource TextSecondaryBrush}"
-                       Margin="0,8,0,0"/>
-        </StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- TabControl for different app settings -->
-        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0"
-                    SelectionChanged="OnTabSelectionChanged">
-            <TabControl.Template>
-                <ControlTemplate TargetType="TabControl">
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="{DynamicResource TitleBarBackgroundBrush}"
+                    CornerRadius="{DynamicResource TitleBarCornerRadius}" 
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Title -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="⚙️" FontSize="14" Foreground="{DynamicResource TitleBarTextBrush}" Margin="0,0,10,0"/>
+                        <TextBlock Text="Settings" FontSize="13" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,0">
+                        <Button Click="CloseButton_Click" ToolTip="Close"
+                                Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource XSmallCornerRadius}">
+                                        <TextBlock Text="✕" FontSize="11" Foreground="{DynamicResource TitleBarTextBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#dc2626"/>
+                                            <Setter TargetName="Bd" Property="TextBlock.Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Content with Sidebar -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Sidebar -->
+                <Border Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}" 
+                        CornerRadius="{DynamicResource SidebarCornerRadius}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="4" Margin="0,0,0,20">
-                            <TabPanel IsItemsHost="True"/>
-                        </Border>
-                        <ContentPresenter Grid.Row="1" ContentSource="SelectedContent"/>
-                    </Grid>
-                </ControlTemplate>
-            </TabControl.Template>
 
-            <!-- AllocationBuddy Tab (default) -->
-            <TabItem Header="📊 AllocationBuddy" FontSize="13" IsSelected="True">
-                <Grid Margin="0,10,0,0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel DataContext="{Binding AllocationBuddySettings}">
-
-                        <!-- Behavior Section -->
-                        <Border>
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="🎛️" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Behavior" Margin="0"/>
-                                </StackPanel>
-
-                                <CheckBox Content="Show confirmation dialogs for destructive actions"
-                                          IsChecked="{Binding ShowConfirmationDialogs}"
-                                         />
-                                <TextBlock Text="Ask before clearing data, deactivating stores, or other irreversible actions"
-                                           Margin="24,4,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Clipboard Settings Section -->
-                        <Border>
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="📋" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Clipboard Options" Margin="0"/>
-                                </StackPanel>
-
-                                <CheckBox Content="Include item descriptions when copying"
-                                          IsChecked="{Binding IncludeDescriptionsInCopy}"
-                                         />
-                                <TextBlock Text="Adds descriptions alongside item numbers when copying location data to clipboard"
-                                           Margin="24,4,0,16"/>
-
-                                <TextBlock Text="Clipboard Format"/>
-                                <ComboBox SelectedValue="{Binding ClipboardFormat}" 
-                                          SelectedValuePath="Tag"
-                                         >
-                                    <ComboBoxItem Content="Tab Separated (for Excel/BC)" Tag="TabSeparated"/>
-                                    <ComboBoxItem Content="Comma Separated (CSV)" Tag="CommaSeparated"/>
-                                </ComboBox>
-                                <TextBlock Text="Format used when copying location items for transfer orders"
-                                          />
-                            </StackPanel>
-                        </Border>
-
+                        <!-- Sidebar Header -->
+                        <StackPanel Grid.Row="0" Margin="16,20,16,16">
+                            <TextBlock Text="SETTINGS" FontSize="10" FontWeight="Bold" 
+                                       Foreground="{DynamicResource TextDisabledBrush}" Margin="8,0,0,12"/>
                         </StackPanel>
-                    </ScrollViewer>
-                    <!-- Top shadow -->
-                    <Border VerticalAlignment="Top" Height="12" IsHitTestVisible="False">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#10000000" Offset="0"/>
-                                <GradientStop Color="Transparent" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                    </Border>
-                </Grid>
-            </TabItem>
 
-            <!-- EssentialsBuddy Tab -->
-            <TabItem Header="📋 EssentialsBuddy" FontSize="13">
-                <Grid Margin="0,10,0,0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel DataContext="{Binding EssentialsBuddySettings}">
-
-                        <!-- Stock Thresholds Section -->
-                        <Border>
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="📊" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Stock Level Thresholds" Margin="0"/>
+                        <!-- Navigation Items -->
+                        <StackPanel Grid.Row="1">
+                            <RadioButton x:Name="TabAllocation" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         IsChecked="True" Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="AllocationBuddy" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Distribution settings" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
                                 </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabEssentials" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📋" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="EssentialsBuddy" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Stock thresholds" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabExpireWise" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📦" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="ExpireWise" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Expiration tracking" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabDictionary" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🗄️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Database" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Items &amp; stores" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
 
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="16"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="16"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                        <!-- Bottom Actions -->
+                        <StackPanel Grid.Row="2" Margin="12,0,12,16">
+                            <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="4,0,4,12"/>
+                            
+                            <Button Click="OnAboutClick" Cursor="Hand" ToolTip="About S.A.P (F1)">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Border" Background="Transparent" CornerRadius="{DynamicResource SmallCornerRadius}" Padding="14,10" Margin="0,2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="ℹ️" FontSize="14" Margin="0,0,10,0"/>
+                                                <TextBlock Text="About" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Medium"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Low Stock"/>
-                                        <TextBox Text="{Binding LowStockThreshold}"/>
-                                        <TextBlock Text="Below this = Low"/>
+                <!-- Right Content Area -->
+                <Grid Grid.Column="1" Margin="24,20,24,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Content Panels -->
+                    <Grid Grid.Row="1">
+                        <!-- AllocationBuddy Panel -->
+                        <ScrollViewer x:Name="PanelAllocation" VerticalScrollBarVisibility="Auto">
+                            <StackPanel DataContext="{Binding AllocationBuddySettings}">
+
+                            <!-- Behavior Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="🎛️" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Behavior" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <CheckBox Content="Show confirmation dialogs for destructive actions"
+                                              IsChecked="{Binding ShowConfirmationDialogs}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Ask before clearing data, deactivating stores, or other irreversible actions"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Clipboard Settings Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="📋" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Clipboard Options" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <CheckBox Content="Include item descriptions when copying"
+                                              IsChecked="{Binding IncludeDescriptionsInCopy}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Adds descriptions alongside item numbers when copying location data to clipboard"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,16"/>
+
+                                    <TextBlock Text="Clipboard Format" Style="{StaticResource SettingLabel}"/>
+                                    <ComboBox SelectedValue="{Binding ClipboardFormat}" 
+                                              SelectedValuePath="Tag"
+                                              Style="{StaticResource SettingsComboBox}">
+                                        <ComboBoxItem Content="Tab Separated (for Excel/BC)" Tag="TabSeparated"/>
+                                        <ComboBoxItem Content="Comma Separated (CSV)" Tag="CommaSeparated"/>
+                                    </ComboBox>
+                                    <TextBlock Text="Format used when copying location items for transfer orders"
+                                               Style="{StaticResource HelperText}"/>
+                                </StackPanel>
+                            </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- EssentialsBuddy Panel -->
+                        <ScrollViewer x:Name="PanelEssentials" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                            <StackPanel DataContext="{Binding EssentialsBuddySettings}">
+
+                            <!-- Stock Thresholds Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="📊" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Stock Level Thresholds" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Low Stock" Style="{StaticResource SettingLabel}"/>
+                                            <TextBox Text="{Binding LowStockThreshold}" Style="{StaticResource SettingsTextBox}"/>
+                                        <TextBlock Text="Below this = Low" Style="{StaticResource HelperText}"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Out of Stock"/>
-                                        <TextBox Text="{Binding OutOfStockThreshold}"/>
-                                        <TextBlock Text="At/below this = Out"/>
+                                        <TextBlock Text="Out of Stock" Style="{StaticResource SettingLabel}"/>
+                                        <TextBox Text="{Binding OutOfStockThreshold}" Style="{StaticResource SettingsTextBox}"/>
+                                        <TextBlock Text="At/below this = Out" Style="{StaticResource HelperText}"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Sufficient"/>
-                                        <TextBox Text="{Binding SufficientThreshold}"/>
-                                        <TextBlock Text="Above this = Sufficient"/>
+                                        <TextBlock Text="Sufficient" Style="{StaticResource SettingLabel}"/>
+                                        <TextBox Text="{Binding SufficientThreshold}" Style="{StaticResource SettingsTextBox}"/>
+                                        <TextBlock Text="Above this = Sufficient" Style="{StaticResource HelperText}"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Default Filters Section -->
-                        <Border>
+                        <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="🔍" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Default Filters" Margin="0"/>
+                                    <TextBlock Text="🔍" FontSize="16" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Default Filters" Style="{StaticResource SectionTitle}"/>
                                 </StackPanel>
 
-                                <TextBlock Text="Default Status Filter"/>
+                                <TextBlock Text="Default Status Filter" Style="{StaticResource SettingLabel}"/>
                                 <ComboBox SelectedValue="{Binding DefaultStatusFilter}" 
                                           SelectedValuePath="Tag"
-                                         >
+                                          Style="{StaticResource SettingsComboBox}">
                                     <ComboBoxItem Content="All Items" Tag="All"/>
                                     <ComboBoxItem Content="Normal Stock" Tag="Normal"/>
                                     <ComboBoxItem Content="Low Stock" Tag="Low"/>
@@ -262,42 +393,31 @@
                                     <ComboBoxItem Content="Sufficient" Tag="Sufficient"/>
                                 </ComboBox>
                                 <TextBlock Text="Filter automatically applied when opening the module"
+                                           Style="{StaticResource HelperText}"
                                            Margin="0,4,0,16"/>
 
                                 <CheckBox Content="Start with 'Essentials Only' filter enabled"
                                           IsChecked="{Binding DefaultEssentialsOnly}"
-                                         />
+                                          Style="{StaticResource SettingsCheckBox}"/>
                                 <TextBlock Text="Only show items marked as essential when the module opens"
+                                           Style="{StaticResource HelperText}"
                                            Margin="24,4,0,0"/>
                             </StackPanel>
                         </Border>
 
                         </StackPanel>
                     </ScrollViewer>
-                    <!-- Top shadow -->
-                    <Border VerticalAlignment="Top" Height="12" IsHitTestVisible="False">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#10000000" Offset="0"/>
-                                <GradientStop Color="Transparent" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                    </Border>
-                </Grid>
-            </TabItem>
 
-            <!-- ExpireWise Tab -->
-            <TabItem Header="📦 ExpireWise" FontSize="13">
-                <Grid Margin="0,10,0,0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <!-- ExpireWise Panel -->
+                    <ScrollViewer x:Name="PanelExpireWise" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                         <StackPanel DataContext="{Binding ExpireWiseSettings}">
 
                         <!-- Alert Thresholds Section -->
-                        <Border>
+                        <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="⏰" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Expiration Thresholds" Margin="0"/>
+                                    <TextBlock Text="⏰" FontSize="16" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Expiration Thresholds" Style="{StaticResource SectionTitle}"/>
                                 </StackPanel>
 
                                 <Grid>
@@ -309,39 +429,39 @@
 
                                     <StackPanel Grid.Column="0">
                                         <StackPanel Orientation="Horizontal">
-                                            <Border Background="#FEF3C7" CornerRadius="0" Padding="6,2" Margin="0,0,8,6">
-                                                <TextBlock Text="⚠️ Warning" FontSize="11" FontWeight="SemiBold" Foreground="#92400e"/>
+                                            <Border Style="{StaticResource WarningBadge}">
+                                                <TextBlock Text="⚠️ Warning" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource WarningDarkBrush}"/>
                                             </Border>
                                         </StackPanel>
-                                        <TextBox Text="{Binding WarningThresholdDays}"/>
-                                        <TextBlock Text="Days before expiration"/>
+                                        <TextBox Text="{Binding WarningThresholdDays}" Style="{StaticResource SettingsTextBox}"/>
+                                        <TextBlock Text="Days before expiration" Style="{StaticResource HelperText}"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
                                         <StackPanel Orientation="Horizontal">
-                                            <Border Background="#FEE2E2" CornerRadius="0" Padding="6,2" Margin="0,0,8,6">
-                                                <TextBlock Text="🔴 Critical" FontSize="11" FontWeight="SemiBold" Foreground="#991b1b"/>
+                                            <Border Style="{StaticResource DangerBadge}">
+                                                <TextBlock Text="🔴 Critical" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource DangerDarkBrush}"/>
                                             </Border>
                                         </StackPanel>
-                                        <TextBox Text="{Binding CriticalThresholdDays}"/>
-                                        <TextBlock Text="Days before expiration"/>
+                                        <TextBox Text="{Binding CriticalThresholdDays}" Style="{StaticResource SettingsTextBox}"/>
+                                        <TextBlock Text="Days before expiration" Style="{StaticResource HelperText}"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Display Options Section -->
-                        <Border>
+                        <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="🎨" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Display Options" Margin="0"/>
+                                    <TextBlock Text="Display Options" Style="{StaticResource SectionTitle}"/>
                                 </StackPanel>
 
-                                <TextBlock Text="Default Status Filter"/>
+                                <TextBlock Text="Default Status Filter" Style="{StaticResource SettingLabel}"/>
                                 <ComboBox SelectedValue="{Binding DefaultStatusFilter}" 
                                           SelectedValuePath="Tag"
-                                         >
+                                          Style="{StaticResource SettingsComboBox}">
                                     <ComboBoxItem Content="All Items" Tag="All"/>
                                     <ComboBoxItem Content="Good (Not Expiring Soon)" Tag="Good"/>
                                     <ComboBoxItem Content="Warning" Tag="Warning"/>
@@ -349,26 +469,27 @@
                                     <ComboBoxItem Content="Expired" Tag="Expired"/>
                                 </ComboBox>
                                 <TextBlock Text="Filter automatically applied when opening the module"
+                                           Style="{StaticResource HelperText}"
                                            Margin="0,4,0,16"/>
 
-                                <TextBlock Text="Date Display Format"/>
+                                <TextBlock Text="Date Display Format" Style="{StaticResource SettingLabel}"/>
                                 <ComboBox SelectedValue="{Binding DateDisplayFormat}" 
                                           SelectedValuePath="Tag"
-                                         >
+                                          Style="{StaticResource SettingsComboBox}">
                                     <ComboBoxItem Content="Short (12/15/2025)" Tag="Short"/>
                                     <ComboBoxItem Content="Long (December 15, 2025)" Tag="Long"/>
                                 </ComboBox>
                                 <TextBlock Text="How expiration dates are formatted in the list view"
-                                          />
+                                           Style="{StaticResource HelperText}"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Data Management Section -->
-                        <Border>
+                        <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                     <TextBlock Text="🗃️" FontSize="18" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Data Management" Margin="0"/>
+                                    <TextBlock Text="Data Management" Style="{StaticResource SectionTitle}"/>
                                 </StackPanel>
 
                                 <Grid>
@@ -384,6 +505,7 @@
                                             <Run Text="{Binding TotalItemCount, Mode=OneWay}" FontWeight="Bold"/>
                                         </TextBlock>
                                         <TextBlock Text="Clear all expiration tracking data from the database"
+                                                   Style="{StaticResource HelperText}"
                                                    Margin="0,4,0,0"/>
                                     </StackPanel>
 
@@ -394,18 +516,18 @@
                                             VerticalAlignment="Center">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
-                                                <Border x:Name="Border" Background="#fef2f2" CornerRadius="0"
+                                                <Border x:Name="Border" Background="{DynamicResource DangerBackgroundBrush}" CornerRadius="{DynamicResource XSmallCornerRadius}"
                                                         Padding="{TemplateBinding Padding}"
-                                                        BorderBrush="#fecaca" BorderThickness="1">
+                                                        BorderBrush="{DynamicResource DangerLightBrush}" BorderThickness="1">
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                         <TextBlock Text="🗑️" FontSize="14" Margin="0,0,8,0"/>
-                                                        <TextBlock Text="Clear All Data" Foreground="#dc2626" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="Clear All Data" Foreground="{DynamicResource DangerBrush}" FontWeight="SemiBold"/>
                                                     </StackPanel>
                                                 </Border>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Border" Property="Background" Value="#fee2e2"/>
-                                                        <Setter TargetName="Border" Property="BorderBrush" Value="#fca5a5"/>
+                                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource DangerLightBrush}"/>
+                                                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -417,134 +539,107 @@
 
                         </StackPanel>
                     </ScrollViewer>
-                    <!-- Top shadow -->
-                    <Border VerticalAlignment="Top" Height="12" IsHitTestVisible="False">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#10000000" Offset="0"/>
-                                <GradientStop Color="Transparent" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
+
+                    <!-- Dictionary Panel -->
+                    <Border x:Name="PanelDictionary" Visibility="Collapsed">
+                        <local:DictionaryManagementView DataContext="{Binding DictionaryManagement}"/>
                     </Border>
                 </Grid>
-            </TabItem>
 
-            <!-- Dictionary Management Tab (load on demand) -->
-            <TabItem Header="📚 Dictionary" FontSize="13">
-                <local:DictionaryManagementView DataContext="{Binding DictionaryManagement}"/>
-            </TabItem>
+                <!-- Footer with Status and Buttons -->
+                <Grid Grid.Row="2" Margin="0,16,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        </TabControl>
+                    <!-- Status Message -->
+                    <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" 
+                            CornerRadius="{DynamicResource SmallCornerRadius}" 
+                            Padding="12,8" Margin="0,0,0,16"
+                            Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibility}}">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                    </Border>
 
-        <!-- Status Message -->
-        <Border Grid.Row="2" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="0" Padding="12" Margin="0,16,0,0">
-            <TextBlock Text="{Binding StatusMessage}"
-                       FontSize="12"
-                       Foreground="{DynamicResource TextSecondaryBrush}"
-                       HorizontalAlignment="Center"/>
-        </Border>
+                    <!-- Buttons -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-        <!-- Buttons -->
-        <Grid Grid.Row="3" Margin="0,20,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                Command="{Binding ResetAllToDefaultsCommand}"
+                                Padding="14,10"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Border" Background="{DynamicResource DangerBackgroundBrush}" BorderBrush="{DynamicResource DangerLightBrush}" BorderThickness="1" CornerRadius="{DynamicResource XSmallCornerRadius}" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="🔄" FontSize="12" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Reset" Foreground="{DynamicResource DangerBrush}" FontWeight="SemiBold" FontSize="12"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource DangerLightBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
 
-            <Button Grid.Column="0"
-                    Command="{Binding ResetAllToDefaultsCommand}"
-                    Padding="20,12"
-                    MinWidth="160"
-                    Margin="0,0,12,0"
-                    Cursor="Hand">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" Background="#fef2f2" BorderBrush="#fecaca" BorderThickness="1" CornerRadius="0" Padding="{TemplateBinding Padding}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="🔄" FontSize="14" Margin="0,0,8,0"/>
-                                <TextBlock Text="Reset to Defaults" Foreground="#dc2626" FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#fee2e2"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+                        <Button Grid.Column="2"
+                                Command="{Binding SaveAllSettingsCommand}"
+                                Padding="20,10"
+                                Margin="0,0,10,0"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Border" Background="{DynamicResource PrimaryBrush}" BorderBrush="{DynamicResource PrimaryDarkBrush}" BorderThickness="1" CornerRadius="{DynamicResource XSmallCornerRadius}" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="💾" FontSize="12" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Save" Foreground="White" FontWeight="SemiBold" FontSize="12"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryDarkBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
 
-            <Button Grid.Column="1"
-                    Click="OnAboutClick"
-                    Padding="20,12"
-                    MinWidth="100"
-                    Cursor="Hand"
-                    ToolTip="About S.A.P (F1)">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="0" Padding="{TemplateBinding Padding}"
-                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="ℹ️" FontSize="14" Margin="0,0,8,0"/>
-                                <TextBlock Text="About" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-
-            <Button Grid.Column="3"
-                    Command="{Binding SaveAllSettingsCommand}"
-                    Padding="24,12"
-                    MinWidth="120"
-                    Margin="0,0,12,0"
-                    Cursor="Hand">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" Background="#667eea" BorderBrush="#5568d3" BorderThickness="1" CornerRadius="0" Padding="{TemplateBinding Padding}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0"/>
-                                <TextBlock Text="Save All" Foreground="White" FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#5568d3"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-
-            <Button Grid.Column="4"
-                    IsCancel="True"
-                    Padding="24,12"
-                    MinWidth="100"
-                    Cursor="Hand">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="0" Padding="{TemplateBinding Padding}"
-                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                            <TextBlock Text="Close" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+                        <Button Grid.Column="3"
+                                Click="CloseButton_Click"
+                                Padding="20,10"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Border" Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource XSmallCornerRadius}" Padding="{TemplateBinding Padding}"
+                                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                                        <TextBlock Text="Close" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12" HorizontalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Grid>
+                </Grid>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </Window>
 
 

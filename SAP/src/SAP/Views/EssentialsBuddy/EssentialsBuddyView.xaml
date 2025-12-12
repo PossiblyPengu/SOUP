@@ -229,22 +229,22 @@
                             </Grid.RowDefinitions>
                             
                             <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,0,8">
-                                <TextBlock Text="{Binding FilteredItems.Count}" FontSize="20" FontWeight="Bold" Foreground="#34d399"/>
+                                <TextBlock Text="{Binding FilteredItems.Count}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource SuccessLightBrush}"/>
                                 <TextBlock Text="Total Items" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </StackPanel>
                             
                             <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,0,8">
-                                <TextBlock Text="{Binding EssentialItemsCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="#fbbf24"/>
+                                <TextBlock Text="{Binding EssentialItemsCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource WarningLightBrush}"/>
                                 <TextBlock Text="Essential" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </StackPanel>
                             
                             <StackPanel Grid.Column="0" Grid.Row="1">
-                                <TextBlock Text="{Binding OutOfStockCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="#ef4444"/>
+                                <TextBlock Text="{Binding OutOfStockCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
                                 <TextBlock Text="Out of Stock" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </StackPanel>
                             
                             <StackPanel Grid.Column="1" Grid.Row="1">
-                                <TextBlock Text="{Binding LowStockCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="#f97316"/>
+                                <TextBlock Text="{Binding LowStockCount, FallbackValue=0}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
                                 <TextBlock Text="Low Stock" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </StackPanel>
                         </Grid>
@@ -317,7 +317,7 @@
                                      Command="{Binding ClearDataCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🗑️" FontSize="16" Margin="0,0,12,0"/>
-                                <TextBlock Text="Clear Data" VerticalAlignment="Center" Foreground="#ef4444"/>
+                                <TextBlock Text="Clear Data" VerticalAlignment="Center" Foreground="{DynamicResource DangerBrush}"/>
                             </StackPanel>
                         </RadioButton>
                     </StackPanel>
@@ -389,9 +389,9 @@
                                       Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                       VerticalAlignment="Center"/>
                             
-                            <Border Background="#10b981" CornerRadius="10" Padding="12,6" Margin="16,0,0,0">
+                            <Border Background="{DynamicResource SuccessBrush}" CornerRadius="10" Padding="12,6" Margin="16,0,0,0">
                                 <TextBlock Text="{Binding FilteredItems.Count, StringFormat='{}{0} items'}"
-                                           Foreground="White" FontWeight="SemiBold" FontSize="12"/>
+                                           Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="SemiBold" FontSize="12"/>
                             </Border>
                         </StackPanel>
                     </Grid>
@@ -511,7 +511,7 @@
                         <DataGridTemplateColumn Header="Dict" Width="50" IsReadOnly="True" SortMemberPath="DictionaryMatched">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="✓" FontSize="14" Foreground="#34d399" HorizontalAlignment="Center"
+                                    <TextBlock Text="✓" FontSize="14" Foreground="{DynamicResource SuccessLightBrush}" HorizontalAlignment="Center"
                                                Visibility="{Binding DictionaryMatched, Converter={StaticResource BooleanToVisibilityConverter}}"
                                                ToolTip="Matched in Dictionary"/>
                                 </DataTemplate>
