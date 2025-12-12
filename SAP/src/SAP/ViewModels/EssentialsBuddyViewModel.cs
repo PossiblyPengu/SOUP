@@ -44,6 +44,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     private readonly DialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
+    private bool _isInitialized;
 
     #endregion
 
@@ -84,6 +85,18 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty]
     private bool _essentialsOnly;
+
+    /// <summary>
+    /// Gets or sets whether to show only private label items.
+    /// </summary>
+    [ObservableProperty]
+    private bool _privateLabelOnly;
+
+    /// <summary>
+    /// Gets or sets whether to include all private label items from any bin during import.
+    /// </summary>
+    [ObservableProperty]
+    private bool _includeAllPrivateLabel;
 
     /// <summary>
     /// Gets or sets whether data is currently being loaded.
@@ -172,6 +185,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
     public async Task InitializeAsync()
     {
+        if (_isInitialized) return;
+        _isInitialized = true;
         await LoadItems();
     }
 
@@ -184,6 +199,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         var matchedCount = 0;
         var essentialCount = 0;
+        var privateLabelCount = 0;
         var unmatchedItems = new List<InventoryItem>();
         var existingItemNumbers = new HashSet<string>(items.Select(i => i.ItemNumber));
 
@@ -197,8 +213,11 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 item.DictionaryMatched = true;
                 item.DictionaryDescription = dictEntity.Description;
                 item.IsEssential = dictEntity.IsEssential;
+                item.IsPrivateLabel = dictEntity.IsPrivateLabel;
+                item.Tags = dictEntity.Tags ?? new List<string>();
                 matchedCount++;
                 if (dictEntity.IsEssential) essentialCount++;
+                if (dictEntity.IsPrivateLabel) privateLabelCount++;
             }
             else
             {
@@ -222,6 +241,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     DictionaryDescription = essential.Description,
                     DictionaryMatched = true,
                     IsEssential = true,
+                    IsPrivateLabel = essential.IsPrivateLabel,
+                    Tags = essential.Tags ?? new List<string>(),
                     QuantityOnHand = 0,
                     BinCode = "Not in bins"
                 };
@@ -230,8 +251,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             }
         }
 
-        _logger?.LogInformation("Dictionary matching: {Matched}/{Total} items matched, {Essentials} marked as essential, {Unmatched} unmatched, {AddedEssentials} essential items added from dictionary",
-            matchedCount, items.Count - addedEssentialsCount, essentialCount, unmatchedItems.Count, addedEssentialsCount);
+        _logger?.LogInformation("Dictionary matching: {Matched}/{Total} items matched, {Essentials} marked as essential, {PL} private label, {Unmatched} unmatched, {AddedEssentials} essential items added from dictionary",
+            matchedCount, items.Count - addedEssentialsCount, essentialCount, privateLabelCount, unmatchedItems.Count, addedEssentialsCount);
         
         return unmatchedItems;
     }
@@ -335,7 +356,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ImportFromExcel()
     {
-        _logger?.LogInformation("Import from Excel clicked - using specialized parser (9-90* bins, aggregation)");
+        _logger?.LogInformation("Import from Excel clicked - using specialized parser (9-90* bins, aggregation), IncludeAllPrivateLabel={IncludePL}", IncludeAllPrivateLabel);
 
         try
         {
@@ -346,10 +367,11 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             if (files != null && files.Length > 0)
             {
                 IsLoading = true;
-                StatusMessage = "Importing from Excel (filtering 9-90* bins)...";
+                var binFilter = IncludeAllPrivateLabel ? "9-90* bins + all Private Label" : "9-90* bins";
+                StatusMessage = $"Importing from Excel (filtering {binFilter})...";
 
                 // Use specialized parser with exact JS logic
-                var result = await _parser.ParseExcelAsync(files[0]);
+                var result = await _parser.ParseExcelAsync(files[0], 100, IncludeAllPrivateLabel);
 
                 if (result.IsSuccess && result.Value != null)
                 {
@@ -375,9 +397,10 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     
                     var essentialCount = items.Count(i => i.IsEssential);
                     var matchedCount = items.Count(i => i.DictionaryMatched);
-                    StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials)";
-                    _logger?.LogInformation("Imported {Count} items from Excel, {Matched} matched dictionary, {Essentials} essentials", 
-                        items.Count, matchedCount, essentialCount);
+                    var privateLabelCount = items.Count(i => i.IsPrivateLabel);
+                    StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials, {privateLabelCount} PL)";
+                    _logger?.LogInformation("Imported {Count} items from Excel, {Matched} matched dictionary, {Essentials} essentials, {PL} private label", 
+                        items.Count, matchedCount, essentialCount, privateLabelCount);
                     
                     // Prompt to add unmatched items to dictionary
                     if (unmatchedItems.Count > 0)
@@ -406,7 +429,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ImportFromCsv()
     {
-        _logger?.LogInformation("Import from CSV clicked - using specialized parser (9-90* bins, aggregation)");
+        _logger?.LogInformation("Import from CSV clicked - using specialized parser (9-90* bins, aggregation), IncludeAllPrivateLabel={IncludePL}", IncludeAllPrivateLabel);
 
         try
         {
@@ -417,10 +440,11 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             if (files != null && files.Length > 0)
             {
                 IsLoading = true;
-                StatusMessage = "Importing from CSV (filtering 9-90* bins)...";
+                var binFilter = IncludeAllPrivateLabel ? "9-90* bins + all Private Label" : "9-90* bins";
+                StatusMessage = $"Importing from CSV (filtering {binFilter})...";
 
                 // Use specialized parser with exact JS logic
-                var result = await _parser.ParseCsvAsync(files[0]);
+                var result = await _parser.ParseCsvAsync(files[0], 100, IncludeAllPrivateLabel);
 
                 if (result.IsSuccess && result.Value != null)
                 {
@@ -446,9 +470,10 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     
                     var essentialCount = items.Count(i => i.IsEssential);
                     var matchedCount = items.Count(i => i.DictionaryMatched);
-                    StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials)";
-                    _logger?.LogInformation("Imported {Count} items from CSV, {Matched} matched dictionary, {Essentials} essentials", 
-                        items.Count, matchedCount, essentialCount);
+                    var privateLabelCount = items.Count(i => i.IsPrivateLabel);
+                    StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials, {privateLabelCount} PL)";
+                    _logger?.LogInformation("Imported {Count} items from CSV, {Matched} matched dictionary, {Essentials} essentials, {PL} private label", 
+                        items.Count, matchedCount, essentialCount, privateLabelCount);
                     
                     // Prompt to add unmatched items to dictionary
                     if (unmatchedItems.Count > 0)
@@ -673,19 +698,34 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         ApplyFilters();
     }
 
+    partial void OnPrivateLabelOnlyChanged(bool value)
+    {
+        ApplyFilters();
+    }
+
     private void ApplyFilters()
     {
         // Build query - all filtering is deferred until ToList()
         IEnumerable<InventoryItem> query = Items;
 
-        // Hide non-essential items with zero quantity
-        query = query.Where(i => i.IsEssential || i.QuantityOnHand > 0);
+        // Determine if an item should be shown based on bin and status
+        // - Essential items: always show
+        // - PL items in 9-90 bins: always show
+        // - PL items NOT in 9-90 bins: only show if PrivateLabelOnly checkbox is checked
+        // - Other items with zero quantity: hide
+        query = query.Where(i => 
+            i.IsEssential || 
+            i.QuantityOnHand > 0 ||
+            (i.IsPrivateLabel && (i.BinCode?.StartsWith("9-90", StringComparison.OrdinalIgnoreCase) ?? false)) ||
+            (i.IsPrivateLabel && PrivateLabelOnly));
 
         // Essentials filter
         if (EssentialsOnly)
         {
             query = query.Where(i => i.IsEssential);
         }
+
+        // Note: PrivateLabelOnly affects the base filter above - when checked, it includes PL items not in 9-90
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {

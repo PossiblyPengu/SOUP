@@ -64,3 +64,29 @@ public class InverseBoolToVisibilityConverter : IValueConverter
         return false;
     }
 }
+
+/// <summary>
+/// Converts a boolean to a sort arrow character.
+/// </summary>
+/// <remarks>
+/// <c>true</c> (descending) converts to "↓",
+/// <c>false</c> (ascending) converts to "↑".
+/// </remarks>
+public class BoolToSortArrowConverter : IValueConverter
+{
+    /// <inheritdoc/>
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool isDescending)
+        {
+            return isDescending ? "↓" : "↑";
+        }
+        return "↑";
+    }
+
+    /// <inheritdoc/>
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return value?.ToString() == "↓";
+    }
+}

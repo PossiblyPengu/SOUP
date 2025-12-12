@@ -389,6 +389,12 @@
                                       Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                       VerticalAlignment="Center"/>
                             
+                            <CheckBox Content="Include PL" 
+                                      IsChecked="{Binding PrivateLabelOnly}"
+                                      Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
+                                      VerticalAlignment="Center" Margin="16,0,0,0"
+                                      ToolTip="Show Private Label items not in 9-90 bins"/>
+                            
                             <Border Background="{DynamicResource SuccessBrush}" CornerRadius="10" Padding="12,6" Margin="16,0,0,0">
                                 <TextBlock Text="{Binding FilteredItems.Count, StringFormat='{}{0} items'}"
                                            Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="SemiBold" FontSize="12"/>
@@ -505,6 +511,7 @@
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
                         <DataGridTextColumn Header="Description" Binding="{Binding DisplayDescription}" Width="*" IsReadOnly="True" SortMemberPath="DisplayDescription"/>
+                        <DataGridTextColumn Header="Tags" Binding="{Binding TagsDisplay}" Width="100" IsReadOnly="True" SortMemberPath="TagsDisplay"/>
                         <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="120" IsReadOnly="True" SortMemberPath="BinCode"/>
                         <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100" IsReadOnly="True" SortMemberPath="QuantityOnHand"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" IsReadOnly="True" SortMemberPath="Status"/>

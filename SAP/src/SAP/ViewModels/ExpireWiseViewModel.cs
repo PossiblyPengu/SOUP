@@ -177,6 +177,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ExpireWiseAnalyticsViewModel _analytics = new();
 
+    private bool _isInitialized;
+
     #endregion
 
     #region Constructor
@@ -211,6 +213,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task InitializeAsync()
     {
+        if (_isInitialized) return;
+        _isInitialized = true;
         await LoadItems();
         UpdateAnalytics();
     }

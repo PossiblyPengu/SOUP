@@ -11,6 +11,7 @@
             <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <converters:BoolToSortArrowConverter x:Key="BoolToSortArrowConverter"/>
             <converters:BoolToSuccessColorConverter x:Key="BoolToSuccessColorConverter"/>
             <converters:BoolToAccentColorConverter x:Key="BoolToAccentColorConverter"/>
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>

@@ -74,9 +74,9 @@
     <Color x:Key="InStockColor">#d1fae5</Color>
     <Color x:Key="InStockTextColor">#059669</Color>
     
-    <!-- Essentials Buddy Special Colors -->
-    <Color x:Key="NonEssentialIn990Color">#fef3c7</Color>
-    <Color x:Key="NonEssentialIn990TextColor">#d97706</Color>
+    <!-- Essentials Buddy Special Colors (purple for non-essential in 9-90) -->
+    <Color x:Key="NonEssentialIn990Color">#ede9fe</Color>
+    <Color x:Key="NonEssentialIn990TextColor">#7c3aed</Color>
 
     <!-- ============================= -->
     <!-- LIGHT THEME BRUSHES           -->

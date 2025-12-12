@@ -118,6 +118,31 @@ public partial class DictionaryManagementViewModel : ObservableObject
     [ObservableProperty]
     private int _totalPages = 1;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SortDescription))]
+    private string _itemSortBy = "Number";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SortDescription))]
+    private bool _itemSortDescending;
+
+    [ObservableProperty]
+    private bool _filterEssentialOnly;
+
+    [ObservableProperty]
+    private bool _filterPrivateLabelOnly;
+
+    public string SortDescription => $"Sort: {ItemSortBy}" + (ItemSortDescending ? " ↓" : " ↑");
+
+    public ObservableCollection<string> ItemSortOptions { get; } = new() 
+    { 
+        "Number", 
+        "Description", 
+        "Essential", 
+        "Private Label",
+        "Tags"
+    };
+
     private const int PageSize = 100;
 
     public ObservableCollection<string> StoreRanks { get; } = new() { "AA", "A", "B", "C", "D" };
@@ -610,6 +635,30 @@ public partial class DictionaryManagementViewModel : ObservableObject
         UpdateDisplayedItems();
     }
 
+    partial void OnItemSortByChanged(string value)
+    {
+        CurrentPage = 1;
+        UpdateDisplayedItems();
+    }
+
+    partial void OnItemSortDescendingChanged(bool value)
+    {
+        CurrentPage = 1;
+        UpdateDisplayedItems();
+    }
+
+    partial void OnFilterEssentialOnlyChanged(bool value)
+    {
+        CurrentPage = 1;
+        UpdateDisplayedItems();
+    }
+
+    partial void OnFilterPrivateLabelOnlyChanged(bool value)
+    {
+        CurrentPage = 1;
+        UpdateDisplayedItems();
+    }
+
     partial void OnStoreSearchTextChanged(string value)
     {
         ApplyStoreFilters();
@@ -619,14 +668,49 @@ public partial class DictionaryManagementViewModel : ObservableObject
     {
         IEnumerable<DictionaryItem> filtered = _allItems;
 
+        // Apply text search filter
         if (!string.IsNullOrWhiteSpace(ItemSearchText))
         {
             var search = ItemSearchText;
-            filtered = _allItems.Where(i =>
+            filtered = filtered.Where(i =>
                 i.Number.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 i.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (i.Skus != null && i.Skus.Any(s => s.Contains(search, StringComparison.OrdinalIgnoreCase))));
+                (i.Skus != null && i.Skus.Any(s => s.Contains(search, StringComparison.OrdinalIgnoreCase))) ||
+                (i.Tags != null && i.Tags.Any(t => t.Contains(search, StringComparison.OrdinalIgnoreCase))));
         }
+
+        // Apply essential filter
+        if (FilterEssentialOnly)
+        {
+            filtered = filtered.Where(i => i.IsEssential);
+        }
+
+        // Apply private label filter
+        if (FilterPrivateLabelOnly)
+        {
+            filtered = filtered.Where(i => i.IsPrivateLabel);
+        }
+
+        // Apply sorting
+        filtered = ItemSortBy switch
+        {
+            "Number" => ItemSortDescending 
+                ? filtered.OrderByDescending(i => i.Number) 
+                : filtered.OrderBy(i => i.Number),
+            "Description" => ItemSortDescending 
+                ? filtered.OrderByDescending(i => i.Description) 
+                : filtered.OrderBy(i => i.Description),
+            "Essential" => ItemSortDescending 
+                ? filtered.OrderBy(i => i.IsEssential).ThenBy(i => i.Number)
+                : filtered.OrderByDescending(i => i.IsEssential).ThenBy(i => i.Number),
+            "Private Label" => ItemSortDescending 
+                ? filtered.OrderBy(i => i.IsPrivateLabel).ThenBy(i => i.Number)
+                : filtered.OrderByDescending(i => i.IsPrivateLabel).ThenBy(i => i.Number),
+            "Tags" => ItemSortDescending 
+                ? filtered.OrderByDescending(i => i.Tags?.Count ?? 0).ThenBy(i => i.Number)
+                : filtered.OrderBy(i => i.Tags?.Count ?? 0).ThenBy(i => i.Number),
+            _ => filtered.OrderBy(i => i.Number)
+        };
 
         var filteredList = filtered.ToList();
         TotalPages = Math.Max(1, (int)Math.Ceiling(filteredList.Count / (double)PageSize));
@@ -660,6 +744,12 @@ public partial class DictionaryManagementViewModel : ObservableObject
             CurrentPage++;
             UpdateDisplayedItems();
         }
+    }
+
+    [RelayCommand]
+    private void ToggleSortDirection()
+    {
+        ItemSortDescending = !ItemSortDescending;
     }
 
     [RelayCommand]
@@ -735,6 +825,14 @@ public partial class DictionaryManagementViewModel : ObservableObject
             StatusMessage = "Importing items from Excel...";
             int imported = 0;
             int updated = 0;
+            var newItems = new List<DictionaryItem>();
+            var updatedItems = new List<DictionaryItem>();
+
+            // Create a snapshot of existing items for lookup
+            var existingItemsSnapshot = _allItems.ToDictionary(
+                i => i.Number, 
+                i => i, 
+                StringComparer.OrdinalIgnoreCase);
 
             await Task.Run(() =>
             {
@@ -743,7 +841,7 @@ public partial class DictionaryManagementViewModel : ObservableObject
                 
                 // Find columns by header (case-insensitive)
                 var headerRow = worksheet.Row(1);
-                int numberCol = -1, descCol = -1, skuCol = -1;
+                int numberCol = -1, descCol = -1, skuCol = -1, styleListCol = -1, brandCol = -1;
                 
                 foreach (var cell in headerRow.CellsUsed())
                 {
@@ -754,6 +852,10 @@ public partial class DictionaryManagementViewModel : ObservableObject
                         descCol = cell.Address.ColumnNumber;
                     else if (headerText.Contains("sku") || headerText.Contains("upc") || headerText == "skus")
                         skuCol = cell.Address.ColumnNumber;
+                    else if (headerText.Contains("style") || headerText == "stylelist")
+                        styleListCol = cell.Address.ColumnNumber;
+                    else if (headerText == "brand" || headerText.Contains("brand"))
+                        brandCol = cell.Address.ColumnNumber;
                 }
 
                 // Default to columns A, B, C if no headers found
@@ -768,6 +870,8 @@ public partial class DictionaryManagementViewModel : ObservableObject
                     var itemNumber = worksheet.Cell(row, numberCol).GetString().Trim();
                     var description = worksheet.Cell(row, descCol).GetString().Trim();
                     var skuValue = skuCol > 0 ? worksheet.Cell(row, skuCol).GetString().Trim() : "";
+                    var styleListValue = styleListCol > 0 ? worksheet.Cell(row, styleListCol).GetString().Trim() : "";
+                    var brandValue = brandCol > 0 ? worksheet.Cell(row, brandCol).GetString().Trim() : "";
                     
                     if (string.IsNullOrWhiteSpace(itemNumber))
                         continue;
@@ -782,14 +886,24 @@ public partial class DictionaryManagementViewModel : ObservableObject
                             .ToList();
                     }
 
-                    var existingItem = _allItems.FirstOrDefault(i => 
-                        i.Number.Equals(itemNumber, StringComparison.OrdinalIgnoreCase));
+                    // Auto-detect Essential from STYLELIST column (contains "ESSENTIAL")
+                    bool isEssential = styleListValue.Contains("ESSENTIAL", StringComparison.OrdinalIgnoreCase);
+                    
+                    // Auto-detect Private Label from BRAND column (contains "STAGSHOP")
+                    bool isPrivateLabel = brandValue.Contains("STAGSHOP", StringComparison.OrdinalIgnoreCase);
 
-                    if (existingItem != null)
+                    if (existingItemsSnapshot.TryGetValue(itemNumber, out var existingItem))
                     {
-                        existingItem.Description = description;
-                        existingItem.Skus = skus;
-                        InternalItemDictionary.UpsertItem(existingItem);
+                        // Track updates - preserve existing flags if not detected in import, otherwise update
+                        updatedItems.Add(new DictionaryItem
+                        {
+                            Number = itemNumber,
+                            Description = description,
+                            Skus = skus,
+                            Tags = existingItem.Tags,
+                            IsEssential = isEssential || existingItem.IsEssential,
+                            IsPrivateLabel = isPrivateLabel || existingItem.IsPrivateLabel
+                        });
                         updated++;
                     }
                     else
@@ -798,18 +912,49 @@ public partial class DictionaryManagementViewModel : ObservableObject
                         {
                             Number = itemNumber,
                             Description = description,
-                            Skus = skus
+                            Skus = skus,
+                            IsEssential = isEssential,
+                            IsPrivateLabel = isPrivateLabel
                         };
-                        InternalItemDictionary.UpsertItem(newItem);
-                        _allItems.Add(newItem);
+                        newItems.Add(newItem);
                         imported++;
                     }
                 }
+
+                // Save all to database on background thread
+                foreach (var item in newItems)
+                    InternalItemDictionary.UpsertItem(item);
+                foreach (var item in updatedItems)
+                    InternalItemDictionary.UpsertItem(item);
+
             }).ConfigureAwait(false);
 
-            _allItems = _allItems.OrderBy(i => i.Number).ToList();
-            SyncItemsFromAllItems();
-            UpdateDisplayedItems();
+            // Update UI collections on UI thread
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                // Apply updates to existing items
+                foreach (var update in updatedItems)
+                {
+                    var existing = _allItems.FirstOrDefault(i => 
+                        i.Number.Equals(update.Number, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.Description = update.Description;
+                        existing.Skus = update.Skus;
+                    }
+                }
+
+                // Add new items
+                foreach (var newItem in newItems)
+                {
+                    _allItems.Add(newItem);
+                }
+
+                _allItems = _allItems.OrderBy(i => i.Number).ToList();
+                SyncItemsFromAllItems();
+                UpdateDisplayedItems();
+            });
+            
             StatusMessage = $"Imported {imported} new items, updated {updated} existing items from Excel";
             _logger?.LogInformation("Imported {Imported} new, {Updated} updated items from Excel", imported, updated);
         }
@@ -838,6 +983,14 @@ public partial class DictionaryManagementViewModel : ObservableObject
             StatusMessage = "Importing stores from Excel...";
             int imported = 0;
             int updated = 0;
+            var newStores = new List<StoreEntry>();
+            var updatedStores = new List<StoreEntry>();
+
+            // Create a snapshot of existing stores for lookup
+            var existingStoresSnapshot = _allStores.ToDictionary(
+                s => s.Code,
+                s => s,
+                StringComparer.OrdinalIgnoreCase);
 
             await Task.Run(() =>
             {
@@ -884,14 +1037,14 @@ public partial class DictionaryManagementViewModel : ObservableObject
                     if (string.IsNullOrWhiteSpace(rank) || !new[] { "AA", "A", "B", "C", "D" }.Contains(rank))
                         rank = "A";
 
-                    var existingStore = _allStores.FirstOrDefault(s => 
-                        s.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
-
-                    if (existingStore != null)
+                    if (existingStoresSnapshot.ContainsKey(code))
                     {
-                        existingStore.Name = name;
-                        existingStore.Rank = rank;
-                        InternalStoreDictionary.UpsertStore(existingStore);
+                        updatedStores.Add(new StoreEntry
+                        {
+                            Code = code,
+                            Name = name,
+                            Rank = rank
+                        });
                         updated++;
                     }
                     else
@@ -902,16 +1055,45 @@ public partial class DictionaryManagementViewModel : ObservableObject
                             Name = name,
                             Rank = rank
                         };
-                        InternalStoreDictionary.UpsertStore(newStore);
-                        _allStores.Add(newStore);
+                        newStores.Add(newStore);
                         imported++;
                     }
                 }
+
+                // Save all to database on background thread
+                foreach (var store in newStores)
+                    InternalStoreDictionary.UpsertStore(store);
+                foreach (var store in updatedStores)
+                    InternalStoreDictionary.UpsertStore(store);
+
             }).ConfigureAwait(false);
 
-            _allStores = _allStores.OrderBy(s => s.Code).ToList();
-            Stores = new ObservableCollection<StoreEntry>(_allStores);
-            ApplyStoreFilters();
+            // Update UI collections on UI thread
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                // Apply updates to existing stores
+                foreach (var update in updatedStores)
+                {
+                    var existing = _allStores.FirstOrDefault(s =>
+                        s.Code.Equals(update.Code, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.Name = update.Name;
+                        existing.Rank = update.Rank;
+                    }
+                }
+
+                // Add new stores
+                foreach (var newStore in newStores)
+                {
+                    _allStores.Add(newStore);
+                }
+
+                _allStores = _allStores.OrderBy(s => s.Code).ToList();
+                Stores = new ObservableCollection<StoreEntry>(_allStores);
+                ApplyStoreFilters();
+            });
+
             StatusMessage = $"Imported {imported} new stores, updated {updated} existing stores from Excel";
             _logger?.LogInformation("Imported {Imported} new, {Updated} updated stores from Excel", imported, updated);
         }

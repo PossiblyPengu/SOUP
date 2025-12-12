@@ -11,6 +11,7 @@ using CsvHelper.Configuration;
 using Microsoft.Extensions.Logging;
 using SAP.Core.Common;
 using SAP.Core.Entities.EssentialsBuddy;
+using SAP.Data;
 
 namespace SAP.Infrastructure.Services.Parsers;
 
@@ -29,6 +30,7 @@ public class EssentialsBuddyParser
     public async Task<Result<IReadOnlyList<InventoryItem>>> ParseExcelAsync(
         string filePath,
         int defaultThreshold = 100,
+        bool includeAllPrivateLabel = false,
         CancellationToken cancellationToken = default)
     {
         try
@@ -45,7 +47,7 @@ public class EssentialsBuddyParser
                 .Select(c => c.Value.ToString() ?? "")
                 .ToList();
 
-            return ProcessRows(rows, headers, defaultThreshold, (row, colIndex) =>
+            return ProcessRows(rows, headers, defaultThreshold, includeAllPrivateLabel, (row, colIndex) =>
                 row.Cell(colIndex + 1).Value.ToString() ?? "");
         }
         catch (Exception ex)
@@ -58,6 +60,7 @@ public class EssentialsBuddyParser
     public async Task<Result<IReadOnlyList<InventoryItem>>> ParseCsvAsync(
         string filePath,
         int defaultThreshold = 100,
+        bool includeAllPrivateLabel = false,
         CancellationToken cancellationToken = default)
     {
         try
@@ -88,7 +91,7 @@ public class EssentialsBuddyParser
                 rows.Add(row);
             }
 
-            return await Task.FromResult(ProcessRowsDictionary(rows, headers, defaultThreshold));
+            return await Task.FromResult(ProcessRowsDictionary(rows, headers, defaultThreshold, includeAllPrivateLabel));
         }
         catch (Exception ex)
         {
@@ -101,6 +104,7 @@ public class EssentialsBuddyParser
         List<TRow> rows,
         List<string> headers,
         int defaultThreshold,
+        bool includeAllPrivateLabel,
         Func<TRow, int, string> getCellValue)
     {
         var itemNoCol = FindColumnIndex(headers, "Item No.", "Item No", "ItemNo", "Item Number");
@@ -129,8 +133,11 @@ public class EssentialsBuddyParser
             if (string.IsNullOrWhiteSpace(itemNo))
                 continue;
 
-            // Filter: Only include bins starting with 9-90
-            if (!binCode.ToUpperInvariant().StartsWith("9-90"))
+            // Filter: Only include bins starting with 9-90 unless item is private label and option is enabled
+            bool isIn990Bin = binCode.ToUpperInvariant().StartsWith("9-90");
+            bool isPrivateLabel = includeAllPrivateLabel && InternalItemDictionary.IsPrivateLabel(itemNo);
+            
+            if (!isIn990Bin && !isPrivateLabel)
                 continue;
 
             var qty = ParseQuantity(qtyText);
@@ -163,9 +170,10 @@ public class EssentialsBuddyParser
     private Result<IReadOnlyList<InventoryItem>> ProcessRowsDictionary(
         List<Dictionary<string, string>> rows,
         List<string> headers,
-        int defaultThreshold)
+        int defaultThreshold,
+        bool includeAllPrivateLabel)
     {
-        return ProcessRows(rows, headers, defaultThreshold, (row, colIndex) =>
+        return ProcessRows(rows, headers, defaultThreshold, includeAllPrivateLabel, (row, colIndex) =>
         {
             var header = headers[colIndex];
             return row.TryGetValue(header, out var value) ? value : "";

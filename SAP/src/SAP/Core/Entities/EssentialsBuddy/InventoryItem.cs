@@ -1,5 +1,6 @@
 using SAP.Core.Common;
 using System;
+using System.Collections.Generic;
 
 namespace SAP.Core.Entities.EssentialsBuddy;
 
@@ -37,6 +38,21 @@ public class InventoryItem : BaseEntity
     /// Gets or sets whether this item is marked as essential in the dictionary.
     /// </summary>
     public bool IsEssential { get; set; }
+    
+    /// <summary>
+    /// Gets or sets whether this item is marked as private label in the dictionary.
+    /// </summary>
+    public bool IsPrivateLabel { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the tags from the dictionary.
+    /// </summary>
+    public List<string> Tags { get; set; } = new();
+    
+    /// <summary>
+    /// Gets the tags as a comma-separated display string.
+    /// </summary>
+    public string TagsDisplay => Tags.Count > 0 ? string.Join(", ", Tags) : "";
     
     /// <summary>
     /// Gets or sets whether this item was successfully matched against the dictionary.

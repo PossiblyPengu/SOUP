@@ -257,6 +257,17 @@ public static class InternalItemDictionary
     }
 
     /// <summary>
+    /// Check if item is marked as private label
+    /// </summary>
+    public static bool IsPrivateLabel(string itemNumber)
+    {
+        if (string.IsNullOrWhiteSpace(itemNumber)) return false;
+        
+        var entity = DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+        return entity?.IsPrivateLabel ?? false;
+    }
+
+    /// <summary>
     /// Get the full entity with all fields (including IsEssential, Tags)
     /// </summary>
     public static DictionaryItemEntity? GetEntity(string itemNumber)
