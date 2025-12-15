@@ -337,67 +337,304 @@ public partial class DoomGame : Window
     }
 
     #region Texture Generation
+    
+    // Perlin-like noise for better textures
+    double PerlinNoise(double x, double y, int octaves = 4)
+    {
+        double result = 0;
+        double amplitude = 1;
+        double frequency = 1;
+        double maxValue = 0;
+        
+        for (int i = 0; i < octaves; i++)
+        {
+            double nx = x * frequency;
+            double ny = y * frequency;
+            
+            // Simple value noise interpolation
+            int ix = (int)Math.Floor(nx);
+            int iy = (int)Math.Floor(ny);
+            double fx = nx - ix;
+            double fy = ny - iy;
+            
+            // Smoothstep interpolation
+            fx = fx * fx * (3 - 2 * fx);
+            fy = fy * fy * (3 - 2 * fy);
+            
+            // Hash function for pseudo-random
+            double Hash(int px, int py) => ((px * 374761393 + py * 668265263) & 0xFFFFFF) / (double)0xFFFFFF;
+            
+            double n00 = Hash(ix, iy);
+            double n10 = Hash(ix + 1, iy);
+            double n01 = Hash(ix, iy + 1);
+            double n11 = Hash(ix + 1, iy + 1);
+            
+            double nx0 = n00 * (1 - fx) + n10 * fx;
+            double nx1 = n01 * (1 - fx) + n11 * fx;
+            double n = nx0 * (1 - fy) + nx1 * fy;
+            
+            result += n * amplitude;
+            maxValue += amplitude;
+            amplitude *= 0.5;
+            frequency *= 2;
+        }
+        
+        return result / maxValue;
+    }
+    
     void GenerateTextures()
     {
         for (int t = 0; t < 8; t++)
         {
             Textures[t] = new uint[TEX * TEX];
-            uint baseR, baseG, baseB;
-
-            // Duke Nukem style textures - more colorful
-            switch (t)
-            {
-                case 0: baseR = 100; baseG = 90; baseB = 80; break;     // Gray concrete
-                case 1: baseR = 140; baseG = 70; baseB = 50; break;     // Red brick
-                case 2: baseR = 50; baseG = 80; baseB = 130; break;     // Blue tech
-                case 3: baseR = 130; baseG = 120; baseB = 40; break;    // Yellow/gold
-                case 4: baseR = 80; baseG = 130; baseB = 80; break;     // Green slime
-                case 5: baseR = 110; baseG = 110; baseB = 120; break;   // Metal
-                case 6: baseR = 90; baseG = 60; baseB = 40; break;      // Wood
-                default: baseR = 40; baseG = 40; baseB = 50; break;     // Dark door
-            }
 
             for (int y = 0; y < TEX; y++)
             {
                 for (int x = 0; x < TEX; x++)
                 {
-                    int noise = _rnd.Next(-20, 20);
-                    bool brick = (y % 16 < 1) || (x % 16 < 1 && (y / 16) % 2 == 0) || ((x + 8) % 16 < 1 && (y / 16) % 2 == 1);
-                    bool panel = t == 2 && ((x % 32 < 2 || x % 32 > 29) || (y % 32 < 2 || y % 32 > 29));
-
-                    uint r = (uint)Math.Clamp(baseR + noise - (brick ? 35 : 0) + (panel ? 40 : 0), 0, 255);
-                    uint g = (uint)Math.Clamp(baseG + noise - (brick ? 35 : 0) + (panel ? 40 : 0), 0, 255);
-                    uint b = (uint)Math.Clamp(baseB + noise - (brick ? 35 : 0) + (panel ? 60 : 0), 0, 255);
-
+                    double noise = PerlinNoise(x * 0.1 + t * 100, y * 0.1, 4);
+                    double detailNoise = PerlinNoise(x * 0.3 + t * 50, y * 0.3, 2);
+                    
+                    uint r, g, b;
+                    
+                    switch (t)
+                    {
+                        case 0: // Concrete - detailed cracks and wear
+                            {
+                                double baseV = 95 + noise * 35 + detailNoise * 15;
+                                bool crack = PerlinNoise(x * 0.5, y * 0.5, 2) < 0.15;
+                                bool stain = PerlinNoise(x * 0.08 + 50, y * 0.08, 2) > 0.7;
+                                baseV = baseV - (crack ? 40 : 0) - (stain ? 20 : 0);
+                                r = (uint)Math.Clamp(baseV + 5, 0, 255);
+                                g = (uint)Math.Clamp(baseV, 0, 255);
+                                b = (uint)Math.Clamp(baseV - 10, 0, 255);
+                            }
+                            break;
+                            
+                        case 1: // Red brick with mortar
+                            {
+                                int brickX = x % 32;
+                                int brickY = y % 16;
+                                bool isOffset = (y / 16) % 2 == 1;
+                                if (isOffset) brickX = (x + 16) % 32;
+                                bool mortar = brickY < 2 || brickX < 2;
+                                
+                                if (mortar)
+                                {
+                                    double mv = 180 + noise * 30;
+                                    r = (uint)Math.Clamp(mv, 0, 255);
+                                    g = (uint)Math.Clamp(mv - 10, 0, 255);
+                                    b = (uint)Math.Clamp(mv - 15, 0, 255);
+                                }
+                                else
+                                {
+                                    double brickNoise = PerlinNoise(x * 0.2 + y * 0.1, y * 0.2, 3);
+                                    r = (uint)Math.Clamp(155 + brickNoise * 50 - _rnd.Next(20), 0, 255);
+                                    g = (uint)Math.Clamp(55 + brickNoise * 30, 0, 255);
+                                    b = (uint)Math.Clamp(45 + brickNoise * 20, 0, 255);
+                                }
+                            }
+                            break;
+                            
+                        case 2: // Blue tech panel with glow lines
+                            {
+                                bool panel = (x % 32 < 3 || x % 32 > 28) || (y % 32 < 3 || y % 32 > 28);
+                                bool glowLine = (y % 32 == 16) || (x % 32 == 16);
+                                bool circuitry = ((x + y) % 8 == 0) && (x % 16 > 4 && x % 16 < 12);
+                                
+                                if (glowLine)
+                                {
+                                    double pulse = 0.7 + 0.3 * Math.Sin(x * 0.2 + y * 0.1);
+                                    r = (uint)(80 * pulse);
+                                    g = (uint)(180 * pulse);
+                                    b = (uint)(255 * pulse);
+                                }
+                                else if (panel)
+                                {
+                                    r = (uint)Math.Clamp(100 + noise * 20, 0, 255);
+                                    g = (uint)Math.Clamp(120 + noise * 20, 0, 255);
+                                    b = (uint)Math.Clamp(160 + noise * 30, 0, 255);
+                                }
+                                else
+                                {
+                                    r = (uint)Math.Clamp(35 + detailNoise * 25 + (circuitry ? 30 : 0), 0, 255);
+                                    g = (uint)Math.Clamp(65 + detailNoise * 30 + (circuitry ? 50 : 0), 0, 255);
+                                    b = (uint)Math.Clamp(110 + noise * 35 + (circuitry ? 60 : 0), 0, 255);
+                                }
+                            }
+                            break;
+                            
+                        case 3: // Gold/Yellow ornate
+                            {
+                                bool border = x < 4 || x > 59 || y < 4 || y > 59;
+                                bool innerBorder = x > 6 && x < 57 && y > 6 && y < 57 && (x < 10 || x > 53 || y < 10 || y > 53);
+                                double shine = Math.Sin(x * 0.2) * Math.Cos(y * 0.2) * 0.5 + 0.5;
+                                
+                                if (border || innerBorder)
+                                {
+                                    r = (uint)Math.Clamp(200 + shine * 55, 0, 255);
+                                    g = (uint)Math.Clamp(170 + shine * 50, 0, 255);
+                                    b = (uint)Math.Clamp(60 + shine * 30, 0, 255);
+                                }
+                                else
+                                {
+                                    r = (uint)Math.Clamp(140 + noise * 40 + shine * 30, 0, 255);
+                                    g = (uint)Math.Clamp(120 + noise * 35 + shine * 25, 0, 255);
+                                    b = (uint)Math.Clamp(40 + noise * 20, 0, 255);
+                                }
+                            }
+                            break;
+                            
+                        case 4: // Green slime/organic
+                            {
+                                double slimeNoise = PerlinNoise(x * 0.15, y * 0.15, 5);
+                                double bubble = PerlinNoise(x * 0.4, y * 0.4, 2);
+                                bool isBubble = bubble > 0.75;
+                                
+                                r = (uint)Math.Clamp(40 + slimeNoise * 30 + (isBubble ? 40 : 0), 0, 255);
+                                g = (uint)Math.Clamp(100 + slimeNoise * 80 + (isBubble ? 60 : 0), 0, 255);
+                                b = (uint)Math.Clamp(50 + slimeNoise * 40, 0, 255);
+                            }
+                            break;
+                            
+                        case 5: // Brushed metal
+                            {
+                                double streak = PerlinNoise(x * 0.02, y * 0.5, 2);
+                                double scratch = PerlinNoise(x * 0.8, y * 0.8, 1) > 0.85 ? 30 : 0;
+                                bool rivet = ((x % 32 == 4 || x % 32 == 28) && (y % 32 == 4 || y % 32 == 28));
+                                double baseV = 100 + streak * 45 + scratch;
+                                
+                                if (rivet)
+                                {
+                                    double rivetDist = Math.Sqrt((x % 32 - (x % 32 < 16 ? 4 : 28)) * (x % 32 - (x % 32 < 16 ? 4 : 28)) +
+                                                                (y % 32 - (y % 32 < 16 ? 4 : 28)) * (y % 32 - (y % 32 < 16 ? 4 : 28)));
+                                    if (rivetDist < 3) baseV += 40;
+                                }
+                                
+                                r = (uint)Math.Clamp(baseV + 15, 0, 255);
+                                g = (uint)Math.Clamp(baseV + 10, 0, 255);
+                                b = (uint)Math.Clamp(baseV + 20, 0, 255);
+                            }
+                            break;
+                            
+                        case 6: // Wood grain
+                            {
+                                double grain = Math.Sin((x + PerlinNoise(x * 0.05, y * 0.1, 2) * 20) * 0.3) * 0.5 + 0.5;
+                                double knot = PerlinNoise(x * 0.08, y * 0.08, 3);
+                                bool isKnot = knot > 0.78;
+                                
+                                double baseR = 110 + grain * 40 - (isKnot ? 30 : 0);
+                                double baseG = 70 + grain * 30 - (isKnot ? 25 : 0);
+                                double baseB = 45 + grain * 20 - (isKnot ? 15 : 0);
+                                
+                                r = (uint)Math.Clamp(baseR + noise * 15, 0, 255);
+                                g = (uint)Math.Clamp(baseG + noise * 10, 0, 255);
+                                b = (uint)Math.Clamp(baseB + noise * 8, 0, 255);
+                            }
+                            break;
+                            
+                        default: // Dark door/metal
+                            {
+                                bool frame = x < 8 || x > 55 || y < 4 || y > 59;
+                                bool handle = (x > 45 && x < 52) && (y > 28 && y < 36);
+                                double metalShine = Math.Sin(x * 0.15) * Math.Cos(y * 0.15) * 0.3 + 0.7;
+                                
+                                if (handle)
+                                {
+                                    r = (uint)Math.Clamp(180 * metalShine, 0, 255);
+                                    g = (uint)Math.Clamp(160 * metalShine, 0, 255);
+                                    b = (uint)Math.Clamp(60 * metalShine, 0, 255);
+                                }
+                                else if (frame)
+                                {
+                                    r = (uint)Math.Clamp(50 + noise * 20, 0, 255);
+                                    g = (uint)Math.Clamp(45 + noise * 18, 0, 255);
+                                    b = (uint)Math.Clamp(55 + noise * 22, 0, 255);
+                                }
+                                else
+                                {
+                                    r = (uint)Math.Clamp(30 + noise * 15, 0, 255);
+                                    g = (uint)Math.Clamp(28 + noise * 14, 0, 255);
+                                    b = (uint)Math.Clamp(40 + noise * 18, 0, 255);
+                                }
+                            }
+                            break;
+                    }
+                    
                     Textures[t][y * TEX + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
                 }
             }
         }
 
-        // Floor - industrial tiles
+        // Floor - detailed industrial tiles with rust and grime
         for (int y = 0; y < TEX; y++)
         {
             for (int x = 0; x < TEX; x++)
             {
-                int noise = _rnd.Next(-12, 12);
+                double noise = PerlinNoise(x * 0.1, y * 0.1, 3);
+                double rust = PerlinNoise(x * 0.08 + 100, y * 0.08, 2);
                 bool edge = x % 32 < 2 || y % 32 < 2;
-                bool rivet = (x % 16 == 4 || x % 16 == 12) && (y % 16 == 4 || y % 16 == 12);
-                uint v = (uint)Math.Clamp(55 + noise - (edge ? 25 : 0) + (rivet ? 30 : 0), 0, 255);
-                FloorTex[y * TEX + x] = 0xFF000000 | (v << 16) | ((uint)(v * 0.95) << 8) | (uint)(v * 0.85);
+                bool rivet = ((x % 16 == 4 || x % 16 == 12) && (y % 16 == 4 || y % 16 == 12));
+                bool isRusty = rust > 0.65;
+                
+                double baseV = 55 + noise * 25;
+                if (edge) baseV -= 25;
+                if (rivet) baseV += 35;
+                
+                uint r, g, b;
+                if (isRusty && !edge && !rivet)
+                {
+                    r = (uint)Math.Clamp(baseV + 40, 0, 255);
+                    g = (uint)Math.Clamp(baseV - 5, 0, 255);
+                    b = (uint)Math.Clamp(baseV - 15, 0, 255);
+                }
+                else
+                {
+                    r = (uint)Math.Clamp(baseV + 5, 0, 255);
+                    g = (uint)Math.Clamp(baseV, 0, 255);
+                    b = (uint)Math.Clamp(baseV - 8, 0, 255);
+                }
+                
+                FloorTex[y * TEX + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
             }
         }
 
-        // Ceiling - tech panels with lights
+        // Ceiling - tech panels with glowing light strips
         for (int y = 0; y < TEX; y++)
         {
             for (int x = 0; x < TEX; x++)
             {
-                int noise = _rnd.Next(-10, 10);
-                bool panel = (x % 16 > 2 && x % 16 < 14) && (y % 16 > 2 && y % 16 < 14);
-                bool light = (x > 28 && x < 36) && (y > 28 && y < 36);
-                uint v = (uint)Math.Clamp(35 + noise + (panel ? 20 : 0), 0, 255);
-                if (light) { CeilTex[y * TEX + x] = 0xFFFFFFAA; }
-                else CeilTex[y * TEX + x] = 0xFF000000 | (v << 16) | (v << 8) | ((uint)(v * 1.3));
+                double noise = PerlinNoise(x * 0.1 + 200, y * 0.1, 2);
+                bool panelEdge = (x % 32 < 3 || x % 32 > 28) || (y % 32 < 3 || y % 32 > 28);
+                bool lightStrip = (x > 26 && x < 38) && (y > 26 && y < 38);
+                bool lightEdge = lightStrip && (x == 27 || x == 37 || y == 27 || y == 37);
+                
+                uint r, g, b;
+                if (lightStrip && !lightEdge)
+                {
+                    double glow = 0.8 + 0.2 * Math.Sin(x * 0.3 + y * 0.3);
+                    r = (uint)(255 * glow);
+                    g = (uint)(250 * glow);
+                    b = (uint)(200 * glow);
+                }
+                else if (lightEdge)
+                {
+                    r = 80; g = 80; b = 90;
+                }
+                else if (panelEdge)
+                {
+                    r = (uint)Math.Clamp(50 + noise * 15, 0, 255);
+                    g = (uint)Math.Clamp(50 + noise * 15, 0, 255);
+                    b = (uint)Math.Clamp(60 + noise * 20, 0, 255);
+                }
+                else
+                {
+                    r = (uint)Math.Clamp(35 + noise * 18, 0, 255);
+                    g = (uint)Math.Clamp(35 + noise * 18, 0, 255);
+                    b = (uint)Math.Clamp(45 + noise * 22, 0, 255);
+                }
+                
+                CeilTex[y * TEX + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
             }
         }
     }
@@ -1207,6 +1444,12 @@ public partial class DoomGame : Window
                 if (x < MAP_SIZE && y < MAP_SIZE)
                     _map[y * MAP_SIZE + x] = type + 1;
     }
+    
+    void SetWall(int x, int y, int type)
+    {
+        if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE)
+            _map[y * MAP_SIZE + x] = type + 1;
+    }
 
     void AddEnemy(EnemyType type, double x, double y)
     {
@@ -1258,7 +1501,10 @@ public partial class DoomGame : Window
         _timer.Tick += GameLoop;
         _timer.Start();
         Focus();
-        CaptureMouse(true);
+        
+        // Show main menu on start
+        ShowMainMenu();
+        
         // Initialize high score service
         try { _highScoreService = new HighScoreService(); }
         catch (Exception ex)
@@ -1285,6 +1531,59 @@ public partial class DoomGame : Window
             System.Diagnostics.Debug.WriteLine($"Failed to init settings: {ex.Message}");
             _settingsService = null;
         }
+    }
+    
+    void ShowMainMenu()
+    {
+        _paused = true;
+        MainMenuPanel.Visibility = Visibility.Visible;
+        CaptureMouse(false);
+    }
+    
+    void CampaignButton_Click(object sender, RoutedEventArgs e)
+    {
+        _gameMode = GameMode.Campaign;
+        _currentLevel = 1;
+        MainMenuPanel.Visibility = Visibility.Collapsed;
+        ResetPlayerForNewGame();
+        LoadLevel(1);
+    }
+    
+    void EndlessButton_Click(object sender, RoutedEventArgs e)
+    {
+        _gameMode = GameMode.Endless;
+        _currentLevel = 1;
+        MainMenuPanel.Visibility = Visibility.Collapsed;
+        ResetPlayerForNewGame();
+        LoadLevel(1);
+        _paused = false;
+        CaptureMouse(true);
+        SayQuote("It's time to kick ass and chew bubblegum...");
+    }
+    
+    void BriefingStartButton_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        CloseBriefing();
+    }
+    
+    void ResetPlayerForNewGame()
+    {
+        _hp = 100;
+        _armor = 0;
+        _score = 0;
+        _currentWeapon = 1;
+        _ammo = new int[] { 999, 48, 12, 200, 10, 5, 8, 24 };
+        _keys = new bool[3];
+        _medkits = 0;
+        _steroids = 0;
+        _hasJetpack = false;
+        _jetpackFuel = 100;
+        _gameOver = false;
+        _levelComplete = false;
+        _victory = false;
+        GameOverScreen.Visibility = Visibility.Collapsed;
+        LevelCompleteScreen.Visibility = Visibility.Collapsed;
+        VictoryScreen.Visibility = Visibility.Collapsed;
     }
 
     void CaptureMouse(bool capture)
@@ -1315,7 +1614,7 @@ public partial class DoomGame : Window
 
     void GameLoop(object? s, EventArgs e)
     {
-        if (_paused || _gameOver || _levelComplete || _victory) return;
+        if (_paused || _gameOver || _levelComplete || _victory || _showingBriefing) return;
 
         double dt = 0.016;
         _gameTime += dt;
@@ -1541,32 +1840,84 @@ public partial class DoomGame : Window
     #endregion
 
     #region Player Update
+    // Velocity-based movement for smoother feel
+    double _playerVelX = 0, _playerVelY = 0;
+    const double PLAYER_ACCEL = 0.8;      // How fast player accelerates
+    const double PLAYER_FRICTION = 0.85;   // How fast player decelerates (1 = no friction)
+    const double PLAYER_MAX_SPEED = 0.12;  // Maximum velocity
+    bool _isSprinting = false;
+    double _sprintStamina = 100;
+    
     void UpdatePlayer(double dt)
     {
-        double ms = _steroidsTimer > 0 ? 0.12 : 0.08;
+        double targetSpeed = _steroidsTimer > 0 ? 0.12 : 0.08;
         double rs = 0.06;
 
-        double dx = 0, dy = 0;
-        if (_keysDown.Contains(Key.W)) { dx += Math.Cos(_pa); dy += Math.Sin(_pa); }
-        if (_keysDown.Contains(Key.S)) { dx -= Math.Cos(_pa); dy -= Math.Sin(_pa); }
-        if (_keysDown.Contains(Key.A)) { dx += Math.Cos(_pa - PI / 2); dy += Math.Sin(_pa - PI / 2); }
-        if (_keysDown.Contains(Key.D)) { dx += Math.Cos(_pa + PI / 2); dy += Math.Sin(_pa + PI / 2); }
+        // Calculate input direction
+        double inputX = 0, inputY = 0;
+        if (_keysDown.Contains(Key.W)) { inputX += Math.Cos(_pa); inputY += Math.Sin(_pa); }
+        if (_keysDown.Contains(Key.S)) { inputX -= Math.Cos(_pa); inputY -= Math.Sin(_pa); }
+        if (_keysDown.Contains(Key.A)) { inputX += Math.Cos(_pa - PI / 2); inputY += Math.Sin(_pa - PI / 2); }
+        if (_keysDown.Contains(Key.D)) { inputX += Math.Cos(_pa + PI / 2); inputY += Math.Sin(_pa + PI / 2); }
 
-        double len = Math.Sqrt(dx * dx + dy * dy);
-        if (len > 0) { dx /= len; dy /= len; }
+        double inputLen = Math.Sqrt(inputX * inputX + inputY * inputY);
+        bool isMoving = inputLen > 0.01;
+        
+        if (isMoving) 
+        { 
+            inputX /= inputLen; 
+            inputY /= inputLen;
+            _idleTimer = 0; // Reset idle timer when moving
+        }
 
-        if (_keysDown.Contains(Key.LeftShift)) ms *= 1.4;
+        // Sprint handling
+        _isSprinting = _keysDown.Contains(Key.LeftShift) && isMoving && _sprintStamina > 0;
+        if (_isSprinting)
+        {
+            targetSpeed *= 1.5;
+            _sprintStamina -= dt * 30; // Drain stamina while sprinting
+            if (_sprintStamina < 0) _sprintStamina = 0;
+        }
+        else if (_sprintStamina < 100)
+        {
+            _sprintStamina += dt * 15; // Recover stamina when not sprinting
+            if (_sprintStamina > 100) _sprintStamina = 100;
+        }
 
-        double newX = _px_pos + dx * ms;
-        double newY = _py + dy * ms;
+        // Apply acceleration if input, friction if no input
+        if (isMoving)
+        {
+            _playerVelX += inputX * PLAYER_ACCEL * targetSpeed;
+            _playerVelY += inputY * PLAYER_ACCEL * targetSpeed;
+        }
+        
+        // Apply friction
+        _playerVelX *= PLAYER_FRICTION;
+        _playerVelY *= PLAYER_FRICTION;
+        
+        // Clamp to max speed
+        double speed = Math.Sqrt(_playerVelX * _playerVelX + _playerVelY * _playerVelY);
+        double maxSpeed = _isSprinting ? PLAYER_MAX_SPEED * 1.5 : PLAYER_MAX_SPEED;
+        if (speed > maxSpeed)
+        {
+            _playerVelX = _playerVelX / speed * maxSpeed;
+            _playerVelY = _playerVelY / speed * maxSpeed;
+        }
+
+        // Apply movement with collision
+        double newX = _px_pos + _playerVelX;
+        double newY = _py + _playerVelY;
 
         if (!IsWall(newX, _py)) _px_pos = newX;
+        else _playerVelX *= -0.3; // Bounce slightly on wall hit
+        
         if (!IsWall(_px_pos, newY)) _py = newY;
+        else _playerVelY *= -0.3; // Bounce slightly on wall hit
 
         if (_keysDown.Contains(Key.Left)) _pa -= rs;
         if (_keysDown.Contains(Key.Right)) _pa += rs;
 
-        // Jumping
+        // Jumping with better physics
         if (_pz > 0 || _pzVel != 0)
         {
             _pzVel -= 0.4;
@@ -1578,6 +1929,8 @@ public partial class DoomGame : Window
                 _isJumping = false;
                 // === ANIMATION: Landing squash ===
                 TriggerLandingSquash();
+                // Landing sound/feedback
+                if (Math.Abs(_pzVel) > 3) TriggerScreenShake(0.1, 3);
             }
         }
 
@@ -1597,11 +1950,31 @@ public partial class DoomGame : Window
             JetpackFuel.Width = _jetpackFuel;
         }
 
-        // Crouching
+        // Crouching - affects eye height and speed
         _eyeHeight = _isCrouching ? -15 : 0;
+        if (_isCrouching)
+        {
+            _playerVelX *= 0.6; // Slower while crouched
+            _playerVelY *= 0.6;
+        }
 
-        // Head bob
-        if (len > 0 && _pz == 0) _eyeHeight += Math.Sin(_gameTime * 12) * 3;
+        // Enhanced head bob (varies with speed and sprint)
+        if (speed > 0.01 && _pz == 0)
+        {
+            double bobSpeed = _isSprinting ? 16 : 12;
+            double bobAmount = _isSprinting ? 4 : 2.5;
+            _eyeHeight += Math.Sin(_gameTime * bobSpeed) * bobAmount * (speed / PLAYER_MAX_SPEED);
+            
+            // Slight horizontal sway when sprinting
+            if (_isSprinting)
+            {
+                double sway = Math.Sin(_gameTime * 8) * 0.015;
+                _pa += sway * 0.1;
+            }
+        }
+
+        // Weapon bob (sway with movement)
+        _weaponBob = speed / PLAYER_MAX_SPEED;
 
         // Shooting animation
         if (_shooting)
@@ -1860,6 +2233,15 @@ public partial class DoomGame : Window
         
         if (_killStreak < 2 && _rnd.NextDouble() < 0.4)
             SayQuote(KillQuotes[_rnd.Next(KillQuotes.Length)]);
+        
+        // BOSS KILL - Check for boss level victory in campaign mode
+        if (en.Type == EnemyType.BattleLord && _gameMode == GameMode.Campaign && _currentLevel == _maxCampaignLevel)
+        {
+            // Boss defeated! Spawn exit and play victory quote
+            AddPickup(PickupType.Exit, (int)en.X, (int)en.Y);
+            SayQuote("Your performance review is... COMPLETE!");
+            TriggerScreenShake(1.0, 20); // Big shake for boss death
+        }
     }
     
     void SpawnRagdoll(Enemy en, bool explosive)
@@ -2195,10 +2577,31 @@ public partial class DoomGame : Window
         _levelComplete = false;
         LevelCompleteScreen.Visibility = Visibility.Collapsed;
 
-        // Increase difficulty: more enemies, more pickups, etc.
-        // This can be done by passing _currentLevel to LoadLevel or adjusting random generation
+        // Check for campaign victory
+        if (_gameMode == GameMode.Campaign && _currentLevel > _maxCampaignLevel)
+        {
+            ShowVictory();
+            return;
+        }
+
+        // Load next level
         LoadLevel(_currentLevel);
-        CaptureMouse(true);
+        
+        // Only capture mouse if not showing briefing (campaign mode shows briefing)
+        if (!_showingBriefing)
+        {
+            CaptureMouse(true);
+        }
+    }
+    
+    void ShowVictory()
+    {
+        _victory = true;
+        CaptureMouse(false);
+        VictoryScreen.Visibility = Visibility.Visible;
+        TotalScoreText.Text = $"FINAL SCORE: {_score:N0}";
+        UpdateTopScoresUI();
+        SayQuote("Who's the CEO now? ME!");
     }
     #endregion
 
@@ -2277,6 +2680,23 @@ public partial class DoomGame : Window
         else
         {
             Screen.RenderTransform = null;
+        }
+        
+        // === POST-PROCESSING EFFECTS ===
+        
+        // Cinematic vignette (always on, subtle)
+        ApplyCinematicVignette();
+        
+        // Color grading for atmosphere
+        ApplyColorGrading();
+        
+        // Optional scanlines for retro look
+        ApplyScanlines();
+        
+        // Chromatic aberration on damage
+        if (_damageVignetteTimer > 0.2)
+        {
+            ApplyChromaticAberration(_damageVignetteTimer * 0.5);
         }
 
         _bmp.WritePixels(new Int32Rect(0, 0, W, H), _px, W * 4, 0);
@@ -2524,6 +2944,135 @@ public partial class DoomGame : Window
         }
     }
     
+    // === NEW POST-PROCESSING EFFECTS ===
+    
+    void ApplyCinematicVignette()
+    {
+        // Subtle dark edges for cinematic look
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                double nx = (x / (double)W) * 2 - 1;
+                double ny = (y / (double)H) * 2 - 1;
+                double dist = Math.Sqrt(nx * nx + ny * ny);
+                
+                // Smooth falloff vignette
+                double vignette = Math.Pow(dist, 2.5) * 0.35;
+                
+                if (vignette > 0.01)
+                {
+                    int i = y * W + x;
+                    uint c = _px[i];
+                    double factor = 1 - vignette;
+                    uint r = (uint)(((c >> 16) & 0xFF) * factor);
+                    uint g = (uint)(((c >> 8) & 0xFF) * factor);
+                    uint b = (uint)((c & 0xFF) * factor);
+                    _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                }
+            }
+        }
+    }
+    
+    void ApplyColorGrading()
+    {
+        // Cinematic color grading - slight teal shadows, orange highlights
+        for (int i = 0; i < _px.Length; i++)
+        {
+            uint c = _px[i];
+            double r = (c >> 16) & 0xFF;
+            double g = (c >> 8) & 0xFF;
+            double b = c & 0xFF;
+            
+            // Calculate luminance
+            double lum = r * 0.3 + g * 0.59 + b * 0.11;
+            
+            // Teal in shadows (boost blue, reduce red in dark areas)
+            if (lum < 80)
+            {
+                double shadowFactor = (80 - lum) / 80.0 * 0.15;
+                r *= (1 - shadowFactor * 0.3);
+                b = Math.Min(255, b + shadowFactor * 15);
+            }
+            
+            // Orange in highlights (boost red/yellow in bright areas)
+            if (lum > 160)
+            {
+                double highlightFactor = (lum - 160) / 95.0 * 0.12;
+                r = Math.Min(255, r + highlightFactor * 20);
+                g = Math.Min(255, g + highlightFactor * 8);
+            }
+            
+            // Slight contrast boost
+            r = Math.Clamp((r - 128) * 1.05 + 128, 0, 255);
+            g = Math.Clamp((g - 128) * 1.05 + 128, 0, 255);
+            b = Math.Clamp((b - 128) * 1.05 + 128, 0, 255);
+            
+            _px[i] = 0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
+        }
+    }
+    
+    void ApplyScanlines()
+    {
+        // Subtle CRT scanline effect
+        for (int y = 0; y < H; y++)
+        {
+            if (y % 3 == 0) // Every 3rd line
+            {
+                double scanlineIntensity = 0.92; // Subtle darkening
+                for (int x = 0; x < W; x++)
+                {
+                    int i = y * W + x;
+                    uint c = _px[i];
+                    uint r = (uint)(((c >> 16) & 0xFF) * scanlineIntensity);
+                    uint g = (uint)(((c >> 8) & 0xFF) * scanlineIntensity);
+                    uint b = (uint)((c & 0xFF) * scanlineIntensity);
+                    _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                }
+            }
+        }
+    }
+    
+    void ApplyChromaticAberration(double intensity)
+    {
+        // RGB channel separation on edges when damaged
+        uint[] tempPx = new uint[_px.Length];
+        Array.Copy(_px, tempPx, _px.Length);
+        
+        int offset = (int)(intensity * 4);
+        if (offset < 1) return;
+        
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                // Distance from center affects intensity
+                double nx = (x / (double)W) * 2 - 1;
+                double ny = (y / (double)H) * 2 - 1;
+                double dist = Math.Sqrt(nx * nx + ny * ny);
+                
+                if (dist > 0.5)
+                {
+                    int localOffset = (int)(offset * (dist - 0.5) * 2);
+                    
+                    // Sample shifted channels
+                    int xR = Math.Clamp(x + localOffset, 0, W - 1);
+                    int xB = Math.Clamp(x - localOffset, 0, W - 1);
+                    
+                    uint cR = tempPx[y * W + xR];
+                    uint cG = tempPx[y * W + x];
+                    uint cB = tempPx[y * W + xB];
+                    
+                    uint r = (cR >> 16) & 0xFF;
+                    uint g = (cG >> 8) & 0xFF;
+                    uint b = cB & 0xFF;
+                    
+                    _px[y * W + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                }
+            }
+        }
+    }
+    
     void RenderParticles()
     {
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
@@ -2592,12 +3141,30 @@ public partial class DoomGame : Window
     void RenderFloorCeiling()
     {
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
-        double fovAngle = _isAiming ? 0.35 : 0.5; // Narrower angle when aiming
+        double fovAngle = _isAiming ? 0.35 : 0.5;
+
+        // Pre-calculate light positions for dynamic lighting
+        var lights = new List<(double x, double y, double r, double g, double b, double intensity)>();
+        
+        // Add muzzle flash as a light source
+        if (_muzzleFlashTimer > 0)
+        {
+            lights.Add((_px_pos, _py, 1.0, 0.8, 0.4, _muzzleFlashTimer * 3));
+        }
+        
+        // Add bright particles as lights (fire-colored ones)
+        foreach (var p in _particles.Where(pt => ((pt.color >> 16) & 0xFF) > 200).Take(5))
+        {
+            lights.Add((p.x, p.y, 1.0, 0.6, 0.2, 0.8));
+        }
 
         for (int y = 0; y < H; y++)
         {
             bool isFloor = y > horizon;
             double rowDist = Math.Abs((H / 2.0) / (y - horizon + 0.01));
+            
+            // Skip very distant rows for performance
+            if (rowDist > 25) continue;
 
             double floorStepX = rowDist * (Math.Cos(_pa + fovAngle) - Math.Cos(_pa - fovAngle)) / W;
             double floorStepY = rowDist * (Math.Sin(_pa + fovAngle) - Math.Sin(_pa - fovAngle)) / W;
@@ -2612,6 +3179,11 @@ public partial class DoomGame : Window
 
                 uint color = isFloor ? FloorTex[ty * TEX + tx] : CeilTex[ty * TEX + tx];
                 
+                // Get base color components
+                double r = ((color >> 16) & 0xFF);
+                double g = ((color >> 8) & 0xFF);
+                double b = (color & 0xFF);
+                
                 // Check for hazard tile (sticky goo effect! 🟢)
                 if (isFloor)
                 {
@@ -2620,23 +3192,59 @@ public partial class DoomGame : Window
                     {
                         if (_hazardTiles[mapY * MAP_SIZE + mapX])
                         {
-                            // Animated green goo - slime color!
+                            // Animated green goo - slime color with bubbles!
                             double glow = 0.5 + 0.5 * Math.Sin(_gameTime * 2 + floorX * 2 + floorY * 2);
                             double bubble = Math.Sin(_gameTime * 8 + floorX * 10) > 0.9 ? 1.0 : 0.0;
-                            color = 0xFF000000 | 
-                                ((uint)(30 + bubble * 50)) |        // Red (low)
-                                ((uint)(180 + glow * 75) << 8) |    // Green (bright!)
-                                ((uint)(50 + glow * 30) << 16);     // Blue (teal tint)
+                            double ripple = Math.Sin(_gameTime * 3 + floorX * 4 + floorY * 4) * 0.15;
+                            r = 30 + bubble * 50;
+                            g = 180 + glow * 75 + ripple * 40;
+                            b = 50 + glow * 30;
                         }
                     }
                 }
+                
+                // Dynamic lighting from light sources
+                double totalLight = 1.0;
+                foreach (var light in lights)
+                {
+                    double ldx = floorX - light.x;
+                    double ldy = floorY - light.y;
+                    double lightDist = Math.Sqrt(ldx * ldx + ldy * ldy);
+                    if (lightDist < 4)
+                    {
+                        double lightFalloff = Math.Max(0, 1 - lightDist / 4) * light.intensity;
+                        r += light.r * 100 * lightFalloff;
+                        g += light.g * 100 * lightFalloff;
+                        b += light.b * 100 * lightFalloff;
+                        totalLight += lightFalloff * 0.5;
+                    }
+                }
 
-                double fog = Math.Min(1, rowDist / 18);
-                uint r = (uint)(((color >> 16) & 0xFF) * (1 - fog));
-                uint g = (uint)(((color >> 8) & 0xFF) * (1 - fog));
-                uint b = (uint)((color & 0xFF) * (1 - fog));
+                // Apply atmospheric fog
+                double baseFog = Math.Min(0.9, rowDist / 16);
+                double fog = baseFog + _fogDensity * rowDist * 0.5;
+                fog = Math.Min(0.95, fog);
+                
+                // Get fog color components
+                uint fogR = (_fogColor >> 16) & 0xFF;
+                uint fogG = (_fogColor >> 8) & 0xFF;
+                uint fogB = _fogColor & 0xFF;
+                
+                // Apply fog blending
+                r = r * (1 - fog) + fogR * fog;
+                g = g * (1 - fog) + fogG * fog;
+                b = b * (1 - fog) + fogB * fog;
+                
+                // Apply light flicker for atmospheric horror
+                if (_lightFlicker > 0)
+                {
+                    double flicker = 1.0 + (Math.Sin(_gameTime * 25) * Math.Sin(_gameTime * 17) * _lightFlicker);
+                    r *= flicker;
+                    g *= flicker;
+                    b *= flicker;
+                }
 
-                _px[y * W + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                _px[y * W + x] = 0xFF000000 | ((uint)Math.Clamp(r, 0, 255) << 16) | ((uint)Math.Clamp(g, 0, 255) << 8) | (uint)Math.Clamp(b, 0, 255);
 
                 floorX += floorStepX;
                 floorY += floorStepY;
@@ -2647,7 +3255,40 @@ public partial class DoomGame : Window
     void RenderWalls()
     {
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
-        double fovMultiplier = _isAiming ? 0.4 : 0.66; // Narrower FOV when aiming (zoom effect)
+        double fovMultiplier = _isAiming ? 0.4 : 0.66;
+        
+        // Pre-calculate light sources for dynamic lighting
+        var lights = new List<(double x, double y, double r, double g, double b, double intensity)>();
+        
+        // Muzzle flash light
+        if (_muzzleFlashTimer > 0)
+        {
+            lights.Add((_px_pos, _py, 1.0, 0.8, 0.4, _muzzleFlashTimer * 4));
+        }
+        
+        // Projectile lights
+        foreach (var proj in _projectiles.Take(5))
+        {
+            if (proj.FromPlayer)
+                lights.Add((proj.X, proj.Y, 1.0, 0.7, 0.3, 0.6));
+            else
+                lights.Add((proj.X, proj.Y, 1.0, 0.3, 0.2, 0.5));
+        }
+        
+        // Pickup glows
+        foreach (var pickup in _pickups.Where(p => !p.Collected).Take(10))
+        {
+            switch (pickup.Type)
+            {
+                case PickupType.Health:
+                case PickupType.AtomicHealth:
+                    lights.Add((pickup.X, pickup.Y, 0.2, 1.0, 0.2, 0.4));
+                    break;
+                case PickupType.Ammo:
+                    lights.Add((pickup.X, pickup.Y, 1.0, 0.8, 0.2, 0.3));
+                    break;
+            }
+        }
 
         for (int x = 0; x < W; x++)
         {
@@ -2696,6 +3337,26 @@ public partial class DoomGame : Window
             int texId = Math.Clamp(hit - 1, 0, 7);
             double step = TEX / (double)lineHeight;
             double texPos = (drawStart - horizon + lineHeight / 2 + (int)(_pz / perpWallDist * 20)) * step;
+            
+            // Calculate wall world position for lighting
+            double wallWorldX = side == 0 ? mapX + (stepX > 0 ? 0 : 1) : _px_pos + perpWallDist * rayDirX;
+            double wallWorldY = side == 1 ? mapY + (stepY > 0 ? 0 : 1) : _py + perpWallDist * rayDirY;
+            
+            // Calculate dynamic light contribution at this wall position
+            double dynLightR = 0, dynLightG = 0, dynLightB = 0;
+            foreach (var light in lights)
+            {
+                double ldx = wallWorldX - light.x;
+                double ldy = wallWorldY - light.y;
+                double lightDist = Math.Sqrt(ldx * ldx + ldy * ldy);
+                if (lightDist < 6)
+                {
+                    double falloff = Math.Max(0, 1 - lightDist / 6) * light.intensity;
+                    dynLightR += light.r * falloff;
+                    dynLightG += light.g * falloff;
+                    dynLightB += light.b * falloff;
+                }
+            }
 
             for (int y = drawStart; y <= drawEnd; y++)
             {
@@ -2703,14 +3364,51 @@ public partial class DoomGame : Window
                 texPos += step;
 
                 uint color = Textures[texId][texY * TEX + texX];
-                if (side == 1) color = ((color >> 1) & 0x7F7F7F) | 0xFF000000;
+                
+                // Side shading - opposite walls darker
+                double sideFactor = side == 1 ? 0.7 : 1.0;
+                
+                // Extract color components
+                double r = ((color >> 16) & 0xFF) * sideFactor;
+                double g = ((color >> 8) & 0xFF) * sideFactor;
+                double b = (color & 0xFF) * sideFactor;
+                
+                // Add dynamic lighting
+                r += dynLightR * 150;
+                g += dynLightG * 150;
+                b += dynLightB * 150;
+                
+                // Height-based gradient (darker at bottom, lighter at top)
+                double heightFactor = 0.85 + 0.15 * ((double)(y - drawStart) / (drawEnd - drawStart));
+                r *= heightFactor;
+                g *= heightFactor;
+                b *= heightFactor;
 
-                double fog = Math.Min(0.85, perpWallDist / 22);
-                uint r = (uint)(((color >> 16) & 0xFF) * (1 - fog));
-                uint g = (uint)(((color >> 8) & 0xFF) * (1 - fog));
-                uint b = (uint)((color & 0xFF) * (1 - fog));
+                // Apply atmospheric fog based on level
+                double baseFog = Math.Min(0.85, perpWallDist / 18);
+                double fog = baseFog + _fogDensity * perpWallDist;
+                fog = Math.Min(0.95, fog);
+                
+                // Get fog color components
+                uint fogR = (_fogColor >> 16) & 0xFF;
+                uint fogG = (_fogColor >> 8) & 0xFF;
+                uint fogB = _fogColor & 0xFF;
+                
+                // Blend with fog color
+                r = r * (1 - fog) + fogR * fog;
+                g = g * (1 - fog) + fogG * fog;
+                b = b * (1 - fog) + fogB * fog;
+                
+                // Apply light flicker effect
+                if (_lightFlicker > 0)
+                {
+                    double flicker = 1.0 + (Math.Sin(_gameTime * 25) * Math.Sin(_gameTime * 17) * _lightFlicker);
+                    r *= flicker;
+                    g *= flicker;
+                    b *= flicker;
+                }
 
-                _px[y * W + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                _px[y * W + x] = 0xFF000000 | ((uint)Math.Clamp(r, 0, 255) << 16) | ((uint)Math.Clamp(g, 0, 255) << 8) | (uint)Math.Clamp(b, 0, 255);
             }
         }
     }
@@ -2734,6 +3432,11 @@ public partial class DoomGame : Window
         sprites.Sort((a, b) => b.dist.CompareTo(a.dist));
 
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
+        
+        // Get fog color components
+        uint fogR = (_fogColor >> 16) & 0xFF;
+        uint fogG = (_fogColor >> 8) & 0xFF;
+        uint fogB = _fogColor & 0xFF;
 
         foreach (var (dist, obj, type) in sprites)
         {
@@ -2750,13 +3453,14 @@ public partial class DoomGame : Window
 
             if (transformY <= 0.1) continue;
 
+            // Calculate fog for this sprite distance
+            double baseFog = Math.Min(0.8, transformY / 14);
+            double fog = baseFog + _fogDensity * transformY * 0.5;
+            fog = Math.Min(0.9, fog);
+
             // --- Floor-level sprite fix ---
-            // Project sprite to floor (not camera center):
-            // Find the floor height at (sx, sy) in screen space
-            // Assume floor is always at y = 0 (no slopes)
-            // Calculate vertical offset from camera to floor
-            double cameraZ = 32.0 + _pz + _eyeHeight; // camera height (player eye level)
-            double spriteZ = 0.0; // floor level
+            double cameraZ = 32.0 + _pz + _eyeHeight;
+            double spriteZ = 0.0;
             int floorOffset = (int)((cameraZ - spriteZ) / transformY);
 
             int spriteScreenX = (int)(W / 2 * (1 + transformX / transformY));
@@ -2779,8 +3483,6 @@ public partial class DoomGame : Window
             int drawStartX = Math.Max(0, -spriteWidth / 2 + spriteScreenX);
             int drawEndX = Math.Min(W - 1, spriteWidth / 2 + spriteScreenX);
 
-
-            // Minimal fix: declare vertOffset if missing
             double vertOffset = 0.0;
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
             {
@@ -2796,8 +3498,20 @@ public partial class DoomGame : Window
                     else if (type == 1) color = GetPickupColor((Pickup)obj, relX, relY);
                     else if (type == 2)
                     {
-                        if (relX * relX + relY * relY < 0.2)
-                            color = ((Projectile)obj).FromPlayer ? 0xFFFFAA00u : 0xFFFF4400u;
+                        // Projectile glow effect
+                        double distFromCenter = relX * relX + relY * relY;
+                        if (distFromCenter < 0.2)
+                        {
+                            double glowIntensity = 1 - distFromCenter / 0.2;
+                            bool fromPlayer = ((Projectile)obj).FromPlayer;
+                            uint baseR = fromPlayer ? 255u : 255u;
+                            uint baseG = fromPlayer ? 170u : 68u;
+                            uint baseB = fromPlayer ? 0u : 0u;
+                            uint coreR = (uint)Math.Min(255, baseR + glowIntensity * 55);
+                            uint coreG = (uint)Math.Min(255, baseG + glowIntensity * 85);
+                            uint coreB = (uint)Math.Min(255, baseB + glowIntensity * 100);
+                            color = 0xFF000000 | (coreR << 16) | (coreG << 8) | coreB;
+                        }
                     }
                     else
                     {
@@ -2806,11 +3520,26 @@ public partial class DoomGame : Window
 
                     if ((color & 0xFF000000) != 0)
                     {
-                        double fog = Math.Min(0.75, transformY / 16);
-                        uint r = (uint)(((color >> 16) & 0xFF) * (1 - fog));
-                        uint g = (uint)(((color >> 8) & 0xFF) * (1 - fog));
-                        uint b = (uint)((color & 0xFF) * (1 - fog));
-                        _px[y * W + stripe] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                        // Extract color components
+                        double r = ((color >> 16) & 0xFF);
+                        double g = ((color >> 8) & 0xFF);
+                        double b = (color & 0xFF);
+                        
+                        // Apply atmospheric fog
+                        r = r * (1 - fog) + fogR * fog;
+                        g = g * (1 - fog) + fogG * fog;
+                        b = b * (1 - fog) + fogB * fog;
+                        
+                        // Apply light flicker
+                        if (_lightFlicker > 0)
+                        {
+                            double flicker = 1.0 + (Math.Sin(_gameTime * 25) * Math.Sin(_gameTime * 17) * _lightFlicker);
+                            r *= flicker;
+                            g *= flicker;
+                            b *= flicker;
+                        }
+                        
+                        _px[y * W + stripe] = 0xFF000000 | ((uint)Math.Clamp(r, 0, 255) << 16) | ((uint)Math.Clamp(g, 0, 255) << 8) | (uint)Math.Clamp(b, 0, 255);
                     }
                 }
             }
@@ -5248,8 +5977,34 @@ public partial class DoomGame : Window
     {
         _keysDown.Add(e.Key);
 
-        if (e.Key == Key.Escape) { CaptureMouse(false); Close(); }
-
+        if (e.Key == Key.Escape) 
+        { 
+            if (_showingBriefing)
+            {
+                CloseBriefing();
+                return;
+            }
+            if (MainMenuPanel.Visibility == Visibility.Visible)
+            {
+                Close();
+                return;
+            }
+            TogglePause();
+            return;
+        }
+        
+        // Handle briefing dismissal
+        if (_showingBriefing)
+        {
+            if (e.Key == Key.Space || e.Key == Key.Enter)
+            {
+                CloseBriefing();
+            }
+            return;
+        }
+        
+        // Main menu is showing - don't process game input
+        if (MainMenuPanel.Visibility == Visibility.Visible) return;
 
         if (_gameOver)
         {

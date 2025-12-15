@@ -248,6 +248,94 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
+
+            <!-- Level Briefing Panel -->
+            <Border x:Name="BriefingPanel" Visibility="Collapsed" Background="#EE101020" Width="700" Height="450" Canvas.Left="50" Canvas.Top="75" CornerRadius="12">
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FFD700" Offset="0"/>
+                        <GradientStop Color="#FF6600" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Border.BorderThickness>
+                    <Thickness>3</Thickness>
+                </Border.BorderThickness>
+                <Grid Margin="30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Level Title -->
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="MISSION BRIEFING" Foreground="#FF6600" FontSize="14" FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="BriefingTitle" Text="1-1: THE SPREADSHEET DIMENSION" 
+                                   Foreground="#FFD700" FontSize="32" FontFamily="Impact" FontWeight="Bold" 
+                                   HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect ShadowDepth="2" Color="Black" BlurRadius="5"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+                    
+                    <!-- Briefing Text -->
+                    <Border Grid.Row="1" Background="#20000000" CornerRadius="8" Margin="0,20" Padding="20">
+                        <TextBlock x:Name="BriefingText" 
+                                   Text="Your spreadsheets have come alive..." 
+                                   Foreground="#CCCCCC" FontSize="16" FontFamily="Consolas" 
+                                   TextWrapping="Wrap" LineHeight="28"/>
+                    </Border>
+                    
+                    <!-- Start Button -->
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                        <TextBlock Text="Press SPACE or ENTER to begin" 
+                                   Foreground="#888888" FontSize="14" FontFamily="Consolas" 
+                                   HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <Border Background="#FFD700" CornerRadius="6" Padding="30,10" Cursor="Hand"
+                                MouseDown="BriefingStartButton_Click">
+                            <TextBlock Text="LET'S ROCK!" Foreground="#000000" FontSize="20" FontFamily="Impact" FontWeight="Bold"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Menu / Mode Selection -->
+            <Border x:Name="MainMenuPanel" Visibility="Collapsed" Background="#EE000010" Width="800" Height="600">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Title -->
+                    <StackPanel Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <TextBlock Text="S.A.P NUKEM" Foreground="#FFD700" FontSize="72" FontFamily="Impact" FontWeight="Bold" HorizontalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect ShadowDepth="4" Color="Black" BlurRadius="8"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock Text="CORPORATE WARFARE SIMULATOR" Foreground="#FF6600" FontSize="18" FontFamily="Consolas" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <!-- Menu Options -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,20">
+                        <Button x:Name="CampaignButton" Width="300" Height="50" Margin="0,10" Content="CAMPAIGN MODE" 
+                                FontSize="20" FontFamily="Impact" Click="CampaignButton_Click"/>
+                        <Button x:Name="EndlessButton" Width="300" Height="50" Margin="0,10" Content="ENDLESS MODE" 
+                                FontSize="20" FontFamily="Impact" Click="EndlessButton_Click"/>
+                    </StackPanel>
+                    
+                    <!-- Instructions -->
+                    <StackPanel Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,30,0,0">
+                        <TextBlock Text="WASD - Move | Mouse - Look | LMB - Shoot | 1-8 - Weapons" 
+                                   Foreground="#666666" FontSize="12" FontFamily="Consolas" HorizontalAlignment="Center"/>
+                        <TextBlock Text="ESC - Pause | Space - Jump | Ctrl - Crouch" 
+                                   Foreground="#666666" FontSize="12" FontFamily="Consolas" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Canvas>
     </Grid>
 </Window>
