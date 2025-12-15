@@ -226,7 +226,6 @@ public partial class DoomGame : Window
     GameMode _gameMode = GameMode.Campaign;
     int _maxCampaignLevel = 5;
     bool _showingBriefing = false;
-    double _briefingTimer = 0;
     
     // Level themes and names
     static readonly string[] LevelNames = {
@@ -248,7 +247,6 @@ public partial class DoomGame : Window
     // Fog and atmosphere per level
     double _fogDensity = 0.0;
     uint _fogColor = 0xFF000000;
-    uint _ambientColor = 0xFF404040;
     double _lightFlicker = 0;
 
     // Map
@@ -4304,7 +4302,6 @@ public partial class DoomGame : Window
         uint skinDark = 0xFFCCBBAAu;
         uint skinShadow = 0xFFAA9988u;
         uint nail = 0xFFFFEEEEu;
-        uint nailTip = 0xFFFFFFFFu;
         uint vein = 0xFFCCAAAAu;
         uint knuckle = 0xFFFFEEDDu;
         
@@ -4398,7 +4395,6 @@ public partial class DoomGame : Window
         
         // Enhanced metallic colors
         uint metal = 0xFF665566u;
-        uint metalMid = 0xFF554455u;
         uint metalDark = 0xFF332233u;
         uint metalShine = 0xFF887788u;
         uint pearl = 0xFFFFEEEEu;
@@ -5368,7 +5364,6 @@ public partial class DoomGame : Window
         double time = _gameTime;
         
         uint bodyColor = 0xFF332222u;
-        uint bodyMid = 0xFF2A1818u;
         uint bodyDark = 0xFF221111u;
         uint bodyLight = 0xFF443333u;
         uint brass = 0xFF997744u;

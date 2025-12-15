@@ -5,6 +5,37 @@ All notable changes to S.A.P (S.A.M. Add-on Pack) will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2025-12-15
+
+### Added
+
+- **S.A.P NUKEM Campaign Mode** - 5-level campaign with unique designed levels
+  - Level 1: The Spreadsheet Dimension - Blue office fog atmosphere
+  - Level 2: Cubicle Nightmare - Green flickering maze layout
+  - Level 3: Server Room Inferno - Red heat haze with lava floors
+  - Level 4: Boardroom of Doom - Multi-key puzzle with yellow/brown tones
+  - Level 5: CEO's Lair - Boss arena with purple eldritch glow
+- **Level Briefing System** - Story briefings before each campaign level
+- **Boss Encounters** - Final boss fight with victory condition
+- **Main Menu** - Campaign vs Endless mode selection
+
+### Improved
+
+- **Enhanced Graphics Engine**
+  - Perlin noise-based procedural textures for walls/floors/ceilings
+  - Dynamic lighting system (muzzle flash, projectile glow, pickup auras)
+  - Atmospheric fog per level with customizable color
+  - Post-processing effects: vignette, color grading, scanlines, chromatic aberration
+  - Improved sprite rendering with consistent fog application
+- **Movement System** - Velocity-based acceleration with sprint and stamina
+
+### Fixed
+
+- Removed unused variables causing compiler warnings
+- Code cleanup and QOL improvements
+
+---
+
 ## [4.2.1] - 2025-12-11
 
 ### Changed

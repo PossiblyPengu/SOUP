@@ -59,7 +59,7 @@ namespace SAP.Views.AllocationBuddy {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SAP;V4.3.1.0;component/views/allocationbuddy/confirmdialog.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SAP;V4.4.0.0;component/views/allocationbuddy/confirmdialog.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\Views\AllocationBuddy\ConfirmDialog.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
