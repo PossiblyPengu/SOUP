@@ -29,7 +29,7 @@ public partial class DoomGame : Window
     #endregion
 
     #region Constants
-    const int W = 400, H = 300, TEX = 64;
+    const int W = 640, H = 480, TEX = 64;  // Higher resolution for better sprite detail
     const int MAP_SIZE = 24;
     const double PI = Math.PI, PI2 = PI * 2;
     #endregion
@@ -139,6 +139,24 @@ public partial class DoomGame : Window
     double _headBob = 0; // Head bob when walking
 #pragma warning restore CS0414
     double _muzzleFlashTimer = 0; // Extended muzzle flash glow
+    
+    // ROBUST ANIMATION SYSTEM
+    double _weaponRecoil = 0;        // Kick-back when firing
+    double _weaponSwapAnim = 0;      // Weapon swap animation (0-1)
+    int _weaponSwapFrom = 0;         // Previous weapon during swap
+    bool _isSwappingWeapon = false;
+    double _weaponIdleAnim = 0;      // Idle breathing animation
+    double _weaponInspectAnim = 0;   // Weapon inspect animation (when idle too long)
+    double _idleTimer = 0;           // Time since last action
+    double _stepPhase = 0;           // Footstep phase for view bob
+    double _landingSquash = 0;       // Squash effect when landing from jump
+    double _killFlashTimer = 0;      // Flash effect on kill
+    double _breathingPhase = 0;      // Subtle breathing animation
+    double _heartbeatPhase = 0;      // Heartbeat pulse when low health
+    double _creepyAmbientPhase = 0;  // Creepy ambient animations
+    double _eyeBlinkTimer = 0;       // For blinking eyes on weapons
+    double _screenWarpTimer = 0;     // Trippy screen warp effect
+    double _deathAnimTimer = 0;      // Death animation progress
     
     // Particles for blood/explosion effects
     List<(double x, double y, double dx, double dy, double life, uint color)> _particles = new();
@@ -831,6 +849,9 @@ public partial class DoomGame : Window
         if (_cameraFlashTimer > 0) _cameraFlashTimer -= dt;
         if (_cameraCooldown > 0) _cameraCooldown -= dt;
         
+        // === ROBUST ANIMATION UPDATES ===
+        UpdateAnimations(dt);
+        
         // Kill streak decay
         if (_killStreakTimer > 0)
         {
@@ -841,6 +862,82 @@ public partial class DoomGame : Window
         // Aim zoom interpolation
         double targetZoom = _isAiming ? 1.5 : 1.0;
         _aimZoom += (targetZoom - _aimZoom) * 0.15;
+    }
+    
+    void UpdateAnimations(double dt)
+    {
+        // Weapon recoil decay (spring-like)
+        _weaponRecoil *= 0.85;
+        if (_weaponRecoil < 0.01) _weaponRecoil = 0;
+        
+        // Weapon swap animation
+        if (_isSwappingWeapon)
+        {
+            _weaponSwapAnim += dt * 4; // Speed of swap
+            if (_weaponSwapAnim >= 1.0)
+            {
+                _weaponSwapAnim = 0;
+                _isSwappingWeapon = false;
+            }
+        }
+        
+        // Idle breathing animation (always running)
+        _breathingPhase += dt * 1.5;
+        _weaponIdleAnim = Math.Sin(_breathingPhase) * 0.5 + 0.5;
+        
+        // Creepy ambient phase (slow, unsettling movements)
+        _creepyAmbientPhase += dt * 0.7;
+        
+        // Eye blink timer for eye-camera
+        _eyeBlinkTimer -= dt;
+        if (_eyeBlinkTimer < 0) _eyeBlinkTimer = 2.5 + _rnd.NextDouble() * 4; // Random blinks
+        
+        // Heartbeat when low health
+        if (_hp < 30)
+        {
+            double heartRate = 8 + (30 - _hp) * 0.3; // Faster when lower
+            _heartbeatPhase += dt * heartRate;
+        }
+        
+        // Idle timer (for inspect animation trigger)
+        bool isMoving = _keysDown.Contains(Key.W) || _keysDown.Contains(Key.S) || 
+                        _keysDown.Contains(Key.A) || _keysDown.Contains(Key.D);
+        if (isMoving || _shooting)
+        {
+            _idleTimer = 0;
+            _weaponInspectAnim = 0;
+        }
+        else
+        {
+            _idleTimer += dt;
+            // Start inspect animation after 5 seconds idle
+            if (_idleTimer > 5 && _weaponInspectAnim < 1)
+            {
+                _weaponInspectAnim += dt * 0.3;
+                if (_weaponInspectAnim > 1) _weaponInspectAnim = 1;
+            }
+        }
+        
+        // Footstep phase for view bob
+        if (isMoving && _pz == 0)
+        {
+            _stepPhase += dt * 10;
+        }
+        
+        // Landing squash decay
+        _landingSquash *= 0.88;
+        
+        // Kill flash decay
+        if (_killFlashTimer > 0) _killFlashTimer -= dt;
+        
+        // Screen warp decay (trippy effect)
+        if (_screenWarpTimer > 0) _screenWarpTimer -= dt;
+        
+        // Death animation
+        if (_gameOver && _deathAnimTimer < 1)
+        {
+            _deathAnimTimer += dt * 0.8;
+        }
     }
     
     void UpdateBodyParts(double dt)
@@ -880,15 +977,15 @@ public partial class DoomGame : Window
                 part.Vy *= friction;
                 part.RotationSpeed *= 0.8; // Slow down spin on bounce
                 
-                // Spawn confetti on bounce!
+                // Spawn creepy particles on bounce - teeth, eyes, bits
                 if (Math.Abs(part.Vz) > 0.05)
                 {
-                    uint[] confettiColors = { 0xFFFF69B4u, 0xFF00FF00u, 0xFFFFD700u, 0xFF00FFFFu, 0xFFFF6347u, 0xFF9370DBu };
+                    uint[] bounceColors = { 0xFFFFFFFFu, 0xFFFFFF00u, 0xFF880000u, 0xFFEEDDCCu, 0xFF111111u, 0xFFDDBBAAu };
                     for (int c = 0; c < 3; c++)
                     {
                         double vx = (_rnd.NextDouble() - 0.5) * 0.08;
                         double vy = (_rnd.NextDouble() - 0.5) * 0.08;
-                        uint color = confettiColors[_rnd.Next(confettiColors.Length)];
+                        uint color = bounceColors[_rnd.Next(bounceColors.Length)];
                         _particles.Add((part.X, part.Y, vx, vy, 0.5, color));
                     }
                 }
@@ -961,7 +1058,14 @@ public partial class DoomGame : Window
         {
             _pzVel -= 0.4;
             _pz += _pzVel;
-            if (_pz <= 0) { _pz = 0; _pzVel = 0; _isJumping = false; }
+            if (_pz <= 0) 
+            { 
+                _pz = 0; 
+                _pzVel = 0; 
+                _isJumping = false;
+                // === ANIMATION: Landing squash ===
+                TriggerLandingSquash();
+            }
         }
 
         // Jetpack
@@ -1212,6 +1316,10 @@ public partial class DoomGame : Window
     {
         en.Dead = true;
         
+        // === ANIMATION: Kill flash effect ===
+        _killFlashTimer = 0.15;
+        _screenWarpTimer = 0.2; // Brief trippy warp on kill
+        
         // RAGDOLL TIME! 🎉 Spawn body parts flying everywhere
         SpawnRagdoll(en, explosive);
         
@@ -1243,15 +1351,15 @@ public partial class DoomGame : Window
     
     void SpawnRagdoll(Enemy en, bool explosive)
     {
-        // Get silly cartoon colors for this enemy type (like stuffed toys!)
+        // Creepy unsettling colors - pale flesh, wrong hues
         uint baseColor = en.Type switch
         {
-            EnemyType.Trooper => 0xFF66FF66u,   // Bright green plush
-            EnemyType.PigCop => 0xFF6699FFu,    // Bright blue plush
-            EnemyType.Enforcer => 0xFFBBBBBBu,  // Silver plush
-            EnemyType.Octabrain => 0xFFFF88FFu, // Pink plush
-            EnemyType.BattleLord => 0xFFFF6666u,// Bright red plush
-            _ => 0xFFFFAAAAu
+            EnemyType.Trooper => 0xFF88AA88u,   // Sickly pale green
+            EnemyType.PigCop => 0xFF8888AAu,    // Corpse blue
+            EnemyType.Enforcer => 0xFF999999u,  // Dead gray
+            EnemyType.Octabrain => 0xFFAA88AAu, // Bruised purple
+            EnemyType.BattleLord => 0xFFAA6666u,// Dried meat red
+            _ => 0xFFDDCCBBu // Wrong skin tone
         };
         
         double force = explosive ? 0.25 : 0.12;
@@ -1263,12 +1371,12 @@ public partial class DoomGame : Window
         double dist = Math.Sqrt(dx * dx + dy * dy);
         if (dist > 0.01) { dx /= dist; dy /= dist; }
         
-        // Spawn different body parts with silly colors
+        // Spawn different body parts with unsettling colors
         var partTypes = new[] { BodyPartType.Head, BodyPartType.Torso, BodyPartType.ArmL, BodyPartType.ArmR, BodyPartType.LegL, BodyPartType.LegR };
-        var partSizes = new[] { 0.18, 0.28, 0.12, 0.12, 0.14, 0.14 }; // Slightly bigger for visibility
+        var partSizes = new[] { 0.18, 0.28, 0.12, 0.12, 0.14, 0.14 };
         
-        // Rainbow-ish cartoon colors!
-        uint[] funColors = { 0xFFFFB6C1u, 0xFFFFA07Au, 0xFFFFD700u, 0xFF98FB98u, 0xFF87CEEBu, 0xFFDDA0DDu };
+        // Creepy color palette - teeth, meat, bone
+        uint[] creepyColors = { 0xFFEEDDCCu, 0xFFCCAAAAu, 0xFFFFFFEEu, 0xFFDDBBAAu, 0xFF887766u, 0xFF998877u };
         
         for (int i = 0; i < partTypes.Length; i++)
         {
@@ -1288,8 +1396,8 @@ public partial class DoomGame : Window
                 vy = dy * speed + (_rnd.NextDouble() - 0.5) * force;
             }
             
-            // Mix base color with fun pastel colors
-            uint partColor = i == 1 ? baseColor : funColors[i]; // Torso keeps enemy color
+            // Mix base color with creepy colors
+            uint partColor = i == 1 ? baseColor : creepyColors[i]; // Torso keeps enemy color
             
             _bodyParts.Add(new BodyPart
             {
@@ -1341,6 +1449,29 @@ public partial class DoomGame : Window
     {
         _screenShakeTimer = duration;
         _screenShakeIntensity = intensity;
+    }
+    
+    void SwitchWeapon(int newWeapon)
+    {
+        if (newWeapon == _currentWeapon) return;
+        if (_isSwappingWeapon) return; // Can't swap mid-swap
+        
+        _weaponSwapFrom = _currentWeapon;
+        _currentWeapon = newWeapon;
+        _isSwappingWeapon = true;
+        _weaponSwapAnim = 0;
+        _idleTimer = 0; // Reset idle
+    }
+    
+    void TriggerWeaponRecoil(double amount)
+    {
+        _weaponRecoil += amount;
+        if (_weaponRecoil > 1) _weaponRecoil = 1;
+    }
+    
+    void TriggerLandingSquash()
+    {
+        _landingSquash = 0.3;
     }
     
     void SpawnParticles(double x, double y, int count, uint color1, uint color2)
@@ -1577,6 +1708,31 @@ public partial class DoomGame : Window
             ApplyDamageVignette(_damageVignetteTimer / 0.5);
         }
         
+        // === ROBUST ANIMATION: Kill flash (white flash on kill) ===
+        if (_killFlashTimer > 0)
+        {
+            ApplyKillFlash(_killFlashTimer / 0.15);
+        }
+        
+        // === ROBUST ANIMATION: Screen warp effect (trippy on kills) ===
+        if (_screenWarpTimer > 0)
+        {
+            ApplyScreenWarp(_screenWarpTimer / 0.2);
+        }
+        
+        // === ROBUST ANIMATION: Low health heartbeat vignette ===
+        if (_hp < 30 && _hp > 0)
+        {
+            double heartbeatIntensity = Math.Pow(Math.Sin(_heartbeatPhase), 8);
+            ApplyHeartbeatVignette(heartbeatIntensity, (30 - _hp) / 30.0);
+        }
+        
+        // === ROBUST ANIMATION: Death screen effect ===
+        if (_gameOver && _deathAnimTimer > 0)
+        {
+            ApplyDeathEffect(_deathAnimTimer);
+        }
+        
         // Apply visual effects for power-ups
         if (_invincibilityTimer > 0)
         {
@@ -1612,8 +1768,8 @@ public partial class DoomGame : Window
 
         _bmp.WritePixels(new Int32Rect(0, 0, W, H), _px, W * 4, 0);
 
-        // Update crosshair position based on pitch and aim zoom
-        double crosshairY = 278 - _pitch;
+        // Update crosshair position based on pitch and aim zoom (scaled for resolution)
+        double crosshairY = (H * 0.92) - _pitch;  // ~92% down the screen
         Canvas.SetTop(CrosshairCanvas, crosshairY);
         
         // Scale crosshair when aiming
@@ -1734,6 +1890,124 @@ public partial class DoomGame : Window
             uint g = (uint)Math.Min(255, ((c >> 8) & 0xFF) + 255 * intensity);
             uint b = (uint)Math.Min(255, (c & 0xFF) + 255 * intensity);
             _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
+    
+    // === ROBUST ANIMATION EFFECTS ===
+    
+    void ApplyKillFlash(double intensity)
+    {
+        // Quick white flash with creepy yellow tinge on kills
+        for (int i = 0; i < _px.Length; i++)
+        {
+            uint c = _px[i];
+            uint r = (uint)Math.Min(255, ((c >> 16) & 0xFF) + 255 * intensity * 0.9);
+            uint g = (uint)Math.Min(255, ((c >> 8) & 0xFF) + 240 * intensity * 0.8);
+            uint b = (uint)Math.Min(255, (c & 0xFF) + 180 * intensity * 0.5);
+            _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
+    
+    void ApplyScreenWarp(double intensity)
+    {
+        // Subtle trippy barrel distortion on kills
+        uint[] tempPx = new uint[_px.Length];
+        Array.Copy(_px, tempPx, _px.Length);
+        
+        double warpStrength = intensity * 0.02;
+        int centerX = W / 2, centerY = H / 2;
+        
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                double dx = (x - centerX) / (double)W;
+                double dy = (y - centerY) / (double)H;
+                double dist = Math.Sqrt(dx * dx + dy * dy);
+                
+                // Barrel distortion
+                double warp = 1 + dist * dist * warpStrength * Math.Sin(_gameTime * 20);
+                
+                int srcX = centerX + (int)((x - centerX) * warp);
+                int srcY = centerY + (int)((y - centerY) * warp);
+                
+                srcX = Math.Clamp(srcX, 0, W - 1);
+                srcY = Math.Clamp(srcY, 0, H - 1);
+                
+                _px[y * W + x] = tempPx[srcY * W + srcX];
+            }
+        }
+    }
+    
+    void ApplyHeartbeatVignette(double beatIntensity, double healthFactor)
+    {
+        // Pulsing dark red vignette when low health - creepy heartbeat effect
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                double nx = (x / (double)W) * 2 - 1;
+                double ny = (y / (double)H) * 2 - 1;
+                double edge = Math.Max(Math.Abs(nx), Math.Abs(ny));
+                
+                double vignette = Math.Pow(edge, 1.5) * (0.3 + beatIntensity * 0.5) * healthFactor;
+                
+                if (vignette > 0.01)
+                {
+                    int i = y * W + x;
+                    uint c = _px[i];
+                    uint cr = (c >> 16) & 0xFF;
+                    uint cg = (c >> 8) & 0xFF;
+                    uint cb = c & 0xFF;
+                    
+                    // Dark red pulsing vignette
+                    cr = (uint)Math.Min(255, cr + (100 * vignette * beatIntensity));
+                    cg = (uint)(cg * (1 - vignette * 0.7));
+                    cb = (uint)(cb * (1 - vignette * 0.7));
+                    
+                    _px[i] = 0xFF000000 | (cr << 16) | (cg << 8) | cb;
+                }
+            }
+        }
+    }
+    
+    void ApplyDeathEffect(double progress)
+    {
+        // Screen goes dark, grayscale, tilts (creepy death)
+        double darkness = Math.Min(0.8, progress * 0.8);
+        double grayscale = Math.Min(1.0, progress);
+        
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                int i = y * W + x;
+                uint c = _px[i];
+                uint cr = (c >> 16) & 0xFF;
+                uint cg = (c >> 8) & 0xFF;
+                uint cb = c & 0xFF;
+                
+                // Convert to grayscale
+                uint gray = (uint)(cr * 0.3 + cg * 0.59 + cb * 0.11);
+                cr = (uint)(cr * (1 - grayscale) + gray * grayscale);
+                cg = (uint)(cg * (1 - grayscale) + gray * grayscale);
+                cb = (uint)(cb * (1 - grayscale) + gray * grayscale);
+                
+                // Darken
+                cr = (uint)(cr * (1 - darkness));
+                cg = (uint)(cg * (1 - darkness));
+                cb = (uint)(cb * (1 - darkness));
+                
+                // Add slight red tint at edges (blood pooling effect)
+                double edge = Math.Max(Math.Abs((x / (double)W) * 2 - 1), Math.Abs((y / (double)H) * 2 - 1));
+                if (edge > 0.6 && progress > 0.3)
+                {
+                    double bloodTint = (edge - 0.6) * 2 * (progress - 0.3);
+                    cr = (uint)Math.Min(255, cr + 80 * bloodTint);
+                }
+                
+                _px[i] = 0xFF000000 | (cr << 16) | (cg << 8) | cb;
+            }
         }
     }
     
@@ -2151,20 +2425,24 @@ public partial class DoomGame : Window
         {
             wobbleAmount *= 3;
             
-            // Draw spinning stars above head when stunned! ⭐
+            // Draw floating eyes around stunned enemies 👁️
             if (y < 0.15)
             {
-                double starAngle = en.WobblePhase * 2;
-                for (int s = 0; s < 3; s++)
+                double eyeAngle = en.WobblePhase * 1.5;
+                for (int s = 0; s < 4; s++)
                 {
-                    double sAngle = starAngle + s * Math.PI * 2 / 3;
-                    double starX = Math.Cos(sAngle) * 0.15;
-                    double starY = 0.08 + Math.Sin(sAngle * 2) * 0.03;
+                    double sAngle = eyeAngle + s * Math.PI * 2 / 4;
+                    double eyeX = Math.Cos(sAngle) * 0.18;
+                    double eyeY = 0.06 + Math.Sin(sAngle * 3) * 0.02;
                     
-                    if (Math.Abs(x - starX) < 0.04 && Math.Abs(y - starY) < 0.04)
+                    // Draw creepy floating eyes
+                    double distToEye = Math.Sqrt((x - eyeX) * (x - eyeX) + (y - eyeY) * (y - eyeY));
+                    if (distToEye < 0.035)
                     {
-                        // Alternating yellow and white stars
-                        return s % 2 == 0 ? 0xFFFFFF00u : 0xFFFFFFFFu;
+                        // Pupil in center
+                        if (distToEye < 0.012) return 0xFF000000u; // Black pupil
+                        if (distToEye < 0.02) return 0xFFFF0000u;  // Red iris
+                        return 0xFFFFFFFFu; // White of eye
                     }
                 }
             }
@@ -2177,209 +2455,245 @@ public partial class DoomGame : Window
 
         bool hurt = en.HurtTimer > 0;
 
-        // Each enemy type has unique appearance
+        // Each enemy type has unique CREEPY appearance
         switch (en.Type)
         {
             case EnemyType.Trooper:
-                // Green alien trooper with helmet
+                // Smiling mannequin with too many teeth
                 {
-                    uint bodyColor = hurt ? 0xFFFFAAAAu : 0xFF336633u;
-                    uint helmetColor = 0xFF225522u;
-                    uint eyeColor = 0xFFFF0000u;
-                    uint visorColor = 0xFF88FF88u;
+                    uint skinColor = hurt ? 0xFFFFCCCCu : 0xFFEEDDCCu; // Pale plastic skin
+                    uint teethColor = 0xFFFFFFFFu;
+                    uint eyeWhite = 0xFFFFFFFFu;
+                    uint pupil = 0xFF000000u;
 
-                    // Helmet/head (top)
-                    if (y < 0.25)
+                    // Smooth featureless head
+                    if (y < 0.28)
                     {
-                        double headDist = x * x + (y - 0.12) * (y - 0.12);
-                        if (headDist < 0.025)
+                        double headDist = x * x + (y - 0.14) * (y - 0.14);
+                        if (headDist < 0.028)
                         {
-                            // Visor
-                            if (y > 0.08 && y < 0.18 && Math.Abs(x) < 0.1)
-                                return visorColor;
-                            return helmetColor;
+                            // HUGE unblinking eyes
+                            double leftEye = (x + 0.06) * (x + 0.06) + (y - 0.11) * (y - 0.11);
+                            double rightEye = (x - 0.06) * (x - 0.06) + (y - 0.11) * (y - 0.11);
+                            if (leftEye < 0.003 || rightEye < 0.003) return pupil; // Tiny pupils
+                            if (leftEye < 0.012 || rightEye < 0.012) return eyeWhite; // Big white eyes
+                            
+                            // Wide frozen smile (too wide)
+                            if (y > 0.17 && y < 0.23 && Math.Abs(x) < 0.12)
+                            {
+                                double smileCurve = 0.19 + Math.Abs(x) * 0.3;
+                                if (y > smileCurve && y < smileCurve + 0.025)
+                                    return teethColor; // Teeth!
+                                if (y > smileCurve - 0.01 && y < smileCurve)
+                                    return 0xFF220000u; // Dark mouth
+                            }
+                            return skinColor;
                         }
-                        // Red eyes behind visor
-                        if (y > 0.1 && y < 0.16 && (Math.Abs(x - 0.04) < 0.02 || Math.Abs(x + 0.04) < 0.02))
-                            return eyeColor;
                     }
-                    // Body
-                    if (y >= 0.2 && y < 0.75 && Math.Abs(x) < 0.18 - (y - 0.2) * 0.15)
-                        return bodyColor;
-                    // Arms (holding weapon)
-                    if (y > 0.25 && y < 0.5 && Math.Abs(x) > 0.12 && Math.Abs(x) < 0.3)
-                        return bodyColor;
+                    // Stiff body
+                    if (y >= 0.25 && y < 0.75 && Math.Abs(x) < 0.16)
+                        return skinColor;
+                    // Arms at wrong angles
+                    if (y > 0.25 && y < 0.55 && Math.Abs(x) > 0.1 && Math.Abs(x) < 0.28)
+                        return skinColor;
                     // Legs
                     if (y >= 0.7 && y < 0.95)
                     {
-                        if (Math.Abs(x - 0.08) < 0.06 || Math.Abs(x + 0.08) < 0.06)
-                            return bodyColor;
+                        if (Math.Abs(x - 0.06) < 0.05 || Math.Abs(x + 0.06) < 0.05)
+                            return skinColor;
                     }
                     return 0;
                 }
 
             case EnemyType.PigCop:
-                // Blue uniformed pig cop
+                // Creepy happy mascot with dead eyes
                 {
-                    uint bodyColor = hurt ? 0xFFFFAAAAu : 0xFF4444AAu;
-                    uint skinColor = 0xFFFFBB99u;
-                    uint badgeColor = 0xFFFFDD00u;
+                    uint furColor = hurt ? 0xFFFFBBBBu : 0xFFFFAABBu; // Pink but wrong
+                    uint noseColor = 0xFFFF6688u;
+                    uint eyeColor = 0xFF000000u; // Dead black eyes
 
-                    // Pig head (pink, round)
-                    if (y < 0.28)
+                    // Round mascot head
+                    if (y < 0.32)
                     {
-                        double headDist = x * x + (y - 0.14) * (y - 0.14);
-                        if (headDist < 0.03)
+                        double headDist = x * x + (y - 0.16) * (y - 0.16);
+                        if (headDist < 0.04)
                         {
-                            // Snout
-                            if (y > 0.15 && y < 0.22 && Math.Abs(x) < 0.05)
-                                return 0xFFFFAAAAu;
-                            // Eyes
-                            if (y > 0.08 && y < 0.14 && (Math.Abs(x - 0.06) < 0.025 || Math.Abs(x + 0.06) < 0.025))
-                                return 0xFF000000u;
-                            return skinColor;
+                            // Big shiny nose
+                            if ((x * x + (y - 0.22) * (y - 0.22)) < 0.008)
+                                return noseColor;
+                            // Small dead black eyes (no reflection)
+                            if (y > 0.08 && y < 0.15)
+                            {
+                                if ((Math.Abs(x - 0.07) < 0.025 || Math.Abs(x + 0.07) < 0.025))
+                                    return eyeColor;
+                            }
+                            // Painted-on blush circles
+                            double leftBlush = (x + 0.1) * (x + 0.1) + (y - 0.18) * (y - 0.18);
+                            double rightBlush = (x - 0.1) * (x - 0.1) + (y - 0.18) * (y - 0.18);
+                            if (leftBlush < 0.004 || rightBlush < 0.004)
+                                return 0xFFFF8899u;
+                            return furColor;
                         }
+                        // Ears
+                        if (y < 0.08 && (Math.Abs(x - 0.1) < 0.04 || Math.Abs(x + 0.1) < 0.04))
+                            return furColor;
                     }
-                    // Blue uniform body
-                    if (y >= 0.25 && y < 0.8 && Math.Abs(x) < 0.2 - (y - 0.25) * 0.12)
+                    // Puffy body
+                    if (y >= 0.28 && y < 0.8 && Math.Abs(x) < 0.22 - (y - 0.28) * 0.1)
+                        return furColor;
+                    // Stubby arms
+                    if (y > 0.35 && y < 0.55 && Math.Abs(x) > 0.15 && Math.Abs(x) < 0.3)
+                        return furColor;
+                    // Stubby legs
+                    if (y >= 0.75 && y < 0.95)
                     {
-                        // Badge on chest
-                        if (y > 0.3 && y < 0.4 && x > 0.02 && x < 0.1)
-                            return badgeColor;
-                        return bodyColor;
-                    }
-                    // Arms
-                    if (y > 0.3 && y < 0.55 && Math.Abs(x) > 0.15 && Math.Abs(x) < 0.32)
-                        return bodyColor;
-                    // Legs
-                    if (y >= 0.75 && y < 0.98)
-                    {
-                        if (Math.Abs(x - 0.07) < 0.07 || Math.Abs(x + 0.07) < 0.07)
-                            return 0xFF333388u;
+                        if (Math.Abs(x - 0.08) < 0.07 || Math.Abs(x + 0.08) < 0.07)
+                            return furColor;
                     }
                     return 0;
                 }
 
             case EnemyType.Enforcer:
-                // Gray armored enforcer
+                // Faceless figure in a suit
                 {
-                    uint armorColor = hurt ? 0xFFFFAAAAu : 0xFF666666u;
-                    uint darkArmor = 0xFF444444u;
-                    uint visorColor = 0xFFFF4400u;
+                    uint suitColor = hurt ? 0xFFAAAABBu : 0xFF222233u; // Dark suit
+                    uint shirtColor = 0xFFFFFFFFu;
+                    uint skinColor = 0xFFDDCCBBu; // But wrong shade
+                    uint noFace = 0xFFEEDDCCu; // Blank face
 
-                    // Helmet with visor
+                    // Smooth blank head (no features)
                     if (y < 0.26)
                     {
                         double headDist = x * x + (y - 0.13) * (y - 0.13);
-                        if (headDist < 0.028)
+                        if (headDist < 0.025)
                         {
-                            // Orange visor slit
-                            if (y > 0.1 && y < 0.16 && Math.Abs(x) < 0.12)
-                                return visorColor;
-                            return darkArmor;
+                            // Just... nothing. A blank oval.
+                            // Wait, is that a faint smile?
+                            if (y > 0.18 && y < 0.2 && Math.Abs(x) < 0.06)
+                                return 0xFFDDBBAAu; // Barely visible smile line
+                            return noFace;
                         }
                     }
-                    // Bulky armored body
-                    if (y >= 0.22 && y < 0.78 && Math.Abs(x) < 0.22 - (y - 0.22) * 0.1)
+                    // Sharp suit
+                    if (y >= 0.24 && y < 0.78 && Math.Abs(x) < 0.18)
                     {
-                        // Chest plate detail
-                        if (y > 0.28 && y < 0.5 && Math.Abs(x) < 0.15)
-                            return armorColor;
-                        return darkArmor;
+                        // White shirt/tie area
+                        if (Math.Abs(x) < 0.04 && y > 0.26 && y < 0.5)
+                            return shirtColor;
+                        // Red tie
+                        if (Math.Abs(x) < 0.02 && y > 0.28 && y < 0.48)
+                            return 0xFF880022u;
+                        return suitColor;
                     }
-                    // Big arms
-                    if (y > 0.28 && y < 0.6 && Math.Abs(x) > 0.15 && Math.Abs(x) < 0.35)
-                        return armorColor;
+                    // Arms
+                    if (y > 0.28 && y < 0.6 && Math.Abs(x) > 0.12 && Math.Abs(x) < 0.28)
+                        return suitColor;
+                    // Hands (wrong color)
+                    if (y > 0.55 && y < 0.65 && Math.Abs(x) > 0.2 && Math.Abs(x) < 0.3)
+                        return skinColor;
                     // Legs
                     if (y >= 0.72 && y < 0.98)
                     {
-                        if (Math.Abs(x - 0.1) < 0.08 || Math.Abs(x + 0.1) < 0.08)
-                            return darkArmor;
+                        if (Math.Abs(x - 0.06) < 0.06 || Math.Abs(x + 0.06) < 0.06)
+                            return suitColor;
                     }
                     return 0;
                 }
 
             case EnemyType.Octabrain:
-                // Purple floating brain with tentacles
+                // Giant floating eyeball with tentacles
                 {
-                    uint brainColor = hurt ? 0xFFFFAAAAu : 0xFFAA4488u;
-                    uint eyeColor = 0xFF00FF00u;
-                    uint tentacleColor = 0xFF884466u;
+                    uint eyeWhite = hurt ? 0xFFFFDDDDu : 0xFFFFEEEEu;
+                    uint irisColor = 0xFF884400u; // Brown iris
+                    uint pupilColor = 0xFF000000u;
+                    uint veinColor = 0xFFDD8888u;
+                    uint tentacleColor = 0xFFAA6666u;
 
-                    // Large brain dome
-                    double brainY = 0.25;
-                    double brainDist = x * x + (y - brainY) * (y - brainY);
-                    if (brainDist < 0.08)
+                    // Huge eyeball
+                    double eyeY = 0.28;
+                    double eyeDist = x * x + (y - eyeY) * (y - eyeY);
+                    if (eyeDist < 0.1)
                     {
-                        // Green glowing eyes
-                        if (y > 0.28 && y < 0.38)
-                        {
-                            if ((Math.Abs(x - 0.08) < 0.04 || Math.Abs(x + 0.08) < 0.04))
-                                return eyeColor;
-                        }
-                        // Brain wrinkles
-                        if (y < 0.2 && ((int)((x + 0.3) * 20) % 3 == 0))
-                            return 0xFF993377u;
-                        return brainColor;
+                        // Pupil (follows you?)
+                        double pupilX = Math.Sin(_gameTime * 2) * 0.02;
+                        double pupilDist = (x - pupilX) * (x - pupilX) + (y - eyeY) * (y - eyeY);
+                        if (pupilDist < 0.008) return pupilColor;
+                        if (pupilDist < 0.025) return irisColor;
+                        
+                        // Red veins
+                        if (((int)((x + y) * 30) % 5 == 0) && eyeDist > 0.04)
+                            return veinColor;
+                        return eyeWhite;
                     }
-                    // Tentacles below (wavy)
-                    if (y > 0.45 && y < 0.9)
+                    // Nerve tentacles below
+                    if (y > 0.5 && y < 0.95)
                     {
-                        double wave = Math.Sin(_gameTime * 5 + x * 10) * 0.03;
-                        if (Math.Abs(x - 0.12 + wave) < 0.04 ||
-                            Math.Abs(x + 0.12 + wave) < 0.04 ||
-                            Math.Abs(x + wave) < 0.03)
+                        double wave = Math.Sin(_gameTime * 4 + x * 8) * 0.04;
+                        if (Math.Abs(x - 0.1 + wave) < 0.035 ||
+                            Math.Abs(x + 0.1 + wave) < 0.035 ||
+                            Math.Abs(x + wave) < 0.025)
                             return tentacleColor;
                     }
                     return 0;
                 }
 
             case EnemyType.BattleLord:
-                // Large brown boss with horns
+                // Giant teddy bear... but wrong
                 {
-                    uint bodyColor = hurt ? 0xFFFFAAAAu : 0xFF888844u;
-                    uint darkBody = 0xFF665533u;
-                    uint hornColor = 0xFF444422u;
-                    uint eyeColor = 0xFFFF0000u;
+                    uint furColor = hurt ? 0xFFDDBBAAu : 0xFFAA8866u; // Dirty brown fur
+                    uint darkFur = 0xFF665544u;
+                    uint eyeColor = 0xFF000000u; // Button eyes
+                    uint stitchColor = 0xFF332211u;
 
-                    // Horns at top
-                    if (y < 0.15)
-                    {
-                        if ((x > 0.1 && x < 0.25 && y < 0.1 - (x - 0.15) * 0.3) ||
-                            (x < -0.1 && x > -0.25 && y < 0.1 - (-x - 0.15) * 0.3))
-                            return hornColor;
-                    }
-                    // Large head
-                    if (y < 0.3)
+                    // Big round head
+                    if (y < 0.32)
                     {
                         double headDist = x * x + (y - 0.18) * (y - 0.18);
-                        if (headDist < 0.04)
+                        if (headDist < 0.05)
                         {
-                            // Red glowing eyes
-                            if (y > 0.14 && y < 0.22)
+                            // Round ears
+                            double leftEar = (x + 0.14) * (x + 0.14) + (y - 0.06) * (y - 0.06);
+                            double rightEar = (x - 0.14) * (x - 0.14) + (y - 0.06) * (y - 0.06);
+                            if (leftEar < 0.008 || rightEar < 0.008) return darkFur;
+                            
+                            // Button eyes (x-shaped stitches)
+                            if (y > 0.12 && y < 0.2)
                             {
-                                if (Math.Abs(x - 0.08) < 0.035 || Math.Abs(x + 0.08) < 0.035)
-                                    return eyeColor;
+                                if (Math.Abs(x - 0.08) < 0.04 || Math.Abs(x + 0.08) < 0.04)
+                                {
+                                    // X pattern
+                                    double ex = Math.Abs(x) - 0.08;
+                                    double ey = y - 0.16;
+                                    if (Math.Abs(Math.Abs(ex) - Math.Abs(ey)) < 0.015)
+                                        return eyeColor;
+                                }
                             }
-                            return bodyColor;
+                            // Stitched smile
+                            if (y > 0.22 && y < 0.28 && Math.Abs(x) < 0.1)
+                            {
+                                double smileCurve = 0.24 + x * x * 2;
+                                if (Math.Abs(y - smileCurve) < 0.015)
+                                    return stitchColor;
+                            }
+                            return furColor;
                         }
                     }
-                    // Massive body
-                    if (y >= 0.26 && y < 0.85 && Math.Abs(x) < 0.28 - (y - 0.26) * 0.08)
+                    // Big stuffed body
+                    if (y >= 0.28 && y < 0.85 && Math.Abs(x) < 0.3 - (y - 0.28) * 0.1)
                     {
-                        // Chest armor plates
-                        if (Math.Abs(x) > 0.1 && y < 0.55)
-                            return darkBody;
-                        return bodyColor;
+                        // Visible stitching down middle
+                        if (Math.Abs(x) < 0.015 && ((int)(y * 20) % 2 == 0))
+                            return stitchColor;
+                        return furColor;
                     }
-                    // Thick arms
-                    if (y > 0.3 && y < 0.65 && Math.Abs(x) > 0.2 && Math.Abs(x) < 0.42)
-                        return bodyColor;
-                    // Legs
+                    // Stubby arms
+                    if (y > 0.32 && y < 0.6 && Math.Abs(x) > 0.22 && Math.Abs(x) < 0.4)
+                        return furColor;
+                    // Stubby legs
                     if (y >= 0.8 && y < 1.0)
                     {
                         if (Math.Abs(x - 0.12) < 0.1 || Math.Abs(x + 0.12) < 0.1)
-                            return darkBody;
+                            return furColor;
                     }
                     return 0;
                 }
@@ -2587,25 +2901,64 @@ public partial class DoomGame : Window
 
     void RenderWeapon()
     {
-        int weaponW = 160, weaponH = 120;
+        int weaponW = 256, weaponH = 192;  // Higher resolution weapon sprites
         int baseX = W / 2 - weaponW / 2;
         
-        // Enhanced weapon bob (based on movement)
+        // Enhanced weapon bob (based on movement) - scaled for higher res
         bool isMoving = _keysDown.Contains(Key.W) || _keysDown.Contains(Key.S) || 
                         _keysDown.Contains(Key.A) || _keysDown.Contains(Key.D);
         double bobSpeed = isMoving ? 12 : 2;
-        double bobAmount = isMoving ? 6 : 2;
+        double bobAmount = isMoving ? 10 : 3;  // Scaled
         _weaponBob = Math.Sin(_gameTime * bobSpeed) * bobAmount;
         
-        // Weapon sway when turning (subtle)
-        double sway = Math.Sin(_gameTime * 8) * 2;
+        // Weapon sway when turning (subtle) - scaled
+        double sway = Math.Sin(_gameTime * 8) * 3;
+        
+        // === ROBUST ANIMATION: Breathing/idle animation ===
+        double breathe = Math.Sin(_breathingPhase) * 2.5;  // Scaled
+        double creepySway = Math.Sin(_creepyAmbientPhase * 0.7) * Math.Sin(_creepyAmbientPhase * 1.3) * 3;  // Scaled
+        
+        // === ROBUST ANIMATION: Recoil kick-back ===
+        double recoilY = _weaponRecoil * 64; // Kick down (scaled)
+        double recoilX = _weaponRecoil * (Math.Sin(_gameTime * 50) * 8); // Slight shake (scaled)
+        
+        // === ROBUST ANIMATION: Weapon swap (lower then raise) ===
+        double swapOffset = 0;
+        if (_isSwappingWeapon)
+        {
+            // First half: lower weapon, second half: raise new weapon
+            if (_weaponSwapAnim < 0.5)
+            {
+                swapOffset = _weaponSwapAnim * 2 * 240; // Lower out of view (scaled)
+            }
+            else
+            {
+                swapOffset = (1 - (_weaponSwapAnim - 0.5) * 2) * 240; // Raise back up (scaled)
+            }
+        }
+        
+        // === ROBUST ANIMATION: Idle inspect (tilt weapon) ===
+        double inspectTilt = _weaponInspectAnim * Math.Sin(_gameTime * 2) * 0.15;
+        double inspectRaise = Math.Sin(_weaponInspectAnim * 3.14159) * 32;  // Scaled
+        
+        // === ROBUST ANIMATION: Landing squash ===
+        double squashY = _landingSquash * 48;  // Scaled
+        double squashScaleY = 1 - _landingSquash * 0.2;
+        
+        // === ROBUST ANIMATION: Low health heartbeat pulse ===
+        double heartbeatPulse = 0;
+        if (_hp < 30)
+        {
+            heartbeatPulse = Math.Pow(Math.Sin(_heartbeatPhase), 8) * 16;  // Scaled
+        }
         
         // Aiming position adjustment
-        int aimOffset = _isAiming ? 20 : 0;
+        int aimOffset = _isAiming ? 32 : 0;  // Scaled
         
-        int baseY = H - weaponH + (_shooting ? -25 : 0) - aimOffset;
+        int baseY = H - weaponH + (_shooting ? -40 : 0) - aimOffset;  // Scaled shoot offset
+        baseY += (int)(recoilY + swapOffset + breathe + squashY - inspectRaise + heartbeatPulse);
         int bob = (int)_weaponBob;
-        int swayX = (int)sway;
+        int swayX = (int)(sway + recoilX + creepySway);
 
         for (int y = Math.Max(0, baseY + bob); y < H; y++)
         {
@@ -2613,6 +2966,12 @@ public partial class DoomGame : Window
             {
                 double rx = (double)(x - baseX - swayX) / weaponW;  // 0 to 1
                 double ry = (double)(y - baseY - bob) / weaponH;  // 0 to 1
+                
+                // Apply squash scale
+                ry = 0.5 + (ry - 0.5) / squashScaleY;
+                
+                // Apply inspect tilt
+                rx += (ry - 0.5) * inspectTilt;
 
                 uint color = GetWeaponPixel(rx, ry);
                 if ((color & 0xFF000000) != 0)
@@ -2624,9 +2983,9 @@ public partial class DoomGame : Window
         if (_shooting && _shootFrame < 4 && _currentWeapon > 0 && _currentWeapon != 5)
         {
             _muzzleFlashTimer = 0.08;
-            int flashX = W / 2 + swayX + (_currentWeapon == 2 ? -5 : 0);
-            int flashY = baseY + bob - 30;
-            int flashSize = _currentWeapon == 4 ? 30 : _currentWeapon == 3 ? 25 : 22;
+            int flashX = W / 2 + swayX + (_currentWeapon == 2 ? -8 : 0);
+            int flashY = baseY + bob - 48;  // Scaled
+            int flashSize = _currentWeapon == 4 ? 48 : _currentWeapon == 3 ? 40 : 35;  // Scaled
 
             // Outer glow
             for (int y = Math.Max(0, flashY - flashSize); y < Math.Min(H, flashY + flashSize * 2); y++)
@@ -2690,56 +3049,72 @@ public partial class DoomGame : Window
 
     uint RenderFist(double x, double y)
     {
-        // Arm
+        // CREEPY: Pale mannequin hand with too many fingers
+        uint skin = 0xFFEEDDCCu; // Pale plastic skin
+        uint skinDark = 0xFFDDCCBBu;
+        uint nail = 0xFFFFEEDDu;
+        
+        // Arm (too smooth, no wrinkles)
         if (y > 0.4 && Math.Abs(x) < 0.15 + (y - 0.4) * 0.3)
         {
-            uint skin = 0xFFDDBB99u;
-            if (Math.Abs(x) > 0.12 + (y - 0.4) * 0.25) skin = 0xFFCCAA88u; // Shading
+            if (Math.Abs(x) > 0.12 + (y - 0.4) * 0.25) return skinDark;
             return skin;
         }
-        // Fist
+        // Fist with visible knuckle bumps
         if (y > 0.2 && y < 0.5)
         {
             double fistWidth = 0.22 - Math.Abs(y - 0.35) * 0.3;
             if (Math.Abs(x) < fistWidth)
             {
-                // Knuckles
+                // Pronounced knuckles (unsettling bumps)
                 if (y > 0.22 && y < 0.32)
                 {
                     double knuckleX = (x + 0.15) * 4;
-                    if (Math.Sin(knuckleX * 3.14159) > 0.3) return 0xFFEECCAAu;
-                    return 0xFFCCAA88u;
+                    if (Math.Sin(knuckleX * 3.14159) > 0.5) return 0xFFFFEEDDu; // Too white
+                    return skinDark;
                 }
-                return 0xFFDDBB99u;
+                // Visible tendons
+                if (y > 0.32 && y < 0.45 && ((int)((x + 0.2) * 20) % 4 == 0))
+                    return skinDark;
+                return skin;
             }
         }
-        // Thumb
+        // Extra thumb? Or is it a sixth finger?
         if (y > 0.25 && y < 0.4 && x > 0.1 && x < 0.25)
-            return 0xFFCCAA88u;
+        {
+            // Long nail
+            if (y > 0.25 && y < 0.28) return nail;
+            return skinDark;
+        }
+        // Hint of extra fingers on the other side
+        if (y > 0.28 && y < 0.38 && x < -0.15 && x > -0.22)
+            return skinDark;
         return 0;
     }
 
     uint RenderPistol(double x, double y)
     {
-        uint metal = 0xFF555566u;
-        uint metalDark = 0xFF333344u;
-        uint metalLight = 0xFF777788u;
-        uint grip = 0xFF443322u;
-        uint gripLight = 0xFF554433u;
+        // CREEPY: Antique derringer with mother-of-pearl grip that seems to have a face
+        uint metal = 0xFF554455u; // Tarnished
+        uint metalDark = 0xFF332233u;
+        uint metalLight = 0xFF776677u;
+        uint pearl = 0xFFEEDDDDu; // Creepy pearl
+        uint pearlDark = 0xFFDDCCCCu;
 
-        // Slide (top part)
+        // Ornate slide with etchings
         if (y > 0.15 && y < 0.38 && Math.Abs(x) < 0.08)
         {
-            if (y < 0.2) return metalLight; // Top edge
-            if (Math.Abs(x) > 0.06) return metalDark; // Side shading
-            // Ejection port
-            if (y > 0.22 && y < 0.28 && x > 0.02 && x < 0.055) return metalDark;
+            if (y < 0.2) return metalLight;
+            if (Math.Abs(x) > 0.06) return metalDark;
+            // Etched pattern (looks like teeth?)
+            if (y > 0.25 && y < 0.32 && ((int)((x + 0.1) * 40) % 3 == 0))
+                return metalLight;
             return metal;
         }
-        // Barrel
+        // Barrel with dark bore
         if (y > 0.08 && y < 0.2 && Math.Abs(x) < 0.04)
         {
-            if (Math.Abs(x) < 0.02) return metalDark; // Bore
+            if (Math.Abs(x) < 0.02) return 0xFF110011u; // Deep void bore
             return metal;
         }
         // Frame
@@ -2751,344 +3126,434 @@ public partial class DoomGame : Window
         // Trigger guard
         if (y > 0.42 && y < 0.55 && x > -0.08 && x < 0.03)
         {
-            if (y > 0.5 && Math.Abs(x + 0.025) < 0.04) return 0; // Guard hole
-            if (Math.Abs(x + 0.02) < 0.015 && y > 0.44 && y < 0.52) return metalDark; // Trigger
+            if (y > 0.5 && Math.Abs(x + 0.025) < 0.04) return 0;
+            if (Math.Abs(x + 0.02) < 0.015 && y > 0.44 && y < 0.52) return metalDark;
             return metal;
         }
-        // Grip
+        // Pearl grip with face pattern
         if (y > 0.48 && Math.Abs(x) < 0.09 - (y - 0.48) * 0.1)
         {
-            // Grip texture
+            // Is that... a face in the pearl?
+            double faceY = y - 0.58;
+            double faceDist = x * x + faceY * faceY;
+            if (faceDist < 0.002) return 0xFF000000u; // Eye?
+            if (faceDist < 0.004) return pearlDark;
+            // Texture
             int texY = (int)(y * 60) % 3;
-            if (texY == 0) return gripLight;
-            if (x < 0) return grip;
-            return gripLight;
+            if (texY == 0) return pearl;
+            return pearlDark;
         }
-        // Hand
+        // Pale hand
         if (y > 0.55 && Math.Abs(x) < 0.18)
         {
-            if (Math.Abs(x) < 0.08) return 0xFFDDBB99u;
-            if (y > 0.6) return 0xFFDDBB99u;
+            if (Math.Abs(x) < 0.08) return 0xFFEEDDCCu;
+            if (y > 0.6) return 0xFFEEDDCCu;
         }
         return 0;
     }
 
     uint RenderShotgun(double x, double y)
     {
-        uint wood = 0xFF664422u;
-        uint woodLight = 0xFF885533u;
-        uint woodDark = 0xFF442211u;
-        uint metal = 0xFF555555u;
-        uint metalDark = 0xFF333333u;
+        // CREEPY: Bone-stock shotgun with teeth along the barrel
+        uint bone = 0xFFEEDDCCu;      // Bone white
+        uint boneDark = 0xFFCCBBAAu;
+        uint boneLight = 0xFFFFEEDDu;
+        uint tooth = 0xFFFFFFEEu;     // Teeth white
+        uint metal = 0xFF444444u;
+        uint metalDark = 0xFF222222u;
 
-        // Double barrels
+        // Double barrels with teeth around the rim
         if (y > 0.05 && y < 0.25)
         {
             if (Math.Abs(x - 0.04) < 0.035 || Math.Abs(x + 0.04) < 0.035)
             {
-                if (y < 0.1) return metalDark; // Bore openings
+                if (y < 0.1)
+                {
+                    // Ring of teeth around barrel openings
+                    double angle = Math.Atan2(x - 0.04, y - 0.07);
+                    if (Math.Sin(angle * 8) > 0.3) return tooth;
+                    return metalDark;
+                }
                 return metal;
             }
-            // Barrel rib
             if (Math.Abs(x) < 0.015 && y > 0.1) return metalDark;
         }
-        // Receiver
+        // Receiver (bone-like)
         if (y > 0.22 && y < 0.4 && Math.Abs(x) < 0.1)
         {
             if (y < 0.26) return metal;
-            if (Math.Abs(x) > 0.08) return metalDark;
-            return metal;
+            if (Math.Abs(x) > 0.08) return boneDark;
+            return bone;
         }
-        // Forend (pump grip)
+        // Forend made of vertebrae?
         if (y > 0.35 && y < 0.5 && Math.Abs(x) < 0.12)
         {
-            int groove = (int)((x + 0.12) * 40) % 4;
-            if (groove == 0) return woodDark;
-            return wood;
+            // Vertebrae segments
+            int seg = (int)((y - 0.35) * 30) % 4;
+            if (seg == 0) return boneDark; // Gaps between vertebrae
+            if (seg == 2) return boneLight;
+            return bone;
         }
-        // Stock
+        // Stock made of bone
         if (y > 0.48 && Math.Abs(x) < 0.14 - (y - 0.48) * 0.15)
         {
-            if (x < -0.05) return woodDark;
-            if (x > 0.08) return woodLight;
-            return wood;
+            // Carved face in the stock?
+            double faceX = x + 0.02;
+            double faceY = y - 0.65;
+            if (faceX * faceX + faceY * faceY < 0.003) return 0xFF000000u; // Eye socket
+            if (x < -0.05) return boneDark;
+            if (x > 0.08) return boneLight;
+            return bone;
         }
-        // Hands
+        // Pale hands
         if (y > 0.38 && y < 0.55)
         {
-            if (x > 0.12 && x < 0.28) return 0xFFDDBB99u; // Front hand
+            if (x > 0.12 && x < 0.28) return 0xFFEEDDCCu;
         }
-        if (y > 0.6 && Math.Abs(x) < 0.2) return 0xFFDDBB99u; // Rear hand
+        if (y > 0.6 && Math.Abs(x) < 0.2) return 0xFFEEDDCCu;
         return 0;
     }
 
     uint RenderRipper(double x, double y)
     {
-        uint metal = 0xFF444455u;
-        uint metalDark = 0xFF222233u;
-        uint metalLight = 0xFF666677u;
+        // CREEPY: Meat grinder with spinning eyes instead of barrels
+        uint flesh = 0xFFAA8888u;
+        uint fleshDark = 0xFF886666u;
+        uint fleshLight = 0xFFCCAAAAu;
+        uint eye = 0xFFFFFFFFu;
+        uint pupil = 0xFF000000u;
+        uint bloodRed = 0xFF992222u;
 
-        // Multiple barrels (rotary)
+        // Multiple EYES (spinning)
         if (y > 0.02 && y < 0.28)
         {
-            double barrelAngle = _gameTime * (_shooting ? 30 : 0);
+            double eyeAngle = _gameTime * (_shooting ? 30 : 2);
             for (int i = 0; i < 6; i++)
             {
-                double angle = barrelAngle + i * 3.14159 / 3;
-                double bx = Math.Cos(angle) * 0.05;
-                double by = Math.Sin(angle) * 0.05 * 0.3 + 0.15;
-                double dist = Math.Sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
+                double angle = eyeAngle + i * 3.14159 / 3;
+                double ex = Math.Cos(angle) * 0.05;
+                double ey = Math.Sin(angle) * 0.05 * 0.3 + 0.15;
+                double dist = Math.Sqrt((x - ex) * (x - ex) + (y - ey) * (y - ey));
                 if (dist < 0.025)
                 {
-                    if (dist < 0.012) return metalDark; // Bore
-                    return metal;
+                    if (dist < 0.008) return pupil; // Dilated pupil
+                    if (dist < 0.012) return 0xFF884422u; // Brown iris
+                    // Bloodshot veins
+                    if (((int)((x + y) * 50) % 4 == 0)) return bloodRed;
+                    return eye;
                 }
             }
-            // Center hub
-            if (Math.Abs(x) < 0.03 && y > 0.1 && y < 0.2) return metalLight;
+            // Central hub (meaty)
+            if (Math.Abs(x) < 0.03 && y > 0.1 && y < 0.2) return fleshDark;
         }
-        // Barrel housing
+        // Eye socket housing
         if (y > 0.1 && y < 0.3 && Math.Abs(x) < 0.1)
         {
             double dist = Math.Sqrt(x * x + (y - 0.15) * (y - 0.15) * 4);
-            if (dist < 0.12 && dist > 0.08) return metalDark;
+            if (dist < 0.12 && dist > 0.08) return fleshDark;
         }
-        // Body
+        // Fleshy body
         if (y > 0.28 && y < 0.55 && Math.Abs(x) < 0.12)
         {
-            if (Math.Abs(x) > 0.1) return metalDark;
-            // Ammo counter window
-            if (y > 0.35 && y < 0.42 && x > 0.02 && x < 0.08) return 0xFF00AA00u;
-            return metal;
+            if (Math.Abs(x) > 0.1) return fleshDark;
+            // Ammo counter (glowing teeth count?)
+            if (y > 0.35 && y < 0.42 && x > 0.02 && x < 0.08)
+            {
+                // Teeth pattern
+                if (((int)(y * 60) % 2 == 0)) return 0xFFFFFFEEu;
+                return 0xFF220000u;
+            }
+            // Veiny texture
+            if (((int)((x + y) * 30) % 5 == 0)) return bloodRed;
+            return flesh;
         }
-        // Handle
+        // Handle (wrapped in skin?)
         if (y > 0.5 && y < 0.75 && Math.Abs(x) < 0.1 - (y - 0.5) * 0.2)
         {
-            if (x < 0) return metalDark;
-            return metal;
+            if (x < 0) return fleshDark;
+            return flesh;
         }
-        // Hand
-        if (y > 0.6 && Math.Abs(x) < 0.2) return 0xFFDDBB99u;
-        // Forward grip
-        if (y > 0.35 && y < 0.5 && x > 0.1 && x < 0.22) return 0xFFDDBB99u;
+        // Pale hands
+        if (y > 0.6 && Math.Abs(x) < 0.2) return 0xFFEEDDCCu;
+        if (y > 0.35 && y < 0.5 && x > 0.1 && x < 0.22) return 0xFFEEDDCCu;
         return 0;
     }
 
     uint RenderRPG(double x, double y)
     {
-        uint tube = 0xFF445544u;
-        uint tubeDark = 0xFF223322u;
-        uint tubeLight = 0xFF557755u;
-        uint metal = 0xFF555555u;
+        // CREEPY: Haunted baby doll launcher
+        uint plastic = 0xFFEEDDCCu; // Doll skin
+        uint plasticDark = 0xFFCCBBAAu;
+        uint hair = 0xFFAA8844u;
+        uint dress = 0xFFDDAACCu; // Pink dress
 
-        // Main tube
-        if (y > 0.05 && y < 0.45 && Math.Abs(x) < 0.1)
+        // Doll head as warhead
+        if (y > 0.02 && y < 0.2)
+        {
+            double headDist = x * x + (y - 0.11) * (y - 0.11);
+            if (headDist < 0.008)
+            {
+                // Face
+                double leftEye = (x + 0.03) * (x + 0.03) + (y - 0.09) * (y - 0.09);
+                double rightEye = (x - 0.03) * (x - 0.03) + (y - 0.09) * (y - 0.09);
+                if (leftEye < 0.0008 || rightEye < 0.0008) return 0xFF000000u; // Button eyes
+                // Smile (always smiling)
+                if (y > 0.12 && y < 0.14 && Math.Abs(x) < 0.04)
+                    return 0xFF882222u;
+                return plastic;
+            }
+            // Hair
+            if (y < 0.08 && headDist < 0.012) return hair;
+        }
+        // Tube body (doll body?)
+        if (y > 0.15 && y < 0.45 && Math.Abs(x) < 0.09)
         {
             double dist = Math.Abs(x);
-            if (dist > 0.08) return tubeDark;
-            if (dist < 0.03) return tubeLight;
-            // Warhead tip
-            if (y < 0.12)
+            if (dist > 0.07) return plasticDark;
+            // Dress on the rocket tube
+            if (y > 0.2 && y < 0.4)
             {
-                if (y < 0.08) return 0xFF666655u; // Cone
-                return 0xFFAA4444u; // Red band
+                int ruffle = (int)(y * 30) % 3;
+                if (ruffle == 0) return 0xFFCCAACCu;
+                return dress;
             }
-            // Tube segments
-            int seg = (int)(y * 20) % 5;
-            if (seg == 0) return tubeDark;
-            return tube;
+            return plastic;
         }
-        // Front sight
-        if (y > 0.1 && y < 0.18 && Math.Abs(x - 0.12) < 0.02) return metal;
+        // Front sight (tiny arm waving)
+        if (y > 0.1 && y < 0.2 && x > 0.1 && x < 0.16) return plastic;
         // Rear sight
-        if (y > 0.35 && y < 0.42 && Math.Abs(x - 0.12) < 0.025) return metal;
+        if (y > 0.35 && y < 0.42 && Math.Abs(x - 0.12) < 0.025) return 0xFF555555u;
         // Grip assembly
         if (y > 0.4 && y < 0.65 && x > -0.05 && x < 0.08)
         {
-            // Trigger
-            if (y > 0.45 && y < 0.52 && Math.Abs(x + 0.01) < 0.015) return metal;
-            return metal;
+            if (y > 0.45 && y < 0.52 && Math.Abs(x + 0.01) < 0.015) return 0xFF444444u;
+            return 0xFF554444u;
         }
         // Shoulder rest
         if (y > 0.55 && y < 0.8 && Math.Abs(x) < 0.12 - (y - 0.55) * 0.2)
         {
-            if (x < 0) return tubeDark;
-            return tube;
+            if (x < 0) return plasticDark;
+            return plastic;
         }
-        // Hands
-        if (y > 0.5 && y < 0.65 && x > 0.06 && x < 0.22) return 0xFFDDBB99u;
-        if (y > 0.65 && Math.Abs(x) < 0.18) return 0xFFDDBB99u;
+        // Pale hands
+        if (y > 0.5 && y < 0.65 && x > 0.06 && x < 0.22) return 0xFFEEDDCCu;
+        if (y > 0.65 && Math.Abs(x) < 0.18) return 0xFFEEDDCCu;
         return 0;
     }
 
     uint RenderPipeBomb(double x, double y)
     {
-        uint skin = 0xFFDDBB99u;
-        uint skinDark = 0xFFCCAA88u;
-        uint bomb = 0xFF446644u;
-        uint bombDark = 0xFF334433u;
-        uint fuse = 0xFFAAAA55u;
+        // CREEPY: Music box that plays when thrown
+        uint skin = 0xFFEEDDCCu; // Pale hands
+        uint skinDark = 0xFFDDCCBBu;
+        uint box = 0xFF664433u; // Antique wood
+        uint boxDark = 0xFF442211u;
+        uint gold = 0xFFDDBB44u; // Brass fittings
 
-        // Hand holding bomb
+        // Pale hand holding music box
         if (y > 0.35)
         {
-            // Palm
             if (Math.Abs(x) < 0.2 && y > 0.5)
             {
                 if (x < -0.1) return skinDark;
                 return skin;
             }
-            // Fingers wrapped around
+            // Long pale fingers
             for (int i = 0; i < 4; i++)
             {
                 double fx = -0.1 + i * 0.06;
                 double fy = 0.35 + Math.Sin((x - fx) * 10) * 0.03;
                 if (Math.Abs(x - fx) < 0.025 && y > fy && y < fy + 0.18)
                 {
-                    if (y < fy + 0.05) return skinDark; // Knuckle
+                    // Long fingernails
+                    if (y < fy + 0.03) return 0xFFFFEEDDu;
+                    if (y < fy + 0.05) return skinDark;
                     return skin;
                 }
             }
-            // Thumb
             if (x > 0.08 && x < 0.18 && y > 0.3 && y < 0.5) return skin;
         }
-        // Pipe bomb
-        if (y > 0.15 && y < 0.55 && Math.Abs(x) < 0.07)
+        // Music box
+        if (y > 0.15 && y < 0.55 && Math.Abs(x) < 0.08)
         {
-            // End caps
-            if (y < 0.2 || y > 0.5)
+            // Lid (slightly open, dancer visible?)
+            if (y < 0.22)
             {
-                if (Math.Abs(x) < 0.05) return 0xFF555555u;
+                if (Math.Abs(x) < 0.06) return boxDark;
             }
-            // Fuse
-            if (y < 0.2 && Math.Abs(x) < 0.015) return fuse;
-            // Body
-            if (Math.Abs(x) > 0.055) return bombDark;
-            // Label/marking
-            if (y > 0.3 && y < 0.4 && Math.Abs(x) < 0.04) return 0xFFAA2222u;
-            return bomb;
+            // Tiny ballerina silhouette
+            if (y > 0.22 && y < 0.35 && Math.Abs(x) < 0.02)
+                return 0xFFFFCCDDu;
+            // Gold trim
+            if (y > 0.2 && y < 0.22) return gold;
+            if (y > 0.48 && y < 0.5) return gold;
+            // Body panels
+            if (Math.Abs(x) > 0.06) return boxDark;
+            // Ornate pattern (looks like faces?)
+            if (y > 0.35 && y < 0.45)
+            {
+                double patDist = x * x + (y - 0.4) * (y - 0.4);
+                if (patDist < 0.001) return 0xFF000000u; // Eye?
+            }
+            return box;
         }
-        // Fuse wire going up
-        if (y < 0.18 && y > 0.02 && Math.Abs(x) < 0.01) return fuse;
-        // Spark at tip
-        if (y < 0.06 && Math.Abs(x) < 0.02)
+        // Wind-up key on side
+        if (y > 0.28 && y < 0.38 && x > 0.08 && x < 0.14)
         {
-            double spark = Math.Sin(_gameTime * 20) * 0.5 + 0.5;
-            if (spark > 0.3) return 0xFFFFAA00u;
+            if (y > 0.31 && y < 0.35) return gold;
+            return 0xFF887744u;
         }
         return 0;
     }
 
     uint RenderMiniRocket(double x, double y)
     {
-        // Small rocket held in hands — compact visual distinct from RPG
-        uint body = 0xFF666633u;
-        uint tip = 0xFFFF6644u;
-        uint fin = 0xFF333322u;
+        // CREEPY: Tiny screaming face missile
+        uint face = 0xFFEEDDCCu;
+        uint faceDark = 0xFFDDCCBBu;
+        uint mouth = 0xFF440000u;
 
-        // Hand
-        if (y > 0.5 && Math.Abs(x) < 0.18) return 0xFFDDBB99u;
+        // Pale hand
+        if (y > 0.5 && Math.Abs(x) < 0.18) return 0xFFEEDDCCu;
 
-        // Rocket body (slim)
+        // Face-shaped rocket body
         if (y > 0.12 && y < 0.42 && Math.Abs(x) < 0.06)
         {
-            if (Math.Abs(x) < 0.03) return body;
-            return 0xFF444433u;
+            // Screaming face
+            double faceY = y - 0.27;
+            // Eyes (wide with terror)
+            if (y > 0.16 && y < 0.22)
+            {
+                if (Math.Abs(x - 0.025) < 0.015 || Math.Abs(x + 0.025) < 0.015)
+                    return 0xFF000000u;
+            }
+            // Screaming mouth (O shape)
+            if (y > 0.26 && y < 0.36)
+            {
+                double mouthDist = x * x + (y - 0.31) * (y - 0.31);
+                if (mouthDist < 0.002) return mouth;
+                if (mouthDist < 0.004) return 0xFF220000u;
+            }
+            if (Math.Abs(x) < 0.03) return face;
+            return faceDark;
         }
 
-        // Tip
-        if (y > 0.06 && y < 0.14 && Math.Abs(x) < 0.05) return tip;
+        // Hair/flames at back
+        if (y > 0.38 && y < 0.48 && Math.Abs(x) < 0.05)
+        {
+            double wave = Math.Sin(_gameTime * 15 + x * 20) * 0.01;
+            if (Math.Abs(x + wave) < 0.03) return 0xFFFF4400u;
+        }
 
-        // Small fins
-        if (y > 0.38 && y < 0.46 && (Math.Abs(x - 0.07) < 0.02 || Math.Abs(x + 0.07) < 0.02)) return fin;
+        // Tiny arms as fins
+        if (y > 0.32 && y < 0.4 && (Math.Abs(x - 0.07) < 0.02 || Math.Abs(x + 0.07) < 0.02))
+            return face;
 
         return 0;
     }
     
     uint RenderCamera(double x, double y)
     {
-        // Retro instant camera (like a Polaroid) 📸
-        uint bodyColor = 0xFF222233u;     // Dark blue-gray body
-        uint lensRing = 0xFF888899u;      // Silver lens ring
-        uint lensDark = 0xFF111122u;      // Dark lens
-        uint flashUnit = 0xFFCCCCCCu;     // Silver flash bar
-        uint grip = 0xFF332222u;          // Dark grip
-        uint viewfinder = 0xFF333344u;    // Viewfinder
-        uint redLight = 0xFFFF2222u;      // Ready light
-        uint accent = 0xFFFF6600u;        // Orange accent stripe
+        // CREEPY: Antique camera with an eye for a lens 👁️📸
+        uint bodyColor = 0xFF332222u;     // Old mahogany
+        uint bodyDark = 0xFF221111u;
+        uint brass = 0xFF997744u;         // Tarnished brass
+        uint eyeWhite = 0xFFFFEEEEu;      // The lens is an EYE
+        uint iris = 0xFF446688u;          // Blue iris
+        uint pupil = 0xFF000011u;
+        uint flesh = 0xFFDDCCBBu;         // Organic parts?
         
-        // Hands holding camera
+        // Pale hands holding camera
         if (y > 0.55 && Math.Abs(x) < 0.25)
         {
-            if (Math.Abs(x) > 0.15 || y > 0.65) return 0xFFDDBB99u;
+            if (Math.Abs(x) > 0.15 || y > 0.65) return 0xFFEEDDCCu;
         }
         
-        // Camera body (boxy shape)
+        // Camera body (boxy but organic-looking)
         if (y > 0.15 && y < 0.55 && Math.Abs(x) < 0.22)
         {
-            // Top edge with flash unit
+            // Top edge with flash unit (teeth?)
             if (y < 0.22)
             {
-                // Flash bar across top
                 if (Math.Abs(x) < 0.18 && y < 0.19)
                 {
                     // Flash is bright when shooting!
                     if (_shooting && _shootFrame < 3)
-                        return 0xFFFFFFFFu; // Bright white flash!
-                    return flashUnit;
+                        return 0xFFFFFFFFu;
+                    // Row of teeth instead of flash bar
+                    int toothIdx = (int)((x + 0.18) * 20) % 3;
+                    if (toothIdx == 0) return 0xFFFFFFEEu; // Teeth
+                    return bodyDark;
                 }
                 return bodyColor;
             }
             
-            // Orange accent stripe
-            if (y > 0.22 && y < 0.26) return accent;
+            // Brass trim (tarnished)
+            if (y > 0.22 && y < 0.26)
+            {
+                if (((int)(x * 30) % 4 == 0)) return 0xFF776633u;
+                return brass;
+            }
             
-            // Viewfinder (small rectangle top-right)
+            // Viewfinder (another small eye?)
             if (y > 0.26 && y < 0.32 && x > 0.08 && x < 0.18)
-                return viewfinder;
+            {
+                double vfDist = (x - 0.13) * (x - 0.13) + (y - 0.29) * (y - 0.29);
+                if (vfDist < 0.0008) return pupil;
+                if (vfDist < 0.002) return iris;
+                return eyeWhite;
+            }
             
-            // Ready light (blinks when shooting)
+            // Ready light (blinks - like a heartbeat)
             if (y > 0.27 && y < 0.31 && x > -0.15 && x < -0.11)
             {
-                double blink = Math.Sin(_gameTime * 10);
-                if (blink > 0 || _shooting) return redLight;
+                double pulse = Math.Sin(_gameTime * 6) * 0.5 + 0.5;
+                if (pulse > 0.7 || _shooting) return 0xFFFF2222u;
                 return 0xFF440000u;
             }
             
-            // Lens area (circular)
+            // MAIN LENS - IT'S AN EYE
             double lensX = x + 0.02;
             double lensY = y - 0.38;
             double lensDist = lensX * lensX + lensY * lensY;
             
-            if (lensDist < 0.025) // Outer lens ring
+            if (lensDist < 0.025)
             {
-                if (lensDist < 0.015) // Inner lens (dark)
+                // Pupil (contracts when shooting!)
+                double pupilSize = _shooting ? 0.003 : 0.008;
+                if (lensDist < pupilSize) return pupil;
+                
+                // Iris
+                if (lensDist < 0.015)
                 {
-                    if (lensDist < 0.008)
-                    {
-                        // Lens reflection highlight
-                        if (lensX < -0.02 && lensY < -0.02) return 0xFF4444AAu;
-                        return lensDark;
-                    }
-                    return 0xFF222244u;
+                    // Iris pattern
+                    double angle = Math.Atan2(lensY, lensX);
+                    if (Math.Sin(angle * 12) > 0.3) return 0xFF5577AAu;
+                    return iris;
                 }
-                return lensRing;
+                
+                // Bloodshot veins in the white
+                if (((int)((lensX + lensY) * 50) % 4 == 0)) return 0xFFDD8888u;
+                return eyeWhite;
             }
             
-            // Body shading
-            if (x < -0.15) return 0xFF1A1A28u; // Left shadow
-            if (x > 0.15) return 0xFF2A2A3Au; // Right highlight
+            // Fleshy eyelid frame around lens
+            if (lensDist < 0.035 && lensDist > 0.024)
+                return flesh;
+            
+            // Body texture (wood grain... or veins?)
+            if (((int)(y * 40) % 6 == 0)) return bodyDark;
+            if (x < -0.15) return bodyDark;
             
             return bodyColor;
         }
         
-        // Grip (bottom)
+        // Grip (wrapped in something leathery... or is it skin?)
         if (y > 0.48 && y < 0.58 && Math.Abs(x) < 0.20)
         {
-            // Grip texture (horizontal lines)
             int grooves = (int)(y * 40) % 3;
-            if (grooves == 0) return 0xFF221111u;
-            return grip;
+            if (grooves == 0) return 0xFF332222u;
+            return flesh;
         }
         
         return 0;
@@ -3244,6 +3709,7 @@ public partial class DoomGame : Window
     void Shoot()
     {
         if (_shooting) return;
+        if (_isSwappingWeapon) return; // Can't shoot while swapping
         if (_currentWeapon > 0 && _currentWeapon != 5 && _ammo[_currentWeapon] <= 0)
         {
             ShowMessage("Out of ammo!");
@@ -3255,7 +3721,12 @@ public partial class DoomGame : Window
 
         _shooting = true;
         _shootFrame = 0;
+        _idleTimer = 0; // Reset idle timer
         if (_currentWeapon > 0 && _currentWeapon != 5) _ammo[_currentWeapon]--;
+        
+        // === ANIMATION: Weapon recoil based on weapon type ===
+        double[] recoilAmounts = { 0.15, 0.25, 0.6, 0.1, 0.8, 0.2, 0.5, 0.3 };
+        TriggerWeaponRecoil(recoilAmounts[_currentWeapon]);
 
         foreach (var en in _enemies)
             if (Dist(en.X, en.Y) < 120) en.Alerted = true;
@@ -3391,11 +3862,12 @@ public partial class DoomGame : Window
                 en.HurtTimer = 0.2; // Visual feedback
                 stunCount++;
                 
-                // Spawn stars around stunned enemy!
+                // Spawn creepy particles - red and white (eyes?)
                 for (int s = 0; s < 5; s++)
                 {
                     double angle = s * Math.PI * 2 / 5;
-                    _particles.Add((en.X, en.Y, Math.Cos(angle) * 0.05, Math.Sin(angle) * 0.05, 1.0, 0xFFFFFF00u));
+                    uint eyeColor = s % 2 == 0 ? 0xFFFF0000u : 0xFFFFFFFFu;
+                    _particles.Add((en.X, en.Y, Math.Cos(angle) * 0.05, Math.Sin(angle) * 0.05, 1.0, eyeColor));
                 }
             }
         }
@@ -3404,11 +3876,11 @@ public partial class DoomGame : Window
         {
             string[] flashQuotes = { "Smile forever. 📷", "Now I have your soul.", "They'll never blink again.", "Captured. Like the others.", "The camera sees what you hide." };
             SayQuote(flashQuotes[_rnd.Next(flashQuotes.Length)]);
-            ShowMessage($"STUNNED {stunCount}!");
+            ShowMessage($"CAPTURED {stunCount}...");
         }
         else
         {
-            ShowMessage("Nobody in frame!");
+            ShowMessage("...nothing there?");
         }
     }
     #endregion
@@ -3494,13 +3966,13 @@ public partial class DoomGame : Window
         if (e.Key == Key.J) ToggleJetpack();
         if (e.Key == Key.R && !_gameOver) UseSteroids();
 
-        if (e.Key == Key.D1) _currentWeapon = 0;
-        if (e.Key == Key.D2) _currentWeapon = 1;
-        if (e.Key == Key.D3 && _ammo[2] > 0) _currentWeapon = 2;
-        if (e.Key == Key.D4 && _ammo[3] > 0) _currentWeapon = 3;
-        if (e.Key == Key.D5 && _ammo[4] > 0) _currentWeapon = 4;
-        if (e.Key == Key.D6 && _ammo[5] > 0) _currentWeapon = 5;
-        if (e.Key == Key.D7 && _ammo.Length > 6 && _ammo[6] > 0) _currentWeapon = 6;
+        if (e.Key == Key.D1) SwitchWeapon(0);
+        if (e.Key == Key.D2) SwitchWeapon(1);
+        if (e.Key == Key.D3 && _ammo[2] > 0) SwitchWeapon(2);
+        if (e.Key == Key.D4 && _ammo[3] > 0) SwitchWeapon(3);
+        if (e.Key == Key.D5 && _ammo[4] > 0) SwitchWeapon(4);
+        if (e.Key == Key.D6 && _ammo[5] > 0) SwitchWeapon(5);
+        if (e.Key == Key.D7 && _ammo.Length > 6 && _ammo[6] > 0) SwitchWeapon(6);
 
         if (e.Key == Key.Tab) MinimapBorder.Visibility = MinimapBorder.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         if (e.Key == Key.P) TogglePause();
