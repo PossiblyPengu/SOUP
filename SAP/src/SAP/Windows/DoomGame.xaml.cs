@@ -40,42 +40,44 @@ public partial class DoomGame : Window
     static readonly uint[] CeilTex = new uint[TEX * TEX];
     #endregion
 
-    #region Silly Quotes
+    #region Creepy-Silly Quotes
     static readonly string[] KillQuotes = {
-        "Boop!",
-        "You've been spreadsheet'd!",
-        "Ctrl+Alt+Defeated!",
-        "Error 404: Enemy not found!",
-        "Have a nice day!",
-        "That tickled!",
-        "Woopsie daisy!",
-        "Back to the recycle bin!",
-        "Your data has been corrupted!",
-        "Task failed successfully!"
+        "They're smiling. Why are they smiling?",
+        "Shhh... go to sleep now.",
+        "You look so peaceful...",
+        "Another friend for my collection!",
+        "Do you hear them too?",
+        "Your screensaver misses you.",
+        "The spreadsheets remember everything.",
+        "They're still watching. They're always watching.",
+        "Was that... laughter?",
+        "Don't worry. It only hurts forever. 🙂"
     };
 
     static readonly string[] LevelCompleteQuotes = {
-        "Spreadsheet complete!",
-        "All formulas balanced!",
-        "Time for a coffee break!",
-        "That was actually kinda fun!",
-        "Another productive day at the office!"
+        "The floor is satisfied... for now.",
+        "They've stopped screaming.",
+        "Deeper. We must go deeper.",
+        "The walls are pleased with you. 🙂",
+        "You can never leave. But you can try."
     };
 
     static readonly string[] HurtQuotes = {
-        "Ow! My spreadsheets!",
-        "That's not in my budget!",
-        "I need a vacation..."
+        "That felt... familiar.",
+        "The pain is just a reminder.",
+        "They're inside the walls...",
+        "Is that my blood or theirs?",
+        "It's fine. Everything is fine. 🙂"
     };
 
     static readonly string[] KillStreakQuotes = {
-        "Combo meal!",
-        "Hat trick!",
-        "You're on fire! (figuratively)",
-        "Somebody stop them!",
-        "IS THIS EVEN LEGAL?!",
-        "MOM GET THE CAMERA!",
-        "ABSOLUTE LEGEND!"
+        "They keep coming back...",
+        "Why won't they stay down?",
+        "The pile grows taller.",
+        "Can you hear them whispering?",
+        "They're still smiling.",
+        "Is this what you wanted?",
+        "W̷̧E̸̢ ̵̢S̴̛E̷͝E̸ ̵Y̸O̷U̸"
     };
     #endregion
 
@@ -1307,29 +1309,30 @@ public partial class DoomGame : Window
             });
         }
         
-        // Spawn extra confetti on death!
+        // Spawn creepy particles on death!
         SpawnConfetti(en.X, en.Y, explosive ? 25 : 12);
     }
     
-    // Spawn colorful confetti particles
+    // Spawn unsettling particle effects
     void SpawnConfetti(double x, double y, int count)
     {
-        uint[] confettiColors = { 
-            0xFFFF69B4u, // Hot pink
-            0xFF00FF00u, // Lime green
-            0xFFFFFF00u, // Yellow
-            0xFF00FFFFu, // Cyan
-            0xFFFF00FFu, // Magenta
-            0xFFFF8C00u, // Orange
-            0xFF7B68EEu, // Purple
-            0xFF00CED1u  // Turquoise
+        // Creepy colors: pale flesh, teeth, eyes, void black
+        uint[] creepyColors = { 
+            0xFFEEDDCCu, // Pale flesh
+            0xFFFFFFFFu, // Teeth white
+            0xFF881111u, // Dark blood
+            0xFF111111u, // Void black
+            0xFFFFFF00u, // Yellow eyes
+            0xFFDDAAAAu, // Sickly skin
+            0xFF332222u, // Dried blood
+            0xFFFF0000u  // Red pupils
         };
         
         for (int i = 0; i < count; i++)
         {
             double angle = _rnd.NextDouble() * PI2;
             double speed = 0.05 + _rnd.NextDouble() * 0.15;
-            uint color = confettiColors[_rnd.Next(confettiColors.Length)];
+            uint color = creepyColors[_rnd.Next(creepyColors.Length)];
             _particles.Add((x, y, Math.Cos(angle) * speed, Math.Sin(angle) * speed, 1.5, color));
         }
     }
@@ -3171,7 +3174,8 @@ public partial class DoomGame : Window
         SteroidsIcon.Background = _steroids > 0 ? new SolidColorBrush(Color.FromRgb(80, 80, 20)) : new SolidColorBrush(Color.FromRgb(51, 51, 51));
 
         // Silly face based on health!
-        DukeFace.Text = _hp > 75 ? "😊" : _hp > 50 ? "😅" : _hp > 25 ? "😰" : "🥴";
+        // Creepy faces that get more unsettling as health drops
+        DukeFace.Text = _hp > 75 ? "🙂" : _hp > 50 ? "🙃" : _hp > 25 ? "👁️" : "💀";
 
         // Power-up bars
         bool hasPowerUps = _invincibilityTimer > 0 || _damageBoostTimer > 0;
@@ -3204,12 +3208,12 @@ public partial class DoomGame : Window
             KillStreakCount.Text = $"x{_killStreak}";
             string streakName = _killStreak switch
             {
-                3 => "NICE COMBO!",
-                4 => "ON A ROLL!",
-                5 => "UNSTOPPABLE-ISH!",
-                6 => "WOW SUCH SKILL!",
-                7 => "KEYBOARD WARRIOR!",
-                _ => _killStreak >= 8 ? "ACTUAL LEGEND!" : "ZOINKS!"
+                3 => "IT BEGINS...",
+                4 => "THEY NOTICED YOU",
+                5 => "SOMETHING IS WRONG",
+                6 => "CAN'T STOP NOW",
+                7 => "T̶H̶E̶Y̶ ̶S̶E̶E̶",
+                _ => _killStreak >= 8 ? "Ẁ̵̡H̷A̴T̵ ̶H̵A̶V̶E̷ ̴Y̸O̷U̴ ̴D̵O̷N̵E̶" : "...huh?"
             };
             KillStreakText.Text = streakName;
         }
@@ -3398,7 +3402,7 @@ public partial class DoomGame : Window
         
         if (stunCount > 0)
         {
-            string[] flashQuotes = { "Say cheese! 📸", "Picture perfect!", "Paparazzi time!", "Flash mob!", "Smile for the camera!" };
+            string[] flashQuotes = { "Smile forever. 📷", "Now I have your soul.", "They'll never blink again.", "Captured. Like the others.", "The camera sees what you hide." };
             SayQuote(flashQuotes[_rnd.Next(flashQuotes.Length)]);
             ShowMessage($"STUNNED {stunCount}!");
         }
