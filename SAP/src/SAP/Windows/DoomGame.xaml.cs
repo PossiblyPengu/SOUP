@@ -160,11 +160,6 @@ public partial class DoomGame : Window
     
     // Particles for blood/explosion effects
     List<(double x, double y, double dx, double dy, double life, uint color)> _particles = new();
-    
-    // Wall decals (blood splatters, bullet holes) - reserved for future feature
-#pragma warning disable CS0414
-    List<(int mapX, int mapY, int side, double wallPos, uint color, double size)> _wallDecals = new();
-#pragma warning restore CS0414
 
     // === OPTIMIZATION: Pre-allocated buffers to avoid GC pressure ===
     List<(double x, double y, double r, double g, double b, double intensity)> _lightBuffer = new(16);
@@ -6228,7 +6223,6 @@ public partial class DoomGame : Window
         _cameraCooldown = 0;
         _weaponBob = 0;
         _particles.Clear();
-        _wallDecals.Clear();
         _bodyParts.Clear();
         GameOverScreen.Visibility = Visibility.Collapsed;
         VictoryScreen.Visibility = Visibility.Collapsed;

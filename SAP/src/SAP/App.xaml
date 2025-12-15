@@ -14,15 +14,13 @@
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:BoolToSortArrowConverter x:Key="BoolToSortArrowConverter"/>
             <converters:BoolToSuccessColorConverter x:Key="BoolToSuccessColorConverter"/>
-            <converters:BoolToAccentColorConverter x:Key="BoolToAccentColorConverter"/>
+
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
             <!-- Chart Converters -->
             <converters:PercentageToHeightConverter x:Key="PercentageToHeightConverter"/>
             <converters:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>
             <converters:StringToColorConverter x:Key="StringToColorConverter"/>
             <converters:CriticalToHeightConverter x:Key="CriticalToHeightConverter"/>
-            <!-- Sorting Converters -->
-            <converters:SortToggleConverter x:Key="SortToggleConverter"/>
             <!-- Resource Converters -->
             <converters:ResourceKeyConverter x:Key="ResourceKeyConverter"/>
             <!-- Nav Item Converters -->

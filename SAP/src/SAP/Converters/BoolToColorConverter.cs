@@ -28,24 +28,4 @@ public class BoolToSuccessColorConverter : IValueConverter
     }
 }
 
-/// <summary>
-/// Converts a boolean value to accent/default color
-/// </summary>
-public class BoolToAccentColorConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        if (value is bool boolValue)
-        {
-            return boolValue 
-                ? new SolidColorBrush(Color.FromRgb(59, 130, 246))  // Blue accent
-                : new SolidColorBrush(Color.FromRgb(156, 163, 175)); // Gray
-        }
-        return new SolidColorBrush(Color.FromRgb(156, 163, 175)); // Gray default
-    }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-}
