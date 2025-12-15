@@ -1636,6 +1636,12 @@ public partial class DoomGame : Window
         if (_paused || _gameOver || _levelComplete || _victory) return;
 
         _gameTime += dt;
+        
+        // === OPTIMIZATION: Cache trig values once per frame for all systems ===
+        _sinPa = Math.Sin(_pa);
+        _cosPa = Math.Cos(_pa);
+        _sinPaPlus = Math.Sin(_pa + PI / 2);
+        _cosPaPlus = Math.Cos(_pa + PI / 2);
 
         ProcessMouse();
         UpdatePlayer(dt);
@@ -1872,11 +1878,13 @@ public partial class DoomGame : Window
         double rs = 0.06;
 
         // === OPTIMIZATION: Use cached trig values ===
+        // cos(a-PI/2) = sin(a), sin(a-PI/2) = -cos(a)
+        // cos(a+PI/2) = -sin(a), sin(a+PI/2) = cos(a)
         double inputX = 0, inputY = 0;
         if (_keysDown.Contains(Key.W)) { inputX += _cosPa; inputY += _sinPa; }
         if (_keysDown.Contains(Key.S)) { inputX -= _cosPa; inputY -= _sinPa; }
-        if (_keysDown.Contains(Key.A)) { inputX += _cosPa * 0 - _sinPa; inputY += _sinPa * 0 + _cosPa; } // cos(a-90) = sin(a), sin(a-90) = -cos(a)
-        if (_keysDown.Contains(Key.D)) { inputX += _sinPa; inputY += -_cosPa; } // cos(a+90) = -sin(a), sin(a+90) = cos(a) - simplified
+        if (_keysDown.Contains(Key.A)) { inputX += _sinPa; inputY -= _cosPa; } // Strafe left
+        if (_keysDown.Contains(Key.D)) { inputX -= _sinPa; inputY += _cosPa; } // Strafe right
 
         double inputLen = Math.Sqrt(inputX * inputX + inputY * inputY);
         bool isMoving = inputLen > 0.01;
@@ -2626,11 +2634,7 @@ public partial class DoomGame : Window
     #region Rendering
     void Render()
     {
-        // === OPTIMIZATION: Cache trig values for this frame ===
-        _sinPa = Math.Sin(_pa);
-        _cosPa = Math.Cos(_pa);
-        _sinPaPlus = Math.Sin(_pa + PI / 2);
-        _cosPaPlus = Math.Cos(_pa + PI / 2);
+        // === OPTIMIZATION: FOV-specific trig values (base trig cached in GameLoop) ===
         double fovAngle = _isAiming ? 0.35 : 0.5;
         _sinPaMinus = Math.Sin(_pa - fovAngle);
         _cosPaMinus = Math.Cos(_pa - fovAngle);
