@@ -86,6 +86,7 @@
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="AMMO:" Foreground="#888" FontSize="10" FontFamily="Consolas"/>
                             <TextBlock x:Name="AmmoText" Text="48" Foreground="White" FontSize="20" FontFamily="Impact" Margin="8,0,0,0"/>
+                            <TextBlock x:Name="FilmText" Text="📷 24" Foreground="#FFD700" FontSize="12" FontFamily="Segoe UI" Margin="12,4,0,0" ToolTip="Camera Film (Middle Click)"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                             <TextBlock Text="KEYS:" Foreground="#888" FontSize="9" FontFamily="Consolas" Margin="0,0,5,0"/>

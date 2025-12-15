@@ -105,7 +105,7 @@ public partial class DoomGame : Window
     int _hp = 100, _armor = 0, _score = 0;
     bool[] _keys = new bool[3];         // R, B, Y keys
     int _currentWeapon = 1;
-    int[] _ammo = { 999, 48, 12, 200, 10, 5, 8 }; // Boot, Pistol, Shotgun, Ripper, RPG, Pipebomb, MiniRocket
+    int[] _ammo = { 999, 48, 12, 200, 10, 5, 8, 24 }; // Boot, Pistol, Shotgun, Ripper, RPG, Pipebomb, MiniRocket, Camera
     int _currentLevel = 1; // Now used as 'stage' or 'depth' in endless mode
     int _kills = 0, _totalEnemies = 0, _secretsFound = 0, _totalSecrets = 0;
     
@@ -147,7 +147,7 @@ public partial class DoomGame : Window
 #pragma warning restore CS0414
 
     // Weapons - Duke style
-    readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB", "MINI ROCKET" };
+    readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB", "MINI ROCKET", "FLASH CAMERA" };
 
     // Sound effect helper
     void PlaySound(string filename)
@@ -167,9 +167,11 @@ public partial class DoomGame : Window
         }
     }
 
-    readonly int[] _weaponDamage = { 25, 12, 50, 8, 120, 150, 80 };
-    readonly double[] _weaponFireRate = { 0.5, 0.25, 0.9, 0.08, 1.2, 0.3, 0.9 };
-    readonly double[] _weaponSpread = { 0, 0.02, 0.12, 0.06, 0, 0, 0 };
+    readonly int[] _weaponDamage = { 25, 12, 50, 8, 120, 150, 80, 0 };
+    readonly double[] _weaponFireRate = { 0.5, 0.25, 0.9, 0.08, 1.2, 0.3, 0.9, 1.5 };
+    readonly double[] _weaponSpread = { 0, 0.02, 0.12, 0.06, 0, 0, 0, 0 };
+    double _cameraFlashTimer = 0; // Screen flash when using camera
+    double _cameraCooldown = 0;   // Cooldown for middle-click camera
     bool _shooting = false;
     int _shootFrame = 0;
     double _lastShot = 0;
@@ -235,6 +237,10 @@ public partial class DoomGame : Window
         public double WobbleSpeed;
         public double LeanAngle;         // Leaning when moving
         public double BobPhase;          // Bounce when walking
+        
+        // Stun from camera flash
+        public double StunTimer;
+        public bool IsStunned => StunTimer > 0;
     }
 
     enum PickupType { Health, Armor, Ammo, Shotgun, Ripper, RPG, KeyRed, KeyBlue, KeyYellow, Medkit, Jetpack, Steroids, AtomicHealth, Exit, Invincibility, DamageBoost }
@@ -820,6 +826,8 @@ public partial class DoomGame : Window
         if (_screenShakeTimer > 0) _screenShakeTimer -= dt;
         if (_damageVignetteTimer > 0) _damageVignetteTimer -= dt;
         if (_muzzleFlashTimer > 0) _muzzleFlashTimer -= dt;
+        if (_cameraFlashTimer > 0) _cameraFlashTimer -= dt;
+        if (_cameraCooldown > 0) _cameraCooldown -= dt;
         
         // Kill streak decay
         if (_killStreakTimer > 0)
@@ -1005,6 +1013,15 @@ public partial class DoomGame : Window
         {
             if (en.Dead) { en.DeathTimer += dt; continue; }
             if (en.HurtTimer > 0) en.HurtTimer -= dt;
+            
+            // Update stun timer
+            if (en.StunTimer > 0)
+            {
+                en.StunTimer -= dt;
+                // Stunned enemies wobble extra fast (dizzy!)
+                en.WobblePhase += en.WobbleSpeed * dt * 4;
+                continue; // Skip AI while stunned
+            }
             
             // Always update wobble phase for idle animation
             en.WobblePhase += en.WobbleSpeed * dt;
@@ -1571,6 +1588,13 @@ public partial class DoomGame : Window
             ApplyScreenTint((uint)(0x10 + pulse * 0x10) << 24 | 0xFF4400);
         }
         
+        // Camera flash effect (bright white screen)
+        if (_cameraFlashTimer > 0)
+        {
+            double flashIntensity = _cameraFlashTimer / 0.3;
+            ApplyCameraFlash(flashIntensity);
+        }
+        
         // Apply screen shake effect
         if (_screenShakeTimer > 0)
         {
@@ -1693,6 +1717,19 @@ public partial class DoomGame : Window
             uint r = (uint)(((c >> 16) & 0xFF) * (1 - alpha) + tintR * alpha);
             uint g = (uint)(((c >> 8) & 0xFF) * (1 - alpha) + tintG * alpha);
             uint b = (uint)((c & 0xFF) * (1 - alpha) + tintB * alpha);
+            _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
+    
+    void ApplyCameraFlash(double intensity)
+    {
+        // Bright white flash that fades out
+        for (int i = 0; i < _px.Length; i++)
+        {
+            uint c = _px[i];
+            uint r = (uint)Math.Min(255, ((c >> 16) & 0xFF) + 255 * intensity);
+            uint g = (uint)Math.Min(255, ((c >> 8) & 0xFF) + 255 * intensity);
+            uint b = (uint)Math.Min(255, (c & 0xFF) + 255 * intensity);
             _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
         }
     }
@@ -2105,6 +2142,30 @@ public partial class DoomGame : Window
         // More wobble at the top (head), less at bottom (feet)
         double wobbleAmount = Math.Sin(en.WobblePhase) * 0.08 * (1 - y);
         double bobAmount = Math.Sin(en.BobPhase) * 0.03;
+        
+        // Stunned enemies wobble extra!
+        if (en.IsStunned)
+        {
+            wobbleAmount *= 3;
+            
+            // Draw spinning stars above head when stunned! ⭐
+            if (y < 0.15)
+            {
+                double starAngle = en.WobblePhase * 2;
+                for (int s = 0; s < 3; s++)
+                {
+                    double sAngle = starAngle + s * Math.PI * 2 / 3;
+                    double starX = Math.Cos(sAngle) * 0.15;
+                    double starY = 0.08 + Math.Sin(sAngle * 2) * 0.03;
+                    
+                    if (Math.Abs(x - starX) < 0.04 && Math.Abs(y - starY) < 0.04)
+                    {
+                        // Alternating yellow and white stars
+                        return s % 2 == 0 ? 0xFFFFFF00u : 0xFFFFFFFFu;
+                    }
+                }
+            }
+        }
         
         // Apply the wobble to x coordinate
         x -= wobbleAmount + en.LeanAngle * 0.1;
@@ -2619,6 +2680,7 @@ public partial class DoomGame : Window
             case 4: return RenderRPG(cx, cy);
             case 5: return RenderPipeBomb(cx, cy);
             case 6: return RenderMiniRocket(cx, cy);
+            case 7: return RenderCamera(cx, cy);
             default: return 0;
         }
     }
@@ -2939,6 +3001,95 @@ public partial class DoomGame : Window
 
         return 0;
     }
+    
+    uint RenderCamera(double x, double y)
+    {
+        // Retro instant camera (like a Polaroid) 📸
+        uint bodyColor = 0xFF222233u;     // Dark blue-gray body
+        uint lensRing = 0xFF888899u;      // Silver lens ring
+        uint lensDark = 0xFF111122u;      // Dark lens
+        uint flashUnit = 0xFFCCCCCCu;     // Silver flash bar
+        uint grip = 0xFF332222u;          // Dark grip
+        uint viewfinder = 0xFF333344u;    // Viewfinder
+        uint redLight = 0xFFFF2222u;      // Ready light
+        uint accent = 0xFFFF6600u;        // Orange accent stripe
+        
+        // Hands holding camera
+        if (y > 0.55 && Math.Abs(x) < 0.25)
+        {
+            if (Math.Abs(x) > 0.15 || y > 0.65) return 0xFFDDBB99u;
+        }
+        
+        // Camera body (boxy shape)
+        if (y > 0.15 && y < 0.55 && Math.Abs(x) < 0.22)
+        {
+            // Top edge with flash unit
+            if (y < 0.22)
+            {
+                // Flash bar across top
+                if (Math.Abs(x) < 0.18 && y < 0.19)
+                {
+                    // Flash is bright when shooting!
+                    if (_shooting && _shootFrame < 3)
+                        return 0xFFFFFFFFu; // Bright white flash!
+                    return flashUnit;
+                }
+                return bodyColor;
+            }
+            
+            // Orange accent stripe
+            if (y > 0.22 && y < 0.26) return accent;
+            
+            // Viewfinder (small rectangle top-right)
+            if (y > 0.26 && y < 0.32 && x > 0.08 && x < 0.18)
+                return viewfinder;
+            
+            // Ready light (blinks when shooting)
+            if (y > 0.27 && y < 0.31 && x > -0.15 && x < -0.11)
+            {
+                double blink = Math.Sin(_gameTime * 10);
+                if (blink > 0 || _shooting) return redLight;
+                return 0xFF440000u;
+            }
+            
+            // Lens area (circular)
+            double lensX = x + 0.02;
+            double lensY = y - 0.38;
+            double lensDist = lensX * lensX + lensY * lensY;
+            
+            if (lensDist < 0.025) // Outer lens ring
+            {
+                if (lensDist < 0.015) // Inner lens (dark)
+                {
+                    if (lensDist < 0.008)
+                    {
+                        // Lens reflection highlight
+                        if (lensX < -0.02 && lensY < -0.02) return 0xFF4444AAu;
+                        return lensDark;
+                    }
+                    return 0xFF222244u;
+                }
+                return lensRing;
+            }
+            
+            // Body shading
+            if (x < -0.15) return 0xFF1A1A28u; // Left shadow
+            if (x > 0.15) return 0xFF2A2A3Au; // Right highlight
+            
+            return bodyColor;
+        }
+        
+        // Grip (bottom)
+        if (y > 0.48 && y < 0.58 && Math.Abs(x) < 0.20)
+        {
+            // Grip texture (horizontal lines)
+            int grooves = (int)(y * 40) % 3;
+            if (grooves == 0) return 0xFF221111u;
+            return grip;
+        }
+        
+        return 0;
+    }
 
     void RenderMinimap()
     {
@@ -3006,6 +3157,10 @@ public partial class DoomGame : Window
         AmmoText.Text = _ammo[_currentWeapon].ToString();
         ScoreText.Text = _score.ToString();
         KillsText.Text = $"{_kills}/{_totalEnemies}";
+        
+        // Camera film display (middle click dual-wield)
+        FilmText.Text = $"📷 {_ammo[7]}";
+        FilmText.Opacity = _cameraCooldown > 0 ? 0.5 : 1.0; // Dim when recharging
 
         RedKeyIcon.Opacity = _keys[0] ? 1 : 0.3;
         BlueKeyIcon.Opacity = _keys[1] ? 1 : 0.3;
@@ -3144,6 +3299,10 @@ public partial class DoomGame : Window
                 _ammo[5]--;
             }
         }
+        else if (_currentWeapon == 7) // Camera - just use the dedicated function
+        {
+            UseCamera();
+        }
         else
         {
             int pellets = _currentWeapon == 2 ? 8 : 1;
@@ -3180,6 +3339,72 @@ public partial class DoomGame : Window
                     return;
                 }
             }
+        }
+    }
+    
+    void UseCamera()
+    {
+        // Camera flash - can be used with middle click while holding any weapon!
+        if (_cameraCooldown > 0)
+        {
+            ShowMessage("Camera recharging...");
+            return;
+        }
+        
+        if (_ammo[7] <= 0)
+        {
+            ShowMessage("Out of film!");
+            return;
+        }
+        
+        _ammo[7]--;
+        _cameraCooldown = 1.2; // Cooldown between flashes
+        _cameraFlashTimer = 0.3; // Screen flash
+        TriggerScreenShake(0.1, 3);
+        
+        // Stun all enemies in view cone
+        int stunCount = 0;
+        foreach (var en in _enemies)
+        {
+            if (en.Dead || en.IsStunned) continue;
+            
+            double dx = en.X - _px_pos;
+            double dy = en.Y - _py;
+            double dist = Math.Sqrt(dx * dx + dy * dy);
+            
+            if (dist > 10) continue; // Range limit
+            
+            // Check if enemy is in front of player (within ~90 degree cone)
+            double angleToEnemy = Math.Atan2(dy, dx);
+            double angleDiff = Math.Abs(angleToEnemy - _pa);
+            while (angleDiff > Math.PI) angleDiff = Math.Abs(angleDiff - 2 * Math.PI);
+            
+            if (angleDiff < Math.PI / 3) // 60 degree half-cone
+            {
+                // Stun duration based on distance (closer = longer stun)
+                double stunDuration = 3.0 - dist * 0.2;
+                en.StunTimer = Math.Max(en.StunTimer, stunDuration);
+                en.HurtTimer = 0.2; // Visual feedback
+                stunCount++;
+                
+                // Spawn stars around stunned enemy!
+                for (int s = 0; s < 5; s++)
+                {
+                    double angle = s * Math.PI * 2 / 5;
+                    _particles.Add((en.X, en.Y, Math.Cos(angle) * 0.05, Math.Sin(angle) * 0.05, 1.0, 0xFFFFFF00u));
+                }
+            }
+        }
+        
+        if (stunCount > 0)
+        {
+            string[] flashQuotes = { "Say cheese! 📸", "Picture perfect!", "Paparazzi time!", "Flash mob!", "Smile for the camera!" };
+            SayQuote(flashQuotes[_rnd.Next(flashQuotes.Length)]);
+            ShowMessage($"STUNNED {stunCount}!");
+        }
+        else
+        {
+            ShowMessage("Nobody in frame!");
         }
     }
     #endregion
@@ -3336,6 +3561,12 @@ public partial class DoomGame : Window
             else if (_mouseCaptured && !_gameOver && !_levelComplete && !_victory)
                 _isAiming = !_isAiming; // Toggle aim-down-sights
         }
+        if (e.MiddleButton == MouseButtonState.Pressed)
+        {
+            // Middle click = camera flash (dual wield!)
+            if (_mouseCaptured && !_gameOver && !_levelComplete && !_victory)
+                UseCamera();
+        }
     }
 
     void OnMouseUp(object s, MouseButtonEventArgs e)
@@ -3349,7 +3580,7 @@ public partial class DoomGame : Window
         _currentLevel = 1;
         _hp = 100; _armor = 0; _score = 0;
         _keys = new bool[3];
-        _ammo = new[] { 999, 48, 12, 200, 10, 5, 8 };
+        _ammo = new[] { 999, 48, 12, 200, 10, 5, 8, 24 }; // Include camera film
         _currentWeapon = 1;
         _medkits = 0; _steroids = 0; _hasJetpack = false; _jetpackFuel = 100;
         _gameOver = false; _levelComplete = false;
@@ -3360,6 +3591,8 @@ public partial class DoomGame : Window
         _screenShakeTimer = 0;
         _damageVignetteTimer = 0;
         _muzzleFlashTimer = 0;
+        _cameraFlashTimer = 0;
+        _cameraCooldown = 0;
         _weaponBob = 0;
         _particles.Clear();
         _wallDecals.Clear();
