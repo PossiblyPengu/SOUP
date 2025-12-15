@@ -1,11 +1,12 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace SAP.ViewModels;
 
-public partial class UnifiedSettingsViewModel : ObservableObject
+public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
 {
     public AllocationBuddySettingsViewModel AllocationBuddySettings { get; }
     public EssentialsBuddySettingsViewModel EssentialsBuddySettings { get; }
@@ -14,6 +15,14 @@ public partial class UnifiedSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
+
+    private bool _disposed;
+
+    // Store event handlers so we can unsubscribe later
+    private readonly PropertyChangedEventHandler _allocationBuddyHandler;
+    private readonly PropertyChangedEventHandler _essentialsBuddyHandler;
+    private readonly PropertyChangedEventHandler _expireWiseHandler;
+    private readonly PropertyChangedEventHandler _dictionaryHandler;
 
     public UnifiedSettingsViewModel(
         AllocationBuddySettingsViewModel allocationBuddySettings,
@@ -26,30 +35,36 @@ public partial class UnifiedSettingsViewModel : ObservableObject
         ExpireWiseSettings = expireWiseSettings;
         DictionaryManagement = dictionaryManagement;
 
-        // Subscribe to status message changes from child ViewModels
-        AllocationBuddySettings.PropertyChanged += (s, e) =>
+        // Create named handlers so we can unsubscribe
+        _allocationBuddyHandler = (s, e) =>
         {
             if (e.PropertyName == nameof(AllocationBuddySettings.StatusMessage))
                 StatusMessage = AllocationBuddySettings.StatusMessage;
         };
 
-        EssentialsBuddySettings.PropertyChanged += (s, e) =>
+        _essentialsBuddyHandler = (s, e) =>
         {
             if (e.PropertyName == nameof(EssentialsBuddySettings.StatusMessage))
                 StatusMessage = EssentialsBuddySettings.StatusMessage;
         };
 
-        ExpireWiseSettings.PropertyChanged += (s, e) =>
+        _expireWiseHandler = (s, e) =>
         {
             if (e.PropertyName == nameof(ExpireWiseSettings.StatusMessage))
                 StatusMessage = ExpireWiseSettings.StatusMessage;
         };
 
-        DictionaryManagement.PropertyChanged += (s, e) =>
+        _dictionaryHandler = (s, e) =>
         {
             if (e.PropertyName == nameof(DictionaryManagement.StatusMessage))
                 StatusMessage = DictionaryManagement.StatusMessage;
         };
+
+        // Subscribe to status message changes from child ViewModels
+        AllocationBuddySettings.PropertyChanged += _allocationBuddyHandler;
+        EssentialsBuddySettings.PropertyChanged += _essentialsBuddyHandler;
+        ExpireWiseSettings.PropertyChanged += _expireWiseHandler;
+        DictionaryManagement.PropertyChanged += _dictionaryHandler;
     }
 
     public async Task InitializeAsync()
@@ -99,5 +114,33 @@ public partial class UnifiedSettingsViewModel : ObservableObject
         {
             StatusMessage = $"Error resetting settings: {ex.Message}";
         }
+    }
+
+    /// <summary>
+    /// Dispose pattern to unsubscribe from all event handlers
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            // Unsubscribe from all child ViewModel events
+            AllocationBuddySettings.PropertyChanged -= _allocationBuddyHandler;
+            EssentialsBuddySettings.PropertyChanged -= _essentialsBuddyHandler;
+            ExpireWiseSettings.PropertyChanged -= _expireWiseHandler;
+            DictionaryManagement.PropertyChanged -= _dictionaryHandler;
+
+            // Dispose child ViewModels if they implement IDisposable
+            (DictionaryManagement as IDisposable)?.Dispose();
+        }
+
+        _disposed = true;
     }
 }

@@ -11,15 +11,23 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using SAP.Infrastructure.Services.Parsers;
 using SAP.Data;
+using SAP.Services.External;
 
 namespace SAP.ViewModels;
 
 /// <summary>
 /// ViewModel for managing dictionary items and stores (using LiteDB)
 /// </summary>
-public partial class DictionaryManagementViewModel : ObservableObject
+public partial class DictionaryManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILogger<DictionaryManagementViewModel>? _logger;
+    private readonly DictionarySyncService? _syncService;
+    private readonly ExternalConnectionConfig _externalConfig;
+    private bool _disposed;
+
+    // Event handlers stored for unsubscription
+    private readonly EventHandler<SyncProgressEventArgs>? _progressHandler;
+    private readonly EventHandler<SyncCompletedEventArgs>? _completedHandler;
 
     // Backing lists for fast access (not bound to UI)
     private List<DictionaryItem> _allItems = new();
@@ -132,7 +140,28 @@ public partial class DictionaryManagementViewModel : ObservableObject
     [ObservableProperty]
     private bool _filterPrivateLabelOnly;
 
+    [ObservableProperty]
+    private bool _isSyncing;
+
+    [ObservableProperty]
+    private int _syncProgress;
+
+    [ObservableProperty]
+    private string _syncProgressMessage = "";
+
     public string SortDescription => $"Sort: {ItemSortBy}" + (ItemSortDescending ? " ↓" : " ↑");
+
+    /// <summary>
+    /// Whether external sync is configured
+    /// </summary>
+    public bool CanSyncFromExternal => _externalConfig.IsMySqlConfigured || _externalConfig.IsBusinessCentralConfigured;
+    
+    /// <summary>
+    /// Last sync time display
+    /// </summary>
+    public string LastSyncDisplay => _externalConfig.LastSyncTime.HasValue 
+        ? $"Last sync: {_externalConfig.LastSyncTime:g}" 
+        : "Never synced";
 
     public ObservableCollection<string> ItemSortOptions { get; } = new() 
     { 
@@ -152,9 +181,41 @@ public partial class DictionaryManagementViewModel : ObservableObject
 
     public int TotalItemCount => _allItems.Count;
 
-    public DictionaryManagementViewModel(ILogger<DictionaryManagementViewModel>? logger = null)
+    public DictionaryManagementViewModel(
+        DictionarySyncService? syncService = null,
+        ILogger<DictionaryManagementViewModel>? logger = null)
     {
         _logger = logger;
+        _syncService = syncService;
+        _externalConfig = ExternalConnectionConfig.Load();
+        
+        // Subscribe to sync progress events using stored handlers for cleanup
+        if (_syncService != null)
+        {
+            _progressHandler = (_, e) =>
+            {
+                SyncProgressMessage = e.Message;
+                SyncProgress = e.ProgressPercent;
+            };
+            _syncService.ProgressChanged += _progressHandler;
+            
+            _completedHandler = async (_, e) =>
+            {
+                IsSyncing = false;
+                if (e.Result.Success)
+                {
+                    StatusMessage = $"✓ Synced {e.Result.ItemsUpdated} items, {e.Result.StoresUpdated} stores from {e.Result.Source}";
+                    // Reload the dictionary to show updated data
+                    await LoadDictionaryAsync();
+                }
+                else
+                {
+                    StatusMessage = $"✗ Sync failed: {e.Result.ErrorMessage}";
+                }
+                OnPropertyChanged(nameof(LastSyncDisplay));
+            };
+            _syncService.SyncCompleted += _completedHandler;
+        }
     }
 
     /// <summary>
@@ -1103,4 +1164,82 @@ public partial class DictionaryManagementViewModel : ObservableObject
             _logger?.LogError(ex, "Failed to import stores from Excel");
         }
     }
+
+    #region External Sync Commands
+
+    /// <summary>
+    /// Sync from MySQL external database
+    /// </summary>
+    [RelayCommand]
+    private async Task SyncFromMySqlAsync()
+    {
+        if (_syncService == null || IsSyncing || !_externalConfig.IsMySqlConfigured) return;
+        
+        IsSyncing = true;
+        SyncProgress = 0;
+        StatusMessage = "Starting MySQL sync...";
+        
+        await _syncService.SyncFromMySqlAsync(_externalConfig);
+    }
+
+    /// <summary>
+    /// Sync from Business Central
+    /// </summary>
+    [RelayCommand]
+    private async Task SyncFromBcAsync()
+    {
+        if (_syncService == null || IsSyncing || !_externalConfig.IsBusinessCentralConfigured) return;
+        
+        IsSyncing = true;
+        SyncProgress = 0;
+        StatusMessage = "Starting Business Central sync...";
+        
+        await _syncService.SyncFromBusinessCentralAsync(_externalConfig);
+    }
+
+    /// <summary>
+    /// Sync from both MySQL and Business Central
+    /// </summary>
+    [RelayCommand]
+    private async Task SyncFromBothAsync()
+    {
+        if (_syncService == null || IsSyncing) return;
+        
+        IsSyncing = true;
+        SyncProgress = 0;
+        StatusMessage = "Starting combined sync...";
+        
+        await _syncService.SyncFromBothAsync(_externalConfig);
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    /// <summary>
+    /// Dispose pattern to unsubscribe from sync service events
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing && _syncService != null)
+        {
+            // Unsubscribe from sync service events
+            if (_progressHandler != null)
+                _syncService.ProgressChanged -= _progressHandler;
+            if (_completedHandler != null)
+                _syncService.SyncCompleted -= _completedHandler;
+        }
+
+        _disposed = true;
+    }
+
+    #endregion
 }

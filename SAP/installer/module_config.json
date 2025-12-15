@@ -1,0 +1,11 @@
+{
+  "version": "4.3.1",
+  "modules": {
+    "allocationBuddy": true,
+    "essentialsBuddy": true,
+    "expireWise": true,
+    "swiftLabel": true,
+    "orderLog": true,
+    "funStuff": true
+  }
+}

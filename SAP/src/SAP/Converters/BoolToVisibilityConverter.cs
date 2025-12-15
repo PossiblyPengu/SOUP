@@ -90,3 +90,29 @@ public class BoolToSortArrowConverter : IValueConverter
         return value?.ToString() == "↓";
     }
 }
+
+/// <summary>
+/// Inverts a boolean value (true becomes false, false becomes true).
+/// </summary>
+public class InverseBoolConverter : IValueConverter
+{
+    /// <inheritdoc/>
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
+        {
+            return !boolValue;
+        }
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
+        {
+            return !boolValue;
+        }
+        return false;
+    }
+}

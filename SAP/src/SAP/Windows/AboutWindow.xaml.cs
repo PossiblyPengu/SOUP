@@ -156,6 +156,10 @@ public partial class AboutWindow : Window
     /// </summary>
     private void AppIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        // Check if Fun Stuff is enabled
+        if (!SAP.Services.ModuleConfiguration.Instance.FunStuffEnabled)
+            return;
+            
         var now = DateTime.Now;
 
         if ((now - _lastIconClick).TotalSeconds > 2)

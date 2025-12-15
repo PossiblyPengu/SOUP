@@ -1,12 +1,12 @@
 ; ============================================================================
 ;                        S.A.P - S.A.M. Add-on Pack
-;                        Installer Script v4.1.0
+;                        Installer Script v4.3.0
 ;
-;  Modern Inno Setup 6 installer with custom styling
+;  Modern Inno Setup 6 installer with custom styling and module selection
 ; ============================================================================
 #define MyAppName "S.A.P"
 #define MyAppFullName "S.A.M. Add-on Pack"
-#define MyAppVersion "4.2.0"
+#define MyAppVersion "4.3.1"
 #define MyAppPublisher "PossiblyPengu"
 #define MyAppURL "https://github.com/PossiblyPengu/Cshp"
 #define MyAppExeName "SAP.exe"
@@ -121,13 +121,47 @@ english.InstallTypePortable=Portable Installation (~75 MB)
 english.InstallTypePortableDesc=Self-contained with bundled .NET. No shortcuts or registry entries. Runs anywhere without dependencies.
 
 ; ============================================================================
+; Component Definitions
+; ============================================================================
+[Types]
+Name: "full"; Description: "Full Installation (all modules)"
+Name: "compact"; Description: "Compact Installation (core modules only)"
+Name: "custom"; Description: "Custom Installation"; Flags: iscustom
+
+[Components]
+; Core is always required
+Name: "core"; Description: "S.A.P Core (required)"; Types: full compact custom; Flags: fixed
+; Main modules
+Name: "modules"; Description: "Productivity Modules"; Types: full compact custom
+Name: "modules\allocation"; Description: "AllocationBuddy - Resource allocation tracking"; Types: full compact custom
+Name: "modules\essentials"; Description: "EssentialsBuddy - Essential items workflow"; Types: full compact custom
+Name: "modules\expirewise"; Description: "ExpireWise - Expiration date management"; Types: full compact custom
+Name: "modules\swiftlabel"; Description: "SwiftLabel - Quick label generation"; Types: full custom
+Name: "modules\orderlog"; Description: "OrderLog - Order tracking widget"; Types: full custom
+; Fun Stuff (Easter Eggs)
+Name: "funstuff"; Description: "Fun Stuff"; Types: full custom
+Name: "funstuff\games"; Description: "Mini-games and surprises"; Types: full custom
+
+; ============================================================================
 ; Files to Install
 ; ============================================================================
 [Files]
-; Full install - framework-dependent (requires .NET 8 runtime)
-Source: "..\publish-framework\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: not IsPortableInstall
-; Portable install - self-contained (bundled .NET)
+; Core files (always installed) - Full install
+Source: "..\publish-framework\SAP.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\SAP.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\SAP.pdb"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\SAP.xml"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\SAP.deps.json"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\SAP.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: not IsPortableInstall
+Source: "..\publish-framework\Assets\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: not IsPortableInstall
+
+; Core files - Portable install  
+Source: "..\publish-portable\SAP.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsPortableInstall
 Source: "..\publish-portable\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsPortableInstall
+
+; Module configuration file (tracks which modules are enabled)
+Source: "..\installer\module_config.json"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: WriteModuleConfig
 
 [Dirs]
 ; User data directory (writable by standard user)
@@ -186,6 +220,56 @@ begin
   Result := PortableMode;
 end;
 
+// Write module configuration based on user selections
+procedure WriteModuleConfig;
+var
+  ConfigFile: String;
+  ConfigContent: String;
+begin
+  ConfigFile := ExpandConstant('{app}\module_config.json');
+  
+  ConfigContent := '{' + #13#10;
+  ConfigContent := ConfigContent + '  "version": "{#MyAppVersion}",' + #13#10;
+  ConfigContent := ConfigContent + '  "modules": {' + #13#10;
+  
+  // Check each module selection
+  if WizardIsComponentSelected('modules\allocation') then
+    ConfigContent := ConfigContent + '    "allocationBuddy": true,' + #13#10
+  else
+    ConfigContent := ConfigContent + '    "allocationBuddy": false,' + #13#10;
+    
+  if WizardIsComponentSelected('modules\essentials') then
+    ConfigContent := ConfigContent + '    "essentialsBuddy": true,' + #13#10
+  else
+    ConfigContent := ConfigContent + '    "essentialsBuddy": false,' + #13#10;
+    
+  if WizardIsComponentSelected('modules\expirewise') then
+    ConfigContent := ConfigContent + '    "expireWise": true,' + #13#10
+  else
+    ConfigContent := ConfigContent + '    "expireWise": false,' + #13#10;
+    
+  if WizardIsComponentSelected('modules\swiftlabel') then
+    ConfigContent := ConfigContent + '    "swiftLabel": true,' + #13#10
+  else
+    ConfigContent := ConfigContent + '    "swiftLabel": false,' + #13#10;
+    
+  if WizardIsComponentSelected('modules\orderlog') then
+    ConfigContent := ConfigContent + '    "orderLog": true,' + #13#10
+  else
+    ConfigContent := ConfigContent + '    "orderLog": false,' + #13#10;
+    
+  // Fun Stuff (Easter Eggs)
+  if WizardIsComponentSelected('funstuff\games') then
+    ConfigContent := ConfigContent + '    "funStuff": true' + #13#10
+  else
+    ConfigContent := ConfigContent + '    "funStuff": false' + #13#10;
+    
+  ConfigContent := ConfigContent + '  }' + #13#10;
+  ConfigContent := ConfigContent + '}' + #13#10;
+  
+  SaveStringToFile(ConfigFile, ConfigContent, False);
+end;
+
 // Initialize wizard with custom styling
 procedure InitializeWizard;
 begin
@@ -206,15 +290,17 @@ begin
   ModulesLabel.Left := WizardForm.WelcomeLabel2.Left;
   ModulesLabel.Top := WizardForm.WelcomeLabel2.Top + WizardForm.WelcomeLabel2.Height + 20;
   ModulesLabel.Width := WizardForm.WelcomeLabel2.Width;
-  ModulesLabel.Height := 100;
+  ModulesLabel.Height := 120;
   ModulesLabel.AutoSize := False;
   ModulesLabel.WordWrap := True;
   ModulesLabel.Caption := 
-    'Included Modules:' + #13#10 +
-    '  * ExpireWise - Expiry date tracking' + #13#10 +
-    '  * AllocationBuddy - Resource allocation' + #13#10 +
-    '  * EssentialsBuddy - Core workflows' + #13#10 +
-    '  * SwiftLabel - Label generation';
+    'Available Modules:' + #13#10 +
+    '  * AllocationBuddy - Resource allocation tracking' + #13#10 +
+    '  * EssentialsBuddy - Essential items workflow' + #13#10 +
+    '  * ExpireWise - Expiration date management' + #13#10 +
+    '  * SwiftLabel - Quick label generation' + #13#10 +
+    '  * OrderLog - Order tracking widget' + #13#10 +
+    '  * Fun Stuff - Mini-games and surprises';
   ModulesLabel.Font.Style := [];
   ModulesLabel.Font.Color := clGray;
   

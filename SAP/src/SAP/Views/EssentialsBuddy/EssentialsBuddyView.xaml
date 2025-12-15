@@ -34,6 +34,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -48,6 +49,39 @@
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
                                 <Setter Property="Foreground" Value="{StaticResource EssentialsAccentLightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Sidebar Action Button Style (for non-toggle actions) -->
+        <Style x:Key="SidebarActionItem" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="Transparent" CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -263,63 +297,63 @@
                             </StackPanel>
                         </RadioButton>
                         
-                        <RadioButton x:Name="NavImport" Style="{StaticResource SidebarNavItem}" GroupName="EssentialsNav"
-                                     Command="{Binding ImportFromExcelCommand}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📥" FontSize="16" Margin="0,0,12,0"/>
-                                <TextBlock Text="Import Data" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </RadioButton>
-                        
                         <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="16,12"/>
                         
                         <TextBlock Text="ACTIONS" FontSize="10" FontWeight="SemiBold" 
                                    Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
                         
-                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsActions"
-                                     Command="{Binding ExportToExcelCommand}">
+                        <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding ImportFromExcelCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📥" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Import Data" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding ExportToExcelCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📤" FontSize="16" Margin="0,0,12,0"/>
                                 <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </RadioButton>
+                        </Button>
                         
-                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsActions"
-                                     Command="{Binding ExportToCsvCommand}">
+                        <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding ExportToCsvCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📄" FontSize="16" Margin="0,0,12,0"/>
                                 <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </RadioButton>
+                        </Button>
                         
-                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsActions"
-                                     Command="{Binding LoadItemsCommand}">
+                        <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding LoadItemsCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🔄" FontSize="16" Margin="0,0,12,0"/>
                                 <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </RadioButton>
+                        </Button>
                     </StackPanel>
 
                     <!-- Bottom Actions -->
                     <StackPanel Grid.Row="3" Margin="8,0,8,12">
                         <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="8,0,8,12"/>
                         
-                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsBottom"
-                                     Command="{Binding OpenSettingsCommand}">
+                        <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding OpenSettingsCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
                                 <TextBlock Text="Settings" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </RadioButton>
+                        </Button>
                         
-                        <RadioButton Style="{StaticResource SidebarNavItem}" GroupName="EssentialsBottom"
-                                     Command="{Binding ClearDataCommand}">
+                        <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding ClearDataCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🗑️" FontSize="16" Margin="0,0,12,0"/>
                                 <TextBlock Text="Clear Data" VerticalAlignment="Center" Foreground="{DynamicResource DangerBrush}"/>
                             </StackPanel>
-                        </RadioButton>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>

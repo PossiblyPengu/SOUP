@@ -77,6 +77,7 @@ public partial class UnifiedSettingsWindow : Window
             PanelEssentials.Visibility = Visibility.Collapsed;
             PanelExpireWise.Visibility = Visibility.Collapsed;
             PanelDictionary.Visibility = Visibility.Collapsed;
+            PanelExternalData.Visibility = Visibility.Collapsed;
 
             // Show the selected panel
             if (TabAllocation.IsChecked == true)
@@ -101,6 +102,10 @@ public partial class UnifiedSettingsWindow : Window
                     Serilog.Log.Information("Dictionary tab selected, loading dictionary...");
                     await _viewModel.DictionaryManagement.LoadDictionaryAsync();
                 }
+            }
+            else if (TabExternalData.IsChecked == true)
+            {
+                PanelExternalData.Visibility = Visibility.Visible;
             }
         }
         catch (Exception ex)

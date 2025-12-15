@@ -9,7 +9,7 @@
         d:DataContext="{d:DesignInstance Type=vm:AllocationBuddyRPGViewModel}"
         Title="Allocation Buddy" Height="800" Width="1400"
         MinHeight="600" MinWidth="1000"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"

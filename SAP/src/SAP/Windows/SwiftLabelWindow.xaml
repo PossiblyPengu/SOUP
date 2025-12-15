@@ -9,7 +9,7 @@
         d:DataContext="{d:DesignInstance Type=vm:SwiftLabelViewModel}"
         Title="Swift Label" Height="800" Width="650"
         MinHeight="650" MinWidth="550"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"

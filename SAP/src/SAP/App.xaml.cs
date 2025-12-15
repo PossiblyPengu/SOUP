@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Windows;
 using Serilog;
 using Serilog.Events;
@@ -32,8 +33,8 @@ public partial class App : Application
         var logPath = Path.Combine(logDir, "app-.log");
 
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .Enrich.FromLogContext()
             .WriteTo.File(logPath,
                 rollingInterval: RollingInterval.Day,
@@ -111,16 +112,16 @@ public partial class App : Application
 
         // Infrastructure services
         services.AddSingleton(sp => new LiteDbContext(dbPath));
-        services.AddScoped<IUnitOfWork, LiteDbUnitOfWork>();
+        services.AddSingleton<IUnitOfWork, LiteDbUnitOfWork>();
 
         // Shared dictionary database (items and stores for matching across modules)
         services.AddSingleton(_ => DictionaryDbContext.Instance);
 
-        // Repositories
-        services.AddScoped(typeof(IRepository<>), typeof(LiteDbRepository<>));
-        services.AddScoped<IAllocationBuddyRepository, AllocationBuddyRepository>();
-        services.AddScoped<IEssentialsBuddyRepository, EssentialsBuddyRepository>();
-        services.AddScoped<IExpireWiseRepository, ExpireWiseRepository>();
+        // Repositories - Singletons to match ViewModel lifetimes (prevents captive dependency)
+        services.AddSingleton(typeof(IRepository<>), typeof(LiteDbRepository<>));
+        services.AddSingleton<IAllocationBuddyRepository, AllocationBuddyRepository>();
+        services.AddSingleton<IEssentialsBuddyRepository, EssentialsBuddyRepository>();
+        services.AddSingleton<IExpireWiseRepository, ExpireWiseRepository>();
 
         // Application services
         services.AddSingleton<IFileImportExportService, FileImportExportService>();
@@ -136,7 +137,10 @@ public partial class App : Application
         services.AddSingleton<LauncherViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<UnifiedSettingsViewModel>();
-        services.AddTransient<DictionaryManagementViewModel>();
+        services.AddTransient<DictionaryManagementViewModel>(sp => 
+            new DictionaryManagementViewModel(
+                sp.GetService<SAP.Services.External.DictionarySyncService>(),
+                sp.GetService<ILogger<DictionaryManagementViewModel>>()));
 
         // ViewModels - AllocationBuddy (Singletons persist data across navigation)
         services.AddSingleton<AllocationBuddyRPGViewModel>();
@@ -161,12 +165,32 @@ public partial class App : Application
         // ViewModels - SwiftLabel
         services.AddTransient<SwiftLabelViewModel>();
 
+        // External Data Services (MySQL and Business Central)
+        services.AddHttpClient("BusinessCentral", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Accept.Add(
+                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
+        });
+        
+        services.AddSingleton<SAP.Services.External.MySqlDataService>();
+        services.AddSingleton<SAP.Services.External.BusinessCentralService>(sp =>
+            new SAP.Services.External.BusinessCentralService(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                sp.GetService<ILogger<SAP.Services.External.BusinessCentralService>>()));
+        services.AddSingleton<SAP.Services.External.DictionarySyncService>();
+        services.AddTransient<ExternalDataViewModel>();
+
         // Services - Navigation
         services.AddSingleton<NavOrderService>();
 
         // Windows
         services.AddSingleton<MainWindow>();
         services.AddSingleton<Windows.OrderLogWindow>();
+        services.AddSingleton<Windows.OrderLogWidgetWindow>();
     }
 
     protected override async void OnStartup(StartupEventArgs e)

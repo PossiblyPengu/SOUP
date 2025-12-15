@@ -71,9 +71,11 @@
     
     <!-- Database -->
     <PackageReference Include="LiteDB" Version="5.0.21" />
+    <PackageReference Include="MySql.Data" Version="9.1.0" />
     
     <!-- Dependency Injection & Hosting -->
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     
     <!-- Logging -->
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />

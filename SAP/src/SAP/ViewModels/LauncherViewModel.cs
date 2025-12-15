@@ -1,4 +1,5 @@
 using System;
+using System.Windows;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SAP.Services;
@@ -38,13 +39,14 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     public bool IsExpireWiseEnabled => _moduleConfig.ExpireWiseEnabled;
 
     /// <summary>
-    /// SwiftLabel is always enabled (core functionality)
+    /// Whether the SwiftLabel module is enabled
     /// </summary>
-    public bool IsSwiftLabelEnabled => true;
+    public bool IsSwiftLabelEnabled => _moduleConfig.SwiftLabelEnabled;
+
     /// <summary>
     /// Whether the OrderLog module is enabled
     /// </summary>
-    public bool IsOrderLogEnabled => true;
+    public bool IsOrderLogEnabled => _moduleConfig.OrderLogEnabled;
 
     public LauncherViewModel(
         ThemeService themeService,
@@ -64,8 +66,8 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         // Subscribe to theme changes
         _themeService.ThemeChanged += OnThemeChanged;
 
-        _logger?.LogInformation("Module configuration: AllocationBuddy={AB}, EssentialsBuddy={EB}, ExpireWise={EW}",
-            IsAllocationBuddyEnabled, IsEssentialsBuddyEnabled, IsExpireWiseEnabled);
+        _logger?.LogInformation("Module configuration: AllocationBuddy={AB}, EssentialsBuddy={EB}, ExpireWise={EW}, SwiftLabel={SL}, OrderLog={OL}",
+            IsAllocationBuddyEnabled, IsEssentialsBuddyEnabled, IsExpireWiseEnabled, IsSwiftLabelEnabled, IsOrderLogEnabled);
     }
 
     private void OnThemeChanged(object? sender, bool isDark)
@@ -146,6 +148,7 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening ExpireWise in new window");
         var viewModel = _serviceProvider.GetRequiredService<ExpireWiseViewModel>();
         var window = new Windows.ExpireWiseWindow(viewModel);
+        window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -155,6 +158,7 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening AllocationBuddy RPG in new window");
         var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyRPGViewModel>();
         var window = new Windows.AllocationBuddyWindow(viewModel);
+        window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -164,6 +168,7 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening EssentialsBuddy in new window");
         var viewModel = _serviceProvider.GetRequiredService<EssentialsBuddyViewModel>();
         var window = new Windows.EssentialsBuddyWindow(viewModel);
+        window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -173,6 +178,7 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening SwiftLabel in new window");
         var viewModel = _serviceProvider.GetRequiredService<SwiftLabelViewModel>();
         var window = new Windows.SwiftLabelWindow(viewModel);
+        window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -182,7 +188,16 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening OrderLog in new window");
         var viewModel = _serviceProvider.GetRequiredService<Features.OrderLog.ViewModels.OrderLogViewModel>();
         var window = new Windows.OrderLogWindow(viewModel);
+        window.Owner = Application.Current.MainWindow;
         window.Show();
+    }
+
+    [RelayCommand]
+    private void OpenOrderLogWidget()
+    {
+        _logger?.LogInformation("Opening OrderLog widget");
+        var widget = _serviceProvider.GetRequiredService<Windows.OrderLogWidgetWindow>();
+        widget.ShowWidget();
     }
 
 }

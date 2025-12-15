@@ -163,6 +163,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <!-- Header -->
@@ -186,18 +187,84 @@
                                Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
                 </StackPanel>
                 
-                <Button Grid.Column="1" Command="{Binding SaveDictionaryCommand}"
-                        Style="{StaticResource PrimaryButton}" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0"/>
-                        <TextBlock Text="Save Changes"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding LoadDictionaryCommand}"
+                            Style="{StaticResource CompactButton}" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" FontSize="12" Margin="0,0,6,0"/>
+                            <TextBlock Text="Refresh"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding SaveDictionaryCommand}"
+                            Style="{StaticResource PrimaryButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Save Changes"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- External Sync Section -->
+        <Border Grid.Row="1" Style="{StaticResource ModernCard}" Margin="0,0,0,16"
+                Visibility="{Binding CanSyncFromExternal, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <TextBlock Text="☁️" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="External Data Sync" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Button>
+                    <TextBlock Text="{Binding LastSyncDisplay}" FontSize="12" 
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <!-- Sync Progress -->
+                    <StackPanel Visibility="{Binding IsSyncing, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Margin="0,8,0,0">
+                        <TextBlock Text="{Binding SyncProgressMessage}" FontSize="11" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <ProgressBar Value="{Binding SyncProgress}" Height="4" Maximum="100"
+                                     Background="{DynamicResource SurfaceHoverBrush}"
+                                     Foreground="{DynamicResource PrimaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding SyncFromMySqlCommand}" Style="{StaticResource CompactButton}" 
+                            Margin="0,0,6,0" ToolTip="Sync items and stores from MySQL database"
+                            IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🗄️" FontSize="12" Margin="0,0,6,0"/>
+                            <TextBlock Text="MySQL"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding SyncFromBcCommand}" Style="{StaticResource CompactButton}" 
+                            Margin="0,0,6,0" ToolTip="Sync items and locations from Business Central"
+                            IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="☁️" FontSize="12" Margin="0,0,6,0"/>
+                            <TextBlock Text="BC"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding SyncFromBothCommand}" Style="{StaticResource PrimaryButton}"
+                            ToolTip="Sync from both MySQL and Business Central"
+                            IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚡" FontSize="12" Margin="0,0,6,0"/>
+                            <TextBlock Text="Sync All"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
 
         <!-- Content - Side by Side -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="16"/>
@@ -210,87 +277,126 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="280"/>
+                        <RowDefinition Height="*" MinHeight="200"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
                     <!-- Items Header -->
                     <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Style="{StaticResource SectionHeader}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📦" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Items" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextOnPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Border Background="{DynamicResource OverlayLightBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0">
-                                <TextBlock Text="{Binding TotalItemCount}" FontSize="11" Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="Medium"/>
-                            </Border>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="📦" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Items" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextOnPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Border Background="{DynamicResource OverlayLightBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding TotalItemCount}" FontSize="11" Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="Medium"/>
+                                </Border>
+                            </StackPanel>
+                            <ToggleButton x:Name="ItemFormToggle" Grid.Column="1" IsChecked="False"
+                                          ToolTip="Toggle Add/Edit Panel">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border Background="{DynamicResource OverlayLightBrush}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock x:Name="Arrow" Text="▼" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="Label" Text="Add/Edit" FontSize="11" FontWeight="Medium" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter TargetName="Arrow" Property="Text" Value="▲"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ToggleButton.Style>
+                            </ToggleButton>
+                        </Grid>
                     </Border>
                     
-                    <!-- Add/Edit Form -->
-                    <StackPanel Grid.Row="1" Margin="16,16,16,8">
+                    <!-- Collapsible Add/Edit Form -->
+                    <Border Grid.Row="1" Margin="12,8,12,0"
+                            Visibility="{Binding IsChecked, ElementName=ItemFormToggle, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="12">
-                            <StackPanel>
-                                <TextBlock Text="ADD / EDIT ITEM" FontSize="10" FontWeight="Bold" 
-                                           Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
                                 
-                                <Grid Margin="0,0,0,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Item #" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" 
-                                                 Style="{StaticResource ModernInput}"/>
+                                <!-- Left Column: Item # and Description -->
+                                <StackPanel Grid.Column="0" Grid.Row="0">
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Item #" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                            <TextBox Text="{Binding NewItemNumber, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Style="{StaticResource ModernInput}" Padding="8,6"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Description" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                            <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Style="{StaticResource ModernInput}" Padding="8,6"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel>
+                                        <TextBlock Text="SKUs (comma-separated)" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                        <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Style="{StaticResource ModernInput}" Padding="8,6"/>
                                     </StackPanel>
-                                    
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding NewItemDescription, UpdateSourceTrigger=PropertyChanged}" 
-                                                 Style="{StaticResource ModernInput}"/>
+                                </StackPanel>
+                                
+                                <!-- Right Column: Tags (checkboxes) -->
+                                <StackPanel Grid.Column="2" Grid.Row="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Tags" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox Content="Essential" 
+                                                  IsChecked="{Binding NewItemIsEssential}" 
+                                                  Foreground="{DynamicResource TextPrimaryBrush}" 
+                                                  Margin="0,0,20,0" FontSize="13"/>
+                                        <CheckBox Content="Private Label" 
+                                                  IsChecked="{Binding NewItemIsPrivateLabel}" 
+                                                  Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
                                     </StackPanel>
-                                </Grid>
-                                
-                                <StackPanel Margin="0,0,0,10">
-                                    <TextBlock Text="SKUs (comma-separated)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                    <TextBox Text="{Binding NewItemSkus, UpdateSourceTrigger=PropertyChanged}" 
-                                             Style="{StaticResource ModernInput}"/>
                                 </StackPanel>
                                 
-                                <StackPanel Margin="0,0,0,10">
-                                    <TextBlock Text="Tags (comma-separated, e.g., seasonal, clearance)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                    <TextBox Text="{Binding NewItemTags, UpdateSourceTrigger=PropertyChanged}" 
-                                             Style="{StaticResource ModernInput}"
-                                             ToolTip="Add tags to categorize this item"/>
-                                </StackPanel>
-                                
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <CheckBox Content="Essential" 
-                                              IsChecked="{Binding NewItemIsEssential}" 
-                                              Foreground="{DynamicResource TextPrimaryBrush}" 
-                                              Margin="0,0,16,0"
-                                              ToolTip="Tracked by EssentialsBuddy"/>
-                                    <CheckBox Content="Private Label" 
-                                              IsChecked="{Binding NewItemIsPrivateLabel}" 
-                                              Foreground="{DynamicResource TextPrimaryBrush}"
-                                              ToolTip="Store brand / private label item"/>
-                                </StackPanel>
-                                
-                                <WrapPanel Margin="0,4,0,0">
-                                    <Button Content="+ Add" Command="{Binding AddItemCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,6"/>
-                                    <Button Content="Update" Command="{Binding UpdateItemCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,6"/>
-                                    <Button Content="Delete" Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}" Margin="0,0,6,6"/>
-                                    <Button Content="Clear" Command="{Binding ClearItemFormCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,6"/>
+                                <!-- Buttons Row spanning both columns -->
+                                <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,8,0,0">
+                                    <Button Content="+ Add" Command="{Binding AddItemCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,0"/>
+                                    <Button Content="Update" Command="{Binding UpdateItemCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,0"/>
+                                    <Button Content="Delete" Command="{Binding DeleteItemCommand}" Style="{StaticResource DangerButton}" Margin="0,0,6,0"/>
+                                    <Button Content="Clear" Command="{Binding ClearItemFormCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,0"/>
                                     <Button Content="Import" Command="{Binding ImportItemsFromExcelCommand}" 
-                                            Style="{StaticResource CompactButton}" ToolTip="Import items from Excel" Margin="0,0,0,6"/>
+                                            Style="{StaticResource CompactButton}" ToolTip="Import items from Excel"/>
                                 </WrapPanel>
-                            </StackPanel>
+                            </Grid>
                         </Border>
-                    </StackPanel>
+                    </Border>
                     
                     <!-- Items List -->
-                    <Border Grid.Row="2" Margin="16,0,16,16" Background="{DynamicResource SurfaceBrush}" 
+                    <Border Grid.Row="2" Margin="12,8,12,12" Background="{DynamicResource SurfaceBrush}" 
                             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -301,16 +407,10 @@
                             
                             <!-- Search, Filter, Sort Bar -->
                             <Border Grid.Row="0" Background="{DynamicResource SurfaceHoverBrush}" 
-                                    CornerRadius="8,8,0,0" Padding="12,10">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <!-- Search -->
-                                    <Grid Grid.Column="0" Margin="0,0,12,0">
+                                    CornerRadius="8,8,0,0" Padding="12">
+                                <StackPanel>
+                                    <!-- Search Row -->
+                                    <Grid Margin="0,0,0,10">
                                         <TextBox Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                  Style="{StaticResource ModernInput}" Padding="32,8,12,8"
                                                  ToolTip="Search by number, description, SKU, or tag"/>
@@ -319,34 +419,42 @@
                                                    Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"/>
                                     </Grid>
                                     
-                                    <!-- Filters -->
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                                        <CheckBox Content="Essential" 
-                                                  IsChecked="{Binding FilterEssentialOnly}" 
-                                                  Foreground="{DynamicResource TextSecondaryBrush}"
-                                                  Margin="0,0,10,0" FontSize="11"
-                                                  ToolTip="Show only essential items"/>
-                                        <CheckBox Content="Private Label" 
-                                                  IsChecked="{Binding FilterPrivateLabelOnly}" 
-                                                  Foreground="{DynamicResource TextSecondaryBrush}"
-                                                  FontSize="11"
-                                                  ToolTip="Show only private label items"/>
-                                    </StackPanel>
-                                    
-                                    <!-- Sort Controls -->
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <ComboBox ItemsSource="{Binding ItemSortOptions}" 
-                                                  SelectedItem="{Binding ItemSortBy}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="100" Margin="0,0,4,0"
-                                                  ToolTip="Sort by"/>
-                                        <Button Command="{Binding ToggleSortDirectionCommand}" 
-                                                Style="{StaticResource CompactButton}"
-                                                Width="28" Height="28" Padding="0"
-                                                ToolTip="{Binding SortDescription}"
-                                                Content="{Binding ItemSortDescending, Converter={StaticResource BoolToSortArrowConverter}}"/>
-                                    </StackPanel>
-                                </Grid>
+                                    <!-- Filters and Sort Row -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- Filters -->
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <CheckBox Content="Essential" 
+                                                      IsChecked="{Binding FilterEssentialOnly}" 
+                                                      Foreground="{DynamicResource TextSecondaryBrush}"
+                                                      Margin="0,0,16,0" FontSize="12"
+                                                      ToolTip="Show only essential items"/>
+                                            <CheckBox Content="Private Label" 
+                                                      IsChecked="{Binding FilterPrivateLabelOnly}" 
+                                                      Foreground="{DynamicResource TextSecondaryBrush}"
+                                                      FontSize="12"
+                                                      ToolTip="Show only private label items"/>
+                                        </StackPanel>
+                                        
+                                        <!-- Sort Controls -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ComboBox ItemsSource="{Binding ItemSortOptions}" 
+                                                      SelectedItem="{Binding ItemSortBy}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="100" Margin="0,0,6,0"
+                                                      ToolTip="Sort by"/>
+                                            <Button Command="{Binding ToggleSortDirectionCommand}" 
+                                                    Style="{StaticResource CompactButton}"
+                                                    Width="30" Height="30" Padding="0"
+                                                    ToolTip="{Binding SortDescription}"
+                                                    Content="{Binding ItemSortDescending, Converter={StaticResource BoolToSortArrowConverter}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
                             </Border>
                             
                             <!-- List Header -->
@@ -356,14 +464,12 @@
                                         <ColumnDefinition Width="50"/>
                                         <ColumnDefinition Width="90"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="120"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="FLAGS" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}" ToolTip="Essential / Private Label"/>
+                                    <TextBlock Grid.Column="0" Text="TAGS" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}" ToolTip="Essential / Private Label"/>
                                     <TextBlock Grid.Column="1" Text="NUMBER" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                     <TextBlock Grid.Column="2" Text="DESCRIPTION" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}" Margin="8,0"/>
                                     <TextBlock Grid.Column="3" Text="SKUS" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    <TextBlock Grid.Column="4" Text="TAGS" FontWeight="Bold" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                 </Grid>
                             </Border>
                             
@@ -384,8 +490,7 @@
                                                 <ColumnDefinition Width="50"/>
                                                 <ColumnDefinition Width="90"/>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="100"/>
-                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="120"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Border Background="{DynamicResource WarningBrush}" CornerRadius="3" Padding="4,1" Margin="0,0,3,0"
@@ -406,9 +511,6 @@
                                                        TextTrimming="CharacterEllipsis" Margin="8,0"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Skus, Converter={StaticResource ListToCommaStringConverter}}" 
                                                        Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" 
-                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="4" Text="{Binding Tags, Converter={StaticResource ListToCommaStringConverter}}" 
-                                                       Foreground="{DynamicResource PrimaryLightBrush}" FontSize="11" 
                                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                         </Grid>
                                     </DataTemplate>
@@ -459,39 +561,62 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="280"/>
+                        <RowDefinition Height="*" MinHeight="200"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
                     <!-- Stores Header -->
                     <Border Grid.Row="0" Background="{DynamicResource SuccessBrush}" Style="{StaticResource SectionHeader}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🏪" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Stores" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextOnPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Border Background="{DynamicResource OverlayLightBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0">
-                                <TextBlock Text="{Binding FilteredStores.Count}" FontSize="11" Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="Medium"/>
-                            </Border>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="🏪" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Stores" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextOnPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Border Background="{DynamicResource OverlayLightBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding FilteredStores.Count}" FontSize="11" Foreground="{DynamicResource TextOnPrimaryBrush}" FontWeight="Medium"/>
+                                </Border>
+                            </StackPanel>
+                            <ToggleButton x:Name="StoreFormToggle" Grid.Column="1" IsChecked="False"
+                                          ToolTip="Toggle Add/Edit Panel">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border Background="{DynamicResource OverlayLightBrush}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock x:Name="Arrow" Text="▼" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="Label" Text="Add/Edit" FontSize="11" FontWeight="Medium" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter TargetName="Arrow" Property="Text" Value="▲"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ToggleButton.Style>
+                            </ToggleButton>
+                        </Grid>
                     </Border>
                     
-                    <!-- Search and Form -->
-                    <StackPanel Grid.Row="1" Margin="16,16,16,8">
-                        <!-- Search -->
-                        <Grid Margin="0,0,0,12">
-                            <TextBox Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernInput}" Padding="36,10,12,10"/>
-                            <TextBlock Text="🔍" FontSize="14" Margin="12,0,0,0" 
-                                       VerticalAlignment="Center" HorizontalAlignment="Left"
-                                       Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"/>
-                        </Grid>
-                        
-                        <!-- Add/Edit Form -->
-                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                    <!-- Collapsible Add/Edit Form -->
+                    <Border Grid.Row="1" Margin="12,8,12,0"
+                            Visibility="{Binding IsChecked, ElementName=StoreFormToggle, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="12">
                             <StackPanel>
-                                <TextBlock Text="ADD / EDIT STORE" FontSize="10" FontWeight="Bold" 
-                                           Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,10"/>
-                                
-                                <Grid Margin="0,0,0,10">
+                                <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="70"/>
                                         <ColumnDefinition Width="8"/>
@@ -501,48 +626,61 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Store ID" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Store ID" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
                                         <TextBox Text="{Binding NewStoreId, UpdateSourceTrigger=PropertyChanged}" 
-                                                 Style="{StaticResource ModernInput}"/>
+                                                 Style="{StaticResource ModernInput}" Padding="8,6"/>
                                     </StackPanel>
                                     
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Store Name" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Store Name" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
                                         <TextBox Text="{Binding NewStoreName, UpdateSourceTrigger=PropertyChanged}" 
-                                                 Style="{StaticResource ModernInput}"/>
+                                                 Style="{StaticResource ModernInput}" Padding="8,6"/>
                                     </StackPanel>
                                     
                                     <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Rank" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Rank" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
                                         <ComboBox ItemsSource="{Binding StoreRanks}" 
                                                   SelectedItem="{Binding NewStoreRank}"/>
                                     </StackPanel>
                                 </Grid>
                                 
                                 <WrapPanel Margin="0,4,0,0">
-                                    <Button Content="+ Add" Command="{Binding AddStoreCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,6"/>
-                                    <Button Content="Update" Command="{Binding UpdateStoreCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,6"/>
-                                    <Button Content="Delete" Command="{Binding DeleteStoreCommand}" Style="{StaticResource DangerButton}" Margin="0,0,6,6"/>
-                                    <Button Content="Clear" Command="{Binding ClearStoreFormCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,6"/>
+                                    <Button Content="+ Add" Command="{Binding AddStoreCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,0"/>
+                                    <Button Content="Update" Command="{Binding UpdateStoreCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,0"/>
+                                    <Button Content="Delete" Command="{Binding DeleteStoreCommand}" Style="{StaticResource DangerButton}" Margin="0,0,6,0"/>
+                                    <Button Content="Clear" Command="{Binding ClearStoreFormCommand}" Style="{StaticResource CompactButton}" Margin="0,0,6,0"/>
                                     <Button Content="Import" Command="{Binding ImportStoresFromExcelCommand}" 
-                                            Style="{StaticResource CompactButton}" ToolTip="Import stores from Excel" Margin="0,0,0,6"/>
+                                            Style="{StaticResource CompactButton}" ToolTip="Import stores from Excel"/>
                                 </WrapPanel>
                             </StackPanel>
                         </Border>
-                    </StackPanel>
+                    </Border>
                     
                     <!-- Stores List -->
-                    <Border Grid.Row="2" Margin="16,0,16,16" Background="{DynamicResource SurfaceBrush}" 
+                    <Border Grid.Row="2" Margin="12,8,12,12" Background="{DynamicResource SurfaceBrush}" 
                             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             
-                            <!-- List Header -->
+                            <!-- Search Bar -->
                             <Border Grid.Row="0" Background="{DynamicResource SurfaceHoverBrush}" 
-                                    CornerRadius="8,8,0,0" Padding="12,8">
+                                    CornerRadius="8,8,0,0" Padding="12,10">
+                                <Grid>
+                                    <TextBox Text="{Binding StoreSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource ModernInput}" Padding="32,8,12,8"
+                                             ToolTip="Search by store ID or name"/>
+                                    <TextBlock Text="🔍" FontSize="12" Margin="10,0,0,0" 
+                                               VerticalAlignment="Center" HorizontalAlignment="Left"
+                                               Foreground="{DynamicResource TextTertiaryBrush}" IsHitTestVisible="False"/>
+                                </Grid>
+                            </Border>
+                            
+                            <!-- List Header -->
+                            <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="12,8">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="60"/>
@@ -556,7 +694,7 @@
                             </Border>
                             
                             <!-- List -->
-                            <ListView Grid.Row="1" ItemsSource="{Binding FilteredStores}"
+                            <ListView Grid.Row="2" ItemsSource="{Binding FilteredStores}"
                                       SelectedItem="{Binding SelectedStore}"
                                       BorderThickness="0" Background="Transparent"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"

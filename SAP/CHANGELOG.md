@@ -5,10 +5,10 @@ All notable changes to S.A.P (S.A.M. Add-on Pack) will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [4.2.1] - 2025-12-11
 
 ### Changed
+
 - Removed legacy theme code and simplified theme handling
 - Updated splash screen styling for consistency across all modules
 
@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.2.0] - 2025-12-05
 
 ### Added
+
 - **Installer Options** - Choose between Full and Portable installation
   - Full install: Framework-dependent (~15 MB), requires .NET 8 Runtime
   - Portable install: Self-contained (~75 MB), runs anywhere without dependencies
 
-### Changed
+### Changed (UI)
+
 - **Enhanced Gradients** - More prominent gradient backgrounds in both themes
   - Sidebar uses smooth vertical gradient transitions
   - Module splash screens have vibrant color progressions
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **S.A.P Title** - Now properly follows light/dark theme colors
 
 ### Visual Improvements
+
 - Dark theme: Deeper, richer color gradients with purple/indigo/green/pink accents
 - Light theme: Brighter, more colorful gradients while maintaining clean aesthetic
 - Seamless visual flow from title bar through sidebar to content area
@@ -39,7 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.1.0] - 2025-12-05
 
-### Added
+### Added (Features)
+
 - **About Dialog** - Press F1 or click About button to view version, modules, and changelog
 - **Window Position Persistence** - Windows remember their position and size between sessions
 - **Keyboard Shortcuts Panel** - Launcher sidebar now shows available shortcuts
@@ -49,48 +53,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Alt+H` - Alternative home navigation
   - `F1` - Open About dialog
 
-### Changed
+### Changed (Internal)
+
 - Centralized version information in `AppVersion.cs`
 - Updated version badge in launcher to use centralized version
 
 ### Improved
+
 - Added comprehensive XML documentation to all code files
 - Reorganized project structure to modern C# standards
 - Updated .gitignore with comprehensive exclusions
 - Added README.md with project documentation
 
 ### Fixed
+
 - Cleaned up temporary and backup files from repository
 
 ---
 
 ## [4.0.0] - 2025-12-01
 
-### Added
+### Added (Major Release)
+
 - **Fourth Major Release** of S.A.P (S.A.M. Add-on Pack)
 
 #### ExpireWise
+
 - Expiration date tracking and management
 - Excel import/export support
 - Item dictionary for quick entry
 - Visual expiration status indicators
 
 #### AllocationBuddy
+
 - Store allocation management
 - RPG-style allocation view
 - Session archiving and restore
 - Multi-store allocation tracking
 
 #### EssentialsBuddy
+
 - Essential items inventory tracking
 - 9-90 bin validation
 - Essential vs non-essential item flagging
 
 #### SwiftLabel
+
 - Quick label generation
 - Customizable label templates
 
 #### Core Features
+
 - Dark and Light theme support with persistence
 - LiteDB database for data persistence
 - Modular installer with component selection

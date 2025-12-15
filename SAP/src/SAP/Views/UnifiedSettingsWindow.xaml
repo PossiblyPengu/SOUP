@@ -97,6 +97,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -241,6 +242,17 @@
                                     <StackPanel>
                                         <TextBlock Text="Database" FontSize="13" FontWeight="SemiBold"/>
                                         <TextBlock Text="Items &amp; stores" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabExternalData" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="☁️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="External Data" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="MySQL &amp; BC sync" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </RadioButton>
@@ -543,6 +555,11 @@
                     <!-- Dictionary Panel -->
                     <Border x:Name="PanelDictionary" Visibility="Collapsed">
                         <local:DictionaryManagementView DataContext="{Binding DictionaryManagement}"/>
+                    </Border>
+                    
+                    <!-- External Data Panel -->
+                    <Border x:Name="PanelExternalData" Visibility="Collapsed">
+                        <local:ExternalDataSettingsView/>
                     </Border>
                 </Grid>
 
