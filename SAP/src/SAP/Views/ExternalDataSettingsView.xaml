@@ -38,8 +38,10 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
-        <StackPanel MaxWidth="600">
+    <Grid>
+        <!-- Main content (faded when locked) -->
+        <ScrollViewer x:Name="ContentScrollViewer" VerticalScrollBarVisibility="Auto" Padding="20">
+            <StackPanel MaxWidth="600" x:Name="ContentPanel">
             <!-- Header -->
             <TextBlock Text="External Data Connections"
                        FontSize="20"
@@ -292,6 +294,54 @@
                     HorizontalAlignment="Left"
                     Padding="24,12"
                     FontSize="14"/>
-        </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Admin Lock Overlay -->
+        <Grid x:Name="LockOverlay" Background="#80000000">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    CornerRadius="16"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MaxWidth="400">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5"/>
+                </Border.Effect>
+                <StackPanel HorizontalAlignment="Center">
+                    <!-- Shield Icon -->
+                    <Border Background="{DynamicResource WarningBrush}" 
+                            CornerRadius="30" Width="60" Height="60"
+                            HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <TextBlock Text="🛡️" FontSize="28" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <TextBlock Text="Administrator Access Required"
+                               FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,12"/>
+                    
+                    <TextBlock Text="External Data settings contain sensitive connection credentials. Administrator authorization is required to view or modify these settings."
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               Margin="0,0,0,24"/>
+                    
+                    <Button x:Name="UnlockButton" 
+                            Click="UnlockButton_Click"
+                            Style="{DynamicResource PrimaryButtonStyle}"
+                            Padding="24,12"
+                            HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔓" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Unlock with Admin Credentials" FontSize="14" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
 </UserControl>

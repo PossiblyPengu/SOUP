@@ -4,7 +4,7 @@
         Title="S.A.P NUKEM - Level 1" Width="800" Height="600"
         WindowStartupLocation="CenterScreen" Background="Black"
         KeyDown="OnKeyDown" KeyUp="OnKeyUp" MouseMove="OnMouseMove"
-        MouseDown="OnMouseDown" Loaded="OnLoaded" Closing="OnClosing"
+        MouseDown="OnMouseDown" MouseUp="OnMouseUp" Loaded="OnLoaded" Closing="OnClosing"
         Focusable="True">
     <Grid>
         <Image x:Name="Screen" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
@@ -153,14 +153,53 @@
                 </StackPanel>
             </Border>
 
+            <!-- Power-up Bars -->
+            <Border x:Name="PowerUpPanel" Canvas.Left="10" Canvas.Top="85" Visibility="Collapsed" Background="#88000000" CornerRadius="4" Padding="5">
+                <StackPanel>
+                    <StackPanel x:Name="InvincibilityBar" Visibility="Collapsed">
+                        <TextBlock Text="⭐ INVINCIBLE" Foreground="#00ffff" FontSize="10" FontFamily="Consolas" FontWeight="Bold"/>
+                        <Border Width="100" Height="6" Background="#333" CornerRadius="2">
+                            <Border x:Name="InvincibilityFill" Background="#00ffff" CornerRadius="2" HorizontalAlignment="Left"/>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel x:Name="DamageBoostBar" Visibility="Collapsed" Margin="0,4,0,0">
+                        <TextBlock Text="💥 DAMAGE x2" Foreground="#ff4444" FontSize="10" FontFamily="Consolas" FontWeight="Bold"/>
+                        <Border Width="100" Height="6" Background="#333" CornerRadius="2">
+                            <Border x:Name="DamageBoostFill" Background="#ff4444" CornerRadius="2" HorizontalAlignment="Left"/>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Kill Streak Display -->
+            <Border x:Name="KillStreakPanel" Canvas.Left="350" Canvas.Top="80" Visibility="Collapsed" Background="#CC000000" CornerRadius="6" Padding="10,5">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock x:Name="KillStreakText" Text="KILLING SPREE!" Foreground="#ff4444" FontSize="18" FontFamily="Impact" 
+                               HorizontalAlignment="Center" FontWeight="Bold">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="Red" BlurRadius="10" ShadowDepth="0"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock x:Name="KillStreakCount" Text="x3" Foreground="#ffd700" FontSize="24" FontFamily="Impact" 
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Crosshair (for aiming / ADS) -->
+            <Canvas x:Name="AimCrosshairCanvas" Canvas.Left="390" Canvas.Top="290" Visibility="Collapsed">
+                <Line X1="-10" Y1="0" X2="10" Y2="0" Stroke="#88ffffff" StrokeThickness="1"/>
+                <Line X1="0" Y1="-10" X2="0" Y2="10" Stroke="#88ffffff" StrokeThickness="1"/>
+                <Ellipse Canvas.Left="-3" Canvas.Top="-3" Width="6" Height="6" Stroke="#88ff0000" StrokeThickness="1"/>
+            </Canvas>
+
             <!-- Messages -->
             <TextBlock x:Name="MessageText" Canvas.Left="20" Canvas.Top="20" Foreground="#ffd700" FontSize="16" FontFamily="Consolas" FontWeight="Bold"/>
 
             <!-- Game Over Screen -->
             <Border x:Name="GameOverScreen" Visibility="Collapsed" Background="#EE000000" Width="800" Height="600">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="DAMN..." Foreground="#b71c1c" FontSize="72" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Impact"/>
-                    <TextBlock Text="Those alien bastards got you!" Foreground="#888" FontSize="18" HorizontalAlignment="Center" FontFamily="Consolas" Margin="0,10"/>
+                    <TextBlock Text="OOPSIE WOOPSIE!" Foreground="#FF69B4" FontSize="72" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Impact"/>
+                    <TextBlock Text="You did a fucky wucky! Time to take a break 😅" Foreground="#888" FontSize="18" HorizontalAlignment="Center" FontFamily="Consolas" Margin="0,10"/>
                     <TextBlock x:Name="FinalScoreText" Foreground="White" FontSize="24" HorizontalAlignment="Center" Margin="0,20" FontFamily="Impact"/>
                     <TextBlock x:Name="TopScoresText" Foreground="#aaa" FontSize="16" HorizontalAlignment="Center" Margin="0,6" FontFamily="Consolas"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
@@ -174,19 +213,19 @@
             <!-- Level Complete Screen -->
             <Border x:Name="LevelCompleteScreen" Visibility="Collapsed" Background="#EE000000" Width="800" Height="600">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="LEVEL COMPLETE!" Foreground="#ffd700" FontSize="56" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Impact"/>
-                    <TextBlock x:Name="LevelQuote" Text="&quot;Hail to the king, baby!&quot;" Foreground="#4caf50" FontSize="20" HorizontalAlignment="Center" FontFamily="Georgia" FontStyle="Italic" Margin="0,10"/>
+                    <TextBlock Text="WOOHOO! 🎉" Foreground="#ffd700" FontSize="56" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Impact"/>
+                    <TextBlock x:Name="LevelQuote" Text="&quot;That was actually pretty fun!&quot;" Foreground="#4caf50" FontSize="20" HorizontalAlignment="Center" FontFamily="Georgia" FontStyle="Italic" Margin="0,10"/>
                     <TextBlock x:Name="LevelScoreText" Foreground="White" FontSize="24" HorizontalAlignment="Center" Margin="0,20" FontFamily="Consolas"/>
                     <TextBlock x:Name="LevelStatsText" Foreground="#aaa" FontSize="16" HorizontalAlignment="Center" FontFamily="Consolas"/>
-                    <TextBlock Text="Press SPACE for Next Level" Foreground="#ffd700" FontSize="18" HorizontalAlignment="Center" Margin="0,30,0,0" FontFamily="Impact"/>
+                    <TextBlock Text="Press SPACE for More Fun!" Foreground="#ffd700" FontSize="18" HorizontalAlignment="Center" Margin="0,30,0,0" FontFamily="Impact"/>
                 </StackPanel>
             </Border>
 
             <!-- Victory Screen -->
             <Border x:Name="VictoryScreen" Visibility="Collapsed" Background="#EE000000" Width="800" Height="600">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="GAME OVER!" Foreground="#ffd700" FontSize="72" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Impact"/>
-                    <TextBlock Text="&quot;It's time to kick ass and chew bubblegum...&#x0a;and I'm all outta gum.&quot;" Foreground="#4caf50" FontSize="18" HorizontalAlignment="Center" FontFamily="Georgia" FontStyle="Italic" TextAlignment="Center" Margin="0,15"/>
+                    <TextBlock Text="YOU DID IT! 🏆" Foreground="#ffd700" FontSize="72" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Impact"/>
+                    <TextBlock Text="&quot;Time to get back to those spreadsheets...&#x0a;just kidding, play again!&quot;" Foreground="#4caf50" FontSize="18" HorizontalAlignment="Center" FontFamily="Georgia" FontStyle="Italic" TextAlignment="Center" Margin="0,15"/>
                     <TextBlock x:Name="TotalScoreText" Foreground="White" FontSize="32" HorizontalAlignment="Center" FontFamily="Impact" Margin="0,20"/>
                     <TextBlock x:Name="TopScoresTextVictory" Foreground="#aaa" FontSize="16" HorizontalAlignment="Center" Margin="0,6" FontFamily="Consolas"/>
                     <TextBlock Text="Press R to Play Again | ESC to Quit" Foreground="#666" FontSize="16" HorizontalAlignment="Center" Margin="0,30,0,0" FontFamily="Consolas"/>

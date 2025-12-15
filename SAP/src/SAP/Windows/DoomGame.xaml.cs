@@ -40,32 +40,42 @@ public partial class DoomGame : Window
     static readonly uint[] CeilTex = new uint[TEX * TEX];
     #endregion
 
-    #region Duke Quotes
+    #region Silly Quotes
     static readonly string[] KillQuotes = {
-        "Damn, I'm good!",
-        "Rest in pieces!",
-        "Suck it down!",
-        "Eat this!",
-        "Who wants some?!",
-        "Come get some!",
-        "Your face, your ass... what's the difference?",
-        "Blow it out your ass!",
-        "Piece of cake!",
-        "Let God sort 'em out!"
+        "Boop!",
+        "You've been spreadsheet'd!",
+        "Ctrl+Alt+Defeated!",
+        "Error 404: Enemy not found!",
+        "Have a nice day!",
+        "That tickled!",
+        "Woopsie daisy!",
+        "Back to the recycle bin!",
+        "Your data has been corrupted!",
+        "Task failed successfully!"
     };
 
     static readonly string[] LevelCompleteQuotes = {
-        "Hail to the king, baby!",
-        "I'm gonna rip off your head and... oh wait, I already did!",
-        "Damn, those alien bastards are gonna pay!",
-        "Nobody steals our chicks... and lives!",
-        "It's time to kick ass and chew bubblegum!"
+        "Spreadsheet complete!",
+        "All formulas balanced!",
+        "Time for a coffee break!",
+        "That was actually kinda fun!",
+        "Another productive day at the office!"
     };
 
     static readonly string[] HurtQuotes = {
-        "Ooh, that hurt!",
-        "Damn!",
-        "Son of a..."
+        "Ow! My spreadsheets!",
+        "That's not in my budget!",
+        "I need a vacation..."
+    };
+
+    static readonly string[] KillStreakQuotes = {
+        "Combo meal!",
+        "Hat trick!",
+        "You're on fire! (figuratively)",
+        "Somebody stop them!",
+        "IS THIS EVEN LEGAL?!",
+        "MOM GET THE CAMERA!",
+        "ABSOLUTE LEGEND!"
     };
     #endregion
 
@@ -78,6 +88,9 @@ public partial class DoomGame : Window
 
     // Per-tile floor heights for verticality
     int[] _floorHeights = new int[MAP_SIZE * MAP_SIZE];
+    
+    // Hazard tiles (lava/acid)
+    bool[] _hazardTiles = new bool[MAP_SIZE * MAP_SIZE];
 
     // Player - Duke style with vertical look, jumping, crouching
     double _px_pos, _py, _pa;          // Position and horizontal angle
@@ -95,6 +108,11 @@ public partial class DoomGame : Window
     int[] _ammo = { 999, 48, 12, 200, 10, 5, 8 }; // Boot, Pistol, Shotgun, Ripper, RPG, Pipebomb, MiniRocket
     int _currentLevel = 1; // Now used as 'stage' or 'depth' in endless mode
     int _kills = 0, _totalEnemies = 0, _secretsFound = 0, _totalSecrets = 0;
+    
+    // Kill streak tracking
+    int _killStreak = 0;
+    double _killStreakTimer = 0;
+    const double KILL_STREAK_WINDOW = 3.0; // seconds to chain kills
 
     // Inventory items
     int _medkits = 0, _steroids = 0;
@@ -102,6 +120,31 @@ public partial class DoomGame : Window
     bool _hasJetpack = false;
     bool _jetpackActive = false;
     double _steroidsTimer = 0;
+    
+    // Power-ups
+    double _invincibilityTimer = 0;
+    double _damageBoostTimer = 0;
+    double _damageBoostMultiplier = 2.0;
+    
+    // Visual effects
+    double _screenShakeTimer = 0;
+    double _screenShakeIntensity = 0;
+    bool _isAiming = false; // Right-click aim down sights
+    double _aimZoom = 1.0;
+    double _damageVignetteTimer = 0; // Red vignette when hurt
+    double _weaponBob = 0; // Weapon sway
+#pragma warning disable CS0414 // Assigned but not used - reserved for future head bob feature
+    double _headBob = 0; // Head bob when walking
+#pragma warning restore CS0414
+    double _muzzleFlashTimer = 0; // Extended muzzle flash glow
+    
+    // Particles for blood/explosion effects
+    List<(double x, double y, double dx, double dy, double life, uint color)> _particles = new();
+    
+    // Wall decals (blood splatters, bullet holes) - reserved for future feature
+#pragma warning disable CS0414
+    List<(int mapX, int mapY, int side, double wallPos, uint color, double size)> _wallDecals = new();
+#pragma warning restore CS0414
 
     // Weapons - Duke style
     readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB", "MINI ROCKET" };
@@ -163,6 +206,22 @@ public partial class DoomGame : Window
     #region Entity Classes
     enum EnemyType { Trooper, PigCop, Enforcer, Octabrain, BattleLord }
 
+    // Body part for ragdoll physics
+    enum BodyPartType { Head, Torso, ArmL, ArmR, LegL, LegR }
+    
+    class BodyPart
+    {
+        public double X, Y, Z;           // 3D position (Z is height)
+        public double Vx, Vy, Vz;        // Velocity
+        public double Rotation;          // Spin rotation
+        public double RotationSpeed;     // Angular velocity
+        public double Size;              // Scale
+        public BodyPartType Type;
+        public uint Color;
+        public double Life;              // Time before disappearing
+        public double Bounce;            // Bounciness
+    }
+
     class Enemy
     {
         public double X, Y, Hp, MaxHp, Speed, AttackRange, AttackDamage, AttackCooldown;
@@ -170,9 +229,15 @@ public partial class DoomGame : Window
         public bool Dead, Alerted;
         public EnemyType Type;
         public int ScoreValue;
+        
+        // Ragdoll physics while alive (wobble/sway)
+        public double WobblePhase;
+        public double WobbleSpeed;
+        public double LeanAngle;         // Leaning when moving
+        public double BobPhase;          // Bounce when walking
     }
 
-    enum PickupType { Health, Armor, Ammo, Shotgun, Ripper, RPG, KeyRed, KeyBlue, KeyYellow, Medkit, Jetpack, Steroids, AtomicHealth, Exit }
+    enum PickupType { Health, Armor, Ammo, Shotgun, Ripper, RPG, KeyRed, KeyBlue, KeyYellow, Medkit, Jetpack, Steroids, AtomicHealth, Exit, Invincibility, DamageBoost }
 
     class Pickup
     {
@@ -196,6 +261,9 @@ public partial class DoomGame : Window
         public bool Opening = false;
         public bool Closing = false;
     }
+    
+    // Global list of flying body parts (ragdolls)
+    List<BodyPart> _bodyParts = new();
     #endregion
 
     public DoomGame()
@@ -327,8 +395,14 @@ public partial class DoomGame : Window
         _projectiles.Clear();
         _doors.Clear();
         _pipeBombs.Clear();
+        _particles.Clear();
+        _bodyParts.Clear();
 
-        for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++) { _map[i] = 0; _floorHeights[i] = 0; }
+        for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++) { _map[i] = 0; _floorHeights[i] = 0; _hazardTiles[i] = false; }
+        
+        // Reset kill streak
+        _killStreak = 0;
+        _killStreakTimer = 0;
 
         GenerateRandomLevel();
 
@@ -340,7 +414,7 @@ public partial class DoomGame : Window
         _pz = 0;
         _pzVel = 0;
 
-        Title = $"S.A.P NUKEM - Random Level";
+        Title = $"S.A.P NUKEM - Stage {_currentLevel}";
         SayQuote("It's time to kick ass and chew bubblegum...");
         // --- Random Level Generator with verticality ---
         void GenerateRandomLevel()
@@ -373,6 +447,11 @@ public partial class DoomGame : Window
                             _floorHeights[y * MAP_SIZE + x] = _rnd.Next(-16, 33); // -16 to +32 px
                         else
                             _floorHeights[y * MAP_SIZE + x] = 0;
+                        
+                        // Hazard tiles (lava/acid) - more common in later levels
+                        double hazardChance = 0.02 + (_currentLevel * 0.005);
+                        if (_rnd.NextDouble() < hazardChance)
+                            _hazardTiles[y * MAP_SIZE + x] = true;
                     }
                     else
                     {
@@ -381,11 +460,11 @@ public partial class DoomGame : Window
                 }
             }
 
-            // Place player at a random open spot
+            // Place player at a random open spot (not on hazard)
             while (true)
             {
                 int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
-                if (_map[py * MAP_SIZE + px] == 0)
+                if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
                 {
                     _px_pos = px + 0.5;
                     _py = py + 0.5;
@@ -405,11 +484,12 @@ public partial class DoomGame : Window
                 }
             }
 
-            // Place enemies
-            for (int i = 0; i < 12 + _rnd.Next(8); i++)
+            // Place enemies - more in later levels
+            int enemyCount = 12 + _rnd.Next(8) + (_currentLevel * 2);
+            for (int i = 0; i < enemyCount; i++)
             {
                 int ex = _rnd.Next(2, MAP_SIZE - 2), ey = _rnd.Next(2, MAP_SIZE - 2);
-                if (_map[ey * MAP_SIZE + ex] == 0)
+                if (_map[ey * MAP_SIZE + ex] == 0 && !_hazardTiles[ey * MAP_SIZE + ex])
                     AddEnemy((EnemyType)_rnd.Next(0, 5), ex, ey);
             }
 
@@ -417,8 +497,22 @@ public partial class DoomGame : Window
             for (int i = 0; i < 10 + _rnd.Next(8); i++)
             {
                 int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
-                if (_map[py * MAP_SIZE + px] == 0)
+                if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
                     AddPickup((PickupType)_rnd.Next(0, 13), px, py);
+            }
+            
+            // Rare power-up spawns (invincibility and damage boost)
+            if (_rnd.NextDouble() < 0.3 + (_currentLevel * 0.05)) // More likely in later levels
+            {
+                int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
+                    AddPickup(PickupType.Invincibility, px, py);
+            }
+            if (_rnd.NextDouble() < 0.35 + (_currentLevel * 0.05))
+            {
+                int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
+                    AddPickup(PickupType.DamageBoost, px, py);
             }
 
             // Place a few keys
@@ -580,7 +674,11 @@ public partial class DoomGame : Window
         // Only place enemy if not in wall
         int ix = (int)x, iy = (int)y;
         if (_map[iy * MAP_SIZE + ix] != 0) return;
-        var e = new Enemy { X = x + 0.5, Y = y + 0.5, Type = type };
+        var e = new Enemy { 
+            X = x + 0.5, Y = y + 0.5, Type = type,
+            WobblePhase = _rnd.NextDouble() * PI2,
+            WobbleSpeed = 2.0 + _rnd.NextDouble() * 2.0
+        };
         switch (type)
         {
             case EnemyType.Trooper:
@@ -690,6 +788,9 @@ public partial class DoomGame : Window
         UpdateDoors(dt);
         UpdatePickups();
         UpdatePipeBombs(dt);
+        UpdateParticles(dt);
+        UpdateHazards(dt);
+        UpdateBodyParts(dt);
 
         Render();
         RenderMinimap();
@@ -714,6 +815,92 @@ public partial class DoomGame : Window
         }
 
         if (_steroidsTimer > 0) _steroidsTimer -= dt;
+        if (_invincibilityTimer > 0) _invincibilityTimer -= dt;
+        if (_damageBoostTimer > 0) _damageBoostTimer -= dt;
+        if (_screenShakeTimer > 0) _screenShakeTimer -= dt;
+        if (_damageVignetteTimer > 0) _damageVignetteTimer -= dt;
+        if (_muzzleFlashTimer > 0) _muzzleFlashTimer -= dt;
+        
+        // Kill streak decay
+        if (_killStreakTimer > 0)
+        {
+            _killStreakTimer -= dt;
+            if (_killStreakTimer <= 0) _killStreak = 0;
+        }
+        
+        // Aim zoom interpolation
+        double targetZoom = _isAiming ? 1.5 : 1.0;
+        _aimZoom += (targetZoom - _aimZoom) * 0.15;
+    }
+    
+    void UpdateBodyParts(double dt)
+    {
+        const double gravity = 0.8;
+        const double friction = 0.98;
+        
+        for (int i = _bodyParts.Count - 1; i >= 0; i--)
+        {
+            var part = _bodyParts[i];
+            
+            // Update lifetime
+            part.Life -= dt;
+            if (part.Life <= 0)
+            {
+                _bodyParts.RemoveAt(i);
+                continue;
+            }
+            
+            // Apply gravity
+            part.Vz -= gravity * dt;
+            
+            // Update position
+            part.X += part.Vx;
+            part.Y += part.Vy;
+            part.Z += part.Vz;
+            
+            // Update rotation (spinning!)
+            part.Rotation += part.RotationSpeed * dt;
+            
+            // Bounce off floor
+            if (part.Z <= 0)
+            {
+                part.Z = 0;
+                part.Vz = -part.Vz * part.Bounce;
+                part.Vx *= friction;
+                part.Vy *= friction;
+                part.RotationSpeed *= 0.8; // Slow down spin on bounce
+                
+                // Spawn confetti on bounce!
+                if (Math.Abs(part.Vz) > 0.05)
+                {
+                    uint[] confettiColors = { 0xFFFF69B4u, 0xFF00FF00u, 0xFFFFD700u, 0xFF00FFFFu, 0xFFFF6347u, 0xFF9370DBu };
+                    for (int c = 0; c < 3; c++)
+                    {
+                        double vx = (_rnd.NextDouble() - 0.5) * 0.08;
+                        double vy = (_rnd.NextDouble() - 0.5) * 0.08;
+                        uint color = confettiColors[_rnd.Next(confettiColors.Length)];
+                        _particles.Add((part.X, part.Y, vx, vy, 0.5, color));
+                    }
+                }
+                
+                // Stop bouncing if velocity is tiny
+                if (Math.Abs(part.Vz) < 0.02) part.Vz = 0;
+            }
+            
+            // Wall collision
+            int mapX = (int)part.X, mapY = (int)part.Y;
+            if (mapX >= 0 && mapX < MAP_SIZE && mapY >= 0 && mapY < MAP_SIZE)
+            {
+                if (_map[mapY * MAP_SIZE + mapX] > 0)
+                {
+                    // Bounce off wall
+                    part.X -= part.Vx * 2;
+                    part.Y -= part.Vy * 2;
+                    part.Vx = -part.Vx * 0.5;
+                    part.Vy = -part.Vy * 0.5;
+                }
+            }
+        }
     }
 
     void ProcessMouse()
@@ -818,6 +1005,10 @@ public partial class DoomGame : Window
         {
             if (en.Dead) { en.DeathTimer += dt; continue; }
             if (en.HurtTimer > 0) en.HurtTimer -= dt;
+            
+            // Always update wobble phase for idle animation
+            en.WobblePhase += en.WobbleSpeed * dt;
+            en.BobPhase += en.WobbleSpeed * 0.7 * dt;
 
             double dx = _px_pos - en.X, dy = _py - en.Y;
             double dist = Math.Sqrt(dx * dx + dy * dy);
@@ -825,6 +1016,7 @@ public partial class DoomGame : Window
             if (dist < 12) en.Alerted = true;
             if (!en.Alerted) continue;
 
+            double prevX = en.X, prevY = en.Y;
             if (dist > en.AttackRange * 0.4 && dist < 16)
             {
                 double nx = en.X + dx / dist * en.Speed;
@@ -832,6 +1024,10 @@ public partial class DoomGame : Window
                 if (!IsWall(nx, en.Y)) en.X = nx;
                 if (!IsWall(en.X, ny)) en.Y = ny;
             }
+            
+            // Calculate lean angle based on movement direction
+            double moveX = en.X - prevX;
+            en.LeanAngle = en.LeanAngle * 0.9 + (moveX * 10) * 0.1; // Smooth lerp
 
             en.Timer += dt;
             if (en.Timer > en.AttackCooldown && dist < en.AttackRange)
@@ -851,6 +1047,9 @@ public partial class DoomGame : Window
 
     void TakeDamage(int damage)
     {
+        // Invincibility check
+        if (_invincibilityTimer > 0) return;
+        
         if (_armor > 0)
         {
             int absorbed = Math.Min(_armor, damage * 2 / 3);
@@ -858,6 +1057,11 @@ public partial class DoomGame : Window
             damage -= absorbed / 2;
         }
         _hp -= damage;
+        
+        // Visual feedback
+        TriggerScreenShake(0.15, 4);
+        _damageVignetteTimer = 0.5; // Red vignette flash
+        
         PlaySound("duke_hurt.wav");
         if (_rnd.NextDouble() < 0.3)
             SayQuote(HurtQuotes[_rnd.Next(HurtQuotes.Length)]);
@@ -952,11 +1156,20 @@ public partial class DoomGame : Window
         foreach (var bomb in _pipeBombs)
             ExplosionAt(bomb.x, bomb.y, 150);
         _pipeBombs.Clear();
-        if (_pipeBombs.Count > 0) SayQuote("Blow it out your ass!");
+        if (_pipeBombs.Count > 0) SayQuote("Party popper activated!");
     }
 
     void ExplosionAt(double x, double y, int damage)
     {
+        // Screen shake on explosions (bigger shake for bigger damage)
+        double shakeIntensity = Math.Min(15, 5 + damage / 20.0);
+        TriggerScreenShake(0.5, shakeIntensity);
+        
+        // PARTY EXPLOSION! 🎆 Fireworks instead of violence
+        SpawnConfetti(x, y, 25);
+        SpawnParticles(x, y, 15, 0xFFFFFF00u, 0xFFFFFFFFu); // Sparkles
+        SpawnParticles(x, y, 10, 0xFFFF69B4u, 0xFF00FF00u); // Pink & green
+        
         foreach (var en in _enemies)
         {
             if (en.Dead) continue;
@@ -964,10 +1177,11 @@ public partial class DoomGame : Window
             if (d < 3)
             {
                 int dmg = (int)(damage * (1 - d / 3));
+                if (_damageBoostTimer > 0) dmg = (int)(dmg * _damageBoostMultiplier);
                 en.Hp -= dmg;
                 en.HurtTimer = 0.2;
                 en.Alerted = true;
-                if (en.Hp <= 0) KillEnemy(en);
+                if (en.Hp <= 0) KillEnemy(en, true); // Explosion death = extra ragdoll force
             }
         }
 
@@ -975,14 +1189,179 @@ public partial class DoomGame : Window
         if (pd < 3) TakeDamage((int)(damage * 0.3 * (1 - pd / 3)));
     }
 
-    void KillEnemy(Enemy en)
+    void KillEnemy(Enemy en, bool explosive = false)
     {
         en.Dead = true;
-        _score += en.ScoreValue;
+        
+        // RAGDOLL TIME! 🎉 Spawn body parts flying everywhere
+        SpawnRagdoll(en, explosive);
+        
+        // Spawn confetti particles
+        SpawnConfetti(en.X, en.Y, 15);
+        
+        // Kill streak system
+        _killStreak++;
+        _killStreakTimer = KILL_STREAK_WINDOW;
+        
+        // Bonus points for kill streaks
+        int streakBonus = 0;
+        if (_killStreak >= 2)
+        {
+            streakBonus = _killStreak * 50;
+            if (_killStreak <= KillStreakQuotes.Length)
+            {
+                SayQuote(KillStreakQuotes[Math.Min(_killStreak - 2, KillStreakQuotes.Length - 1)]);
+            }
+        }
+        
+        _score += en.ScoreValue + streakBonus;
         _kills++;
         PlaySound("duke_kill.wav");
-        if (_rnd.NextDouble() < 0.4)
+        
+        if (_killStreak < 2 && _rnd.NextDouble() < 0.4)
             SayQuote(KillQuotes[_rnd.Next(KillQuotes.Length)]);
+    }
+    
+    void SpawnRagdoll(Enemy en, bool explosive)
+    {
+        // Get silly cartoon colors for this enemy type (like stuffed toys!)
+        uint baseColor = en.Type switch
+        {
+            EnemyType.Trooper => 0xFF66FF66u,   // Bright green plush
+            EnemyType.PigCop => 0xFF6699FFu,    // Bright blue plush
+            EnemyType.Enforcer => 0xFFBBBBBBu,  // Silver plush
+            EnemyType.Octabrain => 0xFFFF88FFu, // Pink plush
+            EnemyType.BattleLord => 0xFFFF6666u,// Bright red plush
+            _ => 0xFFFFAAAAu
+        };
+        
+        double force = explosive ? 0.25 : 0.12;
+        double upForce = explosive ? 0.35 : 0.18;
+        
+        // Direction from player (for non-explosive deaths, parts fly away from player)
+        double dx = en.X - _px_pos;
+        double dy = en.Y - _py;
+        double dist = Math.Sqrt(dx * dx + dy * dy);
+        if (dist > 0.01) { dx /= dist; dy /= dist; }
+        
+        // Spawn different body parts with silly colors
+        var partTypes = new[] { BodyPartType.Head, BodyPartType.Torso, BodyPartType.ArmL, BodyPartType.ArmR, BodyPartType.LegL, BodyPartType.LegR };
+        var partSizes = new[] { 0.18, 0.28, 0.12, 0.12, 0.14, 0.14 }; // Slightly bigger for visibility
+        
+        // Rainbow-ish cartoon colors!
+        uint[] funColors = { 0xFFFFB6C1u, 0xFFFFA07Au, 0xFFFFD700u, 0xFF98FB98u, 0xFF87CEEBu, 0xFFDDA0DDu };
+        
+        for (int i = 0; i < partTypes.Length; i++)
+        {
+            double angle = _rnd.NextDouble() * PI2;
+            double speed = force * (0.5 + _rnd.NextDouble());
+            
+            // Explosive deaths: random directions. Normal deaths: away from player
+            double vx, vy;
+            if (explosive)
+            {
+                vx = Math.Cos(angle) * speed;
+                vy = Math.Sin(angle) * speed;
+            }
+            else
+            {
+                vx = dx * speed + (_rnd.NextDouble() - 0.5) * force;
+                vy = dy * speed + (_rnd.NextDouble() - 0.5) * force;
+            }
+            
+            // Mix base color with fun pastel colors
+            uint partColor = i == 1 ? baseColor : funColors[i]; // Torso keeps enemy color
+            
+            _bodyParts.Add(new BodyPart
+            {
+                X = en.X,
+                Y = en.Y,
+                Z = 0.6 - i * 0.1, // Start at different heights (head high, legs low)
+                Vx = vx,
+                Vy = vy,
+                Vz = upForce * (0.6 + _rnd.NextDouble()), // Upward velocity
+                Rotation = _rnd.NextDouble() * PI2,
+                RotationSpeed = (_rnd.NextDouble() - 0.5) * 20, // More spinning!
+                Size = partSizes[i],
+                Type = partTypes[i],
+                Color = partColor,
+                Life = 4.0 + _rnd.NextDouble() * 2.0, // Disappear after a few seconds
+                Bounce = 0.5 + _rnd.NextDouble() * 0.3 // Extra bouncy!
+            });
+        }
+        
+        // Spawn extra confetti on death!
+        SpawnConfetti(en.X, en.Y, explosive ? 25 : 12);
+    }
+    
+    // Spawn colorful confetti particles
+    void SpawnConfetti(double x, double y, int count)
+    {
+        uint[] confettiColors = { 
+            0xFFFF69B4u, // Hot pink
+            0xFF00FF00u, // Lime green
+            0xFFFFFF00u, // Yellow
+            0xFF00FFFFu, // Cyan
+            0xFFFF00FFu, // Magenta
+            0xFFFF8C00u, // Orange
+            0xFF7B68EEu, // Purple
+            0xFF00CED1u  // Turquoise
+        };
+        
+        for (int i = 0; i < count; i++)
+        {
+            double angle = _rnd.NextDouble() * PI2;
+            double speed = 0.05 + _rnd.NextDouble() * 0.15;
+            uint color = confettiColors[_rnd.Next(confettiColors.Length)];
+            _particles.Add((x, y, Math.Cos(angle) * speed, Math.Sin(angle) * speed, 1.5, color));
+        }
+    }
+    
+    void TriggerScreenShake(double duration, double intensity)
+    {
+        _screenShakeTimer = duration;
+        _screenShakeIntensity = intensity;
+    }
+    
+    void SpawnParticles(double x, double y, int count, uint color1, uint color2)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            double angle = _rnd.NextDouble() * Math.PI * 2;
+            double speed = 0.05 + _rnd.NextDouble() * 0.1;
+            uint color = _rnd.NextDouble() > 0.5 ? color1 : color2;
+            _particles.Add((x, y, Math.Cos(angle) * speed, Math.Sin(angle) * speed, 0.5 + _rnd.NextDouble() * 0.5, color));
+        }
+    }
+    
+    void UpdateParticles(double dt)
+    {
+        for (int i = _particles.Count - 1; i >= 0; i--)
+        {
+            var p = _particles[i];
+            p.x += p.dx;
+            p.y += p.dy;
+            p.life -= dt;
+            _particles[i] = p;
+            if (p.life <= 0) _particles.RemoveAt(i);
+        }
+    }
+    
+    void UpdateHazards(double dt)
+    {
+        // Check if player is standing on a hazard tile
+        int mx = (int)_px_pos, my = (int)_py;
+        if (mx >= 0 && mx < MAP_SIZE && my >= 0 && my < MAP_SIZE)
+        {
+            if (_hazardTiles[my * MAP_SIZE + mx] && _pz == 0) // Only damage if on ground
+            {
+                // Sticky goo damage - it's gross AND hurts! 🟢
+                if (_invincibilityTimer <= 0)
+                {
+                    TakeDamage(1); // Small constant damage
+                }
+            }
+        }
     }
     #endregion
 
@@ -1104,6 +1483,16 @@ public partial class DoomGame : Window
                         _keys[2] = true;
                         ShowMessage("Yellow Access Card");
                         break;
+                    case PickupType.Invincibility:
+                        _invincibilityTimer = 15.0; // 15 seconds of invincibility
+                        SayQuote("I am invincible!");
+                        ShowMessage("⭐ INVINCIBILITY! 15 seconds!");
+                        break;
+                    case PickupType.DamageBoost:
+                        _damageBoostTimer = 20.0; // 20 seconds of double damage
+                        SayQuote("Time to get medieval!");
+                        ShowMessage("💀 DAMAGE BOOST! 2x damage for 20 seconds!");
+                        break;
                     case PickupType.Exit:
                         CompleteLevel();
                         break;
@@ -1154,31 +1543,240 @@ public partial class DoomGame : Window
     {
         for (int i = 0; i < W; i++) _zBuffer[i] = double.MaxValue;
 
+        RenderSkyGradient();
         RenderFloorCeiling();
         RenderWalls();
         RenderSprites();
+        RenderBodyParts();
+        RenderParticles();
         RenderWeapon();
+        
+        // Apply damage vignette (red edges when hurt)
+        if (_damageVignetteTimer > 0)
+        {
+            ApplyDamageVignette(_damageVignetteTimer / 0.5);
+        }
+        
+        // Apply visual effects for power-ups
+        if (_invincibilityTimer > 0)
+        {
+            // Cyan pulse when invincible
+            double pulse = 0.5 + 0.5 * Math.Sin(_gameTime * 8);
+            ApplyScreenTint((uint)(0x10 + pulse * 0x15) << 24 | 0x00FFFF);
+        }
+        if (_damageBoostTimer > 0)
+        {
+            // Red pulse when damage boosted
+            double pulse = 0.5 + 0.5 * Math.Sin(_gameTime * 6);
+            ApplyScreenTint((uint)(0x10 + pulse * 0x10) << 24 | 0xFF4400);
+        }
+        
+        // Apply screen shake effect
+        if (_screenShakeTimer > 0)
+        {
+            double shakeX = (_rnd.NextDouble() - 0.5) * _screenShakeIntensity * (_screenShakeTimer / 0.4);
+            double shakeY = (_rnd.NextDouble() - 0.5) * _screenShakeIntensity * (_screenShakeTimer / 0.4);
+            Screen.RenderTransform = new TranslateTransform(shakeX, shakeY);
+        }
+        else
+        {
+            Screen.RenderTransform = null;
+        }
 
         _bmp.WritePixels(new Int32Rect(0, 0, W, H), _px, W * 4, 0);
 
-        // Update crosshair position based on pitch
-        Canvas.SetTop(CrosshairCanvas, 278 - _pitch);
+        // Update crosshair position based on pitch and aim zoom
+        double crosshairY = 278 - _pitch;
+        Canvas.SetTop(CrosshairCanvas, crosshairY);
+        
+        // Scale crosshair when aiming
+        if (_isAiming)
+        {
+            CrosshairCanvas.RenderTransform = new ScaleTransform(0.5, 0.5, 0, 0);
+        }
+        else
+        {
+            CrosshairCanvas.RenderTransform = null;
+        }
+    }
+    
+    void RenderSkyGradient()
+    {
+        int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
+        
+        // Render gradient sky above horizon
+        for (int y = 0; y < Math.Min(horizon, H); y++)
+        {
+            double skyT = (double)y / Math.Max(1, horizon);
+            // Dark blue at top to lighter blue/orange at horizon (sunset feel)
+            uint r = (uint)(20 + skyT * 80);
+            uint g = (uint)(30 + skyT * 60);
+            uint b = (uint)(80 + skyT * 40);
+            
+            // Add some stars at the top
+            for (int x = 0; x < W; x++)
+            {
+                uint color = 0xFF000000 | (r << 16) | (g << 8) | b;
+                
+                // Sparse stars near top
+                if (y < horizon / 3)
+                {
+                    int starSeed = x * 7919 + y * 104729;
+                    if ((starSeed % 997) < 3)
+                    {
+                        double twinkle = 0.5 + 0.5 * Math.Sin(_gameTime * 3 + starSeed);
+                        color = 0xFF000000 | ((uint)(200 + twinkle * 55) << 16) | ((uint)(200 + twinkle * 55) << 8) | (uint)(200 + twinkle * 55);
+                    }
+                }
+                
+                _px[y * W + x] = color;
+            }
+        }
+    }
+    
+    void ApplyDamageVignette(double intensity)
+    {
+        // Silly cartoon "ouch" effect - purple/pink vignette with stars!
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                // Calculate distance from edge
+                double edgeX = Math.Min(x, W - 1 - x) / (double)(W / 2);
+                double edgeY = Math.Min(y, H - 1 - y) / (double)(H / 2);
+                double edge = Math.Min(edgeX, edgeY);
+                
+                // Vignette strength (stronger at edges)
+                double vignette = 1.0 - Math.Pow(edge, 0.5);
+                vignette *= intensity * 0.6;
+                
+                if (vignette > 0.01)
+                {
+                    uint c = _px[y * W + x];
+                    uint cr = (c >> 16) & 0xFF;
+                    uint cg = (c >> 8) & 0xFF;
+                    uint cb = c & 0xFF;
+                    
+                    // Blend towards purple/pink (silly cartoon damage)
+                    cr = (uint)Math.Min(255, cr + (200 - cr) * vignette);
+                    cg = (uint)(cg * (1 - vignette * 0.5));
+                    cb = (uint)Math.Min(255, cb + (255 - cb) * vignette);
+                    
+                    _px[y * W + x] = 0xFF000000 | (cr << 16) | (cg << 8) | cb;
+                }
+                
+                // Add cartoon stars when hurt
+                if (intensity > 0.3 && y < 60)
+                {
+                    int starSeed = x * 31 + y * 17 + (int)(_gameTime * 10);
+                    if ((starSeed % 200) < 2)
+                    {
+                        double twinkle = 0.5 + 0.5 * Math.Sin(_gameTime * 15 + starSeed);
+                        _px[y * W + x] = 0xFF000000 | ((uint)(255 * twinkle) << 16) | ((uint)(255 * twinkle) << 8) | (uint)(50 * twinkle);
+                    }
+                }
+            }
+        }
+    }
+    
+    void ApplyScreenTint(uint tintColor)
+    {
+        uint tintA = (tintColor >> 24) & 0xFF;
+        uint tintR = (tintColor >> 16) & 0xFF;
+        uint tintG = (tintColor >> 8) & 0xFF;
+        uint tintB = tintColor & 0xFF;
+        double alpha = tintA / 255.0;
+        
+        for (int i = 0; i < _px.Length; i++)
+        {
+            uint c = _px[i];
+            uint r = (uint)(((c >> 16) & 0xFF) * (1 - alpha) + tintR * alpha);
+            uint g = (uint)(((c >> 8) & 0xFF) * (1 - alpha) + tintG * alpha);
+            uint b = (uint)((c & 0xFF) * (1 - alpha) + tintB * alpha);
+            _px[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
+    
+    void RenderParticles()
+    {
+        int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
+        double fovMultiplier = _isAiming ? 0.4 : 0.66;
+        
+        foreach (var p in _particles)
+        {
+            double dx = p.x - _px_pos, dy = p.y - _py;
+            double invDet = 1.0 / (Math.Cos(_pa + PI / 2) * fovMultiplier * Math.Sin(_pa) - Math.Cos(_pa) * Math.Sin(_pa + PI / 2) * fovMultiplier);
+            double transformX = invDet * (Math.Sin(_pa) * dx - Math.Cos(_pa) * dy);
+            double transformY = invDet * (-Math.Sin(_pa + PI / 2) * fovMultiplier * dx + Math.Cos(_pa + PI / 2) * fovMultiplier * dy);
+            
+            if (transformY <= 0.1) continue;
+            int screenXCheck = (int)Math.Clamp(W / 2 * (1 + transformX / transformY), 0, W - 1);
+            if (transformY >= _zBuffer[screenXCheck]) continue;
+            
+            int screenX = (int)(W / 2 * (1 + transformX / transformY));
+            int screenY = horizon - (int)(20 / transformY); // Lift particles up
+            int size = Math.Max(2, (int)(6 / transformY));
+            
+            // Fade based on life with glow effect
+            uint baseColor = p.color;
+            double lifeRatio = p.life / 1.0;
+            uint alpha = (uint)(255 * lifeRatio);
+            
+            // Add glow for bright particles
+            bool isGlowing = ((baseColor >> 16) & 0xFF) > 200 || ((baseColor >> 8) & 0xFF) > 200;
+            
+            for (int py = Math.Max(0, screenY - size); py < Math.Min(H, screenY + size); py++)
+            {
+                for (int px = Math.Max(0, screenX - size); px < Math.Min(W, screenX + size); px++)
+                {
+                    double dist = Math.Sqrt((px - screenX) * (px - screenX) + (py - screenY) * (py - screenY));
+                    if (dist < size)
+                    {
+                        double intensity = (1 - dist / size) * lifeRatio;
+                        
+                        if (isGlowing && intensity > 0.3)
+                        {
+                            // Additive blending for glowing particles
+                            uint existing = _px[py * W + px];
+                            uint er = (existing >> 16) & 0xFF;
+                            uint eg = (existing >> 8) & 0xFF;
+                            uint eb = existing & 0xFF;
+                            
+                            uint pr = (baseColor >> 16) & 0xFF;
+                            uint pg = (baseColor >> 8) & 0xFF;
+                            uint pb = baseColor & 0xFF;
+                            
+                            uint r = (uint)Math.Min(255, er + pr * intensity);
+                            uint g = (uint)Math.Min(255, eg + pg * intensity);
+                            uint b = (uint)Math.Min(255, eb + pb * intensity);
+                            
+                            _px[py * W + px] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                        }
+                        else if (intensity > 0.5)
+                        {
+                            _px[py * W + px] = baseColor | 0xFF000000;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void RenderFloorCeiling()
     {
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
+        double fovAngle = _isAiming ? 0.35 : 0.5; // Narrower angle when aiming
 
         for (int y = 0; y < H; y++)
         {
             bool isFloor = y > horizon;
             double rowDist = Math.Abs((H / 2.0) / (y - horizon + 0.01));
 
-            double floorStepX = rowDist * (Math.Cos(_pa + 0.5) - Math.Cos(_pa - 0.5)) / W;
-            double floorStepY = rowDist * (Math.Sin(_pa + 0.5) - Math.Sin(_pa - 0.5)) / W;
+            double floorStepX = rowDist * (Math.Cos(_pa + fovAngle) - Math.Cos(_pa - fovAngle)) / W;
+            double floorStepY = rowDist * (Math.Sin(_pa + fovAngle) - Math.Sin(_pa - fovAngle)) / W;
 
-            double floorX = _px_pos + rowDist * Math.Cos(_pa - 0.5);
-            double floorY = _py + rowDist * Math.Sin(_pa - 0.5);
+            double floorX = _px_pos + rowDist * Math.Cos(_pa - fovAngle);
+            double floorY = _py + rowDist * Math.Sin(_pa - fovAngle);
 
             for (int x = 0; x < W; x++)
             {
@@ -1186,6 +1784,25 @@ public partial class DoomGame : Window
                 int ty = (int)(floorY * TEX) & (TEX - 1);
 
                 uint color = isFloor ? FloorTex[ty * TEX + tx] : CeilTex[ty * TEX + tx];
+                
+                // Check for hazard tile (sticky goo effect! 🟢)
+                if (isFloor)
+                {
+                    int mapX = (int)floorX, mapY = (int)floorY;
+                    if (mapX >= 0 && mapX < MAP_SIZE && mapY >= 0 && mapY < MAP_SIZE)
+                    {
+                        if (_hazardTiles[mapY * MAP_SIZE + mapX])
+                        {
+                            // Animated green goo - slime color!
+                            double glow = 0.5 + 0.5 * Math.Sin(_gameTime * 2 + floorX * 2 + floorY * 2);
+                            double bubble = Math.Sin(_gameTime * 8 + floorX * 10) > 0.9 ? 1.0 : 0.0;
+                            color = 0xFF000000 | 
+                                ((uint)(30 + bubble * 50)) |        // Red (low)
+                                ((uint)(180 + glow * 75) << 8) |    // Green (bright!)
+                                ((uint)(50 + glow * 30) << 16);     // Blue (teal tint)
+                        }
+                    }
+                }
 
                 double fog = Math.Min(1, rowDist / 18);
                 uint r = (uint)(((color >> 16) & 0xFF) * (1 - fog));
@@ -1203,12 +1820,13 @@ public partial class DoomGame : Window
     void RenderWalls()
     {
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
+        double fovMultiplier = _isAiming ? 0.4 : 0.66; // Narrower FOV when aiming (zoom effect)
 
         for (int x = 0; x < W; x++)
         {
             double camX = 2.0 * x / W - 1;
-            double rayDirX = Math.Cos(_pa) + Math.Cos(_pa + PI / 2) * camX * 0.66;
-            double rayDirY = Math.Sin(_pa) + Math.Sin(_pa + PI / 2) * camX * 0.66;
+            double rayDirX = Math.Cos(_pa) + Math.Cos(_pa + PI / 2) * camX * fovMultiplier;
+            double rayDirY = Math.Sin(_pa) + Math.Sin(_pa + PI / 2) * camX * fovMultiplier;
 
             int mapX = (int)_px_pos, mapY = (int)_py;
             double deltaDistX = Math.Abs(1 / rayDirX), deltaDistY = Math.Abs(1 / rayDirY);
@@ -1371,6 +1989,104 @@ public partial class DoomGame : Window
             }
         }
     }
+    
+    void RenderBodyParts()
+    {
+        // Sort body parts by distance (furthest first)
+        var sortedParts = _bodyParts.OrderByDescending(p => (p.X - _px_pos) * (p.X - _px_pos) + (p.Y - _py) * (p.Y - _py)).ToList();
+        int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
+        
+        foreach (var part in sortedParts)
+        {
+            double dx = part.X - _px_pos;
+            double dy = part.Y - _py;
+            
+            // Camera transform
+            double invDet = 1.0 / (Math.Cos(_pa + PI / 2) * 0.66 * Math.Sin(_pa) - Math.Cos(_pa) * Math.Sin(_pa + PI / 2) * 0.66);
+            double transformX = invDet * (Math.Sin(_pa) * dx - Math.Cos(_pa) * dy);
+            double transformY = invDet * (-Math.Sin(_pa + PI / 2) * 0.66 * dx + Math.Cos(_pa + PI / 2) * 0.66 * dy);
+            
+            if (transformY <= 0.1) continue;
+            
+            // Screen position
+            int screenX = (int)(W / 2 * (1 + transformX / transformY));
+            
+            // Height offset for Z position (flying parts!)
+            double cameraZ = 32.0 + _pz + _eyeHeight;
+            double partZ = part.Z * 64; // Scale Z to world units
+            int heightOffset = (int)((cameraZ - partZ) / transformY);
+            
+            // Size based on distance and part size
+            int size = (int)(part.Size * H / transformY * 0.3);
+            if (size < 2) size = 2;
+            if (size > H / 2) size = H / 2;
+            
+            // Fade out as life decreases
+            double fadeAlpha = Math.Min(1.0, part.Life / 0.5);
+            
+            int startX = screenX - size / 2;
+            int startY = horizon + heightOffset - size / 2;
+            
+            // Render the body part as a spinning shape
+            for (int py = 0; py < size; py++)
+            {
+                for (int px = 0; px < size; px++)
+                {
+                    int scrX = startX + px;
+                    int scrY = startY + py;
+                    
+                    if (scrX < 0 || scrX >= W || scrY < 0 || scrY >= H) continue;
+                    if (transformY >= _zBuffer[scrX]) continue;
+                    
+                    // Normalized coordinates (-0.5 to 0.5)
+                    double nx = (px - size / 2.0) / size;
+                    double ny = (py - size / 2.0) / size;
+                    
+                    // Apply rotation
+                    double rot = part.Rotation;
+                    double rx = nx * Math.Cos(rot) - ny * Math.Sin(rot);
+                    double ry = nx * Math.Sin(rot) + ny * Math.Cos(rot);
+                    
+                    // Different shapes for different parts
+                    bool draw = false;
+                    switch (part.Type)
+                    {
+                        case BodyPartType.Head:
+                            // Circle
+                            draw = rx * rx + ry * ry < 0.2;
+                            break;
+                        case BodyPartType.Torso:
+                            // Rectangle
+                            draw = Math.Abs(rx) < 0.35 && Math.Abs(ry) < 0.4;
+                            break;
+                        case BodyPartType.ArmL:
+                        case BodyPartType.ArmR:
+                            // Thin rectangle
+                            draw = Math.Abs(rx) < 0.15 && Math.Abs(ry) < 0.4;
+                            break;
+                        case BodyPartType.LegL:
+                        case BodyPartType.LegR:
+                            // Leg shape
+                            draw = Math.Abs(rx) < 0.2 && Math.Abs(ry) < 0.45;
+                            break;
+                    }
+                    
+                    if (draw)
+                    {
+                        // Apply fog and fade
+                        double fog = Math.Min(0.75, transformY / 16);
+                        double brightness = (1 - fog) * fadeAlpha;
+                        
+                        uint r = (uint)(((part.Color >> 16) & 0xFF) * brightness);
+                        uint g = (uint)(((part.Color >> 8) & 0xFF) * brightness);
+                        uint b = (uint)((part.Color & 0xFF) * brightness);
+                        
+                        _px[scrY * W + scrX] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                    }
+                }
+            }
+        }
+    }
 
     uint GetEnemyColor(Enemy en, double x, double y)
     {
@@ -1384,6 +2100,16 @@ public partial class DoomGame : Window
             }
             return 0;
         }
+
+        // Apply wobble/sway animation for living enemies
+        // More wobble at the top (head), less at bottom (feet)
+        double wobbleAmount = Math.Sin(en.WobblePhase) * 0.08 * (1 - y);
+        double bobAmount = Math.Sin(en.BobPhase) * 0.03;
+        
+        // Apply the wobble to x coordinate
+        x -= wobbleAmount + en.LeanAngle * 0.1;
+        // Apply bob to y coordinate (bouncing while moving)
+        y -= bobAmount;
 
         bool hurt = en.HurtTimer > 0;
 
@@ -1737,6 +2463,57 @@ public partial class DoomGame : Window
                 }
                 return 0;
 
+            case PickupType.Invincibility:
+                // Glowing cyan star with rotation effect
+                double starPulse = 0.6 + Math.Sin(_gameTime * 8) * 0.4;
+                double starAngle = _gameTime * 2;
+                double rotX = x * Math.Cos(starAngle) - y * Math.Sin(starAngle);
+                double rotY = x * Math.Sin(starAngle) + y * Math.Cos(starAngle);
+                // 5-point star shape
+                double starR = Math.Sqrt(rotX * rotX + rotY * rotY);
+                double starA = Math.Atan2(rotY, rotX);
+                double starShape = 0.12 + 0.06 * Math.Cos(5 * starA);
+                if (starR < starShape * 0.6)
+                {
+                    uint cyan = (uint)(255 * starPulse);
+                    return 0xFF000000 | (cyan << 8) | cyan;
+                }
+                if (starR < starShape)
+                    return 0xFF00AAFFu;
+                return 0;
+
+            case PickupType.DamageBoost:
+                // Red/orange skull with flame effect
+                double flamePulse = 0.5 + Math.Sin(_gameTime * 6) * 0.5;
+                // Skull shape
+                if (Math.Abs(x) < 0.12 && y > -0.1 && y < 0.15)
+                {
+                    // Eye sockets
+                    if ((Math.Abs(x - 0.05) < 0.025 || Math.Abs(x + 0.05) < 0.025) && y > 0.02 && y < 0.08)
+                        return 0xFF000000u;
+                    // Nose
+                    if (Math.Abs(x) < 0.015 && y > -0.02 && y < 0.02)
+                        return 0xFF000000u;
+                    // Teeth
+                    if (y < -0.05 && y > -0.1 && ((int)((x + 0.1) * 30) % 2 == 0))
+                        return 0xFF000000u;
+                    // Skull body
+                    uint red = (uint)(200 + flamePulse * 55);
+                    uint orange = (uint)(100 + flamePulse * 50);
+                    return 0xFF000000 | (red << 16) | (orange << 8);
+                }
+                // Flames above
+                if (y > 0.12 && y < 0.25 + Math.Sin(_gameTime * 10 + x * 5) * 0.05)
+                {
+                    if (Math.Abs(x) < 0.08 - (y - 0.12) * 0.3)
+                    {
+                        uint r = (uint)(255 * flamePulse);
+                        uint g = (uint)(80 + flamePulse * 80);
+                        return 0xFF000000 | (r << 16) | (g << 8);
+                    }
+                }
+                return 0;
+
             default:
                 return dist < 0.16 ? 0xFFFFFFFFu : 0;
         }
@@ -1746,16 +2523,31 @@ public partial class DoomGame : Window
 
     void RenderWeapon()
     {
-        int weaponW = 160, weaponH =  120;
+        int weaponW = 160, weaponH = 120;
         int baseX = W / 2 - weaponW / 2;
-        int baseY = H - weaponH + (_shooting ? -25 : 0);
-        int bob = (int)(Math.Sin(_gameTime * 10) * 5);
+        
+        // Enhanced weapon bob (based on movement)
+        bool isMoving = _keysDown.Contains(Key.W) || _keysDown.Contains(Key.S) || 
+                        _keysDown.Contains(Key.A) || _keysDown.Contains(Key.D);
+        double bobSpeed = isMoving ? 12 : 2;
+        double bobAmount = isMoving ? 6 : 2;
+        _weaponBob = Math.Sin(_gameTime * bobSpeed) * bobAmount;
+        
+        // Weapon sway when turning (subtle)
+        double sway = Math.Sin(_gameTime * 8) * 2;
+        
+        // Aiming position adjustment
+        int aimOffset = _isAiming ? 20 : 0;
+        
+        int baseY = H - weaponH + (_shooting ? -25 : 0) - aimOffset;
+        int bob = (int)_weaponBob;
+        int swayX = (int)sway;
 
         for (int y = Math.Max(0, baseY + bob); y < H; y++)
         {
-            for (int x = Math.Max(0, baseX); x < Math.Min(W, baseX + weaponW); x++)
+            for (int x = Math.Max(0, baseX + swayX); x < Math.Min(W, baseX + weaponW + swayX); x++)
             {
-                double rx = (double)(x - baseX) / weaponW;  // 0 to 1
+                double rx = (double)(x - baseX - swayX) / weaponW;  // 0 to 1
                 double ry = (double)(y - baseY - bob) / weaponH;  // 0 to 1
 
                 uint color = GetWeaponPixel(rx, ry);
@@ -1764,26 +2556,48 @@ public partial class DoomGame : Window
             }
         }
 
-        // Muzzle flash
+        // Enhanced Muzzle flash with glow
         if (_shooting && _shootFrame < 4 && _currentWeapon > 0 && _currentWeapon != 5)
         {
-            int flashX = W / 2 + (_currentWeapon == 2 ? -5 : 0);
+            _muzzleFlashTimer = 0.08;
+            int flashX = W / 2 + swayX + (_currentWeapon == 2 ? -5 : 0);
             int flashY = baseY + bob - 30;
-            int flashSize = _currentWeapon == 4 ? 25 : _currentWeapon == 3 ? 20 : 22;
+            int flashSize = _currentWeapon == 4 ? 30 : _currentWeapon == 3 ? 25 : 22;
 
-            for (int y = Math.Max(0, flashY); y < Math.Min(H, flashY + flashSize * 2); y++)
+            // Outer glow
+            for (int y = Math.Max(0, flashY - flashSize); y < Math.Min(H, flashY + flashSize * 2); y++)
             {
-                for (int x = flashX - flashSize; x < flashX + flashSize; x++)
+                for (int x = flashX - flashSize * 2; x < flashX + flashSize * 2; x++)
                 {
                     if (x < 0 || x >= W) continue;
-                    double d = Math.Sqrt((x - flashX) * (x - flashX) + (y - flashY - flashSize) * (y - flashY - flashSize));
-                    if (d < flashSize)
+                    double d = Math.Sqrt((x - flashX) * (x - flashX) + (y - flashY) * (y - flashY));
+                    if (d < flashSize * 1.5)
                     {
-                        double intensity = 1 - d / flashSize;
-                        uint r = (uint)(255 * intensity);
-                        uint g = (uint)(200 * intensity * intensity);
-                        uint b = (uint)(50 * intensity * intensity * intensity);
+                        double intensity = Math.Pow(1 - d / (flashSize * 1.5), 2);
+                        uint existing = _px[y * W + x];
+                        uint er = (existing >> 16) & 0xFF;
+                        uint eg = (existing >> 8) & 0xFF;
+                        uint eb = existing & 0xFF;
+                        
+                        uint r = (uint)Math.Min(255, er + 255 * intensity);
+                        uint g = (uint)Math.Min(255, eg + 180 * intensity);
+                        uint b = (uint)Math.Min(255, eb + 50 * intensity);
                         _px[y * W + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                    }
+                }
+            }
+            
+            // Core flash (brighter)
+            for (int y = Math.Max(0, flashY); y < Math.Min(H, flashY + flashSize); y++)
+            {
+                for (int x = flashX - flashSize / 2; x < flashX + flashSize / 2; x++)
+                {
+                    if (x < 0 || x >= W) continue;
+                    double d = Math.Sqrt((x - flashX) * (x - flashX) + (y - flashY - flashSize / 2) * (y - flashY - flashSize / 2));
+                    if (d < flashSize / 2)
+                    {
+                        double intensity = 1 - d / (flashSize / 2);
+                        _px[y * W + x] = 0xFFFFFFFF; // Pure white core
                     }
                 }
             }
@@ -2201,7 +3015,56 @@ public partial class DoomGame : Window
         MedkitIcon.Background = _medkits > 0 ? new SolidColorBrush(Color.FromRgb(80, 30, 30)) : new SolidColorBrush(Color.FromRgb(51, 51, 51));
         SteroidsIcon.Background = _steroids > 0 ? new SolidColorBrush(Color.FromRgb(80, 80, 20)) : new SolidColorBrush(Color.FromRgb(51, 51, 51));
 
-        DukeFace.Text = _hp > 75 ? "😎" : _hp > 50 ? "😤" : _hp > 25 ? "😠" : "🤬";
+        // Silly face based on health!
+        DukeFace.Text = _hp > 75 ? "😊" : _hp > 50 ? "😅" : _hp > 25 ? "😰" : "🥴";
+
+        // Power-up bars
+        bool hasPowerUps = _invincibilityTimer > 0 || _damageBoostTimer > 0;
+        PowerUpPanel.Visibility = hasPowerUps ? Visibility.Visible : Visibility.Collapsed;
+        
+        if (_invincibilityTimer > 0)
+        {
+            InvincibilityBar.Visibility = Visibility.Visible;
+            InvincibilityFill.Width = Math.Max(0, (_invincibilityTimer / 10.0) * 100);
+        }
+        else
+        {
+            InvincibilityBar.Visibility = Visibility.Collapsed;
+        }
+
+        if (_damageBoostTimer > 0)
+        {
+            DamageBoostBar.Visibility = Visibility.Visible;
+            DamageBoostFill.Width = Math.Max(0, (_damageBoostTimer / 15.0) * 100);
+        }
+        else
+        {
+            DamageBoostBar.Visibility = Visibility.Collapsed;
+        }
+
+        // Kill streak display - silly names!
+        if (_killStreak >= 3 && _killStreakTimer > 0)
+        {
+            KillStreakPanel.Visibility = Visibility.Visible;
+            KillStreakCount.Text = $"x{_killStreak}";
+            string streakName = _killStreak switch
+            {
+                3 => "NICE COMBO!",
+                4 => "ON A ROLL!",
+                5 => "UNSTOPPABLE-ISH!",
+                6 => "WOW SUCH SKILL!",
+                7 => "KEYBOARD WARRIOR!",
+                _ => _killStreak >= 8 ? "ACTUAL LEGEND!" : "ZOINKS!"
+            };
+            KillStreakText.Text = streakName;
+        }
+        else
+        {
+            KillStreakPanel.Visibility = Visibility.Collapsed;
+        }
+
+        // Crosshair when aiming
+        AimCrosshairCanvas.Visibility = _isAiming ? Visibility.Visible : Visibility.Collapsed;
     }
 
     void ShowMessage(string msg)
@@ -2238,6 +3101,9 @@ public partial class DoomGame : Window
         foreach (var en in _enemies)
             if (Dist(en.X, en.Y) < 120) en.Alerted = true;
 
+        // Damage multiplier from power-up
+        int damageMultiplier = _damageBoostTimer > 0 ? 2 : 1;
+
         if (_currentWeapon == 4) // RPG
         {
             _projectiles.Add(new Projectile
@@ -2245,7 +3111,7 @@ public partial class DoomGame : Window
                 X = _px_pos, Y = _py,
                 Dx = Math.Cos(_pa) * 0.25,
                 Dy = Math.Sin(_pa) * 0.25,
-                Damage = _weaponDamage[_currentWeapon],
+                Damage = _weaponDamage[_currentWeapon] * damageMultiplier,
                 FromPlayer = true,
                 IsRocket = true
             });
@@ -2260,7 +3126,7 @@ public partial class DoomGame : Window
                     X = _px_pos, Y = _py,
                     Dx = Math.Cos(_pa) * 0.35,
                     Dy = Math.Sin(_pa) * 0.35,
-                    Damage = _weaponDamage[_currentWeapon],
+                    Damage = _weaponDamage[_currentWeapon] * damageMultiplier,
                     FromPlayer = true,
                     IsRocket = true
                 });
@@ -2284,7 +3150,7 @@ public partial class DoomGame : Window
             for (int i = 0; i < pellets; i++)
             {
                 double spread = (_rnd.NextDouble() - 0.5) * _weaponSpread[_currentWeapon];
-                HitscanShot(_pa + spread, _weaponDamage[_currentWeapon] / pellets);
+                HitscanShot(_pa + spread, _weaponDamage[_currentWeapon] * damageMultiplier / pellets);
             }
         }
     }
@@ -2463,8 +3329,19 @@ public partial class DoomGame : Window
             if (!_mouseCaptured) CaptureMouse(true);
             else if (!_gameOver && !_levelComplete && !_victory) Shoot();
         }
-        if (e.RightButton == MouseButtonState.Pressed && _currentWeapon == 5)
-            DetonatePipeBombs();
+        if (e.RightButton == MouseButtonState.Pressed)
+        {
+            if (_currentWeapon == 5)
+                DetonatePipeBombs();
+            else if (_mouseCaptured && !_gameOver && !_levelComplete && !_victory)
+                _isAiming = !_isAiming; // Toggle aim-down-sights
+        }
+    }
+
+    void OnMouseUp(object s, MouseButtonEventArgs e)
+    {
+        // Could hold to aim instead of toggle - uncomment below:
+        // if (e.ChangedButton == MouseButton.Right) _isAiming = false;
     }
 
     void Restart()
@@ -2476,6 +3353,17 @@ public partial class DoomGame : Window
         _currentWeapon = 1;
         _medkits = 0; _steroids = 0; _hasJetpack = false; _jetpackFuel = 100;
         _gameOver = false; _levelComplete = false;
+        // Reset new game state
+        _isAiming = false;
+        _killStreak = 0; _killStreakTimer = 0;
+        _invincibilityTimer = 0; _damageBoostTimer = 0;
+        _screenShakeTimer = 0;
+        _damageVignetteTimer = 0;
+        _muzzleFlashTimer = 0;
+        _weaponBob = 0;
+        _particles.Clear();
+        _wallDecals.Clear();
+        _bodyParts.Clear();
         GameOverScreen.Visibility = Visibility.Collapsed;
         VictoryScreen.Visibility = Visibility.Collapsed;
         LoadLevel(_currentLevel);
