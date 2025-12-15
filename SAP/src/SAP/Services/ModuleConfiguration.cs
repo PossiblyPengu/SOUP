@@ -69,7 +69,6 @@ public class ModuleConfiguration
     public string? InstallDate { get; private set; }
     
     private readonly string _iniConfigPath;
-private readonly string _iniConfigPath;
     private readonly string _jsonConfigPath;
     
     /// <summary>
