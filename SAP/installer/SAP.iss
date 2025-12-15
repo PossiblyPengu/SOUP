@@ -68,6 +68,9 @@ DisableReadyPage=no
 AlwaysShowDirOnReadyPage=yes
 AlwaysShowGroupOnReadyPage=yes
 
+; Show component selection page
+DisableProgramGroupPage=yes
+
 ; ============================================================================
 ; Security & Permissions
 ; ============================================================================
@@ -139,8 +142,8 @@ Name: "modules\expirewise"; Description: "ExpireWise - Expiration date managemen
 Name: "modules\swiftlabel"; Description: "SwiftLabel - Quick label generation"; Types: full custom
 Name: "modules\orderlog"; Description: "OrderLog - Order tracking widget"; Types: full custom
 ; Fun Stuff (Easter Eggs)
-Name: "funstuff"; Description: "Fun Stuff"; Types: full custom
-Name: "funstuff\games"; Description: "Mini-games and surprises"; Types: full custom
+Name: "funstuff"; Description: "Fun Stuff (Optional)"; Types: full custom
+Name: "funstuff\nukem"; Description: "S.A.P NUKEM - Hidden retro FPS Easter egg"; Types: full custom
 
 ; ============================================================================
 ; Files to Install
@@ -259,10 +262,10 @@ begin
     ConfigContent := ConfigContent + '    "orderLog": false,' + #13#10;
     
   // Fun Stuff (Easter Eggs)
-  if WizardIsComponentSelected('funstuff\games') then
-    ConfigContent := ConfigContent + '    "funStuff": true' + #13#10
+  if WizardIsComponentSelected('funstuff\nukem') then
+    ConfigContent := ConfigContent + '    "sapNukem": true' + #13#10
   else
-    ConfigContent := ConfigContent + '    "funStuff": false' + #13#10;
+    ConfigContent := ConfigContent + '    "sapNukem": false' + #13#10;
     
   ConfigContent := ConfigContent + '  }' + #13#10;
   ConfigContent := ConfigContent + '}' + #13#10;
@@ -300,7 +303,7 @@ begin
     '  * ExpireWise - Expiration date management' + #13#10 +
     '  * SwiftLabel - Quick label generation' + #13#10 +
     '  * OrderLog - Order tracking widget' + #13#10 +
-    '  * Fun Stuff - Mini-games and surprises';
+    '  * S.A.P NUKEM - Hidden retro FPS Easter egg';
   ModulesLabel.Font.Style := [];
   ModulesLabel.Font.Color := clGray;
   
@@ -355,13 +358,16 @@ begin
   end;
 end;
 
-// Skip tasks page for portable install
+// Skip tasks page for portable install, but always show components
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
   // Skip the tasks page for portable installs (no desktop icon option needed)
   if (PageID = wpSelectTasks) and PortableMode then
     Result := True;
+  // Never skip the components page
+  if PageID = wpSelectComponents then
+    Result := False;
 end;
 
 // Show percentage during installation

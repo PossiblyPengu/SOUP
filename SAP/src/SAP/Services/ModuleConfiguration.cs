@@ -144,7 +144,10 @@ public class ModuleConfiguration
             if (modulesProp.TryGetProperty("orderLog", out var ol))
                 OrderLogEnabled = ol.GetBoolean();
                 
-            if (modulesProp.TryGetProperty("funStuff", out var fs))
+            // Check both old and new key names for Easter egg
+            if (modulesProp.TryGetProperty("sapNukem", out var sn))
+                FunStuffEnabled = sn.GetBoolean();
+            else if (modulesProp.TryGetProperty("funStuff", out var fs))
                 FunStuffEnabled = fs.GetBoolean();
         }
         
