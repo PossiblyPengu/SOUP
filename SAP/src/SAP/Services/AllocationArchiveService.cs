@@ -267,6 +267,7 @@ public class AllocationArchiveService : IAllocationArchiveService
 
     public ArchiveInfo? GetMostRecentArchive()
     {
-        return _archives.OrderByDescending(a => a.CreatedAt).FirstOrDefault();
+        // === OPTIMIZATION: MaxBy avoids full sort ===
+        return _archives.Count == 0 ? null : _archives.MaxBy(a => a.CreatedAt);
     }
 }

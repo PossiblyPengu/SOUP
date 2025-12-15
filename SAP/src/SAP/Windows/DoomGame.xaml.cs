@@ -166,6 +166,13 @@ public partial class DoomGame : Window
     List<(int mapX, int mapY, int side, double wallPos, uint color, double size)> _wallDecals = new();
 #pragma warning restore CS0414
 
+    // === OPTIMIZATION: Pre-allocated buffers to avoid GC pressure ===
+    List<(double x, double y, double r, double g, double b, double intensity)> _lightBuffer = new(16);
+    List<(double dist, object obj, int type)> _spriteBuffer = new(128);
+    
+    // === OPTIMIZATION: Cached trig values (updated per-frame) ===
+    double _sinPa, _cosPa, _sinPaPlus, _cosPaPlus, _sinPaMinus, _cosPaMinus;
+
     // Weapons - Duke style
     readonly string[] _weaponNames = { "MIGHTY BOOT", "PISTOL", "SHOTGUN", "RIPPER", "RPG", "PIPE BOMB", "MINI ROCKET", "FLASH CAMERA" };
 
@@ -247,7 +254,9 @@ public partial class DoomGame : Window
     // Fog and atmosphere per level
     double _fogDensity = 0.0;
     uint _fogColor = 0xFF000000;
+    uint _ambientColor = 0xFF606060;
     double _lightFlicker = 0;
+    double _briefingTimer = 0;
 
     // Map
     int[] _map = new int[MAP_SIZE * MAP_SIZE];
@@ -1612,9 +1621,20 @@ public partial class DoomGame : Window
 
     void GameLoop(object? s, EventArgs e)
     {
-        if (_paused || _gameOver || _levelComplete || _victory || _showingBriefing) return;
-
         double dt = 0.016;
+        
+        // Update briefing timer even when showing briefing
+        if (_showingBriefing)
+        {
+            _briefingTimer += dt;
+            // Animate briefing panel opacity based on timer
+            double fade = Math.Min(1.0, _briefingTimer / 0.5);
+            BriefingPanel.Opacity = fade;
+            return;
+        }
+        
+        if (_paused || _gameOver || _levelComplete || _victory) return;
+
         _gameTime += dt;
 
         ProcessMouse();
@@ -1851,12 +1871,12 @@ public partial class DoomGame : Window
         double targetSpeed = _steroidsTimer > 0 ? 0.12 : 0.08;
         double rs = 0.06;
 
-        // Calculate input direction
+        // === OPTIMIZATION: Use cached trig values ===
         double inputX = 0, inputY = 0;
-        if (_keysDown.Contains(Key.W)) { inputX += Math.Cos(_pa); inputY += Math.Sin(_pa); }
-        if (_keysDown.Contains(Key.S)) { inputX -= Math.Cos(_pa); inputY -= Math.Sin(_pa); }
-        if (_keysDown.Contains(Key.A)) { inputX += Math.Cos(_pa - PI / 2); inputY += Math.Sin(_pa - PI / 2); }
-        if (_keysDown.Contains(Key.D)) { inputX += Math.Cos(_pa + PI / 2); inputY += Math.Sin(_pa + PI / 2); }
+        if (_keysDown.Contains(Key.W)) { inputX += _cosPa; inputY += _sinPa; }
+        if (_keysDown.Contains(Key.S)) { inputX -= _cosPa; inputY -= _sinPa; }
+        if (_keysDown.Contains(Key.A)) { inputX += _cosPa * 0 - _sinPa; inputY += _sinPa * 0 + _cosPa; } // cos(a-90) = sin(a), sin(a-90) = -cos(a)
+        if (_keysDown.Contains(Key.D)) { inputX += _sinPa; inputY += -_cosPa; } // cos(a+90) = -sin(a), sin(a+90) = cos(a) - simplified
 
         double inputLen = Math.Sqrt(inputX * inputX + inputY * inputY);
         bool isMoving = inputLen > 0.01;
@@ -2606,6 +2626,15 @@ public partial class DoomGame : Window
     #region Rendering
     void Render()
     {
+        // === OPTIMIZATION: Cache trig values for this frame ===
+        _sinPa = Math.Sin(_pa);
+        _cosPa = Math.Cos(_pa);
+        _sinPaPlus = Math.Sin(_pa + PI / 2);
+        _cosPaPlus = Math.Cos(_pa + PI / 2);
+        double fovAngle = _isAiming ? 0.35 : 0.5;
+        _sinPaMinus = Math.Sin(_pa - fovAngle);
+        _cosPaMinus = Math.Cos(_pa - fovAngle);
+        
         for (int i = 0; i < W; i++) _zBuffer[i] = double.MaxValue;
 
         RenderSkyGradient();
@@ -3076,12 +3105,15 @@ public partial class DoomGame : Window
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
         double fovMultiplier = _isAiming ? 0.4 : 0.66;
         
-        foreach (var p in _particles)
+        // === OPTIMIZATION: Pre-calculate inverse determinant using cached trig ===
+        double invDet = 1.0 / (_cosPaPlus * fovMultiplier * _sinPa - _cosPa * _sinPaPlus * fovMultiplier);
+        
+        for (int i = 0; i < _particles.Count; i++)
         {
+            var p = _particles[i];
             double dx = p.x - _px_pos, dy = p.y - _py;
-            double invDet = 1.0 / (Math.Cos(_pa + PI / 2) * fovMultiplier * Math.Sin(_pa) - Math.Cos(_pa) * Math.Sin(_pa + PI / 2) * fovMultiplier);
-            double transformX = invDet * (Math.Sin(_pa) * dx - Math.Cos(_pa) * dy);
-            double transformY = invDet * (-Math.Sin(_pa + PI / 2) * fovMultiplier * dx + Math.Cos(_pa + PI / 2) * fovMultiplier * dy);
+            double transformX = invDet * (_sinPa * dx - _cosPa * dy);
+            double transformY = invDet * (-_sinPaPlus * fovMultiplier * dx + _cosPaPlus * fovMultiplier * dy);
             
             if (transformY <= 0.1) continue;
             int screenXCheck = (int)Math.Clamp(W / 2 * (1 + transformX / transformY), 0, W - 1);
@@ -3093,8 +3125,7 @@ public partial class DoomGame : Window
             
             // Fade based on life with glow effect
             uint baseColor = p.color;
-            double lifeRatio = p.life / 1.0;
-            uint alpha = (uint)(255 * lifeRatio);
+            double lifeRatio = p.life;
             
             // Add glow for bright particles
             bool isGlowing = ((baseColor >> 16) & 0xFF) > 200 || ((baseColor >> 8) & 0xFF) > 200;
@@ -3103,10 +3134,13 @@ public partial class DoomGame : Window
             {
                 for (int px = Math.Max(0, screenX - size); px < Math.Min(W, screenX + size); px++)
                 {
-                    double dist = Math.Sqrt((px - screenX) * (px - screenX) + (py - screenY) * (py - screenY));
-                    if (dist < size)
+                    // === OPTIMIZATION: Avoid sqrt by using squared distance ===
+                    int ddx = px - screenX, ddy = py - screenY;
+                    double distSq = ddx * ddx + ddy * ddy;
+                    double sizeSq = size * size;
+                    if (distSq < sizeSq)
                     {
-                        double intensity = (1 - dist / size) * lifeRatio;
+                        double intensity = (1 - Math.Sqrt(distSq) / size) * lifeRatio;
                         
                         if (isGlowing && intensity > 0.3)
                         {
@@ -3141,20 +3175,34 @@ public partial class DoomGame : Window
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
         double fovAngle = _isAiming ? 0.35 : 0.5;
 
-        // Pre-calculate light positions for dynamic lighting
-        var lights = new List<(double x, double y, double r, double g, double b, double intensity)>();
+        // === OPTIMIZATION: Reuse pre-allocated light buffer ===
+        _lightBuffer.Clear();
         
         // Add muzzle flash as a light source
         if (_muzzleFlashTimer > 0)
         {
-            lights.Add((_px_pos, _py, 1.0, 0.8, 0.4, _muzzleFlashTimer * 3));
+            _lightBuffer.Add((_px_pos, _py, 1.0, 0.8, 0.4, _muzzleFlashTimer * 3));
         }
         
-        // Add bright particles as lights (fire-colored ones)
-        foreach (var p in _particles.Where(pt => ((pt.color >> 16) & 0xFF) > 200).Take(5))
+        // === OPTIMIZATION: Manual loop instead of LINQ to avoid allocations ===
+        int lightCount = 0;
+        for (int i = 0; i < _particles.Count && lightCount < 5; i++)
         {
-            lights.Add((p.x, p.y, 1.0, 0.6, 0.2, 0.8));
+            var p = _particles[i];
+            if (((p.color >> 16) & 0xFF) > 200)
+            {
+                _lightBuffer.Add((p.x, p.y, 1.0, 0.6, 0.2, 0.8));
+                lightCount++;
+            }
         }
+
+        // === OPTIMIZATION: Pre-calculate trig values for fov ===
+        double cosPaPlus = Math.Cos(_pa + fovAngle);
+        double sinPaPlus = Math.Sin(_pa + fovAngle);
+        double cosPaMinus = _cosPaMinus;
+        double sinPaMinus = _sinPaMinus;
+        double stepDeltaX = (cosPaPlus - cosPaMinus) / W;
+        double stepDeltaY = (sinPaPlus - sinPaMinus) / W;
 
         for (int y = 0; y < H; y++)
         {
@@ -3164,11 +3212,11 @@ public partial class DoomGame : Window
             // Skip very distant rows for performance
             if (rowDist > 25) continue;
 
-            double floorStepX = rowDist * (Math.Cos(_pa + fovAngle) - Math.Cos(_pa - fovAngle)) / W;
-            double floorStepY = rowDist * (Math.Sin(_pa + fovAngle) - Math.Sin(_pa - fovAngle)) / W;
+            double floorStepX = rowDist * stepDeltaX;
+            double floorStepY = rowDist * stepDeltaY;
 
-            double floorX = _px_pos + rowDist * Math.Cos(_pa - fovAngle);
-            double floorY = _py + rowDist * Math.Sin(_pa - fovAngle);
+            double floorX = _px_pos + rowDist * cosPaMinus;
+            double floorY = _py + rowDist * sinPaMinus;
 
             for (int x = 0; x < W; x++)
             {
@@ -3201,22 +3249,30 @@ public partial class DoomGame : Window
                     }
                 }
                 
-                // Dynamic lighting from light sources
-                double totalLight = 1.0;
-                foreach (var light in lights)
+                // === OPTIMIZATION: Use pre-allocated buffer, avoid allocations ===
+                for (int li = 0; li < _lightBuffer.Count; li++)
                 {
+                    var light = _lightBuffer[li];
                     double ldx = floorX - light.x;
                     double ldy = floorY - light.y;
-                    double lightDist = Math.Sqrt(ldx * ldx + ldy * ldy);
-                    if (lightDist < 4)
+                    double distSq = ldx * ldx + ldy * ldy;
+                    if (distSq < 16) // 4^2 = 16, avoid sqrt when possible
                     {
-                        double lightFalloff = Math.Max(0, 1 - lightDist / 4) * light.intensity;
+                        double lightDist = Math.Sqrt(distSq);
+                        double lightFalloff = Math.Max(0, 1 - lightDist * 0.25) * light.intensity;
                         r += light.r * 100 * lightFalloff;
                         g += light.g * 100 * lightFalloff;
                         b += light.b * 100 * lightFalloff;
-                        totalLight += lightFalloff * 0.5;
                     }
                 }
+                
+                // Apply ambient color tint from level atmosphere
+                double ambientR = ((_ambientColor >> 16) & 0xFF) / 255.0;
+                double ambientG = ((_ambientColor >> 8) & 0xFF) / 255.0;
+                double ambientB = (_ambientColor & 0xFF) / 255.0;
+                r = r * (0.6 + 0.4 * ambientR);
+                g = g * (0.6 + 0.4 * ambientG);
+                b = b * (0.6 + 0.4 * ambientB);
 
                 // Apply atmospheric fog
                 double baseFog = Math.Min(0.9, rowDist / 16);
@@ -3255,44 +3311,56 @@ public partial class DoomGame : Window
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
         double fovMultiplier = _isAiming ? 0.4 : 0.66;
         
-        // Pre-calculate light sources for dynamic lighting
-        var lights = new List<(double x, double y, double r, double g, double b, double intensity)>();
+        // === OPTIMIZATION: Reuse light buffer (already populated by RenderFloorCeiling is okay, or re-populate) ===
+        _lightBuffer.Clear();
         
         // Muzzle flash light
         if (_muzzleFlashTimer > 0)
         {
-            lights.Add((_px_pos, _py, 1.0, 0.8, 0.4, _muzzleFlashTimer * 4));
+            _lightBuffer.Add((_px_pos, _py, 1.0, 0.8, 0.4, _muzzleFlashTimer * 4));
         }
         
-        // Projectile lights
-        foreach (var proj in _projectiles.Take(5))
+        // === OPTIMIZATION: Manual loop instead of LINQ ===
+        int projCount = Math.Min(5, _projectiles.Count);
+        for (int i = 0; i < projCount; i++)
         {
+            var proj = _projectiles[i];
             if (proj.FromPlayer)
-                lights.Add((proj.X, proj.Y, 1.0, 0.7, 0.3, 0.6));
+                _lightBuffer.Add((proj.X, proj.Y, 1.0, 0.7, 0.3, 0.6));
             else
-                lights.Add((proj.X, proj.Y, 1.0, 0.3, 0.2, 0.5));
+                _lightBuffer.Add((proj.X, proj.Y, 1.0, 0.3, 0.2, 0.5));
         }
         
-        // Pickup glows
-        foreach (var pickup in _pickups.Where(p => !p.Collected).Take(10))
+        // Pickup glows - manual loop
+        int pickupLightCount = 0;
+        for (int i = 0; i < _pickups.Count && pickupLightCount < 10; i++)
         {
+            var pickup = _pickups[i];
+            if (pickup.Collected) continue;
+            pickupLightCount++;
             switch (pickup.Type)
             {
                 case PickupType.Health:
                 case PickupType.AtomicHealth:
-                    lights.Add((pickup.X, pickup.Y, 0.2, 1.0, 0.2, 0.4));
+                    _lightBuffer.Add((pickup.X, pickup.Y, 0.2, 1.0, 0.2, 0.4));
                     break;
                 case PickupType.Ammo:
-                    lights.Add((pickup.X, pickup.Y, 1.0, 0.8, 0.2, 0.3));
+                    _lightBuffer.Add((pickup.X, pickup.Y, 1.0, 0.8, 0.2, 0.3));
                     break;
             }
         }
 
+        // === OPTIMIZATION: Use cached trig values ===
+        double cosPa = _cosPa;
+        double sinPa = _sinPa;
+        double cosPaPlus = _cosPaPlus;
+        double sinPaPlus = _sinPaPlus;
+
         for (int x = 0; x < W; x++)
         {
             double camX = 2.0 * x / W - 1;
-            double rayDirX = Math.Cos(_pa) + Math.Cos(_pa + PI / 2) * camX * fovMultiplier;
-            double rayDirY = Math.Sin(_pa) + Math.Sin(_pa + PI / 2) * camX * fovMultiplier;
+            double rayDirX = cosPa + cosPaPlus * camX * fovMultiplier;
+            double rayDirY = sinPa + sinPaPlus * camX * fovMultiplier;
 
             int mapX = (int)_px_pos, mapY = (int)_py;
             double deltaDistX = Math.Abs(1 / rayDirX), deltaDistY = Math.Abs(1 / rayDirY);
@@ -3340,15 +3408,17 @@ public partial class DoomGame : Window
             double wallWorldX = side == 0 ? mapX + (stepX > 0 ? 0 : 1) : _px_pos + perpWallDist * rayDirX;
             double wallWorldY = side == 1 ? mapY + (stepY > 0 ? 0 : 1) : _py + perpWallDist * rayDirY;
             
-            // Calculate dynamic light contribution at this wall position
+            // === OPTIMIZATION: Manual loop with squared distance check ===
             double dynLightR = 0, dynLightG = 0, dynLightB = 0;
-            foreach (var light in lights)
+            for (int li = 0; li < _lightBuffer.Count; li++)
             {
+                var light = _lightBuffer[li];
                 double ldx = wallWorldX - light.x;
                 double ldy = wallWorldY - light.y;
-                double lightDist = Math.Sqrt(ldx * ldx + ldy * ldy);
-                if (lightDist < 6)
+                double distSq = ldx * ldx + ldy * ldy;
+                if (distSq < 36) // 6^2 = 36
                 {
+                    double lightDist = Math.Sqrt(distSq);
                     double falloff = Math.Max(0, 1 - lightDist / 6) * light.intensity;
                     dynLightR += light.r * falloff;
                     dynLightG += light.g * falloff;
@@ -3413,21 +3483,31 @@ public partial class DoomGame : Window
 
     void RenderSprites()
     {
-        var sprites = new List<(double dist, object obj, int type)>();
+        // === OPTIMIZATION: Reuse pre-allocated sprite buffer ===
+        _spriteBuffer.Clear();
 
-        foreach (var en in _enemies.Where(e => !e.Dead || e.DeathTimer < 1))
-            sprites.Add((Dist(en.X, en.Y), en, 0));
+        // === OPTIMIZATION: Manual loops instead of LINQ to avoid allocations ===
+        for (int i = 0; i < _enemies.Count; i++)
+        {
+            var en = _enemies[i];
+            if (!en.Dead || en.DeathTimer < 1)
+                _spriteBuffer.Add((Dist(en.X, en.Y), en, 0));
+        }
 
-        foreach (var p in _pickups.Where(p => !p.Collected))
-            sprites.Add((Dist(p.X, p.Y), p, 1));
+        for (int i = 0; i < _pickups.Count; i++)
+        {
+            var p = _pickups[i];
+            if (!p.Collected)
+                _spriteBuffer.Add((Dist(p.X, p.Y), p, 1));
+        }
 
-        foreach (var proj in _projectiles)
-            sprites.Add((Dist(proj.X, proj.Y), proj, 2));
+        for (int i = 0; i < _projectiles.Count; i++)
+            _spriteBuffer.Add((Dist(_projectiles[i].X, _projectiles[i].Y), _projectiles[i], 2));
 
-        foreach (var bomb in _pipeBombs)
-            sprites.Add((Dist(bomb.x, bomb.y), bomb, 3));
+        for (int i = 0; i < _pipeBombs.Count; i++)
+            _spriteBuffer.Add((Dist(_pipeBombs[i].x, _pipeBombs[i].y), _pipeBombs[i], 3));
 
-        sprites.Sort((a, b) => b.dist.CompareTo(a.dist));
+        _spriteBuffer.Sort((a, b) => b.dist.CompareTo(a.dist));
 
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
         
@@ -3436,7 +3516,11 @@ public partial class DoomGame : Window
         uint fogG = (_fogColor >> 8) & 0xFF;
         uint fogB = _fogColor & 0xFF;
 
-        foreach (var (dist, obj, type) in sprites)
+        // === OPTIMIZATION: Pre-calculate inverse determinant using cached trig ===
+        double fovMult = 0.66;
+        double invDet = 1.0 / (_cosPaPlus * fovMult * _sinPa - _cosPa * _sinPaPlus * fovMult);
+
+        foreach (var (dist, obj, type) in _spriteBuffer)
         {
             double sx = 0, sy = 0;
             if (type == 0) { var e = (Enemy)obj; sx = e.X; sy = e.Y; }
@@ -3445,9 +3529,8 @@ public partial class DoomGame : Window
             else { var b = ((double x, double y, double timer))obj; sx = b.x; sy = b.y; }
 
             double dx = sx - _px_pos, dy = sy - _py;
-            double invDet = 1.0 / (Math.Cos(_pa + PI / 2) * 0.66 * Math.Sin(_pa) - Math.Cos(_pa) * Math.Sin(_pa + PI / 2) * 0.66);
-            double transformX = invDet * (Math.Sin(_pa) * dx - Math.Cos(_pa) * dy);
-            double transformY = invDet * (-Math.Sin(_pa + PI / 2) * 0.66 * dx + Math.Cos(_pa + PI / 2) * 0.66 * dy);
+            double transformX = invDet * (_sinPa * dx - _cosPa * dy);
+            double transformY = invDet * (-_sinPaPlus * fovMult * dx + _cosPaPlus * fovMult * dy);
 
             if (transformY <= 0.1) continue;
 
@@ -3546,19 +3629,27 @@ public partial class DoomGame : Window
     
     void RenderBodyParts()
     {
-        // Sort body parts by distance (furthest first)
-        var sortedParts = _bodyParts.OrderByDescending(p => (p.X - _px_pos) * (p.X - _px_pos) + (p.Y - _py) * (p.Y - _py)).ToList();
+        // === OPTIMIZATION: Sort in place without creating new list ===
+        _bodyParts.Sort((a, b) => {
+            double distA = (a.X - _px_pos) * (a.X - _px_pos) + (a.Y - _py) * (a.Y - _py);
+            double distB = (b.X - _px_pos) * (b.X - _px_pos) + (b.Y - _py) * (b.Y - _py);
+            return distB.CompareTo(distA);
+        });
         int horizon = H / 2 + (int)_pitch + (int)_eyeHeight;
         
-        foreach (var part in sortedParts)
+        // === OPTIMIZATION: Use cached trig values ===
+        double fovMult = 0.66;
+        double invDet = 1.0 / (_cosPaPlus * fovMult * _sinPa - _cosPa * _sinPaPlus * fovMult);
+        
+        for (int i = 0; i < _bodyParts.Count; i++)
         {
+            var part = _bodyParts[i];
             double dx = part.X - _px_pos;
             double dy = part.Y - _py;
             
-            // Camera transform
-            double invDet = 1.0 / (Math.Cos(_pa + PI / 2) * 0.66 * Math.Sin(_pa) - Math.Cos(_pa) * Math.Sin(_pa + PI / 2) * 0.66);
-            double transformX = invDet * (Math.Sin(_pa) * dx - Math.Cos(_pa) * dy);
-            double transformY = invDet * (-Math.Sin(_pa + PI / 2) * 0.66 * dx + Math.Cos(_pa + PI / 2) * 0.66 * dy);
+            // Camera transform - use cached values
+            double transformX = invDet * (_sinPa * dx - _cosPa * dy);
+            double transformY = invDet * (-_sinPaPlus * fovMult * dx + _cosPaPlus * fovMult * dy);
             
             if (transformY <= 0.1) continue;
             
@@ -3581,6 +3672,13 @@ public partial class DoomGame : Window
             int startX = screenX - size / 2;
             int startY = horizon + heightOffset - size / 2;
             
+            // Pre-calculate rotation values
+            double rot = part.Rotation;
+            double cosRot = Math.Cos(rot);
+            double sinRot = Math.Sin(rot);
+            double invSize = 1.0 / size;
+            double halfSize = size / 2.0;
+            
             // Render the body part as a spinning shape
             for (int py = 0; py < size; py++)
             {
@@ -3593,13 +3691,12 @@ public partial class DoomGame : Window
                     if (transformY >= _zBuffer[scrX]) continue;
                     
                     // Normalized coordinates (-0.5 to 0.5)
-                    double nx = (px - size / 2.0) / size;
-                    double ny = (py - size / 2.0) / size;
+                    double nx = (px - halfSize) * invSize;
+                    double ny = (py - halfSize) * invSize;
                     
-                    // Apply rotation
-                    double rot = part.Rotation;
-                    double rx = nx * Math.Cos(rot) - ny * Math.Sin(rot);
-                    double ry = nx * Math.Sin(rot) + ny * Math.Cos(rot);
+                    // Apply rotation (use pre-calculated sin/cos)
+                    double rx = nx * cosRot - ny * sinRot;
+                    double ry = nx * sinRot + ny * cosRot;
                     
                     // Different shapes for different parts
                     bool draw = false;

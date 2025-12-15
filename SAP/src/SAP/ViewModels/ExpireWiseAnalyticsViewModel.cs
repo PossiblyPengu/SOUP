@@ -70,21 +70,19 @@ public partial class ExpireWiseAnalyticsViewModel : ObservableObject
 
         // Average shelf life (only for non-expired items)
         var nonExpired = itemList.Where(i => i.DaysUntilExpiry > 0).ToList();
-        AverageShelfLife = nonExpired.Any() ? Math.Round(nonExpired.Average(i => i.DaysUntilExpiry), 1) : 0;
+        AverageShelfLife = nonExpired.Count > 0 ? Math.Round(nonExpired.Average(i => i.DaysUntilExpiry), 1) : 0;
 
-        // Most common location
+        // Most common location - optimized with MaxBy
         var locationGroups = itemList
             .Where(i => !string.IsNullOrEmpty(i.Location))
             .GroupBy(i => i.Location)
-            .OrderByDescending(g => g.Count())
-            .FirstOrDefault();
+            .MaxBy(g => g.Count());
         MostCommonLocation = locationGroups?.Key ?? "N/A";
 
-        // Next expiring item
+        // Next expiring item - optimized with MinBy
         var nextExpiring = itemList
             .Where(i => i.DaysUntilExpiry > 0)
-            .OrderBy(i => i.ExpiryDate)
-            .FirstOrDefault();
+            .MinBy(i => i.ExpiryDate);
         if (nextExpiring != null)
         {
             NextExpiringItem = $"{nextExpiring.ItemNumber} - {nextExpiring.Description}";
@@ -192,7 +190,7 @@ public partial class ExpireWiseAnalyticsViewModel : ObservableObject
             .ToList();
 
         var colors = new[] { "#6366F1", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981" };
-        var maxCount = locationGroups.FirstOrDefault()?.Count() ?? 1;
+        var maxCount = locationGroups.Count > 0 ? locationGroups[0].Count() : 1;
 
         for (int i = 0; i < locationGroups.Count; i++)
         {
