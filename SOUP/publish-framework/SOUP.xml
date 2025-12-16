@@ -1487,6 +1487,11 @@
         <member name="T:SOUP.Features.OrderLog.Models.OrderItem">
             <inheritdoc/>
         </member>
+        <member name="F:SOUP.Features.OrderLog.Models.OrderItem._noteContent">
+            <summary>
+            Content for sticky notes
+            </summary>
+        </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.Order">
             <summary>
             Order for manual sorting/reordering (lower = earlier in list)
@@ -1497,6 +1502,19 @@
             Called by a UI timer to raise PropertyChanged for computed properties
             </summary>
         </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.IsStickyNote">
+            <summary>
+            Helper property to check if this is a sticky note
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.DisplayTitle">
+            <summary>
+            Display title - uses VendorName for orders, first line of NoteContent for sticky notes
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.NoteType">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._noteType"/>
+        </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.VendorName">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._vendorName"/>
         </member>
@@ -1505,6 +1523,9 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.WhsShipmentNumbers">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._whsShipmentNumbers"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.NoteContent">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._noteContent"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.Status">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._status"/>
@@ -1548,6 +1569,16 @@
             <inheritdoc/>
             <inheritdoc/>
         </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddStickyNoteAsync">
+            <summary>
+            Add a sticky note (simple note without order tracking)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddQuickStickyNoteAsync(System.String,System.String)">
+            <summary>
+            Quick add a sticky note with specified content
+            </summary>
+        </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._showArchived"/>
         </member>
@@ -1574,6 +1605,9 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NewNoteWhsShipmentNumbers">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._newNoteWhsShipmentNumbers"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StickyNoteContent">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._stickyNoteContent"/>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.loadCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand"/>.</summary>
@@ -5128,7 +5162,12 @@
         <member name="T:SOUP.ViewModels.SwiftLabelViewModel">
             <inheritdoc/>
         </member>
-        <member name="M:SOUP.ViewModels.SwiftLabelViewModel.GenerateZplLabels(System.String,System.String,System.Int32,System.String)">
+        <member name="M:SOUP.ViewModels.SwiftLabelViewModel.ExecutePrintAsync">
+            <summary>
+            Execute the print operation
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.SwiftLabelViewModel.GenerateZplLabels(System.String,System.String,System.Int32,System.String,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double)">
             <summary>
             Generate ZPL (Zebra Programming Language) for all labels
             </summary>
@@ -5138,6 +5177,12 @@
         </member>
         <member name="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedPrinter">
             <inheritdoc cref="F:SOUP.ViewModels.SwiftLabelViewModel._selectedPrinter"/>
+        </member>
+        <member name="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedPaperSize">
+            <inheritdoc cref="F:SOUP.ViewModels.SwiftLabelViewModel._selectedPaperSize"/>
+        </member>
+        <member name="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedMarginPreset">
+            <inheritdoc cref="F:SOUP.ViewModels.SwiftLabelViewModel._selectedMarginPreset"/>
         </member>
         <member name="P:SOUP.ViewModels.SwiftLabelViewModel.TotalBoxes">
             <inheritdoc cref="F:SOUP.ViewModels.SwiftLabelViewModel._totalBoxes"/>
@@ -5161,6 +5206,11 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedPrinter"/> is changed.</remarks>
         </member>
+        <member name="M:SOUP.ViewModels.SwiftLabelViewModel.OnSelectedPaperSizeChanged(SOUP.ViewModels.PaperSizeOption)">
+            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedPaperSize"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedPaperSize"/> is changed.</remarks>
+        </member>
         <member name="M:SOUP.ViewModels.SwiftLabelViewModel.OnTotalBoxesChanged(System.Int32)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.TotalBoxes"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -5170,6 +5220,21 @@
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.TransferNumber"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.TransferNumber"/> is changed.</remarks>
+        </member>
+        <member name="T:SOUP.ViewModels.LabelPreviewItem">
+            <summary>
+            Data class for label preview display
+            </summary>
+        </member>
+        <member name="T:SOUP.ViewModels.PaperSizeOption">
+            <summary>
+            Paper size option for label printing
+            </summary>
+        </member>
+        <member name="T:SOUP.ViewModels.MarginPreset">
+            <summary>
+            Margin preset for label printing
+            </summary>
         </member>
         <member name="T:SOUP.ViewModels.UnifiedSettingsViewModel">
             <inheritdoc/>
@@ -5594,6 +5659,9 @@
             for all properties generated with <see cref="T:CommunityToolkit.Mvvm.ComponentModel.ObservablePropertyAttribute"/>.
             </summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteType">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteType" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.VendorName">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "VendorName" generated properties.</summary>
         </member>
@@ -5602,6 +5670,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.WhsShipmentNumbers">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "WhsShipmentNumbers" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteContent">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteContent" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Status">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Status" generated properties.</summary>
@@ -5638,6 +5709,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewNoteWhsShipmentNumbers">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewNoteWhsShipmentNumbers" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.StickyNoteContent">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "StickyNoteContent" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVisible" generated properties.</summary>
@@ -6089,6 +6163,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedPrinter">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedPrinter" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedPaperSize">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedPaperSize" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedMarginPreset">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedMarginPreset" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalBoxes">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalBoxes" generated properties.</summary>
         </member>
@@ -6104,6 +6184,9 @@
             for all properties generated with <see cref="T:CommunityToolkit.Mvvm.ComponentModel.ObservablePropertyAttribute"/>.
             </summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteType">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteType" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.VendorName">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "VendorName" generated properties.</summary>
         </member>
@@ -6112,6 +6195,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.WhsShipmentNumbers">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "WhsShipmentNumbers" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteContent">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteContent" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Status">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Status" generated properties.</summary>
@@ -6148,6 +6234,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewNoteWhsShipmentNumbers">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewNoteWhsShipmentNumbers" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.StickyNoteContent">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "StickyNoteContent" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVisible" generated properties.</summary>
@@ -6598,6 +6687,12 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedPrinter">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedPrinter" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedPaperSize">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedPaperSize" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedMarginPreset">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedMarginPreset" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalBoxes">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalBoxes" generated properties.</summary>

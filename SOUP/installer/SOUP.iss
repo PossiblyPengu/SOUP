@@ -6,7 +6,7 @@
 ; ============================================================================
 #define MyAppName "S.O.U.P"
 #define MyAppFullName "S.A.M. Operations Utilities Pack"
-#define MyAppVersion "4.3.1"
+#define MyAppVersion "4.4.0"
 #define MyAppPublisher "PossiblyPengu"
 #define MyAppURL "https://github.com/PossiblyPengu/Cshp"
 #define MyAppExeName "SOUP.exe"
@@ -67,9 +67,6 @@ DisableDirPage=no
 DisableReadyPage=no
 AlwaysShowDirOnReadyPage=yes
 AlwaysShowGroupOnReadyPage=yes
-
-; Show component selection page
-DisableProgramGroupPage=yes
 
 ; ============================================================================
 ; Security & Permissions
