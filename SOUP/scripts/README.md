@@ -70,17 +70,18 @@ For more control, use the PowerShell scripts in the `scripts/` folder:
 |------|----------|-------|
 | Debug Build | `src/SOUP/bin/Debug/net8.0-windows/` | For development |
 | Release Build | `src/SOUP/bin/Release/net8.0-windows/` | For testing |
-| Framework Publish | `publish-framework/` | Requires .NET 8 runtime (~27 MB) |
-| Portable Publish | `publish-portable/` | Self-contained, single exe (~80 MB) |
-| Installer | `installer/SOUP-Setup-X.X.X.exe` | Full installer with both versions |
+| Framework Publish | `publish-framework/` | Requires .NET 8 (~27 MB) |
+| Portable Publish | `publish-portable/` | Self-contained (~80 MB) |
+| Installer | `installer/SOUP-Setup-X.X.X.exe` | Full installer |
 
 ## Requirements
 
-- .NET 8 SDK (local at `D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\` or system `dotnet`)
-- Inno Setup 6 (for installer creation) - [Download](https://jrsoftware.org/isdl.php)
+- .NET 8 SDK (local or system `dotnet`)
+- Inno Setup 6 (for installer) - [Download](https://jrsoftware.org/isdl.php)
 
 ## Version Management
 
 Update version in two places:
+
 1. `src/SOUP/SOUP.csproj` - `<Version>X.X.X</Version>`
 2. `installer/SOUP.iss` - `#define MyAppVersion "X.X.X"`
