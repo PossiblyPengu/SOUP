@@ -118,8 +118,8 @@ public partial class SwiftLabelViewModel : ObservableObject
         AvailableMarginPresets.Add(new MarginPreset("large", "Large (5mm)", 5));
         AvailableMarginPresets.Add(new MarginPreset("xlarge", "Extra Large (8mm)", 8));
         
-        // Default to small margins
-        SelectedMarginPreset = AvailableMarginPresets[2];
+        // Default to medium margins
+        SelectedMarginPreset = AvailableMarginPresets[3];
     }
 
     private void LoadPaperSizes()
