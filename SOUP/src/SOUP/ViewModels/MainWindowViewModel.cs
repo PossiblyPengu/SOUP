@@ -24,7 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private bool _disposed;
 
     [ObservableProperty]
-    private string _title = "S.A.P";
+    private string _title = "S.O.U.P";
 
     [ObservableProperty]
     private bool _isDarkMode = true;
@@ -209,8 +209,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private void OnModuleChanged(object? sender, string moduleName)
     {
         Title = moduleName == "Launcher"
-            ? "S.A.P"
-            : $"S.A.P - {moduleName}";
+            ? "S.O.U.P"
+            : $"S.O.U.P - {moduleName}";
     }
 
     /// <summary>
