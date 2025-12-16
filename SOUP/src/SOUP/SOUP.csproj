@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ============================================== -->
+  <!-- Project Properties                             -->
+  <!-- ============================================== -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>SOUP</RootNamespace>
+    <AssemblyName>SOUP</AssemblyName>
+    <ApplicationIcon>soup.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- Include any fonts placed in src/SOUP/Fonts as resources -->
+  <ItemGroup>
+    <Resource Include="Fonts\**\*.ttf" />
+    <Resource Include="Fonts\**\*.otf" />
+  </ItemGroup>
+
+  <!-- ============================================== -->
+  <!-- Version Information                            -->
+  <!-- ============================================== -->
+  <PropertyGroup>
+    <Version>4.4.0</Version>
+    <AssemblyVersion>4.4.0.0</AssemblyVersion>
+    <FileVersion>4.4.0.0</FileVersion>
+    <Description>Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools</Description>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Publishing / Deployment                        -->
+  <!-- ============================================== -->
+  <PropertyGroup>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Package References (versions in Directory.Packages.props) -->
+  <!-- ============================================== -->
+  <ItemGroup>
+    <!-- MVVM Framework -->
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    
+    <!-- WPF Behaviors -->
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
+    
+    <!-- Excel/CSV Processing -->
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="CsvHelper" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    
+    <!-- Database -->
+    <PackageReference Include="LiteDB" />
+    <PackageReference Include="MySql.Data" />
+    
+    <!-- Dependency Injection & Hosting -->
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    
+    <!-- Logging -->
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <!-- ============================================== -->
+  <!-- Framework References                           -->
+  <!-- ============================================== -->
+  <ItemGroup>
+    <!-- Windows Forms for multi-monitor screen detection -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+
+  <!-- ============================================== -->
+  <!-- Content Files                                  -->
+  <!-- ============================================== -->
+  <ItemGroup>
+    <None Update="Assets\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

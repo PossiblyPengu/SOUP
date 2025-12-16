@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Builds and runs the S.A.P (S.A.M. Add-on Pack) application.
+    Builds and runs the S.O.U.P (S.A.M. Operations Utilities Pack) application.
 
 .DESCRIPTION
-    This script builds the main SAP application using the local .NET SDK
+    This script builds the main SOUP application using the local .NET SDK
     and launches it if the build succeeds.
 
 .NOTES
@@ -27,7 +27,7 @@ $rootPath = Split-Path -Parent $scriptPath
 Set-Location $rootPath
 
 $dotnet = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-$project = "SAP\src\SAP\SAP.csproj"
+$project = "SOUP\src\SOUP\SOUP.csproj"
 $configuration = if ($Release) { "Release" } else { "Debug" }
 
 # ============================================
@@ -36,7 +36,7 @@ $configuration = if ($Release) { "Release" } else { "Debug" }
 
 Write-Host ""
 Write-Host "  =============================================" -ForegroundColor Cyan
-Write-Host "    S.A.P - S.A.M. Add-on Pack Launcher" -ForegroundColor Cyan
+Write-Host "    S.O.U.P - S.A.M. Operations Utilities Pack Launcher" -ForegroundColor Cyan
 Write-Host "  =============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -90,3 +90,4 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "Application exited with error code: $LASTEXITCODE" -ForegroundColor Yellow
 }
+
