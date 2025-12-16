@@ -36,6 +36,17 @@ public partial class SwiftLabelViewModel : ObservableObject
     private PaperSizeOption? _selectedPaperSize;
 
     [ObservableProperty]
+    private MarginPreset? _selectedMarginPreset;
+
+    public ObservableCollection<MarginPreset> AvailableMarginPresets { get; } = new();
+
+    // Computed margin values from selected preset
+    public double MarginTop => SelectedMarginPreset?.Top ?? 2.0;
+    public double MarginBottom => SelectedMarginPreset?.Bottom ?? 2.0;
+    public double MarginLeft => SelectedMarginPreset?.Left ?? 2.0;
+    public double MarginRight => SelectedMarginPreset?.Right ?? 2.0;
+
+    [ObservableProperty]
     private int _totalBoxes = 1;
 
     [ObservableProperty]
@@ -89,10 +100,26 @@ public partial class SwiftLabelViewModel : ObservableObject
         PrintLabelsCommand = new AsyncRelayCommand(ExecutePrintAsync, CanPrintLabels);
         RefreshPrintersCommand = new RelayCommand(LoadPrinters);
 
-        // Load stores, printers, and paper sizes
+        // Load stores, printers, paper sizes, and margin presets
         LoadStores();
         LoadPrinters();
         LoadPaperSizes();
+        LoadMarginPresets();
+    }
+
+    private void LoadMarginPresets()
+    {
+        AvailableMarginPresets.Clear();
+        
+        AvailableMarginPresets.Add(new MarginPreset("none", "None (0mm)", 0));
+        AvailableMarginPresets.Add(new MarginPreset("minimal", "Minimal (1mm)", 1));
+        AvailableMarginPresets.Add(new MarginPreset("small", "Small (2mm)", 2));
+        AvailableMarginPresets.Add(new MarginPreset("medium", "Medium (3mm)", 3));
+        AvailableMarginPresets.Add(new MarginPreset("large", "Large (5mm)", 5));
+        AvailableMarginPresets.Add(new MarginPreset("xlarge", "Extra Large (8mm)", 8));
+        
+        // Default to small margins
+        SelectedMarginPreset = AvailableMarginPresets[2];
     }
 
     private void LoadPaperSizes()
@@ -372,9 +399,15 @@ public partial class SwiftLabelViewModel : ObservableObject
                 double widthInches = paperSize?.WidthInches ?? 2.36; // Default 6cm
                 double heightInches = paperSize?.HeightInches ?? 1.18; // Default 3cm
                 
+                // Get margin values
+                double marginT = MarginTop;
+                double marginB = MarginBottom;
+                double marginL = MarginLeft;
+                double marginR = MarginRight;
+                
                 var success = await Task.Run(() =>
                 {
-                    var zpl = GenerateZplLabels(storeCode, storeName, boxCount, transfer, widthInches, heightInches);
+                    var zpl = GenerateZplLabels(storeCode, storeName, boxCount, transfer, widthInches, heightInches, marginT, marginB, marginL, marginR);
                     return RawPrinterHelper.SendStringToPrinter(printerName, zpl, $"Labels_{storeCode}_{transfer}");
                 }).ConfigureAwait(false);
 
@@ -435,7 +468,8 @@ public partial class SwiftLabelViewModel : ObservableObject
     /// <summary>
     /// Generate ZPL (Zebra Programming Language) for all labels
     /// </summary>
-    private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber, double widthInches, double heightInches)
+    private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber, 
+        double widthInches, double heightInches, double marginTopMm, double marginBottomMm, double marginLeftMm, double marginRightMm)
     {
         var sb = new StringBuilder();
         var dateStr = DateTime.Now.ToString("MMM dd, yyyy");
@@ -445,20 +479,28 @@ public partial class SwiftLabelViewModel : ObservableObject
         int widthDots = (int)(widthInches * dpi);
         int heightDots = (int)(heightInches * dpi);
         
-        // Calculate font sizes relative to label size
-        int largeFontH = Math.Max(20, heightDots / 5);  // Store name
-        int medFontH = Math.Max(15, heightDots / 8);    // Transfer
-        int xlFontH = Math.Max(25, heightDots / 3);     // Box number  
-        int smallFontH = Math.Max(12, heightDots / 10); // Date
+        // Convert mm margins to dots (1 inch = 25.4mm)
+        int marginLeft = (int)(marginLeftMm / 25.4 * dpi);
+        int marginRight = (int)(marginRightMm / 25.4 * dpi);
+        int marginTop = (int)(marginTopMm / 25.4 * dpi);
+        int marginBottom = (int)(marginBottomMm / 25.4 * dpi);
         
-        // Calculate vertical positions
-        int margin = widthDots / 20;
-        int contentWidth = widthDots - (margin * 2);
-        int y1 = heightDots / 10;                    // Store name
-        int y2 = y1 + largeFontH + 10;              // Line
-        int y3 = y2 + 15;                            // Transfer
-        int y4 = y3 + medFontH + 5;                  // Box number
-        int y5 = heightDots - smallFontH - 10;      // Date at bottom
+        // Calculate content area
+        int contentWidth = widthDots - marginLeft - marginRight;
+        int contentHeight = heightDots - marginTop - marginBottom;
+        
+        // Calculate font sizes relative to content area
+        int largeFontH = Math.Max(20, contentHeight / 5);  // Store name
+        int medFontH = Math.Max(15, contentHeight / 8);    // Transfer
+        int xlFontH = Math.Max(25, contentHeight / 3);     // Box number  
+        int smallFontH = Math.Max(12, contentHeight / 10); // Date
+        
+        // Calculate vertical positions within content area
+        int y1 = marginTop + (contentHeight / 20);       // Store name
+        int y2 = y1 + largeFontH + 5;                    // Line
+        int y3 = y2 + 10;                                // Transfer
+        int y4 = y3 + medFontH + 5;                      // Box number
+        int y5 = heightDots - marginBottom - smallFontH - 5; // Date at bottom
 
         for (int box = 1; box <= totalBoxes; box++)
         {
@@ -469,19 +511,19 @@ public partial class SwiftLabelViewModel : ObservableObject
             sb.AppendLine($"^LL{heightDots}"); // Label length
 
             // Store code and name - centered at top
-            sb.AppendLine($"^FO{margin},{y1}^A0N,{largeFontH},{largeFontH}^FB{contentWidth},1,0,C,0^FD{storeCode} - {storeName}^FS");
+            sb.AppendLine($"^FO{marginLeft},{y1}^A0N,{largeFontH},{largeFontH}^FB{contentWidth},1,0,C,0^FD{storeCode} - {storeName}^FS");
 
             // Horizontal line
-            sb.AppendLine($"^FO{margin},{y2}^GB{contentWidth},2,2^FS");
+            sb.AppendLine($"^FO{marginLeft},{y2}^GB{contentWidth},2,2^FS");
 
             // Transfer number
-            sb.AppendLine($"^FO{margin},{y3}^A0N,{medFontH},{medFontH}^FB{contentWidth},1,0,C,0^FDTransfer: {transferNumber}^FS");
+            sb.AppendLine($"^FO{marginLeft},{y3}^A0N,{medFontH},{medFontH}^FB{contentWidth},1,0,C,0^FDTransfer: {transferNumber}^FS");
 
             // Box number - large and centered
-            sb.AppendLine($"^FO{margin},{y4}^A0N,{xlFontH},{xlFontH}^FB{contentWidth},1,0,C,0^FDBox {box} of {totalBoxes}^FS");
+            sb.AppendLine($"^FO{marginLeft},{y4}^A0N,{xlFontH},{xlFontH}^FB{contentWidth},1,0,C,0^FDBox {box} of {totalBoxes}^FS");
 
             // Date at bottom
-            sb.AppendLine($"^FO{margin},{y5}^A0N,{smallFontH},{smallFontH}^FB{contentWidth},1,0,C,0^FDDate: {dateStr}^FS");
+            sb.AppendLine($"^FO{marginLeft},{y5}^A0N,{smallFontH},{smallFontH}^FB{contentWidth},1,0,C,0^FDDate: {dateStr}^FS");
 
             sb.AppendLine("^XZ"); // End format
         }
@@ -686,6 +728,33 @@ public class PaperSizeOption
         HeightInches = heightInches;
         IsLabel = isLabel;
     }
+    
+    public override string ToString() => DisplayName;
+}
+
+/// <summary>
+/// Margin preset for label printing
+/// </summary>
+public class MarginPreset
+{
+    public string Name { get; }
+    public string DisplayName { get; }
+    public double Top { get; }
+    public double Bottom { get; }
+    public double Left { get; }
+    public double Right { get; }
+    
+    public MarginPreset(string name, string displayName, double top, double bottom, double left, double right)
+    {
+        Name = name;
+        DisplayName = displayName;
+        Top = top;
+        Bottom = bottom;
+        Left = left;
+        Right = right;
+    }
+    
+    public MarginPreset(string name, string displayName, double all) : this(name, displayName, all, all, all, all) { }
     
     public override string ToString() => DisplayName;
 }

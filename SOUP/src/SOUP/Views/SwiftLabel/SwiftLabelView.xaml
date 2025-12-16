@@ -284,6 +284,16 @@
                                 <TextBlock Text="Select label or paper size for printing" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
 
+                            <!-- Margins -->
+                            <StackPanel Margin="0,0,0,24">
+                                <TextBlock Text="Margins" Style="{StaticResource InputLabelStyle}"/>
+                                <ComboBox ItemsSource="{Binding AvailableMarginPresets}"
+                                          SelectedItem="{Binding SelectedMarginPreset}"
+                                          DisplayMemberPath="DisplayName"
+                                          Style="{StaticResource ModernComboStyle}"/>
+                                <TextBlock Text="Adjust print margins for label alignment" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+
                             <!-- Transfer Number -->
                             <StackPanel Margin="0,0,0,24">
                                 <TextBlock Text="Transfer Order Number" Style="{StaticResource InputLabelStyle}"/>
