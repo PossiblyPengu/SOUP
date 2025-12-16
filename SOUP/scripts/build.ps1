@@ -20,7 +20,7 @@ $ErrorActionPreference = "Stop"
 # Configuration
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $srcDir = Join-Path $rootDir "src"
-$projectFile = Join-Path $srcDir "SOUP\SOUP.csproj"
+$projectFile = Join-Path $srcDir "SOUP.csproj"
 $configuration = if ($Release) { "Release" } else { "Debug" }
 
 # Find dotnet
@@ -38,8 +38,8 @@ Write-Host ""
 # Clean if requested
 if ($Clean) {
     Write-Host "[Clean] Removing build artifacts..." -ForegroundColor Yellow
-    $binDir = Join-Path $srcDir "SOUP\bin"
-    $objDir = Join-Path $srcDir "SOUP\obj"
+    $binDir = Join-Path $srcDir "bin"
+    $objDir = Join-Path $srcDir "obj"
     
     if (Test-Path $binDir) { Remove-Item -Path $binDir -Recurse -Force }
     if (Test-Path $objDir) { Remove-Item -Path $objDir -Recurse -Force }
@@ -65,7 +65,7 @@ Write-Host "[Build] Building $configuration..." -ForegroundColor Yellow
 $verbosity = if ($Verbose) { "normal" } else { "minimal" }
 
 # Check if restore is needed (assets file missing)
-$assetsFile = Join-Path $srcDir "SOUP\obj\project.assets.json"
+$assetsFile = Join-Path $srcDir "obj\project.assets.json"
 $needsRestore = -not (Test-Path $assetsFile)
 
 if ($needsRestore -and -not $Restore) {
@@ -89,5 +89,5 @@ Write-Host "  Build Succeeded!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$outputDir = Join-Path $srcDir "SOUP\bin\$configuration\net8.0-windows"
+$outputDir = Join-Path $srcDir "bin\$configuration\net8.0-windows"
 Write-Host "Output: $outputDir" -ForegroundColor White

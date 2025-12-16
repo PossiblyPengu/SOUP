@@ -17,7 +17,7 @@ $ErrorActionPreference = "Stop"
 # Configuration
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $srcDir = Join-Path $rootDir "src"
-$projectFile = Join-Path $srcDir "SOUP\SOUP.csproj"
+$projectFile = Join-Path $srcDir "SOUP.csproj"
 $configuration = if ($Release) { "Release" } else { "Debug" }
 
 # Find dotnet
@@ -34,7 +34,7 @@ Write-Host ""
 
 if ($NoBuild) {
     # Just run without building
-    $exePath = Join-Path $srcDir "SOUP\bin\$configuration\net8.0-windows\SOUP.exe"
+    $exePath = Join-Path $srcDir "bin\$configuration\net8.0-windows\SOUP.exe"
     
     if (-not (Test-Path $exePath)) {
         Write-Host "ERROR: Executable not found at $exePath" -ForegroundColor Red

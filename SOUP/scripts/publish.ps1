@@ -19,7 +19,7 @@ $ErrorActionPreference = "Stop"
 # Configuration
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $srcDir = Join-Path $rootDir "src"
-$projectFile = Join-Path $srcDir "SOUP\SOUP.csproj"
+$projectFile = Join-Path $srcDir "SOUP.csproj"
 $publishFrameworkDir = Join-Path $rootDir "publish-framework"
 $publishPortableDir = Join-Path $rootDir "publish-portable"
 

@@ -68,8 +68,8 @@ For more control, use the PowerShell scripts in the `scripts/` folder:
 
 | Type | Location | Notes |
 |------|----------|-------|
-| Debug Build | `src/SOUP/bin/Debug/net8.0-windows/` | For development |
-| Release Build | `src/SOUP/bin/Release/net8.0-windows/` | For testing |
+| Debug Build | `src/bin/Debug/net8.0-windows/` | For development |
+| Release Build | `src/bin/Release/net8.0-windows/` | For testing |
 | Framework Publish | `publish-framework/` | Requires .NET 8 (~27 MB) |
 | Portable Publish | `publish-portable/` | Self-contained (~80 MB) |
 | Installer | `installer/SOUP-Setup-X.X.X.exe` | Full installer |
@@ -83,5 +83,5 @@ For more control, use the PowerShell scripts in the `scripts/` folder:
 
 Update version in two places:
 
-1. `src/SOUP/SOUP.csproj` - `<Version>X.X.X</Version>`
+1. `src/SOUP.csproj` - `<Version>X.X.X</Version>`
 2. `installer/SOUP.iss` - `#define MyAppVersion "X.X.X"`

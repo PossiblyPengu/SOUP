@@ -18,25 +18,16 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Clean main project
-$projects = @(
-    "SOUP",
-    "AllocationBuddy.Standalone",
-    "EssentialsBuddy.Standalone", 
-    "ExpireWise.Standalone"
-)
+$binDir = Join-Path $srcDir "bin"
+$objDir = Join-Path $srcDir "obj"
 
-foreach ($project in $projects) {
-    $binDir = Join-Path $srcDir "$project\bin"
-    $objDir = Join-Path $srcDir "$project\obj"
-    
-    if (Test-Path $binDir) {
-        Write-Host "Cleaning $project\bin..." -ForegroundColor Yellow
-        Remove-Item -Path $binDir -Recurse -Force
-    }
-    if (Test-Path $objDir) {
-        Write-Host "Cleaning $project\obj..." -ForegroundColor Yellow
-        Remove-Item -Path $objDir -Recurse -Force
-    }
+if (Test-Path $binDir) {
+    Write-Host "Cleaning src\bin..." -ForegroundColor Yellow
+    Remove-Item -Path $binDir -Recurse -Force
+}
+if (Test-Path $objDir) {
+    Write-Host "Cleaning src\obj..." -ForegroundColor Yellow
+    Remove-Item -Path $objDir -Recurse -Force
 }
 
 # Clean tools
