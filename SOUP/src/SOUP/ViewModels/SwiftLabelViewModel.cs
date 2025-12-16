@@ -100,6 +100,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         AvailablePaperSizes.Clear();
         
         // Zebra label sizes (common thermal label sizes)
+        AvailablePaperSizes.Add(new PaperSizeOption("60x30mm", "6 × 3 cm", 2.36, 1.18, true));
         AvailablePaperSizes.Add(new PaperSizeOption("35x20mm", "3.5 × 2 cm", 1.38, 0.79, true));
         AvailablePaperSizes.Add(new PaperSizeOption("50x25mm", "5 × 2.5 cm", 1.97, 0.98, true));
         AvailablePaperSizes.Add(new PaperSizeOption("60x40mm", "6 × 4 cm", 2.36, 1.57, true));
@@ -111,7 +112,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         AvailablePaperSizes.Add(new PaperSizeOption("A4", "A4 (210 × 297mm)", 8.27, 11.69, false));
         AvailablePaperSizes.Add(new PaperSizeOption("A5", "A5 (148 × 210mm)", 5.83, 8.27, false));
         
-        // Default to 3.5x2cm Zebra label
+        // Default to 6x3cm Zebra label
         SelectedPaperSize = AvailablePaperSizes[0];
     }
 
