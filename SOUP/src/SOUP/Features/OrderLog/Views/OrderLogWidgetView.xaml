@@ -38,14 +38,16 @@
                 
                 <Button Content="➕ Add Order"
                         Click="AddBlankOrder_Click"
-                        Height="36"
+                        Height="40"
+                        Padding="12,8"
                         FontSize="13"
                         Style="{DynamicResource SuccessButtonStyle}"/>
                 
                 <Button Grid.Column="2"
                         Content="📝 Add Note"
                         Click="AddBlankNote_Click"
-                        Height="36"
+                        Height="40"
+                        Padding="12,8"
                         FontSize="13"
                         Style="{DynamicResource SecondaryButtonStyle}"/>
             </Grid>
@@ -62,17 +64,39 @@
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="8"
-                                    Margin="0,0,0,10">
+                                    Margin="0,0,0,14">
                                 <Border.ContextMenu>
                                     <ContextMenu>
+                                        <!-- Set Status - only for orders -->
                                         <MenuItem Header="Set Status">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
                                             <MenuItem Header="Not Ready" Click="SetStatus_NotReady"/>
                                             <MenuItem Header="On Deck" Click="SetStatus_OnDeck"/>
                                             <MenuItem Header="In Progress" Click="SetStatus_InProgress"/>
                                             <MenuItem Header="Done" Click="SetStatus_Done"/>
                                         </MenuItem>
-                                        <Separator/>
-                                        <MenuItem Header="Change Color..." Click="ChangeColor_Click"/>
+                                        <!-- Change Color - only for sticky notes -->
+                                        <MenuItem Header="Change Color..." Click="ChangeColor_Click">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
                                         <Separator/>
                                         <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
                                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
@@ -80,18 +104,39 @@
                                 </Border.ContextMenu>
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="5"/>
+                                        <RowDefinition Height="8"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Color Bar -->
-                                    <Border Background="{Binding ColorHex}"
-                                            CornerRadius="8,8,0,0"
+                                    <!-- Color Bar - Status color for Orders, Custom color for Notes -->
+                                    <Border CornerRadius="8,8,0,0"
                                             Cursor="Hand"
-                                            MouseLeftButtonDown="ColorBar_Click"/>
+                                            MouseLeftButtonDown="ColorBar_Click">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <!-- Default: use status color for orders -->
+                                                <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                                                        <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                                        <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                                                        <Setter Property="Background" Value="{DynamicResource TextTertiaryBrush}"/>
+                                                    </DataTrigger>
+                                                    <!-- Sticky notes use custom color -->
+                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                        <Setter Property="Background" Value="{Binding ColorHex}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
 
                                     <!-- Content -->
-                                    <StackPanel Grid.Row="1" Margin="12,10">
+                                    <StackPanel Grid.Row="1" Margin="16,14">
                                         <Grid>
                                             <!-- Editable VendorName for Orders (hidden for sticky notes) -->
                                             <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
@@ -226,15 +271,22 @@
                                         </StackPanel>
                                         
                                         <!-- STICKY NOTE CONTENT (visible only for sticky notes) -->
-                                        <TextBlock Text="{Binding NoteContent}"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   FontSize="13"
-                                                   Margin="0,6,0,0"
-                                                   TextWrapping="Wrap"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   MaxHeight="60">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
+                                        <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=PropertyChanged}"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 FontSize="13"
+                                                 Margin="0,6,0,0"
+                                                 Padding="0"
+                                                 TextWrapping="Wrap"
+                                                 AcceptsReturn="True"
+                                                 MaxHeight="60"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 Tag="Note content..."
+                                                 GotFocus="EditableField_GotFocus"
+                                                 LostFocus="EditableField_LostFocus">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
@@ -242,8 +294,8 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                            </TextBox.Style>
+                                        </TextBox>
                                     </StackPanel>
                                 </Grid>
                             </Border>

@@ -416,6 +416,11 @@ public partial class OrderLogWidgetWindow : Window
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
+        // Unregister AppBar to release screen space while minimized
+        if (_isAppBarRegistered)
+        {
+            UnregisterAppBar();
+        }
         WindowState = WindowState.Minimized;
     }
 

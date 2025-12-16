@@ -94,7 +94,7 @@
 
                         <Label Content="Theme:" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
                         <ComboBox SelectedValue="{Binding Theme}" Margin="0,5,0,0" Padding="8"
-                                  Background="{DynamicResource SurfaceHoverBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource SurfaceActiveBrush}">
+                                  Style="{StaticResource ModernComboBox}">
                             <ComboBoxItem Content="System" IsSelected="True"/>
                             <ComboBoxItem Content="Light"/>
                             <ComboBoxItem Content="Dark"/>

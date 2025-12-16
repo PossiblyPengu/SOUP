@@ -68,14 +68,11 @@
             </Setter>
         </Style>
 
-        <!-- Modern ComboBox - Dark -->
-        <Style x:Key="ModernComboStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
+        <!-- Modern ComboBox - Dark - Inherits proper dropdown styling -->
+        <Style x:Key="ModernComboStyle" TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}">
             <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="Padding" Value="14,12"/>
             <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <!-- Stepper Button - Dark -->
@@ -259,7 +256,7 @@
                             </StackPanel>
 
                             <!-- Printer Selection -->
-                            <StackPanel Margin="0,0,0,24">
+                            <StackPanel Margin="0,0,0,20">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -275,7 +272,16 @@
                                 <ComboBox ItemsSource="{Binding AvailablePrinters}"
                                           SelectedItem="{Binding SelectedPrinter}"
                                           Style="{StaticResource ModernComboStyle}"/>
-                                <TextBlock Text="Zebra printers use ZPL, others use Word document" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+
+                            <!-- Paper Size Selection -->
+                            <StackPanel Margin="0,0,0,24">
+                                <TextBlock Text="Paper Size" Style="{StaticResource InputLabelStyle}"/>
+                                <ComboBox ItemsSource="{Binding AvailablePaperSizes}"
+                                          SelectedItem="{Binding SelectedPaperSize}"
+                                          DisplayMemberPath="DisplayName"
+                                          Style="{StaticResource ModernComboStyle}"/>
+                                <TextBlock Text="Select label or paper size for printing" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
 
                             <!-- Transfer Number -->
@@ -330,61 +336,107 @@
                         </StackPanel>
                     </Border>
                     
-                    <!-- Right Column - Preview -->
+                    <!-- Right Column - Live Preview -->
                     <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="28">
-                        <StackPanel>
-                            <TextBlock Text="LABEL PREVIEW" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}" 
-                                       HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             
-                            <!-- Preview Label -->
-                            <Border BorderBrush="{DynamicResource SurfaceActiveBrush}" BorderThickness="2.5" CornerRadius="8" 
-                                    Background="{DynamicResource BackgroundBrush}" Padding="24" Margin="0,0,0,20">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <!-- Store Badge -->
-                                    <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="16,8" HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding StorePreviewText}" 
-                                                   FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    </Border>
-                                    
-                                    <!-- Divider -->
-                                    <Border Height="1" Background="{DynamicResource SurfaceActiveBrush}" Margin="0,16"/>
-                                    
-                                    <!-- Transfer Number -->
-                                    <TextBlock Text="{Binding TransferPreviewText}" 
-                                               FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" 
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    
-                                    <!-- Box Number - Large -->
-                                    <TextBlock Text="{Binding BoxPreviewText}" 
-                                               FontSize="36" FontWeight="Bold" HorizontalAlignment="Center" 
-                                               Margin="0,16,0,0" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    
-                                    <!-- Date -->
-                                    <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="6" Padding="12,6" 
-                                            HorizontalAlignment="Center" Margin="0,16,0,0">
-                                        <TextBlock Text="{Binding DatePreviewText}" 
-                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    </Border>
-                                </StackPanel>
+                            <TextBlock Grid.Row="0" Text="LIVE PREVIEW" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextTertiaryBrush}" 
+                                       HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                            
+                            <!-- Scrollable Labels Preview -->
+                            <Border Grid.Row="1" 
+                                    Background="{DynamicResource BackgroundBrush}" 
+                                    CornerRadius="8" 
+                                    BorderBrush="{DynamicResource SurfaceActiveBrush}" 
+                                    BorderThickness="1"
+                                    Margin="0,0,0,16">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="12">
+                                    <ItemsControl ItemsSource="{Binding PreviewLabels}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel HorizontalAlignment="Center"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <!-- Single Label Card -->
+                                                <Border Background="White" 
+                                                        CornerRadius="6" 
+                                                        Margin="0,0,0,12"
+                                                        Padding="16,12"
+                                                        Width="260"
+                                                        BorderBrush="#ddd"
+                                                        BorderThickness="1"
+                                                        HorizontalAlignment="Center">
+                                                    <StackPanel HorizontalAlignment="Center">
+                                                        <!-- Store Badge -->
+                                                        <Border Background="#1f1f23" 
+                                                                CornerRadius="4" 
+                                                                Padding="8,4"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Text="{Binding StoreLine}" 
+                                                                       FontSize="11" 
+                                                                       FontWeight="Bold" 
+                                                                       Foreground="White"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </Border>
+                                                        
+                                                        <!-- Transfer Number -->
+                                                        <TextBlock Text="{Binding TransferLine}" 
+                                                                   FontSize="10" 
+                                                                   Foreground="#555"
+                                                                   Margin="0,6,0,0"
+                                                                   HorizontalAlignment="Center"/>
+                                                        
+                                                        <!-- Box Number - Large -->
+                                                        <TextBlock Text="{Binding BoxLine}" 
+                                                                   FontSize="18" 
+                                                                   FontWeight="Bold" 
+                                                                   Foreground="#1f1f23"
+                                                                   Margin="0,4,0,0"
+                                                                   HorizontalAlignment="Center"/>
+                                                        
+                                                        <!-- Date Badge -->
+                                                        <Border Background="#f5f5f5" 
+                                                                CornerRadius="3" 
+                                                                Padding="6,2"
+                                                                Margin="0,6,0,0"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Text="{Binding DateLine}" 
+                                                                       FontSize="9" 
+                                                                       Foreground="#666"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </Border>
                             
-                            <!-- Preview Info -->
-                            <Border Background="{DynamicResource SecondaryBackgroundBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                            <!-- Print Settings Info -->
+                            <Border Grid.Row="2" Background="{DynamicResource SecondaryBackgroundBrush}" CornerRadius="10" Padding="12" Margin="0,0,0,16">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="📄" FontSize="16" Margin="0,0,8,0"/>
-                                        <TextBlock FontSize="13" Foreground="{DynamicResource SecondaryLightBrush}">
+                                        <TextBlock Text="📄" FontSize="14" Margin="0,0,6,0"/>
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryLightBrush}">
                                             <Run Text="{Binding TotalBoxes, Mode=OneWay}"/>
-                                            <Run Text=" labels will be generated"/>
+                                            <Run Text=" labels"/>
                                         </TextBlock>
                                     </StackPanel>
-                                    <TextBlock Text="(2 per page, Word document format)" 
-                                               FontSize="11" Foreground="{DynamicResource SecondaryLightBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding PrintFormatInfo}" 
+                                               FontSize="10" Foreground="{DynamicResource SecondaryLightBrush}" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Border>
                             
                             <!-- Action Buttons -->
-                            <Grid>
+                            <Grid Grid.Row="3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="12"/>
@@ -403,7 +455,7 @@
                                         Command="{Binding PrintLabelsCommand}"
                                         HorizontalAlignment="Stretch"/>
                             </Grid>
-                        </StackPanel>
+                        </Grid>
                     </Border>
                 </Grid>
             </ScrollViewer>
@@ -440,7 +492,7 @@
                                      IsIndeterminate="{Binding IsGenerating}"
                                      Visibility="{Binding IsGenerating, Converter={StaticResource BooleanToVisibilityConverter}}"
                                      Width="100" Height="4"
-                                     Background="{DynamicResource SurfaceActiveBrush}" Foreground="#8B5CF6"/>
+                                     Background="{DynamicResource SurfaceActiveBrush}" Foreground="{DynamicResource PrimaryBrush}"/>
                     </Grid>
                 </Border>
             </Border>

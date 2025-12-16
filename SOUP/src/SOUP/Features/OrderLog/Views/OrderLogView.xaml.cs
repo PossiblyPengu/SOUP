@@ -98,6 +98,9 @@ public partial class OrderLogView : UserControl
     {
         if (sender is not Border border || border.DataContext is not Models.OrderItem order) return;
         if (DataContext is not OrderLogViewModel vm) return;
+        
+        // Only allow color picking for sticky notes - orders use status colors
+        if (order.NoteType != Models.NoteType.StickyNote) return;
 
         var picker = new OrderColorPickerWindow(order.ColorHex)
         {
@@ -115,6 +118,9 @@ public partial class OrderLogView : UserControl
     {
         if (sender is not MenuItem menuItem || menuItem.DataContext is not Models.OrderItem order) return;
         if (DataContext is not OrderLogViewModel vm) return;
+        
+        // Only allow color picking for sticky notes - orders use status colors
+        if (order.NoteType != Models.NoteType.StickyNote) return;
 
         var picker = new OrderColorPickerWindow(order.ColorHex)
         {

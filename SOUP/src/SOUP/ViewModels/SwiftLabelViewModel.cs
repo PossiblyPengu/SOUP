@@ -24,12 +24,16 @@ public partial class SwiftLabelViewModel : ObservableObject
 
     public ObservableCollection<StoreEntry> Stores { get; } = new();
     public ObservableCollection<string> AvailablePrinters { get; } = new();
+    public ObservableCollection<PaperSizeOption> AvailablePaperSizes { get; } = new();
 
     [ObservableProperty]
     private StoreEntry? _selectedStore;
 
     [ObservableProperty]
     private string? _selectedPrinter;
+
+    [ObservableProperty]
+    private PaperSizeOption? _selectedPaperSize;
 
     [ObservableProperty]
     private int _totalBoxes = 1;
@@ -55,6 +59,23 @@ public partial class SwiftLabelViewModel : ObservableObject
     public string BoxPreviewText => $"Box 1 of {TotalBoxes}";
     
     public string DatePreviewText => $"Date: {DateTime.Now:MMM dd, yyyy}";
+    
+    // Print settings info for main view
+    public string PrintFormatInfo
+    {
+        get
+        {
+            var format = IsZebraPrinter ? "ZPL" : "Word";
+            var size = SelectedPaperSize?.Name ?? "Default";
+            return $"{format} • {size}";
+        }
+    }
+    
+    private bool IsZebraPrinter => SelectedPrinter != null && 
+        (SelectedPrinter.Contains("Zebra", StringComparison.OrdinalIgnoreCase) ||
+         SelectedPrinter.Contains("ZDesigner", StringComparison.OrdinalIgnoreCase));
+
+    public ObservableCollection<LabelPreviewItem> PreviewLabels { get; } = new();
 
     public IAsyncRelayCommand SaveLabelsCommand { get; }
     public IAsyncRelayCommand PrintLabelsCommand { get; }
@@ -65,12 +86,33 @@ public partial class SwiftLabelViewModel : ObservableObject
         _logger = logger;
 
         SaveLabelsCommand = new AsyncRelayCommand(SaveLabelsAsync, CanGenerateLabels);
-        PrintLabelsCommand = new AsyncRelayCommand(PrintLabelsAsync, CanPrintLabels);
+        PrintLabelsCommand = new AsyncRelayCommand(ExecutePrintAsync, CanPrintLabels);
         RefreshPrintersCommand = new RelayCommand(LoadPrinters);
 
-        // Load stores and printers
+        // Load stores, printers, and paper sizes
         LoadStores();
         LoadPrinters();
+        LoadPaperSizes();
+    }
+
+    private void LoadPaperSizes()
+    {
+        AvailablePaperSizes.Clear();
+        
+        // Zebra label sizes (common thermal label sizes)
+        AvailablePaperSizes.Add(new PaperSizeOption("35x20mm", "3.5 × 2 cm", 1.38, 0.79, true));
+        AvailablePaperSizes.Add(new PaperSizeOption("50x25mm", "5 × 2.5 cm", 1.97, 0.98, true));
+        AvailablePaperSizes.Add(new PaperSizeOption("60x40mm", "6 × 4 cm", 2.36, 1.57, true));
+        AvailablePaperSizes.Add(new PaperSizeOption("100x50mm", "10 × 5 cm", 3.94, 1.97, true));
+        AvailablePaperSizes.Add(new PaperSizeOption("100x150mm", "10 × 15 cm (4×6\")", 3.94, 5.91, true));
+        
+        // Standard paper sizes
+        AvailablePaperSizes.Add(new PaperSizeOption("Letter", "Letter (8.5\" × 11\")", 8.5, 11, false));
+        AvailablePaperSizes.Add(new PaperSizeOption("A4", "A4 (210 × 297mm)", 8.27, 11.69, false));
+        AvailablePaperSizes.Add(new PaperSizeOption("A5", "A5 (148 × 210mm)", 5.83, 8.27, false));
+        
+        // Default to 3.5x2cm Zebra label
+        SelectedPaperSize = AvailablePaperSizes[0];
     }
 
     private void LoadPrinters()
@@ -147,11 +189,31 @@ public partial class SwiftLabelViewModel : ObservableObject
         SaveLabelsCommand.NotifyCanExecuteChanged();
         PrintLabelsCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(StorePreviewText));
+        RefreshPreviewLabels();
     }
 
     partial void OnSelectedPrinterChanged(string? value)
     {
         PrintLabelsCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(PrintFormatInfo));
+        RefreshPreviewLabels();
+        
+        // Auto-select appropriate paper size based on printer type
+        if (IsZebraPrinter && SelectedPaperSize != null && !SelectedPaperSize.IsLabel)
+        {
+            // Switch to a label size for Zebra printers
+            SelectedPaperSize = AvailablePaperSizes.FirstOrDefault(p => p.IsLabel);
+        }
+        else if (!IsZebraPrinter && SelectedPaperSize != null && SelectedPaperSize.IsLabel)
+        {
+            // Switch to Letter for standard printers
+            SelectedPaperSize = AvailablePaperSizes.FirstOrDefault(p => !p.IsLabel);
+        }
+    }
+
+    partial void OnSelectedPaperSizeChanged(PaperSizeOption? value)
+    {
+        OnPropertyChanged(nameof(PrintFormatInfo));
     }
 
     partial void OnTotalBoxesChanged(int value)
@@ -159,6 +221,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         SaveLabelsCommand.NotifyCanExecuteChanged();
         PrintLabelsCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(BoxPreviewText));
+        RefreshPreviewLabels();
     }
 
     partial void OnTransferNumberChanged(string value)
@@ -166,6 +229,30 @@ public partial class SwiftLabelViewModel : ObservableObject
         SaveLabelsCommand.NotifyCanExecuteChanged();
         PrintLabelsCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(TransferPreviewText));
+        RefreshPreviewLabels();
+    }
+    
+    private void RefreshPreviewLabels()
+    {
+        PreviewLabels.Clear();
+        
+        var store = SelectedStore;
+        if (store == null || TotalBoxes <= 0)
+            return;
+            
+        var transfer = string.IsNullOrWhiteSpace(TransferNumber) ? "TO-XXXXX" : TransferNumber;
+        var dateStr = $"Date: {DateTime.Now:MMM dd, yyyy}";
+        
+        for (int i = 1; i <= TotalBoxes; i++)
+        {
+            PreviewLabels.Add(new LabelPreviewItem
+            {
+                StoreLine = $"{store.Code} - {store.Name}",
+                TransferLine = $"Transfer: {transfer}",
+                BoxLine = $"Box {i} of {TotalBoxes}",
+                DateLine = dateStr
+            });
+        }
     }
 
     private async Task SaveLabelsAsync()
@@ -221,7 +308,10 @@ public partial class SwiftLabelViewModel : ObservableObject
         }
     }
 
-    private async Task PrintLabelsAsync()
+    /// <summary>
+    /// Execute the print operation
+    /// </summary>
+    private async Task ExecutePrintAsync()
     {
         // Guard clause for null safety
         var store = SelectedStore;
@@ -513,4 +603,38 @@ public partial class SwiftLabelViewModel : ObservableObject
 
         return cell;
     }
+}
+
+/// <summary>
+/// Data class for label preview display
+/// </summary>
+public class LabelPreviewItem
+{
+    public string StoreLine { get; set; } = string.Empty;
+    public string TransferLine { get; set; } = string.Empty;
+    public string BoxLine { get; set; } = string.Empty;
+    public string DateLine { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Paper size option for label printing
+/// </summary>
+public class PaperSizeOption
+{
+    public string Name { get; }
+    public string DisplayName { get; }
+    public double WidthInches { get; }
+    public double HeightInches { get; }
+    public bool IsLabel { get; }
+    
+    public PaperSizeOption(string name, string displayName, double widthInches, double heightInches, bool isLabel)
+    {
+        Name = name;
+        DisplayName = displayName;
+        WidthInches = widthInches;
+        HeightInches = heightInches;
+        IsLabel = isLabel;
+    }
+    
+    public override string ToString() => DisplayName;
 }
