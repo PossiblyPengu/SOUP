@@ -2,13 +2,8 @@
 # SOUP Clean Script
 # ============================================================================
 # Usage:
-#   .\scripts\clean.ps1                    # Clean build artifacts
-#   .\scripts\clean.ps1 -All               # Clean everything including publish
+#   .\scripts\clean.ps1                    # Clean all build artifacts
 # ============================================================================
-
-param(
-    [switch]$All
-)
 
 $ErrorActionPreference = "Stop"
 
@@ -60,39 +55,40 @@ foreach ($tool in $toolProjects) {
     }
 }
 
-# Clean publish folders if -All specified
-if ($All) {
-    Write-Host ""
-    Write-Host "Cleaning publish folders..." -ForegroundColor Yellow
-    
-    $publishDirs = @(
-        "publish",
-        "publish-framework",
-        "publish-portable",
-        "publish-selfcontained"
-    )
-    
-    foreach ($dir in $publishDirs) {
-        $fullPath = Join-Path $rootDir $dir
-        if (Test-Path $fullPath) {
-            Write-Host "  Removing $dir..." -ForegroundColor Yellow
-            Remove-Item -Path $fullPath -Recurse -Force
-        }
+# Always clean publish folders
+Write-Host ""
+Write-Host "Cleaning publish folders..." -ForegroundColor Yellow
+
+$publishDirs = @(
+    "publish",
+    "publish-framework",
+    "publish-portable",
+    "publish-selfcontained"
+)
+
+foreach ($dir in $publishDirs) {
+    $fullPath = Join-Path $rootDir $dir
+    if (Test-Path $fullPath) {
+        Write-Host "  Removing $dir..." -ForegroundColor Yellow
+        Remove-Item -Path $fullPath -Recurse -Force
     }
-    
-    # Clean installer output
-    $installerOutput = Join-Path $rootDir "installer\Output"
-    if (Test-Path $installerOutput) {
-        Write-Host "  Removing installer\Output..." -ForegroundColor Yellow
-        Remove-Item -Path $installerOutput -Recurse -Force
-    }
-    
-    # Clean setup files in installer folder
-    $setupFiles = Get-ChildItem -Path (Join-Path $rootDir "installer") -Filter "*.exe" -ErrorAction SilentlyContinue
-    foreach ($file in $setupFiles) {
-        Write-Host "  Removing $($file.Name)..." -ForegroundColor Yellow
-        Remove-Item -Path $file.FullName -Force
-    }
+}
+
+# Clean installer output
+Write-Host ""
+Write-Host "Cleaning installer output..." -ForegroundColor Yellow
+
+$installerOutput = Join-Path $rootDir "installer\Output"
+if (Test-Path $installerOutput) {
+    Write-Host "  Removing installer\Output..." -ForegroundColor Yellow
+    Remove-Item -Path $installerOutput -Recurse -Force
+}
+
+# Clean setup exe files in installer folder
+$setupFiles = Get-ChildItem -Path (Join-Path $rootDir "installer") -Filter "*.exe" -ErrorAction SilentlyContinue
+foreach ($file in $setupFiles) {
+    Write-Host "  Removing $($file.Name)..." -ForegroundColor Yellow
+    Remove-Item -Path $file.FullName -Force
 }
 
 Write-Host ""
