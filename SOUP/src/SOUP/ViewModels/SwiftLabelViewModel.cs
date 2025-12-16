@@ -215,6 +215,7 @@ public partial class SwiftLabelViewModel : ObservableObject
     partial void OnSelectedPaperSizeChanged(PaperSizeOption? value)
     {
         OnPropertyChanged(nameof(PrintFormatInfo));
+        RefreshPreviewLabels();
     }
 
     partial void OnTotalBoxesChanged(int value)
@@ -244,6 +245,24 @@ public partial class SwiftLabelViewModel : ObservableObject
         var transfer = string.IsNullOrWhiteSpace(TransferNumber) ? "TO-XXXXX" : TransferNumber;
         var dateStr = $"Date: {DateTime.Now:MMM dd, yyyy}";
         
+        // Calculate preview dimensions based on paper size
+        // Scale: 96 DPI preview, so inches * 96 gives pixels, then scale down for preview
+        var paper = SelectedPaperSize;
+        double previewScale = 80; // pixels per inch for preview
+        double labelWidth = paper != null ? paper.WidthInches * previewScale : 260;
+        double labelHeight = paper != null ? paper.HeightInches * previewScale : 120;
+        
+        // Clamp to reasonable preview sizes
+        labelWidth = Math.Clamp(labelWidth, 100, 300);
+        labelHeight = Math.Clamp(labelHeight, 60, 250);
+        
+        // Scale fonts based on label height
+        double fontScale = labelHeight / 100.0;
+        double storeFontSize = Math.Clamp(11 * fontScale, 8, 14);
+        double transferFontSize = Math.Clamp(10 * fontScale, 7, 12);
+        double boxFontSize = Math.Clamp(18 * fontScale, 12, 28);
+        double dateFontSize = Math.Clamp(9 * fontScale, 6, 11);
+        
         for (int i = 1; i <= TotalBoxes; i++)
         {
             PreviewLabels.Add(new LabelPreviewItem
@@ -251,7 +270,13 @@ public partial class SwiftLabelViewModel : ObservableObject
                 StoreLine = $"{store.Code} - {store.Name}",
                 TransferLine = $"Transfer: {transfer}",
                 BoxLine = $"Box {i} of {TotalBoxes}",
-                DateLine = dateStr
+                DateLine = dateStr,
+                LabelWidth = labelWidth,
+                LabelHeight = labelHeight,
+                StoreFontSize = storeFontSize,
+                TransferFontSize = transferFontSize,
+                BoxFontSize = boxFontSize,
+                DateFontSize = dateFontSize
             });
         }
     }
@@ -342,9 +367,14 @@ public partial class SwiftLabelViewModel : ObservableObject
                 // Use ZPL for Zebra printers
                 StatusMessage = $"Printing {boxCount} ZPL labels to {printerName}...";
                 
+                // Get paper dimensions
+                var paperSize = SelectedPaperSize;
+                double widthInches = paperSize?.WidthInches ?? 2.36; // Default 6cm
+                double heightInches = paperSize?.HeightInches ?? 1.18; // Default 3cm
+                
                 var success = await Task.Run(() =>
                 {
-                    var zpl = GenerateZplLabels(storeCode, storeName, boxCount, transfer);
+                    var zpl = GenerateZplLabels(storeCode, storeName, boxCount, transfer, widthInches, heightInches);
                     return RawPrinterHelper.SendStringToPrinter(printerName, zpl, $"Labels_{storeCode}_{transfer}");
                 }).ConfigureAwait(false);
 
@@ -405,41 +435,53 @@ public partial class SwiftLabelViewModel : ObservableObject
     /// <summary>
     /// Generate ZPL (Zebra Programming Language) for all labels
     /// </summary>
-    private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber)
+    private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber, double widthInches, double heightInches)
     {
         var sb = new StringBuilder();
         var dateStr = DateTime.Now.ToString("MMM dd, yyyy");
+        
+        // Convert inches to dots (203 DPI for standard Zebra printers)
+        int dpi = 203;
+        int widthDots = (int)(widthInches * dpi);
+        int heightDots = (int)(heightInches * dpi);
+        
+        // Calculate font sizes relative to label size
+        int largeFontH = Math.Max(20, heightDots / 5);  // Store name
+        int medFontH = Math.Max(15, heightDots / 8);    // Transfer
+        int xlFontH = Math.Max(25, heightDots / 3);     // Box number  
+        int smallFontH = Math.Max(12, heightDots / 10); // Date
+        
+        // Calculate vertical positions
+        int margin = widthDots / 20;
+        int contentWidth = widthDots - (margin * 2);
+        int y1 = heightDots / 10;                    // Store name
+        int y2 = y1 + largeFontH + 10;              // Line
+        int y3 = y2 + 15;                            // Transfer
+        int y4 = y3 + medFontH + 5;                  // Box number
+        int y5 = heightDots - smallFontH - 10;      // Date at bottom
 
         for (int box = 1; box <= totalBoxes; box++)
         {
-            // ZPL for a 4x6 inch label (standard shipping label size)
-            // Adjust dimensions and positions based on your label size
             sb.AppendLine("^XA"); // Start format
 
-            // Set label size (4x6 inches at 203 DPI = 812x1218 dots)
-            sb.AppendLine("^PW812");  // Print width
-            sb.AppendLine("^LL1218"); // Label length
+            // Set label size
+            sb.AppendLine($"^PW{widthDots}");  // Print width
+            sb.AppendLine($"^LL{heightDots}"); // Label length
 
-            // Store code and name - large, bold, centered at top
-            sb.AppendLine("^FO20,50^A0N,80,80^FB772,1,0,C,0^FD" + $"{storeCode} - {storeName}" + "^FS");
+            // Store code and name - centered at top
+            sb.AppendLine($"^FO{margin},{y1}^A0N,{largeFontH},{largeFontH}^FB{contentWidth},1,0,C,0^FD{storeCode} - {storeName}^FS");
 
             // Horizontal line
-            sb.AppendLine("^FO20,150^GB772,3,3^FS");
+            sb.AppendLine($"^FO{margin},{y2}^GB{contentWidth},2,2^FS");
 
             // Transfer number
-            sb.AppendLine("^FO20,200^A0N,50,50^FB772,1,0,C,0^FD" + $"Transfer: {transferNumber}" + "^FS");
+            sb.AppendLine($"^FO{margin},{y3}^A0N,{medFontH},{medFontH}^FB{contentWidth},1,0,C,0^FDTransfer: {transferNumber}^FS");
 
-            // Box number - extra large and bold
-            sb.AppendLine("^FO20,320^A0N,120,120^FB772,1,0,C,0^FD" + $"Box {box} of {totalBoxes}" + "^FS");
-
-            // Horizontal line
-            sb.AppendLine("^FO20,480^GB772,3,3^FS");
+            // Box number - large and centered
+            sb.AppendLine($"^FO{margin},{y4}^A0N,{xlFontH},{xlFontH}^FB{contentWidth},1,0,C,0^FDBox {box} of {totalBoxes}^FS");
 
             // Date at bottom
-            sb.AppendLine("^FO20,530^A0N,40,40^FB772,1,0,C,0^FD" + $"Date: {dateStr}" + "^FS");
-
-            // Barcode of transfer number (optional, useful for scanning)
-            sb.AppendLine("^FO156,620^BY3^BCN,100,Y,N,N^FD" + transferNumber + "^FS");
+            sb.AppendLine($"^FO{margin},{y5}^A0N,{smallFontH},{smallFontH}^FB{contentWidth},1,0,C,0^FDDate: {dateStr}^FS");
 
             sb.AppendLine("^XZ"); // End format
         }
@@ -615,6 +657,14 @@ public class LabelPreviewItem
     public string TransferLine { get; set; } = string.Empty;
     public string BoxLine { get; set; } = string.Empty;
     public string DateLine { get; set; } = string.Empty;
+    
+    // Size properties for preview scaling
+    public double LabelWidth { get; set; } = 260;
+    public double LabelHeight { get; set; } = 120;
+    public double StoreFontSize { get; set; } = 11;
+    public double TransferFontSize { get; set; } = 10;
+    public double BoxFontSize { get; set; } = 18;
+    public double DateFontSize { get; set; } = 9;
 }
 
 /// <summary>

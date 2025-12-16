@@ -365,54 +365,56 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <!-- Single Label Card -->
+                                                <!-- Single Label Card - sized to paper -->
                                                 <Border Background="White" 
-                                                        CornerRadius="6" 
+                                                        CornerRadius="4" 
                                                         Margin="0,0,0,12"
-                                                        Padding="16,12"
-                                                        Width="260"
+                                                        Width="{Binding LabelWidth}"
+                                                        Height="{Binding LabelHeight}"
                                                         BorderBrush="#ddd"
                                                         BorderThickness="1"
                                                         HorizontalAlignment="Center">
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <!-- Store Badge -->
-                                                        <Border Background="#1f1f23" 
-                                                                CornerRadius="4" 
-                                                                Padding="8,4"
-                                                                HorizontalAlignment="Center">
-                                                            <TextBlock Text="{Binding StoreLine}" 
-                                                                       FontSize="11" 
+                                                    <Grid VerticalAlignment="Center" Margin="8">
+                                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <!-- Store Badge -->
+                                                            <Border Background="#1f1f23" 
+                                                                    CornerRadius="3" 
+                                                                    Padding="6,3"
+                                                                    HorizontalAlignment="Center">
+                                                                <TextBlock Text="{Binding StoreLine}" 
+                                                                           FontSize="{Binding StoreFontSize}" 
+                                                                           FontWeight="Bold" 
+                                                                           Foreground="White"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </Border>
+                                                            
+                                                            <!-- Transfer Number -->
+                                                            <TextBlock Text="{Binding TransferLine}" 
+                                                                       FontSize="{Binding TransferFontSize}" 
+                                                                       Foreground="#555"
+                                                                       Margin="0,4,0,0"
+                                                                       HorizontalAlignment="Center"/>
+                                                        
+                                                            <!-- Box Number - Large -->
+                                                            <TextBlock Text="{Binding BoxLine}" 
+                                                                       FontSize="{Binding BoxFontSize}" 
                                                                        FontWeight="Bold" 
-                                                                       Foreground="White"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                        </Border>
-                                                        
-                                                        <!-- Transfer Number -->
-                                                        <TextBlock Text="{Binding TransferLine}" 
-                                                                   FontSize="10" 
-                                                                   Foreground="#555"
-                                                                   Margin="0,6,0,0"
-                                                                   HorizontalAlignment="Center"/>
-                                                        
-                                                        <!-- Box Number - Large -->
-                                                        <TextBlock Text="{Binding BoxLine}" 
-                                                                   FontSize="18" 
-                                                                   FontWeight="Bold" 
-                                                                   Foreground="#1f1f23"
-                                                                   Margin="0,4,0,0"
-                                                                   HorizontalAlignment="Center"/>
-                                                        
-                                                        <!-- Date Badge -->
-                                                        <Border Background="#f5f5f5" 
-                                                                CornerRadius="3" 
-                                                                Padding="6,2"
-                                                                Margin="0,6,0,0"
-                                                                HorizontalAlignment="Center">
-                                                            <TextBlock Text="{Binding DateLine}" 
-                                                                       FontSize="9" 
-                                                                       Foreground="#666"/>
-                                                        </Border>
-                                                    </StackPanel>
+                                                                       Foreground="#1f1f23"
+                                                                       Margin="0,2,0,0"
+                                                                       HorizontalAlignment="Center"/>
+                                                            
+                                                            <!-- Date Badge -->
+                                                            <Border Background="#f5f5f5" 
+                                                                    CornerRadius="2" 
+                                                                    Padding="4,2"
+                                                                    Margin="0,4,0,0"
+                                                                    HorizontalAlignment="Center">
+                                                                <TextBlock Text="{Binding DateLine}" 
+                                                                           FontSize="{Binding DateFontSize}" 
+                                                                           Foreground="#666"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
