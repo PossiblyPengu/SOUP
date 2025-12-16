@@ -98,17 +98,17 @@ public partial class ThemeService : ObservableObject
         var app = Application.Current;
         if (app == null)
         {
-            System.Diagnostics.Debug.WriteLine("ApplyTheme: Application.Current is null");
+            Serilog.Log.Debug("ApplyTheme: Application.Current is null");
             return;
         }
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Starting. IsDarkMode={IsDarkMode}");
+            Serilog.Log.Debug("ApplyTheme: Starting. IsDarkMode={IsDarkMode}", IsDarkMode);
             
             // Clear all merged dictionaries first
             app.Resources.MergedDictionaries.Clear();
-            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Cleared merged dictionaries");
+            Serilog.Log.Debug("ApplyTheme: Cleared merged dictionaries");
 
             // Load ModernStyles.xaml first (base styles), then color theme (colors override)
             var modernStyles = new ResourceDictionary
@@ -116,7 +116,7 @@ public partial class ThemeService : ObservableObject
                 Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
             };
             app.Resources.MergedDictionaries.Add(modernStyles);
-            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added ModernStyles.xaml");
+            Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
             
             var colorTheme = new ResourceDictionary
             {
@@ -125,14 +125,14 @@ public partial class ThemeService : ObservableObject
                     : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
             };
             app.Resources.MergedDictionaries.Add(colorTheme);
-            System.Diagnostics.Debug.WriteLine($"ApplyTheme: Added {(IsDarkMode ? "DarkTheme" : "LightTheme")}.xaml");
+            Serilog.Log.Debug("ApplyTheme: Added {ThemeName}.xaml", IsDarkMode ? "DarkTheme" : "LightTheme");
 
             // Raise event for any listeners
             ThemeChanged?.Invoke(this, IsDarkMode);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to apply theme: {ex.Message}");
+            Serilog.Log.Warning(ex, "Failed to apply theme");
         }
     }
 
@@ -158,7 +158,6 @@ public partial class ThemeService : ObservableObject
         catch (Exception ex)
         {
             // If loading fails, use default dark theme and log the error
-            System.Diagnostics.Debug.WriteLine($"Failed to load theme settings: {ex.Message}");
             Serilog.Log.Warning(ex, "Failed to load theme settings, using default dark theme");
             IsDarkMode = true;
         }
@@ -186,7 +185,6 @@ public partial class ThemeService : ObservableObject
         catch (Exception ex)
         {
             // Log the error but don't crash the application
-            System.Diagnostics.Debug.WriteLine($"Failed to save theme settings: {ex.Message}");
             Serilog.Log.Warning(ex, "Failed to save theme settings");
         }
     }

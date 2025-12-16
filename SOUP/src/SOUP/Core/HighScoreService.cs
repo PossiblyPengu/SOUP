@@ -34,7 +34,7 @@ public class HighScoreService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load high scores: {ex.Message}");
+            Serilog.Log.Warning(ex, "Failed to load high scores");
             return new List<HighScoreEntry>();
         }
     }
@@ -56,7 +56,7 @@ public class HighScoreService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save high score: {ex.Message}");
+            Serilog.Log.Warning(ex, "Failed to save high score");
         }
     }
 }

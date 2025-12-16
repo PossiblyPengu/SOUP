@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Serilog;
 using SOUP.Core;
 using SOUP.Core.Models;
 
@@ -183,9 +184,10 @@ public partial class DoomGame : Window
                 player.Play();
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Sound playback is non-critical, silently ignore
+            // Sound playback is non-critical, log at verbose level
+            Log.Verbose(ex, "Sound playback failed for {Filename}", filename);
         }
     }
 
@@ -654,7 +656,7 @@ public partial class DoomGame : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save score: {ex.Message}");
+            Log.Warning(ex, "Failed to save score");
             ShowMessage("Failed to save score");
         }
     }
@@ -1511,7 +1513,7 @@ public partial class DoomGame : Window
         try { _highScoreService = new HighScoreService(); }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to init high scores: {ex.Message}");
+            Log.Warning(ex, "Failed to init high scores");
             _highScoreService = null;
         }
         try
@@ -1530,7 +1532,7 @@ public partial class DoomGame : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to init settings: {ex.Message}");
+            Log.Warning(ex, "Failed to init settings");
             _settingsService = null;
         }
     }
@@ -2588,7 +2590,7 @@ public partial class DoomGame : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save level score: {ex.Message}");
+            Log.Warning(ex, "Failed to save level score");
         }
     }
 
@@ -6163,7 +6165,7 @@ public partial class DoomGame : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to update top scores UI: {ex.Message}");
+            Log.Warning(ex, "Failed to update top scores UI");
         }
     }
 

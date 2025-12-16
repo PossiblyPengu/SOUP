@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
 using SOUP.Features.OrderLog.Models;
 
@@ -24,118 +25,51 @@ public partial class OrderLogWidgetView : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        SetPlaceholder(VendorBox);
-        SetPlaceholder(TransfersBox);
-        SetPlaceholder(WhsBox);
-
-        // Set initial color
-        if (DataContext is OrderLogViewModel vm)
-        {
-            try
-            {
-                var hex = vm.GetNewNoteColor();
-                if (!string.IsNullOrEmpty(hex))
-                {
-                    ColorPreview.Background = new BrushConverter().ConvertFromString(hex) as Brush;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to set color preview: {ex.Message}");
-            }
-        }
+        // Initialization complete
     }
 
-    private void SetPlaceholder(TextBox tb)
-    {
-        if (tb.Tag is string placeholder && string.IsNullOrEmpty(tb.Text))
-        {
-            tb.Text = placeholder;
-            tb.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#71717a"));
-        }
-    }
-
-    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox tb && tb.Tag is string placeholder)
-        {
-            if (tb.Text == placeholder)
-            {
-                tb.Text = "";
-                tb.Foreground = Application.Current?.Resources["TextPrimaryBrush"] as Brush ?? Brushes.White;
-            }
-        }
-    }
-
-    private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox tb)
-        {
-            SetPlaceholder(tb);
-        }
-    }
-
-    private void TextBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && DataContext is OrderLogViewModel vm)
-        {
-            _ = AddOrderAsync(vm);
-            e.Handled = true;
-        }
-    }
-
-    private void AddNote_Click(object sender, RoutedEventArgs e)
+    private void AddBlankOrder_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is OrderLogViewModel vm)
         {
-            _ = AddOrderAsync(vm);
+            _ = AddBlankOrderAsync(vm);
         }
     }
 
-    private async Task AddOrderAsync(OrderLogViewModel vm)
+    private void AddBlankNote_Click(object sender, RoutedEventArgs e)
     {
-        // Clear placeholders
-        var vendor = VendorBox.Text == "Vendor" ? "" : VendorBox.Text;
-        var transfers = TransfersBox.Text == "Transfers" ? "" : TransfersBox.Text;
-        var whs = WhsBox.Text == "WHs" ? "" : WhsBox.Text;
+        if (DataContext is OrderLogViewModel vm)
+        {
+            _ = AddBlankNoteAsync(vm);
+        }
+    }
 
-        if (string.IsNullOrWhiteSpace(vendor)) return;
-
+    private async Task AddBlankOrderAsync(OrderLogViewModel vm)
+    {
         var order = new OrderItem
         {
-            VendorName = vendor,
-            TransferNumbers = transfers,
-            WhsShipmentNumbers = whs,
-            ColorHex = vm.GetNewNoteColor(),
+            NoteType = NoteType.Order,
+            VendorName = "New Order",
+            TransferNumbers = string.Empty,
+            WhsShipmentNumbers = string.Empty,
+            ColorHex = "#B56576",
             Status = OrderItem.OrderStatus.NotReady
         };
 
         await vm.AddOrderAsync(order);
-
-        // Clear fields
-        VendorBox.Text = "";
-        TransfersBox.Text = "";
-        WhsBox.Text = "";
-        SetPlaceholder(VendorBox);
-        SetPlaceholder(TransfersBox);
-        SetPlaceholder(WhsBox);
-        VendorBox.Focus();
     }
 
-    private void ColorPreview_Click(object sender, MouseButtonEventArgs e)
+    private async Task AddBlankNoteAsync(OrderLogViewModel vm)
     {
-        if (DataContext is not OrderLogViewModel vm) return;
-
-        var picker = new OrderColorPickerWindow(vm.GetNewNoteColor())
+        var note = new OrderItem
         {
-            Owner = Window.GetWindow(this)
+            NoteType = NoteType.StickyNote,
+            NoteContent = "New note...",
+            ColorHex = "#FFD700",
+            Status = OrderItem.OrderStatus.OnDeck
         };
 
-        if (picker.ShowDialog() == true)
-        {
-            vm.SetNewNoteColor(picker.SelectedColor);
-            ColorPreview.Background = new BrushConverter().ConvertFromString(picker.SelectedColor) as Brush;
-        }
+        await vm.AddOrderAsync(note);
     }
 
     private void ColorBar_Click(object sender, MouseButtonEventArgs e)
@@ -233,7 +167,7 @@ public partial class OrderLogWidgetView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to archive order: {ex.Message}");
+            Log.Warning(ex, "Failed to archive order");
         }
     }
 
@@ -250,7 +184,7 @@ public partial class OrderLogWidgetView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to delete order: {ex.Message}");
+            Log.Warning(ex, "Failed to delete order");
         }
     }
 
@@ -267,7 +201,7 @@ public partial class OrderLogWidgetView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to delete archived order: {ex.Message}");
+            Log.Warning(ex, "Failed to delete archived order");
         }
     }
 
@@ -278,6 +212,9 @@ public partial class OrderLogWidgetView : UserControl
             if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
                 if (DataContext is OrderLogViewModel vm)
                 {
+                    // Check if already in Items to prevent duplication
+                    if (vm.Items.Contains(order)) return;
+                    
                     order.IsArchived = false;
                     vm.ArchivedItems.Remove(order);
                     vm.Items.Insert(0, order);
@@ -286,7 +223,7 @@ public partial class OrderLogWidgetView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to unarchive order: {ex.Message}");
+            Log.Warning(ex, "Failed to unarchive order");
         }
     }
 

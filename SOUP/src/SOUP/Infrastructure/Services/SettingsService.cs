@@ -51,7 +51,7 @@ public class SettingsService
         catch (Exception ex)
         {
             // Log the exception instead of swallowing it
-            System.Diagnostics.Debug.WriteLine($"Error loading settings for {appName}: {ex.Message}");
+            Serilog.Log.Warning(ex, "Error loading settings for {AppName}", appName);
             return new T();
         }
     }

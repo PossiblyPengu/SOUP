@@ -63,7 +63,6 @@ public class WindowSettingsService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save window settings: {ex.Message}");
             Serilog.Log.Warning(ex, "Failed to save window settings for {WindowKey}", windowKey);
         }
     }
@@ -107,7 +106,6 @@ public class WindowSettingsService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to restore window settings: {ex.Message}");
             Serilog.Log.Warning(ex, "Failed to restore window settings for {WindowKey}", windowKey);
         }
 

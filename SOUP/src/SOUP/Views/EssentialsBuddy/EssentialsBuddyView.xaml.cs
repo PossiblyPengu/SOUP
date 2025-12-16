@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using Serilog;
 using SOUP.ViewModels;
 
 namespace SOUP.Views.EssentialsBuddy;
@@ -26,7 +27,7 @@ public partial class EssentialsBuddyView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to initialize EssentialsBuddy: {ex.Message}");
+            Log.Warning(ex, "Failed to initialize EssentialsBuddy");
         }
     }
 

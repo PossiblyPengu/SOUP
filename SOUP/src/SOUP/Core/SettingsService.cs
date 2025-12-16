@@ -28,7 +28,7 @@ public class SettingsService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load settings: {ex.Message}");
+            Serilog.Log.Warning(ex, "Failed to load settings");
             return new GameSettings();
         }
     }
@@ -42,7 +42,7 @@ public class SettingsService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save settings: {ex.Message}");
+            Serilog.Log.Warning(ex, "Failed to save settings");
         }
     }
 }

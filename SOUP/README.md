@@ -5,20 +5,25 @@ A suite of inventory management tools built with WPF and .NET 8.
 ## ðŸ“¦ Modules
 
 ### AllocationBuddy
+
 Track and manage inventory allocation across multiple store locations.
 
 ### EssentialsBuddy
+
 Monitor essential items and stock levels with dictionary-based matching.
 
 ### ExpireWise
+
 Track product expiration dates with visual status indicators.
 
 ### SwiftLabel
+
 Quick store label generation utility.
 
 ## ðŸš€ Quick Start
 
 ### Prerequisites
+
 - .NET 8 SDK (or use the local SDK in `important files` folder)
 - Windows 10/11
 
@@ -43,7 +48,7 @@ Quick store label generation utility.
 
 ## ðŸ“ Project Structure
 
-```
+```text
 SOUP/
 â”œâ”€â”€ src/
 â”‚   â”œâ”€â”€ SOUP/                    # Main application

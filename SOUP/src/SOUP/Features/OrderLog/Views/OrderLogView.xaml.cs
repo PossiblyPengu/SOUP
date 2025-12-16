@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
 
 namespace SOUP.Features.OrderLog.Views;
@@ -17,26 +18,7 @@ public partial class OrderLogView : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        SetPlaceholder(VendorBox);
-        SetPlaceholder(TransfersBox);
-        SetPlaceholder(WhsBox);
-
-        // Set initial color
-        if (DataContext is OrderLogViewModel vm)
-        {
-            try
-            {
-                var hex = vm.GetNewNoteColor();
-                if (!string.IsNullOrEmpty(hex))
-                {
-                    ColorPreview.Background = new BrushConverter().ConvertFromString(hex) as Brush;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to set color preview: {ex.Message}");
-            }
-        }
+        // Initialization complete
     }
 
     private void SetPlaceholder(TextBox tb)
@@ -68,67 +50,48 @@ public partial class OrderLogView : UserControl
         }
     }
 
-    private void TextBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && DataContext is OrderLogViewModel vm)
-        {
-            _ = AddOrderAsync(vm);
-            e.Handled = true;
-        }
-    }
-
-    private void AddNote_Click(object sender, RoutedEventArgs e)
+    private void AddBlankOrder_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is OrderLogViewModel vm)
         {
-            _ = AddOrderAsync(vm);
+            _ = AddBlankOrderAsync(vm);
         }
     }
 
-    private async Task AddOrderAsync(OrderLogViewModel vm)
+    private void AddBlankNote_Click(object sender, RoutedEventArgs e)
     {
-        // Clear placeholders
-        var vendor = VendorBox.Text == "Vendor" ? "" : VendorBox.Text;
-        var transfers = TransfersBox.Text == "Transfers" ? "" : TransfersBox.Text;
-        var whs = WhsBox.Text == "WHs" ? "" : WhsBox.Text;
+        if (DataContext is OrderLogViewModel vm)
+        {
+            _ = AddBlankNoteAsync(vm);
+        }
+    }
 
-        if (string.IsNullOrWhiteSpace(vendor)) return;
-
+    private async Task AddBlankOrderAsync(OrderLogViewModel vm)
+    {
         var order = new Models.OrderItem
         {
-            VendorName = vendor,
-            TransferNumbers = transfers,
-            WhsShipmentNumbers = whs,
-            ColorHex = vm.GetNewNoteColor(),
+            NoteType = Models.NoteType.Order,
+            VendorName = "New Order",
+            TransferNumbers = string.Empty,
+            WhsShipmentNumbers = string.Empty,
+            ColorHex = "#B56576",
             Status = Models.OrderItem.OrderStatus.NotReady
         };
 
         await vm.AddOrderAsync(order);
-
-        // Clear fields
-        VendorBox.Text = "";
-        TransfersBox.Text = "";
-        WhsBox.Text = "";
-        SetPlaceholder(VendorBox);
-        SetPlaceholder(TransfersBox);
-        SetPlaceholder(WhsBox);
-        VendorBox.Focus();
     }
 
-    private void ColorPreview_Click(object sender, MouseButtonEventArgs e)
+    private async Task AddBlankNoteAsync(OrderLogViewModel vm)
     {
-        if (DataContext is not OrderLogViewModel vm) return;
-
-        var picker = new OrderColorPickerWindow(vm.GetNewNoteColor())
+        var note = new Models.OrderItem
         {
-            Owner = Window.GetWindow(this)
+            NoteType = Models.NoteType.StickyNote,
+            NoteContent = "New note...",
+            ColorHex = "#FFD700",
+            Status = Models.OrderItem.OrderStatus.OnDeck
         };
 
-        if (picker.ShowDialog() == true)
-        {
-            vm.SetNewNoteColor(picker.SelectedColor);
-            ColorPreview.Background = new BrushConverter().ConvertFromString(picker.SelectedColor) as Brush;
-        }
+        await vm.AddOrderAsync(note);
     }
 
     private void ColorBar_Click(object sender, MouseButtonEventArgs e)
@@ -224,7 +187,7 @@ public partial class OrderLogView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to delete note: {ex.Message}");
+            Log.Warning(ex, "Failed to delete note");
         }
     }
 
@@ -235,6 +198,9 @@ public partial class OrderLogView : UserControl
             if (sender is MenuItem menuItem && menuItem.DataContext is Models.OrderItem order)
                 if (DataContext is OrderLogViewModel vm)
                 {
+                    // Check if already in Items to prevent duplication
+                    if (vm.Items.Contains(order)) return;
+                    
                     order.IsArchived = false;
                     vm.ArchivedItems.Remove(order);
                     vm.Items.Insert(0, order);
@@ -243,7 +209,7 @@ public partial class OrderLogView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to unarchive note: {ex.Message}");
+            Log.Warning(ex, "Failed to unarchive note");
         }
     }
 

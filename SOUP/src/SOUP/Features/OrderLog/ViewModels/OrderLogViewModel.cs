@@ -52,7 +52,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _newNoteWhsShipmentNumbers = string.Empty;
 
+    [ObservableProperty]
+    private string _stickyNoteContent = string.Empty;
+
     private string _newNoteColorHex = "#B56576";
+    private string _stickyNoteColorHex = "#FFD700"; // Yellow default for sticky notes
 
     public event Action? GroupStatesReset;
 
@@ -162,6 +166,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private async Task UnarchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
+        
+        // Prevent duplication if already in Items
+        if (Items.Contains(item)) return;
         
         item.IsArchived = false;
         ArchivedItems.Remove(item);
@@ -374,6 +381,63 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         StatusMessage = "Order added";
         return true;
     }
+
+    /// <summary>
+    /// Add a sticky note (simple note without order tracking)
+    /// </summary>
+    public async Task<bool> AddStickyNoteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(StickyNoteContent))
+        {
+            StatusMessage = "Note content is required";
+            return false;
+        }
+
+        var note = new OrderItem
+        {
+            NoteType = NoteType.StickyNote,
+            NoteContent = StickyNoteContent.Trim(),
+            ColorHex = _stickyNoteColorHex,
+            CreatedAt = DateTime.UtcNow,
+            Status = OrderItem.OrderStatus.OnDeck // Sticky notes start as "On Deck" (yellow)
+        };
+
+        Items.Insert(0, note);
+        await SaveAsync();
+
+        // Clear the form
+        StickyNoteContent = string.Empty;
+        _stickyNoteColorHex = "#FFD700";
+
+        StatusMessage = "Sticky note added";
+        return true;
+    }
+
+    /// <summary>
+    /// Quick add a sticky note with specified content
+    /// </summary>
+    public async Task AddQuickStickyNoteAsync(string content, string? colorHex = null)
+    {
+        var note = new OrderItem
+        {
+            NoteType = NoteType.StickyNote,
+            NoteContent = content.Trim(),
+            ColorHex = colorHex ?? "#FFD700",
+            CreatedAt = DateTime.UtcNow,
+            Status = OrderItem.OrderStatus.OnDeck
+        };
+
+        Items.Insert(0, note);
+        await SaveAsync();
+        StatusMessage = "Quick note added";
+    }
+
+    public void SetStickyNoteColor(string colorHex)
+    {
+        _stickyNoteColorHex = colorHex;
+    }
+
+    public string GetStickyNoteColor() => _stickyNoteColorHex;
 
     public void SetNewNoteColor(string colorHex)
     {

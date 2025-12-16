@@ -23,83 +23,26 @@
                        Foreground="{DynamicResource AccentBrush}"/>
         </Border>
 
-        <!-- Add Note Bar -->
+        <!-- Action Buttons Bar -->
         <Border Grid.Row="1"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0,1"
                 Padding="20,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="1.5*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="1.5*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBox x:Name="VendorBox"
-                         Text="{Binding NewNoteVendorName, UpdateSourceTrigger=PropertyChanged}"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderBrush="{DynamicResource BorderBrush}"
-                         BorderThickness="1"
-                         Padding="10,8"
-                         FontSize="13"
-                         Tag="Vendor"
-                         GotFocus="TextBox_GotFocus"
-                         LostFocus="TextBox_LostFocus"
-                         PreviewKeyDown="TextBox_KeyDown"/>
-
-                <TextBox Grid.Column="2"
-                         x:Name="TransfersBox"
-                         Text="{Binding NewNoteTransferNumbers, UpdateSourceTrigger=PropertyChanged}"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderBrush="{DynamicResource BorderBrush}"
-                         BorderThickness="1"
-                         Padding="10,8"
-                         FontSize="13"
-                         Tag="Transfers"
-                         GotFocus="TextBox_GotFocus"
-                         LostFocus="TextBox_LostFocus"
-                         PreviewKeyDown="TextBox_KeyDown"/>
-
-                <TextBox Grid.Column="4"
-                         x:Name="WhsBox"
-                         Text="{Binding NewNoteWhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderBrush="{DynamicResource BorderBrush}"
-                         BorderThickness="1"
-                         Padding="10,8"
-                         FontSize="13"
-                         Tag="WHs"
-                         GotFocus="TextBox_GotFocus"
-                         LostFocus="TextBox_LostFocus"
-                         PreviewKeyDown="TextBox_KeyDown"/>
-
-                <Border Grid.Column="6"
-                        x:Name="ColorPreview"
-                        Width="36"
-                        Height="36"
-                        CornerRadius="6"
-                        Background="{DynamicResource SecondaryBrush}"
-                        Cursor="Hand"
-                        MouseLeftButtonDown="ColorPreview_Click"
-                        ToolTip="Pick color"/>
-
-                <Button Grid.Column="8"
-                        Content="Add Order"
-                        Click="AddNote_Click"
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="➕ Add Order"
+                        Click="AddBlankOrder_Click"
                         Style="{DynamicResource SuccessButtonStyle}"
                         Padding="16,8"
+                        FontSize="13"
+                        Margin="0,0,12,0"/>
+                
+                <Button Content="📝 Add Note"
+                        Click="AddBlankNote_Click"
+                        Style="{DynamicResource WarningButtonStyle}"
+                        Padding="16,8"
                         FontSize="13"/>
-            </Grid>
+            </StackPanel>
         </Border>
 
         <!-- Notes List -->
@@ -148,11 +91,48 @@
                                 <!-- Content -->
                                 <StackPanel Grid.Row="1" Margin="16,12">
                                     <Grid>
-                                        <TextBlock Text="{Binding VendorName}"
-                                                   FontSize="15"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <!-- Editable VendorName for Orders (hidden for sticky notes) -->
+                                        <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 FontSize="15" 
+                                                 FontWeight="SemiBold" 
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 Padding="0"
+                                                 Margin="0,0,80,0"
+                                                 Tag="Vendor name..."
+                                                 GotFocus="EditableField_GotFocus"
+                                                 LostFocus="EditableField_LostFocus">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBox.Style>
+                                        </TextBox>
                                         
+                                        <!-- Title for Sticky Notes (read-only label) -->
+                                        <TextBlock Text="📝 Quick Note" 
+                                                   FontSize="15" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="{DynamicResource TextPrimaryBrush}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        
+                                        <!-- Status badge (hidden for sticky notes) -->
                                         <Border HorizontalAlignment="Right"
                                                 CornerRadius="4"
                                                 Padding="8,3"
@@ -161,6 +141,7 @@
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                                    <Setter Property="Visibility" Value="Visible"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
                                                             <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
@@ -170,6 +151,9 @@
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
                                                             <Setter Property="Background" Value="{DynamicResource TextTertiaryBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -195,35 +179,76 @@
                                         </Border>
                                     </Grid>
 
-                                    <!-- Editable Transfer Numbers -->
-                                    <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                    <!-- ORDER FIELDS (hidden for sticky notes) -->
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        
+                                        <!-- Editable Transfer Numbers -->
+                                        <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 Foreground="{DynamicResource TextSecondaryBrush}"
+                                                 FontSize="13"
+                                                 Margin="0,6,0,0"
+                                                 Padding="0"
+                                                 Tag="Transfer #s (click to edit)"
+                                                 GotFocus="EditableField_GotFocus"
+                                                 LostFocus="EditableField_LostFocus"/>
+
+                                        <!-- Editable WHS Shipment Numbers -->
+                                        <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 Foreground="{DynamicResource TextSecondaryBrush}"
+                                                 FontSize="13"
+                                                 Margin="0,4,0,0"
+                                                 Padding="0"
+                                                 Tag="WHS #s (click to edit)"
+                                                 GotFocus="EditableField_GotFocus"
+                                                 LostFocus="EditableField_LostFocus"/>
+
+                                        <TextBlock Text="{Binding TimeInProgressDisplay}"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   FontSize="12"
+                                                   FontFamily="Consolas"
+                                                   Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                    
+                                    <!-- STICKY NOTE CONTENT (visible only for sticky notes) -->
+                                    <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=PropertyChanged}"
                                              Background="Transparent"
                                              BorderThickness="0"
-                                             Foreground="{DynamicResource TextSecondaryBrush}"
+                                             Foreground="{DynamicResource TextPrimaryBrush}"
                                              FontSize="13"
                                              Margin="0,6,0,0"
                                              Padding="0"
-                                             Tag="Transfer #s (click to edit)"
+                                             TextWrapping="Wrap"
+                                             AcceptsReturn="True"
+                                             MaxHeight="120"
+                                             VerticalScrollBarVisibility="Auto"
+                                             Tag="Note content..."
                                              GotFocus="EditableField_GotFocus"
-                                             LostFocus="EditableField_LostFocus"/>
-
-                                    <!-- Editable WHS Shipment Numbers -->
-                                    <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
-                                             Background="Transparent"
-                                             BorderThickness="0"
-                                             Foreground="{DynamicResource TextSecondaryBrush}"
-                                             FontSize="13"
-                                             Margin="0,4,0,0"
-                                             Padding="0"
-                                             Tag="WHS #s (click to edit)"
-                                             GotFocus="EditableField_GotFocus"
-                                             LostFocus="EditableField_LostFocus"/>
-
-                                    <TextBlock Text="{Binding TimeInProgressDisplay}"
-                                               Foreground="{DynamicResource TextTertiaryBrush}"
-                                               FontSize="12"
-                                               FontFamily="Consolas"
-                                               Margin="0,8,0,0"/>
+                                             LostFocus="EditableField_LostFocus">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
                                 </StackPanel>
 
                                 <!-- Actions -->

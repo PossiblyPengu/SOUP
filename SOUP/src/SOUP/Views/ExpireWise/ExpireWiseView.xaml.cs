@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Serilog;
 using SOUP.ViewModels;
 using SOUP.Core.Entities.ExpireWise;
 
@@ -28,7 +29,7 @@ public partial class ExpireWiseView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to initialize ExpireWise: {ex.Message}");
+            Log.Warning(ex, "Failed to initialize ExpireWise");
         }
     }
 

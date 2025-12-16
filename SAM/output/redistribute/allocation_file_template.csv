@@ -1,8 +1,0 @@
-Stag Addon Modules Replen import template
-Optional Fields are only used for Replenishment
-
-Mandatory,Optional,Optional
-ITEM_CODE,PURCHASE_PRICE,DESIRED_QTY
-100-BLK-OS,1.40,
-100-BLK-OSXL,,50
-114-WHT-OS,1.2,150

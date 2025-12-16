@@ -3,9 +3,19 @@ using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SOUP.Features.OrderLog.Models;
+
+public enum NoteType
+{
+    Order = 0,
+    StickyNote = 1
+}
+
 public partial class OrderItem : ObservableObject
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+
+    [ObservableProperty]
+    private NoteType _noteType = NoteType.Order;
 
     [ObservableProperty]
     private string _vendorName = string.Empty;
@@ -15,6 +25,12 @@ public partial class OrderItem : ObservableObject
 
     [ObservableProperty]
     private string _whsShipmentNumbers = string.Empty;
+
+    /// <summary>
+    /// Content for sticky notes
+    /// </summary>
+    [ObservableProperty]
+    private string _noteContent = string.Empty;
 
     public enum OrderStatus
     {
@@ -86,8 +102,8 @@ public partial class OrderItem : ObservableObject
             _ => ColorHex
         };
 
-        // Auto-archive when marked as Done
-        if (value == OrderStatus.Done)
+        // Auto-archive when marked as Done (only for orders, not sticky notes)
+        if (value == OrderStatus.Done && NoteType == NoteType.Order)
         {
             IsArchived = true;
         }
@@ -111,4 +127,18 @@ public partial class OrderItem : ObservableObject
 
         RefreshTimeInProgress();
     }
+
+    /// <summary>
+    /// Helper property to check if this is a sticky note
+    /// </summary>
+    [JsonIgnore]
+    public bool IsStickyNote => NoteType == NoteType.StickyNote;
+
+    /// <summary>
+    /// Display title - uses VendorName for orders, first line of NoteContent for sticky notes
+    /// </summary>
+    [JsonIgnore]
+    public string DisplayTitle => NoteType == NoteType.StickyNote
+        ? (string.IsNullOrWhiteSpace(NoteContent) ? "Quick Note" : NoteContent.Split('\n')[0].Trim())
+        : VendorName;
 }

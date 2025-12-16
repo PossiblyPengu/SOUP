@@ -1,4 +1,5 @@
 using System.Windows;
+using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
 
 namespace SOUP.Windows
@@ -24,7 +25,7 @@ namespace SOUP.Windows
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to initialize OrderLog: {ex.Message}");
+                Log.Warning(ex, "Failed to initialize OrderLog");
             }
         }
 

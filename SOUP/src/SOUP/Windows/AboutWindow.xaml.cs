@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Serilog;
 using SOUP.Core;
 using SOUP.Services;
 
@@ -40,7 +41,7 @@ public partial class AboutWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load version info: {ex.Message}");
+            Log.Warning(ex, "Failed to load version info");
         }
     }
 
@@ -71,7 +72,7 @@ public partial class AboutWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to load changelog: {ex.Message}");
+            Log.Warning(ex, "Failed to load changelog");
         }
     }
 

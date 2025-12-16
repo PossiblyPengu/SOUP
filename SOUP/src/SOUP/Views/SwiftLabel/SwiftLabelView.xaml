@@ -258,6 +258,26 @@
                                 <TextBlock Text="Select the destination store for this transfer" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
 
+                            <!-- Printer Selection -->
+                            <StackPanel Margin="0,0,0,24">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Printer" Style="{StaticResource InputLabelStyle}"/>
+                                    <Button Grid.Column="1" Content="🔄" FontSize="12" Cursor="Hand"
+                                            Command="{Binding RefreshPrintersCommand}"
+                                            ToolTip="Refresh printer list"
+                                            Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}"
+                                            Padding="4,0" Margin="0,-4,0,0"/>
+                                </Grid>
+                                <ComboBox ItemsSource="{Binding AvailablePrinters}"
+                                          SelectedItem="{Binding SelectedPrinter}"
+                                          Style="{StaticResource ModernComboStyle}"/>
+                                <TextBlock Text="Zebra printers use ZPL, others use Word document" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+
                             <!-- Transfer Number -->
                             <StackPanel Margin="0,0,0,24">
                                 <TextBlock Text="Transfer Order Number" Style="{StaticResource InputLabelStyle}"/>
@@ -363,11 +383,26 @@
                                 </StackPanel>
                             </Border>
                             
-                            <!-- Generate Button -->
-                            <Button Content="🏷️  Generate Labels"
-                                    Style="{StaticResource GenerateButtonStyle}"
-                                    Command="{Binding GenerateLabelsCommand}"
-                                    HorizontalAlignment="Stretch"/>
+                            <!-- Action Buttons -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Save Button -->
+                                <Button Grid.Column="0" Content="💾  Save"
+                                        Style="{StaticResource GenerateButtonStyle}"
+                                        Command="{Binding SaveLabelsCommand}"
+                                        HorizontalAlignment="Stretch"/>
+                                
+                                <!-- Print Button -->
+                                <Button Grid.Column="2" Content="🖨️  Print"
+                                        Style="{StaticResource GenerateButtonStyle}"
+                                        Command="{Binding PrintLabelsCommand}"
+                                        HorizontalAlignment="Stretch"/>
+                            </Grid>
                         </StackPanel>
                     </Border>
                 </Grid>

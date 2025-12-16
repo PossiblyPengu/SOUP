@@ -1,4 +1,4 @@
-# SAP Installer Build Script
+# SOUP Installer Build Script
 # This script builds the application and creates an installer
 # Produces two versions:
 #   - Framework-dependent (smaller, requires .NET 8 runtime) for standard install
@@ -16,15 +16,15 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $rootDir = Split-Path -Parent $scriptDir
 $srcDir = Join-Path $rootDir "src"
-$projectDir = Join-Path $srcDir "SAP"
-$projectFile = Join-Path $projectDir "SAP.csproj"
+$projectDir = Join-Path $srcDir "SOUP"
+$projectFile = Join-Path $projectDir "SOUP.csproj"
 $publishDir = Join-Path $rootDir "publish"
 $publishFrameworkDir = Join-Path $rootDir "publish-framework"
 $publishPortableDir = Join-Path $rootDir "publish-portable"
 $installerDir = $scriptDir
 
 Write-Host "======================================" -ForegroundColor Cyan
-Write-Host "  SAP Installer Build Script" -ForegroundColor Cyan
+Write-Host "  SOUP Installer Build Script" -ForegroundColor Cyan
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -134,7 +134,7 @@ if (-not $SkipInstaller) {
         exit 1
     }
     
-    $issFile = Join-Path $installerDir "SAP.iss"
+    $issFile = Join-Path $installerDir "SOUP.iss"
     
     Write-Host "Using Inno Setup: $innoSetupPath"
     & $innoSetupPath $issFile

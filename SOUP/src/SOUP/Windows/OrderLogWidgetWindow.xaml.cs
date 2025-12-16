@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
 using SOUP.Services;
 
@@ -161,7 +162,7 @@ public partial class OrderLogWidgetWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to initialize OrderLog widget: {ex.Message}");
+            Log.Warning(ex, "Failed to initialize OrderLog widget");
         }
     }
 
@@ -209,7 +210,7 @@ public partial class OrderLogWidgetWindow : Window
         var result = SHAppBarMessage(ABM_NEW, ref data);
         _isAppBarRegistered = result != 0;
         
-        System.Diagnostics.Debug.WriteLine($"AppBar registered: {_isAppBarRegistered}");
+        Log.Debug("AppBar registered: {IsRegistered}", _isAppBarRegistered);
     }
 
     private void UnregisterAppBar()
@@ -227,7 +228,7 @@ public partial class OrderLogWidgetWindow : Window
         _isAppBarRegistered = false;
         _currentEdge = AppBarEdge.None;
         
-        System.Diagnostics.Debug.WriteLine("AppBar unregistered");
+        Log.Debug("AppBar unregistered");
     }
 
     private void PositionAppBar()
@@ -337,7 +338,7 @@ public partial class OrderLogWidgetWindow : Window
         // Position the appbar
         PositionAppBar();
         
-        System.Diagnostics.Debug.WriteLine($"Docked to {edge}");
+        Log.Debug("Docked to {Edge}", edge);
     }
 
     #endregion
@@ -363,7 +364,7 @@ public partial class OrderLogWidgetWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to apply theme: {ex.Message}");
+            Log.Warning(ex, "Failed to apply theme");
         }
     }
 
@@ -382,7 +383,7 @@ public partial class OrderLogWidgetWindow : Window
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to apply theme: {ex.Message}");
+                Log.Warning(ex, "Failed to apply theme");
             }
         });
     }
@@ -404,7 +405,7 @@ public partial class OrderLogWidgetWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to open full Order Log: {ex.Message}");
+            Log.Warning(ex, "Failed to open full Order Log");
         }
     }
 
