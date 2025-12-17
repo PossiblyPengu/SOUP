@@ -5,6 +5,14 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        
+        <!-- Style for phantom placeholder text -->
+        <Style x:Key="PlaceholderText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid Background="{DynamicResource BackgroundBrush}">
@@ -142,12 +150,11 @@
                                             <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
-                                                     FontSize="15" 
-                                                     FontWeight="SemiBold" 
+                                                     FontSize="15"
+                                                     FontWeight="SemiBold"
                                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                                      Padding="0"
                                                      Margin="0,0,70,0"
-                                                     Tag="Vendor name..."
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus">
                                                 <TextBox.Style>
@@ -162,13 +169,10 @@
                                                 </TextBox.Style>
                                             </TextBox>
                                             
-                                            <!-- Title for Sticky Notes (read-only label) -->
-                                            <TextBlock Text="📝 Quick Note" 
-                                                       FontSize="15" 
-                                                       FontWeight="SemiBold" 
-                                                       Foreground="{DynamicResource TextPrimaryBrush}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
+                                            <!-- Title for Sticky Notes (editable with placeholder) -->
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
@@ -176,8 +180,41 @@
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                </Grid.Style>
+                                                <TextBox x:Name="NoteTitleBox"
+                                                         Text="{Binding NoteTitle, UpdateSourceTrigger=PropertyChanged}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         FontSize="15" 
+                                                         FontWeight="SemiBold" 
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         Padding="0"
+                                                         Margin="0,0,70,0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
+                                                <TextBlock Text="Note title..." 
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextDisabledBrush}"
+                                                           FontStyle="Italic"
+                                                           IsHitTestVisible="False"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,70,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding NoteTitle}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding NoteTitle}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
                                             
                                             <!-- Status badge (hidden for sticky notes) -->
                                             <Border HorizontalAlignment="Right"
@@ -247,7 +284,6 @@
                                                      FontSize="13"
                                                      Margin="0,6,0,0"
                                                      Padding="0"
-                                                     Tag="Transfer #s"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
 
@@ -259,7 +295,6 @@
                                                      FontSize="13"
                                                      Margin="0,3,0,0"
                                                      Padding="0"
-                                                     Tag="WHS #s"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
 
@@ -270,23 +305,10 @@
                                                        Margin="0,6,0,0"/>
                                         </StackPanel>
                                         
-                                        <!-- STICKY NOTE CONTENT (visible only for sticky notes) -->
-                                        <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=PropertyChanged}"
-                                                 Background="Transparent"
-                                                 BorderThickness="0"
-                                                 Foreground="{DynamicResource TextPrimaryBrush}"
-                                                 FontSize="13"
-                                                 Margin="0,6,0,0"
-                                                 Padding="0"
-                                                 TextWrapping="Wrap"
-                                                 AcceptsReturn="True"
-                                                 MaxHeight="60"
-                                                 VerticalScrollBarVisibility="Auto"
-                                                 Tag="Note content..."
-                                                 GotFocus="EditableField_GotFocus"
-                                                 LostFocus="EditableField_LostFocus">
-                                            <TextBox.Style>
-                                                <Style TargetType="TextBox">
+                                        <!-- STICKY NOTE CONTENT (visible only for sticky notes, with placeholder) -->
+                                        <Grid Margin="0,6,0,0">
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
@@ -294,8 +316,40 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBox.Style>
-                                        </TextBox>
+                                            </Grid.Style>
+                                            <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                                     FontSize="13"
+                                                     Padding="0"
+                                                     TextWrapping="Wrap"
+                                                     AcceptsReturn="True"
+                                                     MaxHeight="60"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     GotFocus="EditableField_GotFocus"
+                                                     LostFocus="EditableField_LostFocus"/>
+                                            <TextBlock Text="Write your note here..." 
+                                                       FontSize="13"
+                                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                                       FontStyle="Italic"
+                                                       IsHitTestVisible="False"
+                                                       VerticalAlignment="Top">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding NoteContent}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding NoteContent}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
                                     </StackPanel>
                                 </Grid>
                             </Border>

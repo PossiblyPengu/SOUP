@@ -20,6 +20,12 @@ public partial class OrderItem : ObservableObject
     [ObservableProperty]
     private string _vendorName = string.Empty;
 
+    /// <summary>
+    /// Title for sticky notes (e.g., "Quick Note", "TODO", etc.)
+    /// </summary>
+    [ObservableProperty]
+    private string _noteTitle = "Quick Note";
+
     [ObservableProperty]
     private string _transferNumbers = string.Empty;
 

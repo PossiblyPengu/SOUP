@@ -64,7 +64,7 @@ public partial class OrderLogWidgetView : UserControl
         var note = new OrderItem
         {
             NoteType = NoteType.StickyNote,
-            NoteContent = "New note...",
+            NoteContent = "",
             ColorHex = "#FFD700",
             Status = OrderItem.OrderStatus.OnDeck
         };
@@ -243,15 +243,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         if (sender is TextBox tb)
         {
-            // Show placeholder hint if empty
-            if (string.IsNullOrEmpty(tb.Text) && tb.Tag is string placeholder)
-            {
-                tb.Foreground = Application.Current?.Resources["TextDisabledBrush"] as Brush ?? Brushes.Gray;
-            }
-            else
-            {
-                tb.Foreground = Application.Current?.Resources["TextPrimaryBrush"] as Brush ?? Brushes.White;
-            }
+            tb.Foreground = Application.Current?.Resources["TextPrimaryBrush"] as Brush ?? Brushes.White;
             tb.Background = Application.Current?.Resources["SurfaceHoverBrush"] as Brush ?? Brushes.Transparent;
             tb.SelectAll();
         }
@@ -262,7 +254,16 @@ public partial class OrderLogWidgetView : UserControl
         if (sender is TextBox tb)
         {
             tb.Background = Brushes.Transparent;
-            tb.Foreground = Application.Current?.Resources["TextSecondaryBrush"] as Brush ?? Brushes.Gray;
+            
+            // Use disabled color if empty, secondary otherwise
+            if (string.IsNullOrEmpty(tb.Text))
+            {
+                tb.Foreground = Application.Current?.Resources["TextDisabledBrush"] as Brush ?? Brushes.Gray;
+            }
+            else
+            {
+                tb.Foreground = Application.Current?.Resources["TextSecondaryBrush"] as Brush ?? Brushes.Gray;
+            }
             
             // Save changes
             if (DataContext is OrderLogViewModel vm)

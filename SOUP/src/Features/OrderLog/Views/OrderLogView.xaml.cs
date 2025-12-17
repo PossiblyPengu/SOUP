@@ -86,7 +86,7 @@ public partial class OrderLogView : UserControl
         var note = new Models.OrderItem
         {
             NoteType = Models.NoteType.StickyNote,
-            NoteContent = "New note...",
+            NoteContent = "",
             ColorHex = "#FFD700",
             Status = Models.OrderItem.OrderStatus.OnDeck
         };
