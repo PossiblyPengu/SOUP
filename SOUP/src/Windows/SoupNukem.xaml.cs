@@ -231,6 +231,73 @@ public partial class SoupNukem : Window
     int _maxCampaignLevel = 5;
     bool _showingBriefing = false;
     
+    // DIFFICULTY SYSTEM
+    enum DifficultyLevel { Easy, Normal, Hard, Nightmare }
+    DifficultyLevel _difficulty = DifficultyLevel.Normal;
+    
+    // Difficulty multipliers
+    double DamageToPlayerMultiplier => _difficulty switch
+    {
+        DifficultyLevel.Easy => 0.5,
+        DifficultyLevel.Normal => 1.0,
+        DifficultyLevel.Hard => 1.5,
+        DifficultyLevel.Nightmare => 2.0,
+        _ => 1.0
+    };
+    
+    double EnemyHealthMultiplier => _difficulty switch
+    {
+        DifficultyLevel.Easy => 0.7,
+        DifficultyLevel.Normal => 1.0,
+        DifficultyLevel.Hard => 1.3,
+        DifficultyLevel.Nightmare => 1.8,
+        _ => 1.0
+    };
+    
+    double EnemyDamageMultiplier => _difficulty switch
+    {
+        DifficultyLevel.Easy => 0.6,
+        DifficultyLevel.Normal => 1.0,
+        DifficultyLevel.Hard => 1.4,
+        DifficultyLevel.Nightmare => 2.0,
+        _ => 1.0
+    };
+    
+    double EnemySpeedMultiplier => _difficulty switch
+    {
+        DifficultyLevel.Easy => 0.8,
+        DifficultyLevel.Normal => 1.0,
+        DifficultyLevel.Hard => 1.15,
+        DifficultyLevel.Nightmare => 1.3,
+        _ => 1.0
+    };
+    
+    int EnemyCountMultiplier => _difficulty switch
+    {
+        DifficultyLevel.Easy => 0,      // Fewer enemies
+        DifficultyLevel.Normal => 0,
+        DifficultyLevel.Hard => 3,      // More enemies
+        DifficultyLevel.Nightmare => 6, // Many more enemies
+        _ => 0
+    };
+    
+    double PickupSpawnChance => _difficulty switch
+    {
+        DifficultyLevel.Easy => 1.3,    // More pickups
+        DifficultyLevel.Normal => 1.0,
+        DifficultyLevel.Hard => 0.8,    // Fewer pickups
+        DifficultyLevel.Nightmare => 0.6,
+        _ => 1.0
+    };
+    
+    static readonly string[] DifficultyNames = { "EASY", "NORMAL", "HARD", "NIGHTMARE" };
+    static readonly string[] DifficultyDescriptions = {
+        "For those who just want to have fun.\nEnemies are weaker and you take less damage.",
+        "The standard challenge.\nBalanced gameplay experience.",
+        "For experienced players.\nEnemies hit harder and there are more of them.",
+        "Are you insane?!\nMaximum enemy aggression. Good luck."
+    };
+    
     // Level themes and names
     static readonly string[] LevelNames = {
         "1-1: THE SPREADSHEET DIMENSION",
@@ -295,15 +362,42 @@ public partial class SoupNukem : Window
         // Stun from camera flash
         public double StunTimer;
         public bool IsStunned => StunTimer > 0;
+        
+        // === ENHANCED AI BEHAVIORS ===
+        public EnemyState State = EnemyState.Idle;
+        public double StateTimer;
+        public double PatrolTargetX, PatrolTargetY;
+        public double LastKnownPlayerX, LastKnownPlayerY;
+        public int PatrolPointIndex;
+        public double RetreatTimer;      // Time spent retreating
+        public double AggressionLevel;   // How aggressive (0-1)
+        public double FlankingAngle;     // Angle for flanking maneuver
+        public bool CanSeePlayer;        // Line of sight check result
+        public double LastAttackTime;    // For burst fire patterns
+        public int BurstCount;           // Shots fired in current burst
+    }
+    
+    enum EnemyState
+    {
+        Idle,           // Standing still, not alerted
+        Patrol,         // Walking between patrol points
+        Alert,          // Heard something, looking around
+        Chase,          // Actively pursuing player
+        Attack,         // In combat, firing at player
+        Flanking,       // Moving to flank player
+        Retreat,        // Low HP, backing away
+        TakingCover,    // Behind cover, peeking out
+        Stunned         // Camera flashed
     }
 
-    enum PickupType { Health, Armor, Ammo, Shotgun, Ripper, RPG, KeyRed, KeyBlue, KeyYellow, Medkit, Jetpack, Steroids, AtomicHealth, Exit, Invincibility, DamageBoost }
+    enum PickupType { Health, Armor, Ammo, Shotgun, Ripper, RPG, KeyRed, KeyBlue, KeyYellow, Medkit, Jetpack, Steroids, AtomicHealth, Exit, Invincibility, DamageBoost, ExplodingBarrel }
 
     class Pickup
     {
         public double X, Y, BobOffset;
         public PickupType Type;
         public bool Collected;
+        public double Hp = 30; // For destructible pickups like barrels
     }
 
     class Projectile
@@ -321,6 +415,16 @@ public partial class SoupNukem : Window
         public bool Opening = false;
         public bool Closing = false;
     }
+    
+    // === ENVIRONMENTAL HAZARDS ===
+    class ExplodingBarrel
+    {
+        public double X, Y, Hp;
+        public bool Exploded;
+        public double BobOffset;
+    }
+    
+    List<ExplodingBarrel> _barrels = new();
     
     // Global list of flying body parts (ragdolls)
     List<BodyPart> _bodyParts = new();
@@ -694,6 +798,7 @@ public partial class SoupNukem : Window
         _pipeBombs.Clear();
         _particles.Clear();
         _bodyParts.Clear();
+        _barrels.Clear();
 
         for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++) { _map[i] = 0; _floorHeights[i] = 0; _hazardTiles[i] = false; }
         
@@ -711,6 +816,9 @@ public partial class SoupNukem : Window
             // Endless mode or beyond campaign: generate random levels
             GenerateRandomLevel();
         }
+        
+        // Add exploding barrels to the level
+        PlaceBarrels();
 
         _totalEnemies = _enemies.Count;
         _totalSecrets = _pickups.Count(p => p.Type == PickupType.AtomicHealth);
@@ -1196,120 +1304,421 @@ public partial class SoupNukem : Window
         // AddPickup(PickupType.Exit, 12, 6); // Added when boss dies
     }
     
-    // --- Random Level Generator for Endless mode ---
+    // --- Duke Nukem 3D Style Random Level Generator for Endless mode ---
     void GenerateRandomLevel()
     {
-        // Set default atmosphere for endless mode
-        SetLevelAtmosphere(0);
+        // Rotate through different level themes
+        int theme = _currentLevel % 5;
+        SetLevelAtmosphere(theme);
         
-        // Outer walls
+        // Outer walls with theme-appropriate texture
+        int wallTex = theme switch { 0 => 1, 1 => 3, 2 => 5, 3 => 2, _ => 4 };
         for (int i = 0; i < MAP_SIZE; i++)
         {
-            _map[i] = 1;
-            _map[(MAP_SIZE - 1) * MAP_SIZE + i] = 1;
-            _map[i * MAP_SIZE] = 1;
-            _map[i * MAP_SIZE + MAP_SIZE - 1] = 1;
-        }
-
-        // Fill with random rooms and corridors
-        for (int y = 1; y < MAP_SIZE - 1; y++)
-        {
-            for (int x = 1; x < MAP_SIZE - 1; x++)
-            {
-                // Randomly place walls (sparse)
-                if (_rnd.NextDouble() < 0.13)
-                    _map[y * MAP_SIZE + x] = _rnd.Next(1, 6);
-                else
-                    _map[y * MAP_SIZE + x] = 0;
-
-                // Random floor height (verticality)
-                if (_map[y * MAP_SIZE + x] == 0)
-                {
-                    if (_rnd.NextDouble() < 0.10)
-                        _floorHeights[y * MAP_SIZE + x] = _rnd.Next(-16, 33);
-                    else
-                        _floorHeights[y * MAP_SIZE + x] = 0;
-                    
-                    double hazardChance = 0.02 + (_currentLevel * 0.005);
-                    if (_rnd.NextDouble() < hazardChance)
-                        _hazardTiles[y * MAP_SIZE + x] = true;
-                }
-                else
-                {
-                    _floorHeights[y * MAP_SIZE + x] = 0;
-                }
-            }
-        }
-
-        // Place player at a random open spot
-        while (true)
-        {
-            int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
-            {
-                _px_pos = px + 0.5;
-                _py = py + 0.5;
-                _pa = _rnd.NextDouble() * PI2;
-                break;
-            }
-        }
-
-        // Place exit
-        while (true)
-        {
-            int ex = _rnd.Next(2, MAP_SIZE - 2), ey = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[ey * MAP_SIZE + ex] == 0 && Math.Abs(ex - (int)_px_pos) + Math.Abs(ey - (int)_py) > 10)
-            {
-                AddPickup(PickupType.Exit, ex, ey);
-                break;
-            }
-        }
-
-        // Place enemies
-        int enemyCount = 12 + _rnd.Next(8) + (_currentLevel * 2);
-        for (int i = 0; i < enemyCount; i++)
-        {
-            int ex = _rnd.Next(2, MAP_SIZE - 2), ey = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[ey * MAP_SIZE + ex] == 0 && !_hazardTiles[ey * MAP_SIZE + ex])
-                AddEnemy((EnemyType)_rnd.Next(0, 5), ex, ey);
-        }
-
-        // Place pickups
-        for (int i = 0; i < 10 + _rnd.Next(8); i++)
-        {
-            int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
-                AddPickup((PickupType)_rnd.Next(0, 13), px, py);
+            _map[i] = wallTex;
+            _map[(MAP_SIZE - 1) * MAP_SIZE + i] = wallTex;
+            _map[i * MAP_SIZE] = wallTex;
+            _map[i * MAP_SIZE + MAP_SIZE - 1] = wallTex;
         }
         
-        // Rare power-ups
-        if (_rnd.NextDouble() < 0.3 + (_currentLevel * 0.05))
+        // Duke 3D style: Generate interconnected rooms with corridors
+        int numRooms = 5 + _rnd.Next(4) + (_currentLevel / 3);
+        var rooms = new List<(int x, int y, int w, int h, int floorH)>();
+        
+        // Generate rooms
+        for (int r = 0; r < numRooms; r++)
         {
-            int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
-                AddPickup(PickupType.Invincibility, px, py);
+            int roomW = 4 + _rnd.Next(5);
+            int roomH = 4 + _rnd.Next(5);
+            int roomX = _rnd.Next(2, MAP_SIZE - roomW - 2);
+            int roomY = _rnd.Next(2, MAP_SIZE - roomH - 2);
+            
+            // Duke 3D style: Rooms at different heights
+            int floorH = 0;
+            double heightRoll = _rnd.NextDouble();
+            if (heightRoll < 0.25) floorH = -24 - _rnd.Next(16); // Sunken area (pit)
+            else if (heightRoll < 0.45) floorH = 20 + _rnd.Next(20); // Raised platform
+            else if (heightRoll < 0.55) floorH = 40 + _rnd.Next(16); // High balcony
+            
+            rooms.Add((roomX, roomY, roomW, roomH, floorH));
+            
+            // Carve out room
+            for (int y = roomY; y < roomY + roomH && y < MAP_SIZE - 1; y++)
+            {
+                for (int x = roomX; x < roomX + roomW && x < MAP_SIZE - 1; x++)
+                {
+                    _map[y * MAP_SIZE + x] = 0;
+                    _floorHeights[y * MAP_SIZE + x] = floorH;
+                }
+            }
+            
+            // Add room walls
+            int roomWallTex = _rnd.Next(1, 6);
+            for (int y = roomY - 1; y <= roomY + roomH && y < MAP_SIZE; y++)
+            {
+                if (roomX > 0 && _map[y * MAP_SIZE + roomX - 1] != 0)
+                    _map[y * MAP_SIZE + roomX - 1] = roomWallTex;
+                if (roomX + roomW < MAP_SIZE && _map[y * MAP_SIZE + roomX + roomW] != 0)
+                    _map[y * MAP_SIZE + roomX + roomW] = roomWallTex;
+            }
+            for (int x = roomX - 1; x <= roomX + roomW && x < MAP_SIZE; x++)
+            {
+                if (roomY > 0 && _map[(roomY - 1) * MAP_SIZE + x] != 0)
+                    _map[(roomY - 1) * MAP_SIZE + x] = roomWallTex;
+                if (roomY + roomH < MAP_SIZE && _map[(roomY + roomH) * MAP_SIZE + x] != 0)
+                    _map[(roomY + roomH) * MAP_SIZE + x] = roomWallTex;
+            }
         }
-        if (_rnd.NextDouble() < 0.35 + (_currentLevel * 0.05))
+        
+        // Connect rooms with corridors (Duke 3D style interconnected layout)
+        for (int i = 0; i < rooms.Count - 1; i++)
         {
-            int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
-                AddPickup(PickupType.DamageBoost, px, py);
+            var (x1, y1, w1, h1, fh1) = rooms[i];
+            var (x2, y2, w2, h2, fh2) = rooms[i + 1];
+            
+            int cx1 = x1 + w1 / 2, cy1 = y1 + h1 / 2;
+            int cx2 = x2 + w2 / 2, cy2 = y2 + h2 / 2;
+            
+            // Corridor floor height transitions smoothly
+            int corridorH = (fh1 + fh2) / 2;
+            
+            // Horizontal corridor
+            int minX = Math.Min(cx1, cx2), maxX = Math.Max(cx1, cx2);
+            for (int x = minX; x <= maxX; x++)
+            {
+                if (_map[cy1 * MAP_SIZE + x] != 0)
+                {
+                    _map[cy1 * MAP_SIZE + x] = 0;
+                    _floorHeights[cy1 * MAP_SIZE + x] = corridorH;
+                }
+                // Widen corridor for Duke 3D feel
+                if (cy1 + 1 < MAP_SIZE - 1 && _map[(cy1 + 1) * MAP_SIZE + x] != 0)
+                {
+                    _map[(cy1 + 1) * MAP_SIZE + x] = 0;
+                    _floorHeights[(cy1 + 1) * MAP_SIZE + x] = corridorH;
+                }
+            }
+            
+            // Vertical corridor
+            int minY = Math.Min(cy1, cy2), maxY = Math.Max(cy1, cy2);
+            for (int y = minY; y <= maxY; y++)
+            {
+                if (_map[y * MAP_SIZE + cx2] != 0)
+                {
+                    _map[y * MAP_SIZE + cx2] = 0;
+                    _floorHeights[y * MAP_SIZE + cx2] = corridorH;
+                }
+                // Widen corridor
+                if (cx2 + 1 < MAP_SIZE - 1 && _map[y * MAP_SIZE + cx2 + 1] != 0)
+                {
+                    _map[y * MAP_SIZE + cx2 + 1] = 0;
+                    _floorHeights[y * MAP_SIZE + cx2 + 1] = corridorH;
+                }
+            }
+        }
+        
+        // Add interior pillars/columns in larger rooms (Duke 3D architectural detail)
+        foreach (var (rx, ry, rw, rh, _) in rooms)
+        {
+            if (rw >= 6 && rh >= 6 && _rnd.NextDouble() < 0.6)
+            {
+                // Add pillars
+                int pillarTex = _rnd.Next(1, 6);
+                if (rx + 1 < MAP_SIZE && ry + 1 < MAP_SIZE)
+                    _map[(ry + 1) * MAP_SIZE + rx + 1] = pillarTex;
+                if (rx + rw - 2 < MAP_SIZE && ry + 1 < MAP_SIZE)
+                    _map[(ry + 1) * MAP_SIZE + rx + rw - 2] = pillarTex;
+                if (rx + 1 < MAP_SIZE && ry + rh - 2 < MAP_SIZE)
+                    _map[(ry + rh - 2) * MAP_SIZE + rx + 1] = pillarTex;
+                if (rx + rw - 2 < MAP_SIZE && ry + rh - 2 < MAP_SIZE)
+                    _map[(ry + rh - 2) * MAP_SIZE + rx + rw - 2] = pillarTex;
+            }
+        }
+        
+        // Add raised ledges/balconies overlooking lower areas (Duke 3D verticality)
+        int numLedges = 2 + _rnd.Next(3);
+        for (int l = 0; l < numLedges; l++)
+        {
+            int lx = _rnd.Next(3, MAP_SIZE - 5);
+            int ly = _rnd.Next(3, MAP_SIZE - 5);
+            int lw = 2 + _rnd.Next(3);
+            int lh = 2 + _rnd.Next(3);
+            int ledgeHeight = 32 + _rnd.Next(24);
+            
+            for (int y = ly; y < ly + lh && y < MAP_SIZE - 1; y++)
+            {
+                for (int x = lx; x < lx + lw && x < MAP_SIZE - 1; x++)
+                {
+                    if (_map[y * MAP_SIZE + x] == 0)
+                    {
+                        _floorHeights[y * MAP_SIZE + x] = ledgeHeight;
+                    }
+                }
+            }
+        }
+        
+        // Add pits with hazards (Duke 3D style danger zones)
+        int numPits = 1 + _rnd.Next(2 + _currentLevel / 4);
+        for (int p = 0; p < numPits; p++)
+        {
+            int px = _rnd.Next(3, MAP_SIZE - 5);
+            int py = _rnd.Next(3, MAP_SIZE - 5);
+            int pw = 2 + _rnd.Next(3);
+            int ph = 2 + _rnd.Next(3);
+            int pitDepth = -32 - _rnd.Next(24);
+            bool isHazardous = _rnd.NextDouble() < 0.4 + (_currentLevel * 0.05);
+            
+            for (int y = py; y < py + ph && y < MAP_SIZE - 1; y++)
+            {
+                for (int x = px; x < px + pw && x < MAP_SIZE - 1; x++)
+                {
+                    if (_map[y * MAP_SIZE + x] == 0)
+                    {
+                        _floorHeights[y * MAP_SIZE + x] = pitDepth;
+                        if (isHazardous)
+                            _hazardTiles[y * MAP_SIZE + x] = true;
+                    }
+                }
+            }
+        }
+        
+        // Add stepped platforms (Duke 3D staircases)
+        if (_rnd.NextDouble() < 0.7)
+        {
+            int sx = _rnd.Next(4, MAP_SIZE - 8);
+            int sy = _rnd.Next(4, MAP_SIZE - 8);
+            bool horizontal = _rnd.NextDouble() < 0.5;
+            int steps = 4 + _rnd.Next(4);
+            int stepHeight = 8;
+            
+            for (int s = 0; s < steps; s++)
+            {
+                int x = horizontal ? sx + s : sx;
+                int y = horizontal ? sy : sy + s;
+                if (x < MAP_SIZE - 1 && y < MAP_SIZE - 1)
+                {
+                    _map[y * MAP_SIZE + x] = 0;
+                    _floorHeights[y * MAP_SIZE + x] = s * stepHeight;
+                    // Widen stairs
+                    if (horizontal && y + 1 < MAP_SIZE - 1)
+                    {
+                        _map[(y + 1) * MAP_SIZE + x] = 0;
+                        _floorHeights[(y + 1) * MAP_SIZE + x] = s * stepHeight;
+                    }
+                    else if (!horizontal && x + 1 < MAP_SIZE - 1)
+                    {
+                        _map[y * MAP_SIZE + x + 1] = 0;
+                        _floorHeights[y * MAP_SIZE + x + 1] = s * stepHeight;
+                    }
+                }
+            }
+        }
+        
+        // Add scattered hazard tiles (toxic spills, lava patches)
+        double hazardChance = 0.015 + (_currentLevel * 0.003);
+        for (int y = 2; y < MAP_SIZE - 2; y++)
+        {
+            for (int x = 2; x < MAP_SIZE - 2; x++)
+            {
+                if (_map[y * MAP_SIZE + x] == 0 && !_hazardTiles[y * MAP_SIZE + x] && _rnd.NextDouble() < hazardChance)
+                {
+                    _hazardTiles[y * MAP_SIZE + x] = true;
+                }
+            }
         }
 
-        // Place keys
-        for (int k = 0; k < 3; k++)
+        // Place player in first room at ground level
+        bool playerPlaced = false;
+        foreach (var (rx, ry, rw, rh, fh) in rooms)
         {
-            int kx = _rnd.Next(2, MAP_SIZE - 2), ky = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[ky * MAP_SIZE + kx] == 0)
+            if (Math.Abs(fh) <= 20) // Ground-level room
+            {
+                _px_pos = rx + rw / 2.0 + 0.5;
+                _py = ry + rh / 2.0 + 0.5;
+                _pa = _rnd.NextDouble() * PI2;
+                playerPlaced = true;
+                break;
+            }
+        }
+        if (!playerPlaced)
+        {
+            // Fallback: find any open spot
+            for (int attempts = 0; attempts < 100; attempts++)
+            {
+                int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
+                {
+                    _px_pos = px + 0.5;
+                    _py = py + 0.5;
+                    _pa = _rnd.NextDouble() * PI2;
+                    break;
+                }
+            }
+        }
+
+        // Place exit in distant room, preferably elevated (Duke 3D style)
+        bool exitPlaced = false;
+        for (int i = rooms.Count - 1; i >= 0 && !exitPlaced; i--)
+        {
+            var (rx, ry, rw, rh, fh) = rooms[i];
+            double dist = Math.Abs(rx + rw/2 - _px_pos) + Math.Abs(ry + rh/2 - _py);
+            if (dist > 8)
+            {
+                AddPickup(PickupType.Exit, rx + rw/2, ry + rh/2);
+                exitPlaced = true;
+            }
+        }
+        if (!exitPlaced)
+        {
+            // Fallback
+            for (int attempts = 0; attempts < 50; attempts++)
+            {
+                int ex = _rnd.Next(2, MAP_SIZE - 2), ey = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[ey * MAP_SIZE + ex] == 0 && Math.Abs(ex - (int)_px_pos) + Math.Abs(ey - (int)_py) > 8)
+                {
+                    AddPickup(PickupType.Exit, ex, ey);
+                    break;
+                }
+            }
+        }
+
+        // Place enemies - distribute across rooms with more on elevated positions
+        // More enemies on higher difficulties
+        int enemyCount = 10 + _rnd.Next(8) + (_currentLevel * 2) + EnemyCountMultiplier;
+        int enemiesPlaced = 0;
+        
+        // Place some enemies in each room
+        foreach (var (rx, ry, rw, rh, fh) in rooms)
+        {
+            if (enemiesPlaced >= enemyCount) break;
+            
+            int roomEnemies = 1 + _rnd.Next(3);
+            for (int e = 0; e < roomEnemies && enemiesPlaced < enemyCount; e++)
+            {
+                int ex = rx + 1 + _rnd.Next(rw - 2);
+                int ey = ry + 1 + _rnd.Next(rh - 2);
+                if (ex < MAP_SIZE - 1 && ey < MAP_SIZE - 1 && 
+                    _map[ey * MAP_SIZE + ex] == 0 && !_hazardTiles[ey * MAP_SIZE + ex])
+                {
+                    // Stronger enemies on elevated positions (snipers!)
+                    EnemyType type;
+                    if (fh > 20 && _rnd.NextDouble() < 0.6)
+                        type = (EnemyType)_rnd.Next(2, 5); // Enforcer, Octabrain
+                    else
+                        type = (EnemyType)_rnd.Next(0, 4 + _currentLevel / 3);
+                    
+                    if ((int)type > 4) type = EnemyType.Octabrain;
+                    AddEnemy(type, ex, ey);
+                    enemiesPlaced++;
+                }
+            }
+        }
+
+        // Place pickups - better loot in hard-to-reach places (Duke 3D reward exploration)
+        // Pickup frequency adjusted by difficulty
+        foreach (var (rx, ry, rw, rh, fh) in rooms)
+        {
+            int basePickups = 1 + _rnd.Next(2);
+            int pickupCount = (int)(basePickups * PickupSpawnChance);
+            if (pickupCount < 1 && _rnd.NextDouble() < PickupSpawnChance) pickupCount = 1;
+            
+            for (int p = 0; p < pickupCount; p++)
+            {
+                int px = rx + 1 + _rnd.Next(Math.Max(1, rw - 2));
+                int py = ry + 1 + _rnd.Next(Math.Max(1, rh - 2));
+                if (px < MAP_SIZE - 1 && py < MAP_SIZE - 1 && 
+                    _map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
+                {
+                    // Better loot in elevated or sunken areas
+                    PickupType pickupType;
+                    if (Math.Abs(fh) > 24 && _rnd.NextDouble() < 0.5)
+                        pickupType = (PickupType)_rnd.Next(3, 9); // Better weapons/items
+                    else
+                        pickupType = (PickupType)_rnd.Next(0, 9);
+                    
+                    AddPickup(pickupType, px, py);
+                }
+            }
+        }
+        
+        // Rare power-ups in secret-ish locations
+        if (_rnd.NextDouble() < 0.35 + (_currentLevel * 0.05))
+        {
+            // Find a high ledge for power-up
+            for (int y = 2; y < MAP_SIZE - 2; y++)
+            {
+                for (int x = 2; x < MAP_SIZE - 2; x++)
+                {
+                    if (_map[y * MAP_SIZE + x] == 0 && _floorHeights[y * MAP_SIZE + x] > 30)
+                    {
+                        AddPickup(PickupType.Invincibility, x, y);
+                        goto foundInvincibility;
+                    }
+                }
+            }
+            foundInvincibility:;
+        }
+        if (_rnd.NextDouble() < 0.4 + (_currentLevel * 0.05))
+        {
+            for (int y = 2; y < MAP_SIZE - 2; y++)
+            {
+                for (int x = 2; x < MAP_SIZE - 2; x++)
+                {
+                    if (_map[y * MAP_SIZE + x] == 0 && _floorHeights[y * MAP_SIZE + x] > 25)
+                    {
+                        AddPickup(PickupType.DamageBoost, x, y);
+                        goto foundDamage;
+                    }
+                }
+            }
+            foundDamage:;
+        }
+        
+        // Jetpack more common in vertical levels
+        if (_rnd.NextDouble() < 0.25 + (_currentLevel * 0.03))
+        {
+            for (int attempts = 0; attempts < 30; attempts++)
+            {
+                int px = _rnd.Next(2, MAP_SIZE - 2), py = _rnd.Next(2, MAP_SIZE - 2);
+                if (_map[py * MAP_SIZE + px] == 0 && !_hazardTiles[py * MAP_SIZE + px])
+                {
+                    AddPickup(PickupType.Jetpack, px, py);
+                    break;
+                }
+            }
+        }
+
+        // Place keys in different rooms
+        var keyRooms = rooms.OrderBy(_ => _rnd.Next()).Take(3).ToList();
+        for (int k = 0; k < Math.Min(3, keyRooms.Count); k++)
+        {
+            var (rx, ry, rw, rh, _) = keyRooms[k];
+            int kx = rx + rw / 2, ky = ry + rh / 2;
+            if (kx < MAP_SIZE - 1 && ky < MAP_SIZE - 1 && _map[ky * MAP_SIZE + kx] == 0)
                 AddPickup((PickupType)(9 + k), kx, ky);
         }
 
-        // Place doors
-        for (int d = 0; d < 4; d++)
+        // Place doors between rooms (Duke 3D locked areas)
+        int doorsPlaced = 0;
+        for (int y = 2; y < MAP_SIZE - 2 && doorsPlaced < 4; y++)
         {
-            int dx = _rnd.Next(2, MAP_SIZE - 2), dy = _rnd.Next(2, MAP_SIZE - 2);
-            if (_map[dy * MAP_SIZE + dx] == 0)
-                AddDoor(dx, dy, _rnd.Next(1, 4));
+            for (int x = 2; x < MAP_SIZE - 2 && doorsPlaced < 4; x++)
+            {
+                // Look for corridor-like spots (open tile with walls on two opposite sides)
+                if (_map[y * MAP_SIZE + x] == 0)
+                {
+                    bool vertDoor = _map[(y-1) * MAP_SIZE + x] != 0 && _map[(y+1) * MAP_SIZE + x] != 0 &&
+                                    _map[y * MAP_SIZE + x - 1] == 0 && _map[y * MAP_SIZE + x + 1] == 0;
+                    bool horzDoor = _map[y * MAP_SIZE + x - 1] != 0 && _map[y * MAP_SIZE + x + 1] != 0 &&
+                                    _map[(y-1) * MAP_SIZE + x] == 0 && _map[(y+1) * MAP_SIZE + x] == 0;
+                    
+                    if ((vertDoor || horzDoor) && _rnd.NextDouble() < 0.3)
+                    {
+                        AddDoor(x, y, _rnd.Next(1, 4));
+                        doorsPlaced++;
+                    }
+                }
+            }
         }
     }
 
@@ -1468,19 +1877,24 @@ public partial class SoupNukem : Window
         switch (type)
         {
             case EnemyType.Trooper:
-                e.Hp = e.MaxHp = 40; e.Speed = 0.035; e.AttackDamage = 8; e.AttackRange = 10; e.AttackCooldown = 1.2; e.ScoreValue = 100;
+                e.Hp = e.MaxHp = (int)(40 * EnemyHealthMultiplier); e.Speed = 0.035 * EnemySpeedMultiplier; 
+                e.AttackDamage = (int)(8 * EnemyDamageMultiplier); e.AttackRange = 10; e.AttackCooldown = 1.2; e.ScoreValue = 100;
                 break;
             case EnemyType.PigCop:
-                e.Hp = e.MaxHp = 100; e.Speed = 0.03; e.AttackDamage = 20; e.AttackRange = 8; e.AttackCooldown = 1.0; e.ScoreValue = 200;
+                e.Hp = e.MaxHp = (int)(100 * EnemyHealthMultiplier); e.Speed = 0.03 * EnemySpeedMultiplier; 
+                e.AttackDamage = (int)(20 * EnemyDamageMultiplier); e.AttackRange = 8; e.AttackCooldown = 1.0; e.ScoreValue = 200;
                 break;
             case EnemyType.Enforcer:
-                e.Hp = e.MaxHp = 150; e.Speed = 0.025; e.AttackDamage = 15; e.AttackRange = 12; e.AttackCooldown = 0.8; e.ScoreValue = 300;
+                e.Hp = e.MaxHp = (int)(150 * EnemyHealthMultiplier); e.Speed = 0.025 * EnemySpeedMultiplier; 
+                e.AttackDamage = (int)(15 * EnemyDamageMultiplier); e.AttackRange = 12; e.AttackCooldown = 0.8; e.ScoreValue = 300;
                 break;
             case EnemyType.Octabrain:
-                e.Hp = e.MaxHp = 175; e.Speed = 0.02; e.AttackDamage = 25; e.AttackRange = 15; e.AttackCooldown = 2.0; e.ScoreValue = 400;
+                e.Hp = e.MaxHp = (int)(175 * EnemyHealthMultiplier); e.Speed = 0.02 * EnemySpeedMultiplier; 
+                e.AttackDamage = (int)(25 * EnemyDamageMultiplier); e.AttackRange = 15; e.AttackCooldown = 2.0; e.ScoreValue = 400;
                 break;
             case EnemyType.BattleLord:
-                e.Hp = e.MaxHp = 800; e.Speed = 0.015; e.AttackDamage = 40; e.AttackRange = 18; e.AttackCooldown = 0.6; e.ScoreValue = 2000;
+                e.Hp = e.MaxHp = (int)(800 * EnemyHealthMultiplier); e.Speed = 0.015 * EnemySpeedMultiplier; 
+                e.AttackDamage = (int)(40 * EnemyDamageMultiplier); e.AttackRange = 18; e.AttackCooldown = 0.6; e.ScoreValue = 2000;
                 break;
         }
         _enemies.Add(e);
@@ -1495,6 +1909,135 @@ public partial class SoupNukem : Window
     {
         _map[y * MAP_SIZE + x] = 8;
         _doors.Add(new Door { X = x, Y = y, KeyRequired = keyRequired });
+    }
+    
+    void AddBarrel(double x, double y)
+    {
+        _barrels.Add(new ExplodingBarrel { X = x + 0.5, Y = y + 0.5, Hp = 30, BobOffset = _rnd.NextDouble() * PI2 });
+    }
+    
+    void PlaceBarrels()
+    {
+        // Add exploding barrels in strategic locations
+        int barrelCount = 3 + _rnd.Next(5) + (_currentLevel / 2);
+        int placed = 0;
+        
+        for (int attempts = 0; attempts < 100 && placed < barrelCount; attempts++)
+        {
+            int bx = _rnd.Next(2, MAP_SIZE - 2);
+            int by = _rnd.Next(2, MAP_SIZE - 2);
+            
+            // Check if it's an open space and not too close to player start
+            if (_map[by * MAP_SIZE + bx] == 0 && !_hazardTiles[by * MAP_SIZE + bx])
+            {
+                double distToPlayer = Math.Sqrt((_px_pos - bx) * (_px_pos - bx) + (_py - by) * (_py - by));
+                if (distToPlayer > 5)
+                {
+                    // Prefer placing near enemies for chain reaction potential!
+                    bool nearEnemy = _enemies.Any(e => Math.Abs(e.X - bx) < 4 && Math.Abs(e.Y - by) < 4);
+                    if (nearEnemy || _rnd.NextDouble() < 0.4)
+                    {
+                        AddBarrel(bx, by);
+                        placed++;
+                    }
+                }
+            }
+        }
+    }
+    
+    void UpdateBarrels(double dt)
+    {
+        for (int i = _barrels.Count - 1; i >= 0; i--)
+        {
+            var barrel = _barrels[i];
+            if (barrel.Exploded) continue;
+            
+            // Check if damaged by projectiles
+            foreach (var proj in _projectiles)
+            {
+                if (proj.Dead) continue;
+                double d = Math.Sqrt((proj.X - barrel.X) * (proj.X - barrel.X) + (proj.Y - barrel.Y) * (proj.Y - barrel.Y));
+                if (d < 0.6)
+                {
+                    barrel.Hp -= proj.Damage;
+                    proj.Dead = true;
+                    if (barrel.Hp <= 0)
+                    {
+                        ExplodeBarrel(barrel);
+                    }
+                    break;
+                }
+            }
+            
+            // Check proximity to player shooting (hitscan)
+            // This is handled in HitscanShot now
+        }
+        
+        _barrels.RemoveAll(b => b.Exploded);
+    }
+    
+    void ExplodeBarrel(ExplodingBarrel barrel)
+    {
+        barrel.Exploded = true;
+        
+        // Big explosion!
+        TriggerScreenShake(0.4, 12);
+        
+        // Massive confetti explosion - it's a party! 🎆
+        SpawnConfetti(barrel.X, barrel.Y, 40);
+        SpawnParticles(barrel.X, barrel.Y, 30, 0xFFFF6600u, 0xFFFFFF00u); // Orange/yellow fire
+        SpawnParticles(barrel.X, barrel.Y, 15, 0xFF444444u, 0xFF222222u); // Smoke
+        
+        // Damage nearby enemies (high damage!)
+        int explosionDamage = 100;
+        foreach (var en in _enemies)
+        {
+            if (en.Dead) continue;
+            double d = Math.Sqrt((barrel.X - en.X) * (barrel.X - en.X) + (barrel.Y - en.Y) * (barrel.Y - en.Y));
+            if (d < 4)
+            {
+                int dmg = (int)(explosionDamage * (1 - d / 4));
+                if (_damageBoostTimer > 0) dmg = (int)(dmg * _damageBoostMultiplier);
+                en.Hp -= dmg;
+                en.HurtTimer = 0.3;
+                en.Alerted = true;
+                if (en.Hp <= 0)
+                {
+                    KillEnemy(en, true); // Explosive death!
+                    _score += 25; // Bonus for barrel kill!
+                }
+            }
+        }
+        
+        // Damage player if too close
+        double playerDist = Math.Sqrt((barrel.X - _px_pos) * (barrel.X - _px_pos) + (barrel.Y - _py) * (barrel.Y - _py));
+        if (playerDist < 4)
+        {
+            TakeDamage((int)(60 * (1 - playerDist / 4)));
+        }
+        
+        // Chain reaction! Explode nearby barrels
+        foreach (var otherBarrel in _barrels)
+        {
+            if (otherBarrel == barrel || otherBarrel.Exploded) continue;
+            double d = Math.Sqrt((barrel.X - otherBarrel.X) * (barrel.X - otherBarrel.X) + 
+                                 (barrel.Y - otherBarrel.Y) * (barrel.Y - otherBarrel.Y));
+            if (d < 3)
+            {
+                otherBarrel.Hp -= 50; // Damage nearby barrels
+                if (otherBarrel.Hp <= 0)
+                {
+                    ExplodeBarrel(otherBarrel); // CHAIN REACTION!
+                }
+            }
+        }
+        
+        ShowMessage("💥 BOOM!");
+        if (_rnd.NextDouble() < 0.4)
+        {
+            string[] barrelQuotes = { "Now THAT'S explosive!", "Kaboom!", "Chain reaction!", "Fire in the hole!" };
+            SayQuote(barrelQuotes[_rnd.Next(barrelQuotes.Length)]);
+        }
     }
     #endregion
 
@@ -1563,6 +2106,35 @@ public partial class SoupNukem : Window
         _paused = false;
         CaptureMouse(true);
         SayQuote("It's time to kick ass and chew bubblegum...");
+    }
+    
+    void DifficultyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int diffIndex))
+        {
+            _difficulty = (DifficultyLevel)diffIndex;
+            UpdateDifficultyButtonStyles();
+            DifficultyDescText.Text = DifficultyDescriptions[diffIndex];
+        }
+    }
+    
+    void UpdateDifficultyButtonStyles()
+    {
+        // Reset all buttons
+        var buttons = new[] { DiffEasyBtn, DiffNormalBtn, DiffHardBtn, DiffNightmareBtn };
+        var defaultBgs = new[] { "#335533", "#665500", "#663333", "#440000" };
+        var defaultFgs = new[] { "#88FF88", "#FFCC00", "#FF8888", "#FF0000" };
+        var selectedBgs = new[] { "#55AA55", "#FFD700", "#AA5555", "#880000" };
+        var selectedFgs = new[] { "#FFFFFF", "#000000", "#FFFFFF", "#FFFFFF" };
+        
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            bool isSelected = (int)_difficulty == i;
+            buttons[i].Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isSelected ? selectedBgs[i] : defaultBgs[i]));
+            buttons[i].Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isSelected ? selectedFgs[i] : defaultFgs[i]));
+            buttons[i].BorderThickness = isSelected ? new Thickness(2) : new Thickness(1);
+            buttons[i].BorderBrush = isSelected ? Brushes.White : Brushes.Gray;
+        }
     }
     
     void BriefingStartButton_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -1647,6 +2219,7 @@ public partial class SoupNukem : Window
         UpdateDoors(dt);
         UpdatePickups();
         UpdatePipeBombs(dt);
+        UpdateBarrels(dt);
         UpdateParticles(dt);
         UpdateHazards(dt);
         UpdateBodyParts(dt);
@@ -2033,6 +2606,7 @@ public partial class SoupNukem : Window
             if (en.StunTimer > 0)
             {
                 en.StunTimer -= dt;
+                en.State = EnemyState.Stunned;
                 // Stunned enemies wobble extra fast (dizzy!)
                 en.WobblePhase += en.WobbleSpeed * dt * 4;
                 continue; // Skip AI while stunned
@@ -2041,44 +2615,377 @@ public partial class SoupNukem : Window
             // Always update wobble phase for idle animation
             en.WobblePhase += en.WobbleSpeed * dt;
             en.BobPhase += en.WobbleSpeed * 0.7 * dt;
+            
+            // Update state timer
+            en.StateTimer += dt;
 
             double dx = _px_pos - en.X, dy = _py - en.Y;
             double dist = Math.Sqrt(dx * dx + dy * dy);
+            
+            // Line of sight check
+            en.CanSeePlayer = HasLineOfSight(en.X, en.Y, _px_pos, _py);
+            
+            // Update last known player position if visible
+            if (en.CanSeePlayer && dist < 15)
+            {
+                en.LastKnownPlayerX = _px_pos;
+                en.LastKnownPlayerY = _py;
+            }
 
-            if (dist < 12) en.Alerted = true;
-            if (!en.Alerted) continue;
+            // Alert check - wider range if player shoots nearby
+            double alertRange = _shooting ? 18 : 12;
+            if (dist < alertRange && en.CanSeePlayer) en.Alerted = true;
+            
+            // === ENHANCED AI STATE MACHINE ===
+            UpdateEnemyAI(en, dt, dx, dy, dist);
 
             double prevX = en.X, prevY = en.Y;
-            if (dist > en.AttackRange * 0.4 && dist < 16)
+            
+            // Movement based on state
+            switch (en.State)
             {
-                double nx = en.X + dx / dist * en.Speed;
-                double ny = en.Y + dy / dist * en.Speed;
-                if (!IsWall(nx, en.Y)) en.X = nx;
-                if (!IsWall(en.X, ny)) en.Y = ny;
+                case EnemyState.Idle:
+                    // Occasional look around
+                    if (en.StateTimer > 3 && _rnd.NextDouble() < 0.02)
+                    {
+                        en.State = EnemyState.Patrol;
+                        en.StateTimer = 0;
+                        SetRandomPatrolTarget(en);
+                    }
+                    break;
+                    
+                case EnemyState.Patrol:
+                    MoveTowardsPoint(en, en.PatrolTargetX, en.PatrolTargetY, dt);
+                    if (DistanceTo(en.X, en.Y, en.PatrolTargetX, en.PatrolTargetY) < 0.5)
+                    {
+                        en.State = EnemyState.Idle;
+                        en.StateTimer = 0;
+                    }
+                    break;
+                    
+                case EnemyState.Chase:
+                    if (dist > en.AttackRange * 0.5 && dist < 16 && en.CanSeePlayer)
+                    {
+                        double nx = en.X + dx / dist * en.Speed * 1.2; // Faster when chasing
+                        double ny = en.Y + dy / dist * en.Speed * 1.2;
+                        if (!IsWall(nx, en.Y)) en.X = nx;
+                        if (!IsWall(en.X, ny)) en.Y = ny;
+                    }
+                    else if (!en.CanSeePlayer)
+                    {
+                        // Lost sight, move to last known position
+                        MoveTowardsPoint(en, en.LastKnownPlayerX, en.LastKnownPlayerY, dt);
+                    }
+                    break;
+                    
+                case EnemyState.Flanking:
+                    // Move perpendicular to player
+                    PerformFlankingMovement(en, dx, dy, dist, dt);
+                    break;
+                    
+                case EnemyState.Retreat:
+                    // Move away from player
+                    if (dist < 8)
+                    {
+                        double nx = en.X - dx / dist * en.Speed * 0.8;
+                        double ny = en.Y - dy / dist * en.Speed * 0.8;
+                        if (!IsWall(nx, en.Y)) en.X = nx;
+                        if (!IsWall(en.X, ny)) en.Y = ny;
+                    }
+                    en.RetreatTimer -= dt;
+                    if (en.RetreatTimer <= 0 || dist > 10)
+                    {
+                        en.State = EnemyState.Attack;
+                        en.StateTimer = 0;
+                    }
+                    break;
+                    
+                case EnemyState.Attack:
+                    // Strafe while attacking (Duke 3D style!)
+                    if (en.AggressionLevel > 0.5 && dist < en.AttackRange)
+                    {
+                        double strafeDir = Math.Sin(en.StateTimer * 2) * 0.015;
+                        double strafeX = -dy / dist * strafeDir;
+                        double strafeY = dx / dist * strafeDir;
+                        if (!IsWall(en.X + strafeX, en.Y)) en.X += strafeX;
+                        if (!IsWall(en.X, en.Y + strafeY)) en.Y += strafeY;
+                    }
+                    break;
+                    
+                default:
+                    // Standard chase behavior for unhandled states
+                    if (en.Alerted && dist > en.AttackRange * 0.4 && dist < 16)
+                    {
+                        double nx = en.X + dx / dist * en.Speed;
+                        double ny = en.Y + dy / dist * en.Speed;
+                        if (!IsWall(nx, en.Y)) en.X = nx;
+                        if (!IsWall(en.X, ny)) en.Y = ny;
+                    }
+                    break;
             }
             
             // Calculate lean angle based on movement direction
             double moveX = en.X - prevX;
             en.LeanAngle = en.LeanAngle * 0.9 + (moveX * 10) * 0.1; // Smooth lerp
 
-            en.Timer += dt;
-            if (en.Timer > en.AttackCooldown && dist < en.AttackRange)
+            // Attack behavior with enhanced patterns
+            if (en.Alerted && en.CanSeePlayer && dist < en.AttackRange && en.State != EnemyState.Retreat)
             {
-                en.Timer = 0;
-                _projectiles.Add(new Projectile
+                en.Timer += dt;
+                bool shouldAttack = false;
+                
+                // Different attack patterns by enemy type
+                switch (en.Type)
                 {
-                    X = en.X, Y = en.Y,
-                    Dx = dx / dist * 0.18,
-                    Dy = dy / dist * 0.18,
-                    Damage = en.AttackDamage,
-                    FromPlayer = false
-                });
+                    case EnemyType.Trooper:
+                        // Single shots
+                        shouldAttack = en.Timer > en.AttackCooldown;
+                        break;
+                        
+                    case EnemyType.PigCop:
+                        // Double tap
+                        if (en.Timer > en.AttackCooldown)
+                        {
+                            shouldAttack = true;
+                            en.BurstCount++;
+                            if (en.BurstCount >= 2)
+                            {
+                                en.Timer = 0;
+                                en.BurstCount = 0;
+                            }
+                            else
+                            {
+                                en.Timer = en.AttackCooldown - 0.15; // Quick second shot
+                            }
+                        }
+                        break;
+                        
+                    case EnemyType.Enforcer:
+                        // 3-round burst
+                        if (en.Timer > en.AttackCooldown)
+                        {
+                            shouldAttack = true;
+                            en.BurstCount++;
+                            if (en.BurstCount >= 3)
+                            {
+                                en.Timer = 0;
+                                en.BurstCount = 0;
+                            }
+                            else
+                            {
+                                en.Timer = en.AttackCooldown - 0.1;
+                            }
+                        }
+                        break;
+                        
+                    case EnemyType.Octabrain:
+                        // Charged attack (slower but homing-ish)
+                        shouldAttack = en.Timer > en.AttackCooldown;
+                        break;
+                        
+                    case EnemyType.BattleLord:
+                        // Rapid fire with spread
+                        if (en.Timer > en.AttackCooldown * 0.3)
+                        {
+                            shouldAttack = true;
+                            en.Timer = 0;
+                        }
+                        break;
+                        
+                    default:
+                        shouldAttack = en.Timer > en.AttackCooldown;
+                        break;
+                }
+                
+                if (shouldAttack && dist < en.AttackRange)
+                {
+                    if (en.Type != EnemyType.BattleLord)
+                        en.Timer = 0;
+                    
+                    // Calculate projectile direction with prediction
+                    double leadFactor = en.Type == EnemyType.Octabrain ? 0.3 : 0.1;
+                    double predictX = dx + _playerVelX * dist * leadFactor;
+                    double predictY = dy + _playerVelY * dist * leadFactor;
+                    double predictDist = Math.Sqrt(predictX * predictX + predictY * predictY);
+                    
+                    // Add some inaccuracy based on distance
+                    double accuracy = Math.Max(0.02, 0.1 - dist * 0.005);
+                    double spreadX = (_rnd.NextDouble() - 0.5) * accuracy;
+                    double spreadY = (_rnd.NextDouble() - 0.5) * accuracy;
+                    
+                    _projectiles.Add(new Projectile
+                    {
+                        X = en.X, Y = en.Y,
+                        Dx = (predictX / predictDist + spreadX) * 0.18,
+                        Dy = (predictY / predictDist + spreadY) * 0.18,
+                        Damage = en.AttackDamage,
+                        FromPlayer = false
+                    });
+                    
+                    // Boss fires additional projectiles
+                    if (en.Type == EnemyType.BattleLord && _rnd.NextDouble() < 0.4)
+                    {
+                        // Spread shot
+                        for (int i = -1; i <= 1; i += 2)
+                        {
+                            double angle = Math.Atan2(predictY, predictX) + i * 0.2;
+                            _projectiles.Add(new Projectile
+                            {
+                                X = en.X, Y = en.Y,
+                                Dx = Math.Cos(angle) * 0.16,
+                                Dy = Math.Sin(angle) * 0.16,
+                                Damage = en.AttackDamage * 0.6,
+                                FromPlayer = false
+                            });
+                        }
+                    }
+                }
             }
         }
+    }
+    
+    void UpdateEnemyAI(Enemy en, double dt, double dx, double dy, double dist)
+    {
+        // Calculate aggression based on HP and player threat
+        en.AggressionLevel = (en.Hp / en.MaxHp) * 0.5 + 0.5;
+        
+        if (!en.Alerted)
+        {
+            if (en.State != EnemyState.Patrol && en.State != EnemyState.Idle)
+                en.State = EnemyState.Idle;
+            return;
+        }
+        
+        // State transitions based on situation
+        double hpPercent = en.Hp / en.MaxHp;
+        
+        // Low HP - consider retreating
+        if (hpPercent < 0.25 && en.State != EnemyState.Retreat && _rnd.NextDouble() < 0.03)
+        {
+            en.State = EnemyState.Retreat;
+            en.RetreatTimer = 2.0 + _rnd.NextDouble() * 2;
+            en.StateTimer = 0;
+            return;
+        }
+        
+        // Try flanking occasionally (smarter enemies)
+        if ((en.Type == EnemyType.Enforcer || en.Type == EnemyType.Octabrain) &&
+            en.State == EnemyState.Attack && en.StateTimer > 3 && _rnd.NextDouble() < 0.02)
+        {
+            en.State = EnemyState.Flanking;
+            en.FlankingAngle = _rnd.NextDouble() > 0.5 ? 1 : -1;
+            en.StateTimer = 0;
+            return;
+        }
+        
+        // Default combat behavior
+        if (en.CanSeePlayer && dist < en.AttackRange * 1.2)
+        {
+            if (en.State != EnemyState.Retreat && en.State != EnemyState.Flanking)
+                en.State = EnemyState.Attack;
+        }
+        else if (en.CanSeePlayer)
+        {
+            en.State = EnemyState.Chase;
+        }
+        else if (en.State == EnemyState.Attack)
+        {
+            // Lost sight during combat - investigate last position
+            en.State = EnemyState.Chase;
+            en.StateTimer = 0;
+        }
+        
+        // Flanking timeout
+        if (en.State == EnemyState.Flanking && en.StateTimer > 2.5)
+        {
+            en.State = EnemyState.Attack;
+            en.StateTimer = 0;
+        }
+    }
+    
+    bool HasLineOfSight(double x1, double y1, double x2, double y2)
+    {
+        double dx = x2 - x1, dy = y2 - y1;
+        double dist = Math.Sqrt(dx * dx + dy * dy);
+        double stepX = dx / dist * 0.2;
+        double stepY = dy / dist * 0.2;
+        
+        double checkX = x1, checkY = y1;
+        for (int i = 0; i < (int)(dist / 0.2); i++)
+        {
+            checkX += stepX;
+            checkY += stepY;
+            if (IsWall(checkX, checkY)) return false;
+        }
+        return true;
+    }
+    
+    void SetRandomPatrolTarget(Enemy en)
+    {
+        // Find a valid nearby position to patrol to
+        for (int attempts = 0; attempts < 10; attempts++)
+        {
+            double angle = _rnd.NextDouble() * Math.PI * 2;
+            double dist = 2 + _rnd.NextDouble() * 4;
+            double targetX = en.X + Math.Cos(angle) * dist;
+            double targetY = en.Y + Math.Sin(angle) * dist;
+            
+            if (!IsWall(targetX, targetY))
+            {
+                en.PatrolTargetX = targetX;
+                en.PatrolTargetY = targetY;
+                return;
+            }
+        }
+        // Fallback - stay in place
+        en.PatrolTargetX = en.X;
+        en.PatrolTargetY = en.Y;
+    }
+    
+    void MoveTowardsPoint(Enemy en, double targetX, double targetY, double dt)
+    {
+        double dx = targetX - en.X, dy = targetY - en.Y;
+        double dist = Math.Sqrt(dx * dx + dy * dy);
+        if (dist > 0.1)
+        {
+            double nx = en.X + dx / dist * en.Speed * 0.7;
+            double ny = en.Y + dy / dist * en.Speed * 0.7;
+            if (!IsWall(nx, en.Y)) en.X = nx;
+            if (!IsWall(en.X, ny)) en.Y = ny;
+        }
+    }
+    
+    void PerformFlankingMovement(Enemy en, double dx, double dy, double dist, double dt)
+    {
+        if (dist < 2) return; // Too close to flank
+        
+        // Move perpendicular to the player
+        double perpX = -dy / dist * en.FlankingAngle;
+        double perpY = dx / dist * en.FlankingAngle;
+        
+        // Also move slightly toward player
+        double towardX = dx / dist * 0.3;
+        double towardY = dy / dist * 0.3;
+        
+        double moveX = (perpX + towardX) * en.Speed;
+        double moveY = (perpY + towardY) * en.Speed;
+        
+        if (!IsWall(en.X + moveX, en.Y)) en.X += moveX;
+        if (!IsWall(en.X, en.Y + moveY)) en.Y += moveY;
+    }
+    
+    double DistanceTo(double x1, double y1, double x2, double y2)
+    {
+        double dx = x2 - x1, dy = y2 - y1;
+        return Math.Sqrt(dx * dx + dy * dy);
     }
 
     void TakeDamage(int damage)
     {
+        // Apply difficulty multiplier to incoming damage
+        damage = (int)(damage * DamageToPlayerMultiplier);
+        if (damage < 1) damage = 1;
+        
         // Invincibility check
         if (_invincibilityTimer > 0) return;
         
@@ -3507,6 +4414,14 @@ public partial class SoupNukem : Window
 
         for (int i = 0; i < _pipeBombs.Count; i++)
             _spriteBuffer.Add((Dist(_pipeBombs[i].x, _pipeBombs[i].y), _pipeBombs[i], 3));
+            
+        // Add exploding barrels to sprite buffer
+        for (int i = 0; i < _barrels.Count; i++)
+        {
+            var barrel = _barrels[i];
+            if (!barrel.Exploded)
+                _spriteBuffer.Add((Dist(barrel.X, barrel.Y), barrel, 4)); // type 4 = barrel
+        }
 
         _spriteBuffer.Sort((a, b) => b.dist.CompareTo(a.dist));
 
@@ -3527,7 +4442,8 @@ public partial class SoupNukem : Window
             if (type == 0) { var e = (Enemy)obj; sx = e.X; sy = e.Y; }
             else if (type == 1) { var p = (Pickup)obj; sx = p.X; sy = p.Y; }
             else if (type == 2) { var p = (Projectile)obj; sx = p.X; sy = p.Y; }
-            else { var b = ((double x, double y, double timer))obj; sx = b.x; sy = b.y; }
+            else if (type == 3) { var b = ((double x, double y, double timer))obj; sx = b.x; sy = b.y; }
+            else if (type == 4) { var barrel = (ExplodingBarrel)obj; sx = barrel.X; sy = barrel.Y; }
 
             double dx = sx - _px_pos, dy = sy - _py;
             double transformX = invDet * (_sinPa * dx - _cosPa * dy);
@@ -3549,7 +4465,7 @@ public partial class SoupNukem : Window
             int spriteHeight = (int)Math.Abs(H / transformY);
             int spriteWidth = spriteHeight;
 
-            if (type == 1 || type == 3)
+            if (type == 1 || type == 3 || type == 4)
             {
                 spriteHeight = spriteHeight * 2 / 3;
                 spriteWidth = spriteHeight;
@@ -3565,7 +4481,9 @@ public partial class SoupNukem : Window
             int drawStartX = Math.Max(0, -spriteWidth / 2 + spriteScreenX);
             int drawEndX = Math.Min(W - 1, spriteWidth / 2 + spriteScreenX);
 
-            double vertOffset = 0.0;
+            // Sprite vertical center position accounting for floor offset
+            int spriteCenterY = horizon + floorOffset;
+            
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
             {
                 if (transformY >= _zBuffer[stripe]) continue;
@@ -3573,7 +4491,7 @@ public partial class SoupNukem : Window
                 for (int y = drawStartY; y < drawEndY; y++)
                 {
                     double relX = (double)(stripe - (spriteScreenX - spriteWidth / 2)) / spriteWidth - 0.5;
-                    double relY = (double)(y - (horizon - vertOffset - spriteHeight / 2)) / spriteHeight;
+                    double relY = (double)(y - (spriteCenterY - spriteHeight / 2)) / spriteHeight;
 
                     uint color = 0;
                     if (type == 0) color = GetEnemyColor((Enemy)obj, relX, relY);
@@ -3595,9 +4513,15 @@ public partial class SoupNukem : Window
                             color = 0xFF000000 | (coreR << 16) | (coreG << 8) | coreB;
                         }
                     }
-                    else
+                    else if (type == 3)
                     {
+                        // Pipe bomb
                         if (relX * relX + relY * relY < 0.15) color = 0xFF44AA44u;
+                    }
+                    else if (type == 4)
+                    {
+                        // Exploding barrel - red drum with warning stripes!
+                        color = GetBarrelColor((ExplodingBarrel)obj, relX, relY);
                     }
 
                     if ((color & 0xFF000000) != 0)
@@ -3740,298 +4664,949 @@ public partial class SoupNukem : Window
         }
     }
 
+    // Duke Nukem 3D style detailed pixel art sprites
     uint GetEnemyColor(Enemy en, double x, double y)
     {
-        // Dead enemy - flat on ground
+        // Dead enemy - corpse on ground
         if (en.Dead)
         {
-            if (y > 0.4 && Math.Abs(x) < 0.35)
+            if (y > 0.35 && Math.Abs(x) < 0.4)
             {
-                double shade = 0.3 + (y - 0.4) * 0.5;
-                return 0xFF000000 | ((uint)(48 * shade) << 16) | ((uint)(32 * shade) << 8) | (uint)(16 * shade);
+                // Blood pool spreading
+                double bloodDist = x * x + (y - 0.6) * (y - 0.6);
+                if (bloodDist < 0.08 + en.DeathTimer * 0.02)
+                    return 0xFF660000u;
+                // Body
+                double shade = 0.2 + (y - 0.35) * 0.3;
+                uint bodyColor = en.Type switch
+                {
+                    EnemyType.Trooper => 0xFF445522u,
+                    EnemyType.PigCop => 0xFF334488u,
+                    EnemyType.Enforcer => 0xFF222233u,
+                    EnemyType.Octabrain => 0xFF553355u,
+                    EnemyType.BattleLord => 0xFF886644u,
+                    _ => 0xFF444444u
+                };
+                uint r = (uint)(((bodyColor >> 16) & 0xFF) * shade);
+                uint g = (uint)(((bodyColor >> 8) & 0xFF) * shade);
+                uint b = (uint)((bodyColor & 0xFF) * shade);
+                return 0xFF000000 | (r << 16) | (g << 8) | b;
             }
             return 0;
         }
 
-        // Apply wobble/sway animation for living enemies
-        // More wobble at the top (head), less at bottom (feet)
-        double wobbleAmount = Math.Sin(en.WobblePhase) * 0.08 * (1 - y);
-        double bobAmount = Math.Sin(en.BobPhase) * 0.03;
-        
-        // Stunned enemies wobble extra!
-        if (en.IsStunned)
-        {
-            wobbleAmount *= 3;
-            
-            // Draw floating eyes around stunned enemies 👁️
-            if (y < 0.15)
-            {
-                double eyeAngle = en.WobblePhase * 1.5;
-                for (int s = 0; s < 4; s++)
-                {
-                    double sAngle = eyeAngle + s * Math.PI * 2 / 4;
-                    double eyeX = Math.Cos(sAngle) * 0.18;
-                    double eyeY = 0.06 + Math.Sin(sAngle * 3) * 0.02;
-                    
-                    // Draw creepy floating eyes
-                    double distToEye = Math.Sqrt((x - eyeX) * (x - eyeX) + (y - eyeY) * (y - eyeY));
-                    if (distToEye < 0.035)
-                    {
-                        // Pupil in center
-                        if (distToEye < 0.012) return 0xFF000000u; // Black pupil
-                        if (distToEye < 0.02) return 0xFFFF0000u;  // Red iris
-                        return 0xFFFFFFFFu; // White of eye
-                    }
-                }
-            }
-        }
-        
-        // Apply the wobble to x coordinate
-        x -= wobbleAmount + en.LeanAngle * 0.1;
-        // Apply bob to y coordinate (bouncing while moving)
+        // Animation wobble
+        double wobbleAmount = Math.Sin(en.WobblePhase) * 0.06 * (1 - y);
+        double bobAmount = Math.Sin(en.BobPhase) * 0.025;
+        if (en.IsStunned) wobbleAmount *= 3;
+        x -= wobbleAmount + en.LeanAngle * 0.08;
         y -= bobAmount;
 
         bool hurt = en.HurtTimer > 0;
+        double hurtFlash = hurt ? 0.5 + Math.Sin(_gameTime * 30) * 0.5 : 0;
 
-        // Each enemy type has unique CREEPY appearance
         switch (en.Type)
         {
             case EnemyType.Trooper:
-                // Smiling mannequin with too many teeth
+                // Possessed office worker - corporate zombie with glowing badge - ENHANCED
                 {
-                    uint skinColor = hurt ? 0xFFFFCCCCu : 0xFFEEDDCCu; // Pale plastic skin
-                    uint teethColor = 0xFFFFFFFFu;
-                    uint eyeWhite = 0xFFFFFFFFu;
-                    uint pupil = 0xFF000000u;
+                    uint suit = 0xFF2A2A35u;
+                    uint suitLight = 0xFF3A3A48u;
+                    uint suitDark = 0xFF1A1A22u;
+                    uint suitShadow = 0xFF0F0F15u;
+                    uint shirt = 0xFFCCCCDDu;
+                    uint shirtWrinkle = 0xFFAAAABBu;
+                    uint tie = 0xFF882222u;
+                    uint tieDark = 0xFF661111u;
+                    uint tieStripe = 0xFF333333u;
+                    uint skin = 0xFF99887Au;
+                    uint skinLight = 0xFFAA9988u;
+                    uint skinDark = 0xFF776655u;
+                    uint skinShadow = 0xFF554433u;
+                    uint eyeGlow = 0xFF44FF44u;
+                    uint eyeCore = 0xFFAAFFAAu;
+                    uint badge = 0xFFFFDD44u;
+                    uint badgeGlow = 0xFFFFFF88u;
+                    uint hair = 0xFF221100u;
+                    uint hairHighlight = 0xFF332211u;
+                    
+                    if (hurt) { skin = 0xFFBB9988u; eyeGlow = 0xFFFF4444u; eyeCore = 0xFFFFAAAAu; }
 
-                    // Smooth featureless head
-                    if (y < 0.28)
+                    // Head with receding hairline and hollow eyes
+                    if (y < 0.30)
                     {
-                        double headDist = x * x + (y - 0.14) * (y - 0.14);
-                        if (headDist < 0.028)
+                        double headX = x * 1.2;
+                        double headY = y - 0.15;
+                        double headDist = headX * headX + headY * headY;
+                        
+                        if (headDist < 0.032)
                         {
-                            // HUGE unblinking eyes
-                            double leftEye = (x + 0.06) * (x + 0.06) + (y - 0.11) * (y - 0.11);
-                            double rightEye = (x - 0.06) * (x - 0.06) + (y - 0.11) * (y - 0.11);
-                            if (leftEye < 0.003 || rightEye < 0.003) return pupil; // Tiny pupils
-                            if (leftEye < 0.012 || rightEye < 0.012) return eyeWhite; // Big white eyes
-                            
-                            // Wide frozen smile (too wide)
-                            if (y > 0.17 && y < 0.23 && Math.Abs(x) < 0.12)
+                            // Receding hairline (patchy)
+                            if (y < 0.08 && headDist < 0.025)
                             {
-                                double smileCurve = 0.19 + Math.Abs(x) * 0.3;
-                                if (y > smileCurve && y < smileCurve + 0.025)
-                                    return teethColor; // Teeth!
-                                if (y > smileCurve - 0.01 && y < smileCurve)
-                                    return 0xFF220000u; // Dark mouth
+                                double hairPattern = Math.Sin(x * 40) * Math.Cos(y * 30);
+                                if (hairPattern > 0.2 && Math.Abs(x) < 0.08)
+                                {
+                                    if (hairPattern > 0.6) return hairHighlight;
+                                    return hair;
+                                }
                             }
-                            return skinColor;
+                            
+                            // Hollow glowing eyes (corporate drone stare)
+                            double leftEyeX = x + 0.04, leftEyeY = y - 0.12;
+                            double rightEyeX = x - 0.04, rightEyeY = y - 0.12;
+                            double leftEye = leftEyeX * leftEyeX + leftEyeY * leftEyeY;
+                            double rightEye = rightEyeX * rightEyeX + rightEyeY * rightEyeY;
+                            
+                            if (leftEye < 0.0008 || rightEye < 0.0008) return eyeCore;
+                            if (leftEye < 0.0025 || rightEye < 0.0025) return eyeGlow;
+                            if (leftEye < 0.004 || rightEye < 0.004) return 0xFF112211u; // socket shadow
+                            
+                            // Sunken cheeks
+                            double cheekL = (x + 0.06) * (x + 0.06) + (y - 0.18) * (y - 0.18);
+                            double cheekR = (x - 0.06) * (x - 0.06) + (y - 0.18) * (y - 0.18);
+                            if (cheekL < 0.002 || cheekR < 0.002) return skinShadow;
+                            
+                            // Slack jaw / mouth
+                            if (y > 0.20 && y < 0.25 && Math.Abs(x) < 0.03)
+                            {
+                                if (y > 0.22) return 0xFF221111u; // mouth interior
+                                return skinDark;
+                            }
+                            
+                            // Face shading
+                            double faceShade = headDist / 0.032;
+                            if (faceShade > 0.85) return skinShadow;
+                            if (faceShade > 0.6) return skinDark;
+                            if (x < -0.02) return skinLight; // light from left
+                            return skin;
                         }
                     }
-                    // Stiff body
-                    if (y >= 0.25 && y < 0.75 && Math.Abs(x) < 0.16)
-                        return skinColor;
-                    // Arms at wrong angles
-                    if (y > 0.25 && y < 0.55 && Math.Abs(x) > 0.1 && Math.Abs(x) < 0.28)
-                        return skinColor;
-                    // Legs
-                    if (y >= 0.7 && y < 0.95)
+                    
+                    // Neck with loosened collar
+                    if (y >= 0.26 && y < 0.33 && Math.Abs(x) < 0.07)
                     {
-                        if (Math.Abs(x - 0.06) < 0.05 || Math.Abs(x + 0.06) < 0.05)
-                            return skinColor;
+                        // Collar points
+                        if (y < 0.30 && Math.Abs(x) > 0.03) return shirt;
+                        return skin;
+                    }
+                    
+                    // Torso - wrinkled suit with crooked tie
+                    if (y >= 0.30 && y < 0.65)
+                    {
+                        double torsoWidth = 0.17 - (y - 0.48) * 0.08;
+                        if (Math.Abs(x) < torsoWidth)
+                        {
+                            // Crooked tie (slightly askew)
+                            double tieX = x + Math.Sin(y * 8) * 0.008; // slight wave
+                            if (Math.Abs(tieX) < 0.025 && y > 0.32 && y < 0.58)
+                            {
+                                // Tie knot
+                                if (y < 0.36)
+                                {
+                                    if (Math.Abs(tieX) < 0.015) return tie;
+                                    return tieDark;
+                                }
+                                // Diagonal stripes
+                                int stripe = (int)((tieX * 30 + y * 20)) % 4;
+                                if (stripe == 0) return tieStripe;
+                                if (Math.Abs(tieX) > 0.018) return tieDark;
+                                return tie;
+                            }
+                            
+                            // Shirt visible under jacket
+                            if (Math.Abs(x) < 0.06 && y > 0.32 && y < 0.55)
+                            {
+                                // Button line
+                                if (Math.Abs(x) < 0.008)
+                                {
+                                    int btn = (int)((y - 0.32) * 25);
+                                    if (btn % 5 == 0) return 0xFFAAAA99u;
+                                }
+                                // Wrinkles
+                                double wrinkle = Math.Sin(x * 50 + y * 30);
+                                if (wrinkle > 0.7) return shirtWrinkle;
+                                return shirt;
+                            }
+                            
+                            // Glowing ID badge on chest
+                            if (y > 0.38 && y < 0.48 && x > 0.06 && x < 0.13)
+                            {
+                                double badgePulse = 0.7 + Math.Sin(_gameTime * 4) * 0.3;
+                                double badgeDist = (x - 0.095) * (x - 0.095) + (y - 0.43) * (y - 0.43);
+                                if (badgeDist < 0.001) return (uint)(0xFF000000 | ((uint)(255 * badgePulse) << 8) | (uint)(68 * badgePulse));
+                                if (badgeDist < 0.003)
+                                {
+                                    if (badgePulse > 0.85) return badgeGlow;
+                                    return badge;
+                                }
+                                return suitDark; // badge backing
+                            }
+                            
+                            // Suit jacket with wrinkles
+                            double suitShade = Math.Abs(x) / torsoWidth;
+                            double wrinklePat = Math.Sin(x * 25 + y * 15) * Math.Sin(y * 20);
+                            if (wrinklePat > 0.5) return suitLight;
+                            if (wrinklePat < -0.5) return suitShadow;
+                            if (suitShade > 0.85) return suitShadow;
+                            if (suitShade > 0.6) return suitDark;
+                            return suit;
+                        }
+                    }
+                    
+                    // Arms in suit sleeves
+                    if (y > 0.32 && y < 0.58)
+                    {
+                        double armX = Math.Abs(x) - 0.15;
+                        if (armX > 0 && armX < 0.11)
+                        {
+                            // Sleeve wrinkles
+                            int sleeveWrinkle = (int)(y * 35);
+                            if (sleeveWrinkle % 4 == 0) return suitLight;
+                            if (armX > 0.08) return suitShadow;
+                            return suit;
+                        }
+                    }
+                    
+                    // Pale hands with too-long fingers
+                    if (y > 0.52 && y < 0.68 && Math.Abs(x) > 0.20 && Math.Abs(x) < 0.32)
+                    {
+                        // Individual creepy fingers
+                        for (int f = 0; f < 4; f++)
+                        {
+                            double fingerX = (x > 0 ? 0.24 : -0.24) + (f - 1.5) * 0.018;
+                            if (Math.Abs(Math.Abs(x) - Math.Abs(fingerX)) < 0.008 && y > 0.58)
+                            {
+                                // Long fingernails
+                                if (y > 0.64) return 0xFFDDDDCCu;
+                                return skinLight;
+                            }
+                        }
+                        return skin;
+                    }
+                    
+                    // Legs - suit pants
+                    if (y >= 0.62 && y < 0.98)
+                    {
+                        double legOffset = 0.055;
+                        double leftLeg = Math.Abs(x + legOffset);
+                        double rightLeg = Math.Abs(x - legOffset);
+                        
+                        if (leftLeg < 0.055 || rightLeg < 0.055)
+                        {
+                            // Dress shoes
+                            if (y > 0.90)
+                            {
+                                if (y > 0.94) return 0xFF111111u;
+                                return 0xFF222222u;
+                            }
+                            // Pant creases
+                            double crease = (leftLeg < 0.055 ? leftLeg : rightLeg);
+                            if (crease < 0.015) return suitLight;
+                            if (crease > 0.045) return suitShadow;
+                            return suit;
+                        }
                     }
                     return 0;
                 }
 
             case EnemyType.PigCop:
-                // Creepy happy mascot with dead eyes
+                // Middle Manager - bloated suit with too-wide smile - ENHANCED
                 {
-                    uint furColor = hurt ? 0xFFFFBBBBu : 0xFFFFAABBu; // Pink but wrong
-                    uint noseColor = 0xFFFF6688u;
-                    uint eyeColor = 0xFF000000u; // Dead black eyes
+                    uint skinPale = 0xFFEEDDCCu;
+                    uint skinLight = 0xFFFFEEDDu;
+                    uint skinMid = 0xFFDDCCBBu;
+                    uint skinDark = 0xFFCCBBAAu;
+                    uint skinShadow = 0xFFAA9988u;
+                    uint suit = 0xFF3A3A4Au;
+                    uint suitLight = 0xFF4A4A5Au;
+                    uint suitDark = 0xFF2A2A3Au;
+                    uint shirt = 0xFFEEEEFFu;
+                    uint tie = 0xFFDD8800u; // Power tie
+                    uint tieDark = 0xFFBB6600u;
+                    uint eyeWhite = 0xFFFFFFFFu;
+                    uint pupil = 0xFF000000u;
+                    uint teethWhite = 0xFFFFFFEEu;
+                    uint gums = 0xFFCC6666u;
+                    uint hair = 0xFF553322u;
+                    
+                    if (hurt) { skinPale = 0xFFFFEEDDu; suit = 0xFF5A3A4Au; }
 
-                    // Round mascot head
-                    if (y < 0.32)
+                    // Balding head with combover
+                    if (y < 0.34)
                     {
-                        double headDist = x * x + (y - 0.16) * (y - 0.16);
-                        if (headDist < 0.04)
+                        double headDist = (x * 0.9) * (x * 0.9) + (y - 0.17) * (y - 0.17);
+                        
+                        if (headDist < 0.05)
                         {
-                            // Big shiny nose
-                            if ((x * x + (y - 0.22) * (y - 0.22)) < 0.008)
-                                return noseColor;
-                            // Small dead black eyes (no reflection)
-                            if (y > 0.08 && y < 0.15)
+                            // Sad combover (wispy strands)
+                            if (y < 0.08)
                             {
-                                if ((Math.Abs(x - 0.07) < 0.025 || Math.Abs(x + 0.07) < 0.025))
-                                    return eyeColor;
+                                double combover = Math.Sin(x * 25 + _gameTime * 0.5);
+                                if (combover > 0.4 && x > -0.08) return hair;
                             }
-                            // Painted-on blush circles
-                            double leftBlush = (x + 0.1) * (x + 0.1) + (y - 0.18) * (y - 0.18);
-                            double rightBlush = (x - 0.1) * (x - 0.1) + (y - 0.18) * (y - 0.18);
-                            if (leftBlush < 0.004 || rightBlush < 0.004)
-                                return 0xFFFF8899u;
-                            return furColor;
+                            
+                            // Shiny bald spot
+                            if (y < 0.10 && Math.Abs(x) < 0.06)
+                            {
+                                double shine = Math.Sin(x * 20) * Math.Cos(y * 20);
+                                if (shine > 0.5) return skinLight;
+                                return skinPale;
+                            }
+                            
+                            // Beady eyes (too small, too close)
+                            double leftEyeX = x + 0.035, leftEyeY = y - 0.14;
+                            double rightEyeX = x - 0.035, rightEyeY = y - 0.14;
+                            double leftEye = leftEyeX * leftEyeX + leftEyeY * leftEyeY;
+                            double rightEye = rightEyeX * rightEyeX + rightEyeY * rightEyeY;
+                            
+                            if (leftEye < 0.0004 || rightEye < 0.0004) return pupil;
+                            if (leftEye < 0.0015 || rightEye < 0.0015) return eyeWhite;
+                            
+                            // Bags under eyes
+                            if (y > 0.15 && y < 0.18 && (Math.Abs(x - 0.035) < 0.025 || Math.Abs(x + 0.035) < 0.025))
+                                return skinShadow;
+                            
+                            // Too-wide smile (unsettling)
+                            if (y > 0.20 && y < 0.28)
+                            {
+                                double smileWidth = 0.12 - (y - 0.24) * (y - 0.24) * 8;
+                                if (Math.Abs(x) < smileWidth && smileWidth > 0)
+                                {
+                                    // Teeth (too many, too perfect)
+                                    if (y > 0.22 && y < 0.26)
+                                    {
+                                        int tooth = (int)((x + smileWidth) * 30);
+                                        if (tooth % 2 == 0) return teethWhite;
+                                        return 0xFFEEEEDDu;
+                                    }
+                                    return gums;
+                                }
+                            }
+                            
+                            // Double chin
+                            if (y > 0.26 && y < 0.32 && Math.Abs(x) < 0.08)
+                            {
+                                double chin = Math.Sin(y * 20);
+                                if (chin > 0.5) return skinDark;
+                            }
+                            
+                            // Face shading
+                            double faceShade = headDist / 0.05;
+                            if (faceShade > 0.8) return skinShadow;
+                            if (faceShade > 0.5) return skinMid;
+                            return skinPale;
                         }
-                        // Ears
-                        if (y < 0.08 && (Math.Abs(x - 0.1) < 0.04 || Math.Abs(x + 0.1) < 0.04))
-                            return furColor;
                     }
-                    // Puffy body
-                    if (y >= 0.28 && y < 0.8 && Math.Abs(x) < 0.22 - (y - 0.28) * 0.1)
-                        return furColor;
-                    // Stubby arms
-                    if (y > 0.35 && y < 0.55 && Math.Abs(x) > 0.15 && Math.Abs(x) < 0.3)
-                        return furColor;
-                    // Stubby legs
-                    if (y >= 0.75 && y < 0.95)
+                    
+                    // Thick neck with collar strain
+                    if (y >= 0.30 && y < 0.38 && Math.Abs(x) < 0.11)
                     {
-                        if (Math.Abs(x - 0.08) < 0.07 || Math.Abs(x + 0.08) < 0.07)
-                            return furColor;
+                        // Shirt collar (tight)
+                        if (y > 0.34 && Math.Abs(x) > 0.05) return shirt;
+                        // Neck fat rolls
+                        int roll = (int)(y * 40);
+                        if (roll % 3 == 0) return skinDark;
+                        return skinPale;
+                    }
+                    
+                    // Broad torso (ill-fitting suit)
+                    if (y >= 0.36 && y < 0.70)
+                    {
+                        double bodyWidth = 0.22 - (y - 0.53) * 0.06;
+                        if (Math.Abs(x) < bodyWidth)
+                        {
+                            // Power tie (gaudy)
+                            if (Math.Abs(x) < 0.03 && y > 0.38 && y < 0.62)
+                            {
+                                // Tie pattern (diagonal stripes)
+                                int stripe = (int)((x * 20 + y * 15)) % 3;
+                                if (stripe == 0) return 0xFFFFAA00u;
+                                if (Math.Abs(x) > 0.02) return tieDark;
+                                return tie;
+                            }
+                            
+                            // Shirt front
+                            if (Math.Abs(x) < 0.07 && y > 0.38 && y < 0.58) return shirt;
+                            
+                            // Suit buttons (straining)
+                            if (Math.Abs(x) < 0.08 && y > 0.50 && y < 0.58)
+                            {
+                                int btn = (int)((y - 0.50) * 30);
+                                if (btn % 6 == 0) return 0xFFAAAA88u;
+                            }
+                            
+                            // Belt (struggling)
+                            if (y > 0.60 && y < 0.67)
+                            {
+                                if (Math.Abs(x) < 0.04) return 0xFFCCAA44u;
+                                return 0xFF443322u;
+                            }
+                            
+                            // Suit wrinkles from poor fit
+                            double wrinkle = Math.Sin(x * 20 + y * 25);
+                            if (wrinkle > 0.6) return suitLight;
+                            if (wrinkle < -0.6) return suitDark;
+                            return suit;
+                        }
+                    }
+                    
+                    // Pudgy arms
+                    if (y > 0.38 && y < 0.62)
+                    {
+                        double armX = Math.Abs(x) - 0.20;
+                        if (armX > 0 && armX < 0.10)
+                        {
+                            if (y < 0.50) return suit;
+                            // Rolled up sleeves showing pale arms
+                            double armShade = armX / 0.10;
+                            if (armShade > 0.7) return skinShadow;
+                            return skinPale;
+                        }
+                    }
+                    
+                    // Meaty hands (gold ring visible)
+                    if (y > 0.58 && y < 0.70 && Math.Abs(x) > 0.26 && Math.Abs(x) < 0.35)
+                    {
+                        // Ring on finger
+                        if (y > 0.62 && y < 0.65 && Math.Abs(Math.Abs(x) - 0.29) < 0.015)
+                            return 0xFFDDBB44u;
+                        return skinMid;
+                    }
+                    
+                    // Legs (pleated pants)
+                    if (y >= 0.68 && y < 0.98)
+                    {
+                        double legOffset = 0.08;
+                        double leftLeg = Math.Abs(x + legOffset);
+                        double rightLeg = Math.Abs(x - legOffset);
+                        
+                        if (leftLeg < 0.065 || rightLeg < 0.065)
+                        {
+                            // Dress shoes
+                            if (y > 0.92)
+                            {
+                                if (y > 0.95) return 0xFF1A1A1Au;
+                                return 0xFF2A2A2Au;
+                            }
+                            // Pant pleats
+                            double pleat = (leftLeg < 0.065 ? leftLeg : rightLeg);
+                            if (pleat < 0.02) return suitLight;
+                            return suitDark;
+                        }
                     }
                     return 0;
                 }
 
             case EnemyType.Enforcer:
-                // Faceless figure in a suit
+                // Security Guard - faceless with riot gear and taser - ENHANCED
                 {
-                    uint suitColor = hurt ? 0xFFAAAABBu : 0xFF222233u; // Dark suit
-                    uint shirtColor = 0xFFFFFFFFu;
-                    uint skinColor = 0xFFDDCCBBu; // But wrong shade
-                    uint noFace = 0xFFEEDDCCu; // Blank face
+                    uint helmet = 0xFF1A1A22u;
+                    uint helmetLight = 0xFF2A2A35u;
+                    uint helmetDark = 0xFF0A0A12u;
+                    uint visor = 0xFF112233u;
+                    uint visorGlow = 0xFF2244AAu;
+                    uint armor = 0xFF252530u;
+                    uint armorLight = 0xFF353545u;
+                    uint armorDark = 0xFF151520u;
+                    uint vest = 0xFF222228u;
+                    uint vestText = 0xFFCCCCCCu;
+                    uint skin = 0xFF887766u;
+                    uint skinDark = 0xFF665544u;
+                    uint taserBlue = 0xFF4488FFu;
+                    
+                    if (hurt) { helmet = 0xFF2A2A35u; visorGlow = 0xFF66AAFFu; }
 
-                    // Smooth blank head (no features)
-                    if (y < 0.26)
+                    // Riot helmet (face completely hidden)
+                    if (y < 0.32)
                     {
-                        double headDist = x * x + (y - 0.13) * (y - 0.13);
-                        if (headDist < 0.025)
+                        double headDist = x * x + (y - 0.16) * (y - 0.16);
+                        
+                        if (headDist < 0.038)
                         {
-                            // Just... nothing. A blank oval.
-                            // Wait, is that a faint smile?
-                            if (y > 0.18 && y < 0.2 && Math.Abs(x) < 0.06)
-                                return 0xFFDDBBAAu; // Barely visible smile line
-                            return noFace;
+                            // Face shield (reflective, no features visible)
+                            if (y > 0.08 && y < 0.26 && Math.Abs(x) < 0.11)
+                            {
+                                // Reflection effect
+                                double reflect = Math.Sin(x * 15 + y * 10 + _gameTime * 0.5);
+                                if (reflect > 0.6) return visorGlow;
+                                // Just darkness behind visor (unsettling)
+                                double depth = (y - 0.08) / 0.18;
+                                if (depth > 0.7) return 0xFF050510u;
+                                return visor;
+                            }
+                            
+                            // Helmet dome with vents
+                            if (y < 0.12)
+                            {
+                                // Vent slits
+                                int vent = (int)(x * 30);
+                                if (vent % 4 == 0 && Math.Abs(x) < 0.08) return helmetDark;
+                            }
+                            
+                            // Helmet surface
+                            double helmShade = headDist / 0.038;
+                            if (helmShade > 0.85) return helmetDark;
+                            if (helmShade > 0.5) return helmet;
+                            if (x < -0.03) return helmetLight;
+                            return helmet;
                         }
                     }
-                    // Sharp suit
-                    if (y >= 0.24 && y < 0.78 && Math.Abs(x) < 0.18)
+                    
+                    // Neck guard
+                    if (y >= 0.28 && y < 0.34 && Math.Abs(x) < 0.08)
                     {
-                        // White shirt/tie area
-                        if (Math.Abs(x) < 0.04 && y > 0.26 && y < 0.5)
-                            return shirtColor;
-                        // Red tie
-                        if (Math.Abs(x) < 0.02 && y > 0.28 && y < 0.48)
-                            return 0xFF880022u;
-                        return suitColor;
+                        int guard = (int)(y * 40);
+                        if (guard % 2 == 0) return armorDark;
+                        return armor;
                     }
-                    // Arms
-                    if (y > 0.28 && y < 0.6 && Math.Abs(x) > 0.12 && Math.Abs(x) < 0.28)
-                        return suitColor;
-                    // Hands (wrong color)
-                    if (y > 0.55 && y < 0.65 && Math.Abs(x) > 0.2 && Math.Abs(x) < 0.3)
-                        return skinColor;
-                    // Legs
-                    if (y >= 0.72 && y < 0.98)
+                    
+                    // Body armor with "SECURITY" text
+                    if (y >= 0.32 && y < 0.68)
                     {
-                        if (Math.Abs(x - 0.06) < 0.06 || Math.Abs(x + 0.06) < 0.06)
-                            return suitColor;
+                        double torsoWidth = 0.19 - (y - 0.50) * 0.06;
+                        if (Math.Abs(x) < torsoWidth)
+                        {
+                            // "SECURITY" text area
+                            if (y > 0.36 && y < 0.44 && Math.Abs(x) < 0.12)
+                            {
+                                // Blocky text pattern
+                                int tx = (int)((x + 0.12) * 18);
+                                int ty = (int)((y - 0.36) * 20);
+                                // Simulated text
+                                if (ty > 1 && ty < 5 && tx % 3 != 0)
+                                    return vestText;
+                            }
+                            
+                            // Chest plate segments
+                            if (y > 0.44 && y < 0.58)
+                            {
+                                int segment = (int)((y - 0.44) * 18);
+                                if (segment % 4 == 0) return armorLight;
+                                if (segment % 4 == 3) return armorDark;
+                            }
+                            
+                            // Utility belt
+                            if (y > 0.58 && y < 0.65)
+                            {
+                                // Pouches
+                                int pouch = (int)((x + 0.15) * 8);
+                                if (pouch % 3 == 0) return armorDark;
+                                // Radio on belt
+                                if (x > 0.08 && x < 0.14) return 0xFF111115u;
+                                return armor;
+                            }
+                            
+                            // Vest texture
+                            double vestShade = Math.Abs(x) / torsoWidth;
+                            if (vestShade > 0.85) return armorDark;
+                            if (vestShade > 0.6) return armor;
+                            return vest;
+                        }
+                    }
+                    
+                    // Armored arms
+                    if (y > 0.34 && y < 0.60)
+                    {
+                        double armX = Math.Abs(x) - 0.17;
+                        if (armX > 0 && armX < 0.11)
+                        {
+                            // Elbow pad
+                            if (y > 0.44 && y < 0.52)
+                            {
+                                double padDist = (y - 0.48) * (y - 0.48);
+                                if (padDist < 0.001) return armorLight;
+                                return armor;
+                            }
+                            return vest;
+                        }
+                    }
+                    
+                    // Gloved hands holding taser
+                    if (y > 0.56 && y < 0.70 && Math.Abs(x) > 0.24 && Math.Abs(x) < 0.34)
+                    {
+                        // Taser in hand (crackling)
+                        if (x > 0.28 && y > 0.60)
+                        {
+                            double crackle = Math.Sin(_gameTime * 20 + y * 30);
+                            if (crackle > 0.7) return 0xFFFFFFFFu;
+                            return taserBlue;
+                        }
+                        return 0xFF111111u; // Black gloves
+                    }
+                    
+                    // Tactical pants
+                    if (y >= 0.65 && y < 0.98)
+                    {
+                        double legOffset = 0.065;
+                        double leftLeg = Math.Abs(x + legOffset);
+                        double rightLeg = Math.Abs(x - legOffset);
+                        
+                        if (leftLeg < 0.06 || rightLeg < 0.06)
+                        {
+                            // Combat boots
+                            if (y > 0.90)
+                            {
+                                if (y > 0.94) return 0xFF080808u;
+                                return 0xFF121212u;
+                            }
+                            // Knee pads
+                            if (y > 0.72 && y < 0.80)
+                            {
+                                double kneeDist = (y - 0.76) * (y - 0.76);
+                                if (kneeDist < 0.001) return armorLight;
+                                return armor;
+                            }
+                            // Cargo pockets
+                            if (y > 0.68 && y < 0.72)
+                            {
+                                double leg = leftLeg < 0.06 ? leftLeg : rightLeg;
+                                if (leg > 0.03) return armorDark;
+                            }
+                            return vest;
+                        }
                     }
                     return 0;
                 }
 
             case EnemyType.Octabrain:
-                // Giant floating eyeball with tentacles
+                // IT Department Head - floating monitors for a head, cable tentacles - ENHANCED
                 {
-                    uint eyeWhite = hurt ? 0xFFFFDDDDu : 0xFFFFEEEEu;
-                    uint irisColor = 0xFF884400u; // Brown iris
-                    uint pupilColor = 0xFF000000u;
-                    uint veinColor = 0xFFDD8888u;
-                    uint tentacleColor = 0xFFAA6666u;
+                    uint monitorFrame = 0xFF333340u;
+                    uint monitorDark = 0xFF222230u;
+                    uint screenGlow = 0xFF224488u;
+                    uint screenBright = 0xFF4488CCu;
+                    uint screenText = 0xFF88FFAAu;
+                    uint cableBlack = 0xFF1A1A1Au;
+                    uint cableColor = 0xFF2244AAu;
+                    uint sparks = 0xFFFFFF88u;
+                    uint labCoat = 0xFFDDDDEEu;
+                    uint labCoatDark = 0xFFBBBBCCu;
+                    
+                    if (hurt) { screenGlow = 0xFF4466AAu; screenText = 0xFFFF8888u; }
 
-                    // Huge eyeball
-                    double eyeY = 0.28;
-                    double eyeDist = x * x + (y - eyeY) * (y - eyeY);
-                    if (eyeDist < 0.1)
+                    // Monitor head (CRT style, floating)
+                    double monitorY = 0.22;
+                    double monitorDist = (x * 1.1) * (x * 1.1) + (y - monitorY) * (y - monitorY);
+                    
+                    if (monitorDist < 0.08)
                     {
-                        // Pupil (follows you?)
-                        double pupilX = Math.Sin(_gameTime * 2) * 0.02;
-                        double pupilDist = (x - pupilX) * (x - pupilX) + (y - eyeY) * (y - eyeY);
-                        if (pupilDist < 0.008) return pupilColor;
-                        if (pupilDist < 0.025) return irisColor;
+                        // Screen bezel
+                        if (monitorDist > 0.06) return monitorFrame;
                         
-                        // Red veins
-                        if (((int)((x + y) * 30) % 5 == 0) && eyeDist > 0.04)
-                            return veinColor;
-                        return eyeWhite;
+                        // CRT screen with static/code
+                        if (monitorDist < 0.055)
+                        {
+                            // Scanline effect
+                            int scanline = (int)((y + _gameTime * 0.5) * 60);
+                            double scanIntensity = (scanline % 2 == 0) ? 1.0 : 0.85;
+                            
+                            // Creepy face made of ASCII/code
+                            double faceX = x, faceY = y - monitorY;
+                            
+                            // Eyes (made of characters)
+                            double leftEye = (faceX + 0.06) * (faceX + 0.06) + (faceY + 0.02) * (faceY + 0.02);
+                            double rightEye = (faceX - 0.06) * (faceX - 0.06) + (faceY + 0.02) * (faceY + 0.02);
+                            if (leftEye < 0.0015 || rightEye < 0.0015)
+                            {
+                                // Pupil glitch
+                                double glitch = Math.Sin(_gameTime * 8);
+                                if (glitch > 0.8) return sparks;
+                                return screenText;
+                            }
+                            
+                            // Mouth (text scrolling)
+                            if (faceY > 0.04 && faceY < 0.10 && Math.Abs(faceX) < 0.10)
+                            {
+                                int mouthChar = (int)((faceX + _gameTime * 2) * 20) % 4;
+                                if (mouthChar == 0) return screenText;
+                                return screenGlow;
+                            }
+                            
+                            // Random static/code
+                            double staticNoise = Math.Sin(x * 50 + y * 40 + _gameTime * 10);
+                            if (staticNoise > 0.85) return screenText;
+                            if (staticNoise > 0.7) return screenBright;
+                            
+                            uint r = (uint)(34 * scanIntensity);
+                            uint g = (uint)(68 * scanIntensity);
+                            uint b = (uint)(136 * scanIntensity);
+                            return 0xFF000000 | (r << 16) | (g << 8) | b;
+                        }
+                        return monitorDark;
                     }
-                    // Nerve tentacles below
-                    if (y > 0.5 && y < 0.95)
+                    
+                    // Floating body in lab coat
+                    if (y > 0.38 && y < 0.65 && Math.Abs(x) < 0.12)
                     {
-                        double wave = Math.Sin(_gameTime * 4 + x * 8) * 0.04;
-                        if (Math.Abs(x - 0.1 + wave) < 0.035 ||
-                            Math.Abs(x + 0.1 + wave) < 0.035 ||
-                            Math.Abs(x + wave) < 0.025)
-                            return tentacleColor;
+                        // Lab coat buttons
+                        if (Math.Abs(x) < 0.015)
+                        {
+                            int btn = (int)((y - 0.38) * 30);
+                            if (btn % 5 == 0) return 0xFF888888u;
+                        }
+                        // Pocket
+                        if (x > 0.03 && x < 0.09 && y > 0.42 && y < 0.50)
+                        {
+                            // Pens in pocket
+                            if (y < 0.44) return 0xFF2222AAu;
+                            return labCoatDark;
+                        }
+                        // Shading
+                        double coatShade = Math.Abs(x) / 0.12;
+                        if (coatShade > 0.7) return labCoatDark;
+                        return labCoat;
+                    }
+                    
+                    // Cable tentacles (network/power cables)
+                    if (y > 0.50 && y < 0.98)
+                    {
+                        double cablePhase = _gameTime * 2;
+                        
+                        for (int c = 0; c < 6; c++)
+                        {
+                            double cAngle = c * Math.PI / 3 - Math.PI / 2;
+                            double cBaseX = Math.Sin(cAngle) * 0.06;
+                            double cWave = Math.Sin(cablePhase + c * 1.5 + y * 5) * 0.08 * (y - 0.50);
+                            
+                            double cX = cBaseX + cWave;
+                            double cableDist = Math.Abs(x - cX);
+                            double cableWidth = 0.018 - (y - 0.50) * 0.012;
+                            
+                            if (cableDist < cableWidth && cableWidth > 0)
+                            {
+                                // Cable color bands (ethernet style)
+                                int band = (int)(y * 30 + c);
+                                if (band % 4 == 0) return cableColor;
+                                // Sparks at ends
+                                if (y > 0.90)
+                                {
+                                    double spark = Math.Sin(_gameTime * 15 + c);
+                                    if (spark > 0.7) return sparks;
+                                }
+                                return cableBlack;
+                            }
+                        }
                     }
                     return 0;
                 }
 
             case EnemyType.BattleLord:
-                // Giant teddy bear... but wrong
+                // The CEO - massive corporate demon in power suit, multiple arms - BOSS ENHANCED
                 {
-                    uint furColor = hurt ? 0xFFDDBBAAu : 0xFFAA8866u; // Dirty brown fur
-                    uint darkFur = 0xFF665544u;
-                    uint eyeColor = 0xFF000000u; // Button eyes
-                    uint stitchColor = 0xFF332211u;
+                    uint suit = 0xFF0A0A12u;
+                    uint suitLight = 0xFF1A1A25u;
+                    uint suitDark = 0xFF050508u;
+                    uint shirt = 0xFFCC0000u; // Power red
+                    uint shirtDark = 0xFF990000u;
+                    uint skin = 0xFF776655u;
+                    uint skinLight = 0xFF887766u;
+                    uint skinDark = 0xFF554433u;
+                    uint eyeGold = 0xFFFFDD00u;
+                    uint eyeGlow = 0xFFFFFF44u;
+                    uint teethGold = 0xFFDDBB44u;
+                    uint horns = 0xFF222222u;
+                    uint hornsLight = 0xFF333333u;
+                    uint watchGold = 0xFFDDAA33u;
+                    
+                    if (hurt) { suit = 0xFF1A1A25u; eyeGold = 0xFFFFFF88u; }
 
-                    // Big round head
+                    // Massive head with slicked back hair and devil horns
                     if (y < 0.32)
                     {
-                        double headDist = x * x + (y - 0.18) * (y - 0.18);
-                        if (headDist < 0.05)
+                        double headDist = (x * 0.85) * (x * 0.85) + (y - 0.17) * (y - 0.17);
+                        
+                        if (headDist < 0.045)
                         {
-                            // Round ears
-                            double leftEar = (x + 0.14) * (x + 0.14) + (y - 0.06) * (y - 0.06);
-                            double rightEar = (x - 0.14) * (x - 0.14) + (y - 0.06) * (y - 0.06);
-                            if (leftEar < 0.008 || rightEar < 0.008) return darkFur;
-                            
-                            // Button eyes (x-shaped stitches)
-                            if (y > 0.12 && y < 0.2)
+                            // Devil horns (sprouting from temples)
+                            if (y < 0.10)
                             {
-                                if (Math.Abs(x - 0.08) < 0.04 || Math.Abs(x + 0.08) < 0.04)
+                                double leftHorn = (x + 0.11) * (x + 0.11) + (y * 1.5) * (y * 1.5);
+                                double rightHorn = (x - 0.11) * (x - 0.11) + (y * 1.5) * (y * 1.5);
+                                if (leftHorn < 0.008 || rightHorn < 0.008)
                                 {
-                                    // X pattern
-                                    double ex = Math.Abs(x) - 0.08;
-                                    double ey = y - 0.16;
-                                    if (Math.Abs(Math.Abs(ex) - Math.Abs(ey)) < 0.015)
-                                        return eyeColor;
+                                    if (y < 0.04) return hornsLight;
+                                    return horns;
                                 }
                             }
-                            // Stitched smile
-                            if (y > 0.22 && y < 0.28 && Math.Abs(x) < 0.1)
+                            
+                            // Slicked back hair
+                            if (y < 0.12 && Math.Abs(x) < 0.12)
                             {
-                                double smileCurve = 0.24 + x * x * 2;
-                                if (Math.Abs(y - smileCurve) < 0.015)
-                                    return stitchColor;
+                                int hairLine = (int)(x * 30);
+                                if (hairLine % 2 == 0) return 0xFF111111u;
+                                return 0xFF1A1A1Au;
                             }
-                            return furColor;
+                            
+                            // Glowing golden eyes (predatory)
+                            double leftEyeX = x + 0.055, leftEyeY = y - 0.14;
+                            double rightEyeX = x - 0.055, rightEyeY = y - 0.14;
+                            double leftEye = leftEyeX * leftEyeX + leftEyeY * leftEyeY;
+                            double rightEye = rightEyeX * rightEyeX + rightEyeY * rightEyeY;
+                            
+                            if (leftEye < 0.0006 || rightEye < 0.0006)
+                            {
+                                // Slit pupils
+                                if (Math.Abs(leftEyeX) < 0.004 || Math.Abs(rightEyeX) < 0.004)
+                                    return 0xFF000000u;
+                                return eyeGlow;
+                            }
+                            if (leftEye < 0.003 || rightEye < 0.003) return eyeGold;
+                            
+                            // Cruel smile with gold teeth
+                            if (y > 0.20 && y < 0.28 && Math.Abs(x) < 0.10)
+                            {
+                                double smileWidth = 0.10 - (y - 0.24) * (y - 0.24) * 6;
+                                if (Math.Abs(x) < smileWidth && smileWidth > 0)
+                                {
+                                    // Gold teeth
+                                    int tooth = (int)((x + smileWidth) * 25);
+                                    if (tooth % 2 == 0) return teethGold;
+                                    return 0xFF221100u;
+                                }
+                            }
+                            
+                            // Strong jaw
+                            if (y > 0.24)
+                            {
+                                double jawShade = (y - 0.24) / 0.08;
+                                if (jawShade > 0.6) return skinDark;
+                            }
+                            
+                            // Face shading
+                            double faceShade = headDist / 0.045;
+                            if (faceShade > 0.8) return skinDark;
+                            if (x < -0.03) return skinLight;
+                            return skin;
                         }
                     }
-                    // Big stuffed body
-                    if (y >= 0.28 && y < 0.85 && Math.Abs(x) < 0.3 - (y - 0.28) * 0.1)
+                    
+                    // Thick neck with power tie
+                    if (y >= 0.28 && y < 0.36 && Math.Abs(x) < 0.11)
                     {
-                        // Visible stitching down middle
-                        if (Math.Abs(x) < 0.015 && ((int)(y * 20) % 2 == 0))
-                            return stitchColor;
-                        return furColor;
+                        // Shirt collar
+                        if (y > 0.32 && Math.Abs(x) > 0.05) return shirt;
+                        return skin;
                     }
-                    // Stubby arms
-                    if (y > 0.32 && y < 0.6 && Math.Abs(x) > 0.22 && Math.Abs(x) < 0.4)
-                        return furColor;
-                    // Stubby legs
-                    if (y >= 0.8 && y < 1.0)
+                    
+                    // MASSIVE torso - power suit with 4 arms
+                    if (y >= 0.34 && y < 0.72)
                     {
-                        if (Math.Abs(x - 0.12) < 0.1 || Math.Abs(x + 0.12) < 0.1)
-                            return furColor;
+                        double torsoWidth = 0.30 - (y - 0.53) * 0.06;
+                        if (Math.Abs(x) < torsoWidth)
+                        {
+                            // Power tie
+                            if (Math.Abs(x) < 0.03 && y > 0.36 && y < 0.58)
+                            {
+                                // Tie clip
+                                if (y > 0.44 && y < 0.47 && Math.Abs(x) < 0.02)
+                                    return watchGold;
+                                if (Math.Abs(x) > 0.02) return shirtDark;
+                                return shirt;
+                            }
+                            
+                            // Shirt front
+                            if (Math.Abs(x) < 0.08 && y > 0.36 && y < 0.55)
+                            {
+                                // Buttons
+                                int btn = (int)((y - 0.36) * 25);
+                                if (btn % 5 == 0 && Math.Abs(x) < 0.01) return watchGold;
+                                return 0xFFEEEEFFu;
+                            }
+                            
+                            // Expensive watch
+                            if (y > 0.52 && y < 0.58 && x > 0.22 && x < 0.28)
+                            {
+                                double watchDist = (x - 0.25) * (x - 0.25) + (y - 0.55) * (y - 0.55);
+                                if (watchDist < 0.0008) return 0xFFFFFFFFu; // watch face
+                                if (watchDist < 0.002) return watchGold;
+                            }
+                            
+                            // Belt with massive gold buckle
+                            if (y > 0.60 && y < 0.68)
+                            {
+                                if (Math.Abs(x) < 0.06)
+                                {
+                                    // Dollar sign buckle
+                                    double buckleDist = x * x + (y - 0.64) * (y - 0.64);
+                                    if (buckleDist < 0.002) return 0xFFFFDD44u;
+                                    return watchGold;
+                                }
+                                return 0xFF1A1008u;
+                            }
+                            
+                            // Suit texture
+                            double suitShade = Math.Abs(x) / torsoWidth;
+                            // Pinstripes
+                            int stripe = (int)(x * 40);
+                            if (stripe % 5 == 0) return suitLight;
+                            if (suitShade > 0.85) return suitDark;
+                            return suit;
+                        }
+                    }
+                    
+                    // FOUR arms (two normal, two extra demonic)
+                    // Normal arms
+                    if (y > 0.36 && y < 0.62)
+                    {
+                        double armX = Math.Abs(x) - 0.26;
+                        if (armX > 0 && armX < 0.12)
+                        {
+                            // Sleeve
+                            if (y < 0.52) return suit;
+                            return skin;
+                        }
+                    }
+                    // Extra demonic arms (smaller, emerging from sides)
+                    if (y > 0.42 && y < 0.58)
+                    {
+                        double extraArmX = Math.Abs(x) - 0.32;
+                        if (extraArmX > 0 && extraArmX < 0.10)
+                        {
+                            // Clawed hands
+                            if (y > 0.52)
+                            {
+                                int claw = (int)(y * 30);
+                                if (claw % 3 == 0) return 0xFF221100u;
+                            }
+                            return skinDark;
+                        }
+                    }
+                    
+                    // Massive clawed hands
+                    if (y > 0.58 && y < 0.72 && Math.Abs(x) > 0.34 && Math.Abs(x) < 0.46)
+                    {
+                        // Claws tipped with gold
+                        if (y > 0.68)
+                        {
+                            int claw = (int)(x * 25);
+                            if (claw % 2 == 0) return watchGold;
+                            return skinDark;
+                        }
+                        return skin;
+                    }
+                    
+                    // Powerful legs in suit pants
+                    if (y >= 0.70 && y < 0.98)
+                    {
+                        double legOffset = 0.10;
+                        double leftLeg = Math.Abs(x + legOffset);
+                        double rightLeg = Math.Abs(x - legOffset);
+                        
+                        if (leftLeg < 0.10 || rightLeg < 0.10)
+                        {
+                            // Expensive shoes
+                            if (y > 0.92)
+                            {
+                                if (y > 0.95) return 0xFF0A0A0Au;
+                                return 0xFF151515u;
+                            }
+                            // Pinstripes on pants
+                            double leg = leftLeg < 0.10 ? leftLeg : rightLeg;
+                            int pstripe = (int)(leg * 25 + y * 10);
+                            if (pstripe % 4 == 0) return suitLight;
+                            return suit;
+                        }
                     }
                     return 0;
                 }
@@ -4041,198 +5616,815 @@ public partial class SoupNukem : Window
         }
     }
 
+    // Corporate horror style pickup sprites - ENHANCED
     uint GetPickupColor(Pickup p, double x, double y)
     {
         double dist = x * x + y * y;
-        if (dist > 0.20) return 0;
+        if (dist > 0.25) return 0;
 
         // Add bobbing animation visual feedback
         double bobPhase = Math.Sin(_gameTime * 4 + p.BobOffset) * 0.02;
         y -= bobPhase;
+        
+        // Rotating glow effect for special items
+        double glowAngle = _gameTime * 2;
 
         switch (p.Type)
         {
             case PickupType.Health:
-                // Green cross shape
-                if ((Math.Abs(x) < 0.08 && Math.Abs(y) < 0.25) || (Math.Abs(y) < 0.08 && Math.Abs(x) < 0.25))
-                    return 0xFF44FF44u;
-                if (dist < 0.16) return 0xFF228822u;
-                return 0;
+                // Coffee cup (restores health!) - ENHANCED
+                {
+                    // Cup body
+                    double cupWidth = 0.12 - y * 0.08;
+                    if (cupWidth > 0 && Math.Abs(x) < cupWidth && y > -0.12 && y < 0.14)
+                    {
+                        uint cupWhite = 0xFFEEEEEEu;
+                        uint cupGray = 0xFFCCCCCCu;
+                        uint cupDark = 0xFFAAAAAAu;
+                        uint coffeeColor = 0xFF442211u;
+                        uint steamWhite = 0xAAFFFFFFu;
+                        
+                        // Lid
+                        if (y < -0.06)
+                        {
+                            if (Math.Abs(x) < 0.03) return 0xFF333333u; // sip hole
+                            return 0xFF444444u;
+                        }
+                        
+                        // Coffee visible at top
+                        if (y < -0.02 && y > -0.06)
+                        {
+                            return coffeeColor;
+                        }
+                        
+                        // Cup sleeve (cardboard)
+                        if (y > 0.0 && y < 0.08)
+                        {
+                            return 0xFF886644u;
+                        }
+                        
+                        // Steam (animated)
+                        if (y < -0.08)
+                        {
+                            double steam = Math.Sin(x * 20 + _gameTime * 5 + y * 10);
+                            if (steam > 0.6) return steamWhite;
+                        }
+                        
+                        // Cup shading
+                        double shade = Math.Abs(x) / cupWidth;
+                        if (shade > 0.8) return cupDark;
+                        if (shade > 0.5) return cupGray;
+                        return cupWhite;
+                    }
+                    
+                    // Handle
+                    if (x > 0.08 && x < 0.16 && y > -0.02 && y < 0.08)
+                    {
+                        double handleDist = (x - 0.12) * (x - 0.12) + (y - 0.03) * (y - 0.03);
+                        if (handleDist > 0.001 && handleDist < 0.004)
+                            return 0xFFDDDDDDu;
+                    }
+                    return 0;
+                }
 
             case PickupType.AtomicHealth:
-                // Glowing cyan atom with pulsing
-                double pulse = 0.8 + Math.Sin(_gameTime * 6) * 0.2;
-                if (dist < 0.04) return 0xFFFFFFFFu;
-                if (dist < 0.12)
+                // Duke3D Atomic Health - spinning atom symbol
                 {
-                    uint intensity = (uint)(255 * pulse);
-                    return 0xFF000000 | (intensity << 8) | intensity;
+                    double pulse = 0.7 + Math.Sin(_gameTime * 6) * 0.3;
+                    double rotAngle = _gameTime * 3;
+                    
+                    // Glowing center nucleus
+                    if (dist < 0.015)
+                    {
+                        uint g = (uint)(200 + pulse * 55);
+                        return 0xFF000000 | (g << 8) | g;
+                    }
+                    
+                    // Inner glow
+                    if (dist < 0.04)
+                    {
+                        uint g = (uint)(150 * pulse);
+                        return 0xFF000000 | (g << 8) | g;
+                    }
+                    
+                    // Electron orbits (3 rotating ellipses)
+                    for (int orbit = 0; orbit < 3; orbit++)
+                    {
+                        double orbitAngle = rotAngle + orbit * Math.PI / 3;
+                        double orbX = x * Math.Cos(orbitAngle) - y * Math.Sin(orbitAngle);
+                        double orbY = (x * Math.Sin(orbitAngle) + y * Math.Cos(orbitAngle)) * 2.5;
+                        
+                        double orbitDist = Math.Sqrt(orbX * orbX + orbY * orbY);
+                        if (Math.Abs(orbitDist - 0.12) < 0.012)
+                        {
+                            return 0xFF00DDDDu;
+                        }
+                        
+                        // Electron on orbit
+                        double electronAngle = rotAngle * 2 + orbit * Math.PI * 2 / 3;
+                        double eX = Math.Cos(electronAngle) * 0.12;
+                        double eY = Math.Sin(electronAngle) * 0.05;
+                        // Rotate electron position
+                        double eXr = eX * Math.Cos(orbitAngle) + eY * Math.Sin(orbitAngle);
+                        double eYr = -eX * Math.Sin(orbitAngle) + eY * Math.Cos(orbitAngle);
+                        double eDist = (x - eXr) * (x - eXr) + (y - eYr) * (y - eYr);
+                        if (eDist < 0.003)
+                        {
+                            return 0xFFFFFFFFu;
+                        }
+                    }
+                    return 0;
                 }
-                if (Math.Abs(x * x + y * y - 0.14) < 0.03) return 0xFF00CCCCu;
-                return 0;
 
             case PickupType.Armor:
-                // Blue vest/shield shape
-                if (y > -0.2 && y < 0.15 && Math.Abs(x) < 0.18 - y * 0.4)
-                    return y < 0 ? 0xFF4488FFu : 0xFF2266CCu;
-                if (y >= 0.15 && y < 0.25 && Math.Abs(x) < 0.08)
-                    return 0xFF2266CCu;
-                return 0;
+                // Duke3D Armor Vest - detailed tactical vest
+                {
+                    // Vest shape
+                    double vestWidth = 0.16 - Math.Abs(y) * 0.15;
+                    if (y > -0.18 && y < 0.20 && Math.Abs(x) < vestWidth)
+                    {
+                        uint vestBlue = 0xFF3366AAu;
+                        uint vestDark = 0xFF224488u;
+                        uint vestLight = 0xFF4488CCu;
+                        
+                        // Shoulder straps
+                        if (y < -0.08 && Math.Abs(x) > 0.06)
+                            return vestDark;
+                        
+                        // Front pockets/pouches
+                        if (y > -0.06 && y < 0.08)
+                        {
+                            // Pocket grid pattern
+                            int px = (int)((x + 0.15) * 12);
+                            int py = (int)((y + 0.06) * 10);
+                            if (px % 3 == 0 || py % 4 == 0)
+                                return vestDark;
+                        }
+                        
+                        // Center zipper
+                        if (Math.Abs(x) < 0.015)
+                            return 0xFF888888u;
+                        
+                        // Highlights
+                        if (x < -0.08)
+                            return vestLight;
+                        
+                        return vestBlue;
+                    }
+                    return 0;
+                }
 
             case PickupType.Ammo:
-                // Yellow ammo box
-                if (Math.Abs(x) < 0.15 && y > -0.12 && y < 0.12)
+                // Duke3D Ammo Box - detailed pistol ammo
                 {
-                    if (Math.Abs(x) < 0.02 || Math.Abs(y) < 0.02) return 0xFFCC9900u;
-                    return 0xFFFFDD44u;
+                    if (Math.Abs(x) < 0.14 && y > -0.10 && y < 0.10)
+                    {
+                        uint boxYellow = 0xFFDDAA33u;
+                        uint boxDark = 0xFFAA7722u;
+                        uint boxLight = 0xFFFFCC55u;
+                        uint textRed = 0xFFCC2222u;
+                        
+                        // Box shading
+                        if (Math.Abs(x) > 0.11 || y < -0.07 || y > 0.07)
+                            return boxDark;
+                        
+                        // "AMMO" text area
+                        if (y > -0.04 && y < 0.04)
+                        {
+                            // Simulated text pattern
+                            int tx = (int)((x + 0.10) * 25);
+                            if (tx % 4 < 2 && Math.Abs(x) < 0.08)
+                                return textRed;
+                        }
+                        
+                        // Top highlight
+                        if (y < -0.05)
+                            return boxLight;
+                        
+                        return boxYellow;
+                    }
+                    return 0;
                 }
-                return 0;
 
             case PickupType.Shotgun:
-                // Brown/tan shotgun shape
-                if (Math.Abs(y) < 0.05 && x > -0.25 && x < 0.25)
-                    return x > 0.15 ? 0xFF664422u : 0xFFBB9966u;
-                if (y < -0.05 && y > -0.15 && x > 0.05 && x < 0.12)
-                    return 0xFF664422u;
-                return 0;
+                // Duke3D Shotgun - detailed pump-action
+                {
+                    uint woodBrown = 0xFFAA7744u;
+                    uint woodDark = 0xFF775533u;
+                    uint metalGray = 0xFF666677u;
+                    uint metalDark = 0xFF444455u;
+                    uint metalShine = 0xFF8888AAu;
+                    
+                    // Stock (wood)
+                    if (x < -0.10 && x > -0.28 && Math.Abs(y) < 0.05 + (x + 0.10) * 0.15)
+                    {
+                        // Wood grain
+                        int grain = (int)((x + y) * 40);
+                        if (grain % 3 == 0) return woodDark;
+                        return woodBrown;
+                    }
+                    
+                    // Receiver
+                    if (x >= -0.12 && x < 0.08 && Math.Abs(y) < 0.04)
+                    {
+                        if (y < -0.02) return metalShine;
+                        return metalGray;
+                    }
+                    
+                    // Barrel
+                    if (x >= 0.06 && x < 0.28 && Math.Abs(y) < 0.025)
+                    {
+                        if (y < 0) return metalShine;
+                        return metalDark;
+                    }
+                    
+                    // Pump grip
+                    if (x > -0.02 && x < 0.10 && y > 0.03 && y < 0.08)
+                    {
+                        int groove = (int)(x * 30);
+                        if (groove % 2 == 0) return woodDark;
+                        return woodBrown;
+                    }
+                    
+                    // Trigger guard
+                    if (x > -0.06 && x < 0.02 && y > -0.08 && y < -0.03)
+                    {
+                        if (Math.Abs(x + 0.02) < 0.01 && y < -0.05) return 0xFF222222u; // trigger
+                        return metalDark;
+                    }
+                    
+                    return 0;
+                }
 
             case PickupType.Ripper:
-                // Gray chaingun shape
-                if (Math.Abs(y) < 0.04 && x > -0.2 && x < 0.2)
-                    return 0xFFAAAABBu;
-                if (Math.Abs(y - 0.06) < 0.02 && x > 0 && x < 0.15)
-                    return 0xFF666677u;
-                if (Math.Abs(y + 0.06) < 0.02 && x > 0 && x < 0.15)
-                    return 0xFF666677u;
-                return 0;
+                // Duke3D Ripper Chaingun - multi-barrel spinning gun
+                {
+                    uint metalGray = 0xFF778899u;
+                    uint metalDark = 0xFF445566u;
+                    uint metalShine = 0xFFAABBCCu;
+                    uint handleBrown = 0xFF664422u;
+                    
+                    // Multiple barrels (rotating)
+                    double barrelRot = _gameTime * 4;
+                    for (int b = 0; b < 6; b++)
+                    {
+                        double bAngle = barrelRot + b * Math.PI / 3;
+                        double bY = Math.Sin(bAngle) * 0.04;
+                        double bDepth = Math.Cos(bAngle);
+                        
+                        if (x > 0.02 && x < 0.25 && Math.Abs(y - bY) < 0.015)
+                        {
+                            if (bDepth > 0)
+                                return metalShine;
+                            return metalDark;
+                        }
+                    }
+                    
+                    // Body/receiver
+                    if (x > -0.15 && x < 0.05 && Math.Abs(y) < 0.06)
+                    {
+                        // Vents
+                        int vent = (int)(x * 20);
+                        if (vent % 3 == 0 && Math.Abs(y) < 0.04)
+                            return metalDark;
+                        return metalGray;
+                    }
+                    
+                    // Handle
+                    if (x > -0.12 && x < -0.02 && y > 0.04 && y < 0.14)
+                    {
+                        int grip = (int)(y * 20);
+                        if (grip % 2 == 0) return 0xFF553311u;
+                        return handleBrown;
+                    }
+                    
+                    // Ammo belt hint
+                    if (x < -0.12 && x > -0.22 && y > -0.04 && y < 0.04)
+                    {
+                        int link = (int)((x + y) * 25);
+                        if (link % 2 == 0) return 0xFFBBAA44u;
+                        return 0xFF998833u;
+                    }
+                    
+                    return 0;
+                }
 
             case PickupType.RPG:
-                // Green RPG with red tip
-                if (Math.Abs(y) < 0.05 && x > -0.2 && x < 0.2)
-                    return x > 0.12 ? 0xFFFF4444u : 0xFF66BB66u;
-                if (y > 0.05 && y < 0.12 && x > -0.15 && x < -0.05)
-                    return 0xFF448844u;
-                return 0;
+                // Duke3D RPG - rocket propelled grenade launcher
+                {
+                    uint tubeGreen = 0xFF557755u;
+                    uint tubeDark = 0xFF334433u;
+                    uint tubeLight = 0xFF779977u;
+                    uint rocketRed = 0xFFCC3333u;
+                    uint rocketTip = 0xFFEE5555u;
+                    uint sightBlack = 0xFF222222u;
+                    
+                    // Main tube
+                    if (x > -0.22 && x < 0.15 && Math.Abs(y) < 0.045)
+                    {
+                        // Shading
+                        if (y < -0.02) return tubeLight;
+                        if (y > 0.02) return tubeDark;
+                        return tubeGreen;
+                    }
+                    
+                    // Rocket warhead (visible in tube)
+                    if (x > 0.12 && x < 0.26)
+                    {
+                        double rocketWidth = 0.035 - (x - 0.12) * 0.1;
+                        if (rocketWidth > 0 && Math.Abs(y) < rocketWidth)
+                        {
+                            if (x > 0.22) return rocketTip;
+                            return rocketRed;
+                        }
+                    }
+                    
+                    // Rear grip
+                    if (x < -0.18 && x > -0.28 && y > -0.02 && y < 0.10)
+                    {
+                        int grip = (int)(y * 25);
+                        if (grip % 2 == 0) return tubeDark;
+                        return tubeGreen;
+                    }
+                    
+                    // Front grip
+                    if (x > -0.08 && x < 0.02 && y > 0.04 && y < 0.12)
+                        return tubeDark;
+                    
+                    // Iron sight
+                    if (x > 0.02 && x < 0.08 && y < -0.04 && y > -0.10)
+                        return sightBlack;
+                    
+                    return 0;
+                }
 
             case PickupType.Medkit:
-                // White box with red cross
-                if (Math.Abs(x) < 0.18 && Math.Abs(y) < 0.15)
+                // Duke3D Portable Medkit - detailed first aid box
                 {
-                    if ((Math.Abs(x) < 0.04 && Math.Abs(y) < 0.10) || (Math.Abs(y) < 0.04 && Math.Abs(x) < 0.10))
-                        return 0xFFFF2222u;
-                    return 0xFFFFEEEEu;
+                    if (Math.Abs(x) < 0.20 && Math.Abs(y) < 0.16)
+                    {
+                        uint boxWhite = 0xFFEEEEEEu;
+                        uint boxGray = 0xFFCCCCCCu;
+                        uint boxDark = 0xFFAAAAAAu;
+                        uint crossRed = 0xFFDD2222u;
+                        uint crossDark = 0xFFAA1111u;
+                        uint handleGray = 0xFF888888u;
+                        
+                        // Handle on top
+                        if (y < -0.10 && Math.Abs(x) < 0.08)
+                        {
+                            if (y < -0.13) return handleGray;
+                            if (Math.Abs(x) > 0.05) return handleGray;
+                            return 0; // transparent gap
+                        }
+                        
+                        // Box edge shading
+                        if (Math.Abs(x) > 0.17 || Math.Abs(y) > 0.13)
+                            return boxDark;
+                        
+                        // Red cross with depth
+                        bool inCross = (Math.Abs(x) < 0.04 && Math.Abs(y) < 0.09) || 
+                                       (Math.Abs(y) < 0.03 && Math.Abs(x) < 0.11);
+                        if (inCross)
+                        {
+                            // Cross shading
+                            if (x > 0.02 || y > 0.01)
+                                return crossDark;
+                            return crossRed;
+                        }
+                        
+                        // Clasp
+                        if (Math.Abs(x) < 0.03 && y > 0.10)
+                            return 0xFF666666u;
+                        
+                        // Box panel lines
+                        if (Math.Abs(x - 0.12) < 0.01 || Math.Abs(x + 0.12) < 0.01)
+                            return boxGray;
+                        
+                        return boxWhite;
+                    }
+                    return 0;
                 }
-                return 0;
 
             case PickupType.Jetpack:
-                // Orange jetpack with flames
-                if (Math.Abs(x) < 0.12 && y > -0.15 && y < 0.1)
-                    return 0xFFFF8800u;
-                if (Math.Abs(x - 0.08) < 0.04 && y > 0.1 && y < 0.2 + Math.Sin(_gameTime * 12) * 0.05)
-                    return 0xFFFF4400u;
-                if (Math.Abs(x + 0.08) < 0.04 && y > 0.1 && y < 0.2 + Math.Sin(_gameTime * 12 + 1) * 0.05)
-                    return 0xFFFFAA00u;
-                return 0;
+                // Duke3D Jetpack - detailed thruster pack
+                {
+                    uint packGray = 0xFF666677u;
+                    uint packDark = 0xFF444455u;
+                    uint packLight = 0xFF8899AAu;
+                    uint thrusterOrange = 0xFFFF6600u;
+                    uint flameYellow = 0xFFFFAA00u;
+                    uint flameRed = 0xFFFF3300u;
+                    uint strapBrown = 0xFF554422u;
+                    
+                    // Main body
+                    if (Math.Abs(x) < 0.14 && y > -0.14 && y < 0.06)
+                    {
+                        // Control panel
+                        if (y > -0.04 && y < 0.02 && Math.Abs(x) < 0.08)
+                        {
+                            // Buttons/lights
+                            if (Math.Abs(x - 0.03) < 0.015 && Math.Abs(y + 0.01) < 0.015)
+                                return 0xFF00FF00u; // green light
+                            if (Math.Abs(x + 0.03) < 0.015 && Math.Abs(y + 0.01) < 0.015)
+                                return 0xFFFF0000u; // red light
+                            return 0xFF333344u;
+                        }
+                        
+                        // Fuel tanks
+                        if (Math.Abs(x) > 0.08 && y > -0.10 && y < 0.02)
+                        {
+                            int tankLine = (int)(y * 30);
+                            if (tankLine % 3 == 0) return packDark;
+                            return packGray;
+                        }
+                        
+                        // Shading
+                        if (y < -0.10) return packDark;
+                        return packLight;
+                    }
+                    
+                    // Shoulder straps
+                    if (y < 0 && y > -0.12)
+                    {
+                        if (Math.Abs(x - 0.16) < 0.025 || Math.Abs(x + 0.16) < 0.025)
+                            return strapBrown;
+                    }
+                    
+                    // Thrusters
+                    double thrusterY = y - 0.08;
+                    if (thrusterY > 0 && thrusterY < 0.08)
+                    {
+                        if (Math.Abs(x - 0.08) < 0.04 || Math.Abs(x + 0.08) < 0.04)
+                            return thrusterOrange;
+                    }
+                    
+                    // Animated flames
+                    double flameHeight = 0.12 + Math.Sin(_gameTime * 15 + x * 10) * 0.04;
+                    if (y > 0.14 && y < 0.14 + flameHeight)
+                    {
+                        double flameWidth = 0.04 - (y - 0.14) * 0.2;
+                        if (flameWidth > 0)
+                        {
+                            if (Math.Abs(x - 0.08) < flameWidth || Math.Abs(x + 0.08) < flameWidth)
+                            {
+                                if (y < 0.18) return flameYellow;
+                                return flameRed;
+                            }
+                        }
+                    }
+                    
+                    return 0;
+                }
 
             case PickupType.Steroids:
-                // Yellow syringe
-                if (Math.Abs(y) < 0.03 && x > -0.2 && x < 0.15)
-                    return 0xFFFFFF00u;
-                if (x > 0.15 && x < 0.22 && Math.Abs(y) < 0.015)
-                    return 0xFFCCCCCCu;
-                if (x < -0.15 && x > -0.22 && Math.Abs(y) < 0.05)
-                    return 0xFFDDDD00u;
-                return 0;
+                // Duke3D Steroids - pill bottle
+                {
+                    uint bottleOrange = 0xFFDD6622u;
+                    uint bottleDark = 0xFFAA4411u;
+                    uint bottleLight = 0xFFFF8844u;
+                    uint capWhite = 0xFFEEEEEEu;
+                    uint labelWhite = 0xFFFFFFFFu;
+                    
+                    // Bottle body
+                    if (Math.Abs(x) < 0.10 && y > -0.12 && y < 0.10)
+                    {
+                        // Cap
+                        if (y < -0.06)
+                        {
+                            if (Math.Abs(x) < 0.07) return capWhite;
+                            return 0;
+                        }
+                        
+                        // Label area
+                        if (y > -0.02 && y < 0.06 && Math.Abs(x) < 0.07)
+                        {
+                            // Rx symbol hint
+                            int rx = (int)((x + 0.05) * 20);
+                            if (rx % 3 == 0) return 0xFFDDDDDDu;
+                            return labelWhite;
+                        }
+                        
+                        // Bottle shading
+                        if (x < -0.06) return bottleLight;
+                        if (x > 0.06) return bottleDark;
+                        return bottleOrange;
+                    }
+                    
+                    // Some spilled pills
+                    double pill1 = (x - 0.14) * (x - 0.14) + (y + 0.02) * (y + 0.02);
+                    double pill2 = (x + 0.15) * (x + 0.15) + (y - 0.03) * (y - 0.03);
+                    if (pill1 < 0.003 || pill2 < 0.003)
+                        return 0xFFFFFFAAu;
+                    
+                    return 0;
+                }
 
             case PickupType.KeyRed:
-                // Red key shape
-                if (Math.Abs(x) < 0.08 && y > -0.2 && y < 0.05)
-                    return 0xFFFF4444u;
-                if (y > 0.05 && y < 0.15 && Math.Abs(x) < 0.12)
-                    return dist < 0.015 ? 0xFFCC0000u : 0xFFFF4444u;
-                return 0;
+                // Duke3D Red Access Card - detailed keycard
+                {
+                    return DrawKeyCard(x, y, 0xFFCC2222u, 0xFFFF4444u, 0xFF880000u);
+                }
 
             case PickupType.KeyBlue:
-                // Blue key shape
-                if (Math.Abs(x) < 0.08 && y > -0.2 && y < 0.05)
-                    return 0xFF4444FFu;
-                if (y > 0.05 && y < 0.15 && Math.Abs(x) < 0.12)
-                    return dist < 0.015 ? 0xFF0000CCu : 0xFF4444FFu;
-                return 0;
+                // Duke3D Blue Access Card
+                {
+                    return DrawKeyCard(x, y, 0xFF2222CCu, 0xFF4444FFu, 0xFF000088u);
+                }
 
             case PickupType.KeyYellow:
-                // Yellow key shape
-                if (Math.Abs(x) < 0.08 && y > -0.2 && y < 0.05)
-                    return 0xFFFFFF44u;
-                if (y > 0.05 && y < 0.15 && Math.Abs(x) < 0.12)
-                    return dist < 0.015 ? 0xFFCCCC00u : 0xFFFFFF44u;
-                return 0;
+                // Duke3D Yellow Access Card
+                {
+                    return DrawKeyCard(x, y, 0xFFCCAA22u, 0xFFFFDD44u, 0xFF886600u);
+                }
 
             case PickupType.Exit:
-                // Glowing white/green exit sign
-                double exitPulse = 0.7 + Math.Sin(_gameTime * 3) * 0.3;
-                if (Math.Abs(x) < 0.2 && Math.Abs(y) < 0.12)
+                // Duke3D Exit Symbol - glowing nuke sign
                 {
-                    if (Math.Abs(x) > 0.16 || Math.Abs(y) > 0.08) return 0xFF44AA44u;
-                    uint g = (uint)(255 * exitPulse);
-                    return 0xFF000000 | (g << 8) | (g / 2);
-                }
-                return 0;
-
-            case PickupType.Invincibility:
-                // Glowing cyan star with rotation effect
-                double starPulse = 0.6 + Math.Sin(_gameTime * 8) * 0.4;
-                double starAngle = _gameTime * 2;
-                double rotX = x * Math.Cos(starAngle) - y * Math.Sin(starAngle);
-                double rotY = x * Math.Sin(starAngle) + y * Math.Cos(starAngle);
-                // 5-point star shape
-                double starR = Math.Sqrt(rotX * rotX + rotY * rotY);
-                double starA = Math.Atan2(rotY, rotX);
-                double starShape = 0.12 + 0.06 * Math.Cos(5 * starA);
-                if (starR < starShape * 0.6)
-                {
-                    uint cyan = (uint)(255 * starPulse);
-                    return 0xFF000000 | (cyan << 8) | cyan;
-                }
-                if (starR < starShape)
-                    return 0xFF00AAFFu;
-                return 0;
-
-            case PickupType.DamageBoost:
-                // Red/orange skull with flame effect
-                double flamePulse = 0.5 + Math.Sin(_gameTime * 6) * 0.5;
-                // Skull shape
-                if (Math.Abs(x) < 0.12 && y > -0.1 && y < 0.15)
-                {
-                    // Eye sockets
-                    if ((Math.Abs(x - 0.05) < 0.025 || Math.Abs(x + 0.05) < 0.025) && y > 0.02 && y < 0.08)
-                        return 0xFF000000u;
-                    // Nose
-                    if (Math.Abs(x) < 0.015 && y > -0.02 && y < 0.02)
-                        return 0xFF000000u;
-                    // Teeth
-                    if (y < -0.05 && y > -0.1 && ((int)((x + 0.1) * 30) % 2 == 0))
-                        return 0xFF000000u;
-                    // Skull body
-                    uint red = (uint)(200 + flamePulse * 55);
-                    uint orange = (uint)(100 + flamePulse * 50);
-                    return 0xFF000000 | (red << 16) | (orange << 8);
-                }
-                // Flames above
-                if (y > 0.12 && y < 0.25 + Math.Sin(_gameTime * 10 + x * 5) * 0.05)
-                {
-                    if (Math.Abs(x) < 0.08 - (y - 0.12) * 0.3)
+                    double exitPulse = 0.6 + Math.Sin(_gameTime * 3) * 0.4;
+                    
+                    // Outer ring
+                    double ringDist = Math.Sqrt(dist);
+                    if (ringDist > 0.14 && ringDist < 0.18)
                     {
-                        uint r = (uint)(255 * flamePulse);
-                        uint g = (uint)(80 + flamePulse * 80);
+                        uint g = (uint)(200 * exitPulse);
+                        uint r = (uint)(50 * exitPulse);
                         return 0xFF000000 | (r << 16) | (g << 8);
                     }
+                    
+                    // Radiation symbol
+                    if (ringDist < 0.14)
+                    {
+                        // Center dot
+                        if (ringDist < 0.025)
+                        {
+                            uint g = (uint)(255 * exitPulse);
+                            return 0xFF000000 | (g << 8);
+                        }
+                        
+                        // Three pie slices
+                        double angle = Math.Atan2(y, x);
+                        for (int i = 0; i < 3; i++)
+                        {
+                            double sliceAngle = i * Math.PI * 2 / 3 + _gameTime * 0.5;
+                            double angleDiff = Math.Abs(angle - sliceAngle);
+                            if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                            
+                            if (angleDiff < 0.45 && ringDist > 0.04 && ringDist < 0.12)
+                            {
+                                uint g = (uint)(180 + exitPulse * 75);
+                                return 0xFF000000 | (g << 8);
+                            }
+                        }
+                        
+                        // Background
+                        return 0xFF112211u;
+                    }
+                    return 0;
                 }
-                return 0;
+
+            case PickupType.Invincibility:
+                // Duke3D Holoduke/Invincibility - shimmering holographic effect
+                {
+                    double shimmer = Math.Sin(_gameTime * 10 + x * 20 + y * 15) * 0.5 + 0.5;
+                    double pulse = 0.5 + Math.Sin(_gameTime * 5) * 0.5;
+                    
+                    // Duke silhouette
+                    // Head
+                    if (y < -0.04)
+                    {
+                        double headDist = x * x + (y + 0.12) * (y + 0.12);
+                        if (headDist < 0.004)
+                        {
+                            uint intensity = (uint)(150 + shimmer * 105 * pulse);
+                            return 0xFF000000 | (intensity << 8) | intensity;
+                        }
+                    }
+                    
+                    // Body
+                    if (y > -0.06 && y < 0.12 && Math.Abs(x) < 0.08 - y * 0.2)
+                    {
+                        // Scanline effect
+                        int scanline = (int)((y + _gameTime) * 40);
+                        double scanIntensity = (scanline % 3 == 0) ? 0.5 : 1.0;
+                        
+                        uint intensity = (uint)((100 + shimmer * 80) * pulse * scanIntensity);
+                        return 0xFF000000 | (intensity / 2 << 16) | (intensity << 8) | intensity;
+                    }
+                    
+                    // Holographic glow ring
+                    double glowDist = Math.Sqrt(dist);
+                    if (glowDist > 0.15 && glowDist < 0.20)
+                    {
+                        double ringPulse = Math.Sin(_gameTime * 8 + glowDist * 20) * 0.5 + 0.5;
+                        uint g = (uint)(100 * ringPulse * pulse);
+                        uint b = (uint)(150 * ringPulse * pulse);
+                        return 0xFF000000 | (g << 8) | b;
+                    }
+                    
+                    return 0;
+                }
+
+            case PickupType.DamageBoost:
+                // Duke3D Devastator/Damage Boost - glowing power core
+                {
+                    double corePulse = 0.5 + Math.Sin(_gameTime * 8) * 0.5;
+                    double rotAngle = _gameTime * 3;
+                    
+                    // Central power core
+                    if (dist < 0.025)
+                    {
+                        uint r = (uint)(200 + corePulse * 55);
+                        uint g = (uint)(50 + corePulse * 50);
+                        return 0xFF000000 | (r << 16) | (g << 8);
+                    }
+                    
+                    // Inner glow
+                    if (dist < 0.05)
+                    {
+                        uint r = (uint)(150 * corePulse);
+                        uint g = (uint)(30 * corePulse);
+                        return 0xFF000000 | (r << 16) | (g << 8);
+                    }
+                    
+                    // Energy arcs (rotating)
+                    for (int arc = 0; arc < 4; arc++)
+                    {
+                        double arcAngle = rotAngle + arc * Math.PI / 2;
+                        double arcX = Math.Cos(arcAngle);
+                        double arcY = Math.Sin(arcAngle);
+                        
+                        // Check if point is near arc line
+                        double dotProduct = x * arcX + y * arcY;
+                        if (dotProduct > 0.05 && dotProduct < 0.16)
+                        {
+                            double perpDist = Math.Abs(x * arcY - y * arcX);
+                            if (perpDist < 0.02)
+                            {
+                                double arcIntensity = 1 - (dotProduct - 0.05) / 0.11;
+                                uint r = (uint)(255 * arcIntensity * corePulse);
+                                uint g = (uint)(100 * arcIntensity * corePulse);
+                                return 0xFF000000 | (r << 16) | (g << 8);
+                            }
+                        }
+                    }
+                    
+                    // Outer containment ring
+                    double ringDist = Math.Sqrt(dist);
+                    if (ringDist > 0.14 && ringDist < 0.17)
+                    {
+                        // Segmented ring
+                        double angle = Math.Atan2(y, x);
+                        int segment = (int)((angle + Math.PI) * 8 / Math.PI);
+                        if (segment % 2 == 0)
+                            return 0xFF553322u;
+                        return 0xFF332211u;
+                    }
+                    
+                    return 0;
+                }
 
             default:
-                return dist < 0.16 ? 0xFFFFFFFFu : 0;
+                // Unknown pickup - simple glow
+                return dist < 0.12 ? 0xFFFFFFFFu : 0;
         }
+    }
+    
+    // Helper function for drawing keycards
+    uint DrawKeyCard(double x, double y, uint mainColor, uint lightColor, uint darkColor)
+    {
+        // Card body
+        if (Math.Abs(x) < 0.14 && y > -0.08 && y < 0.12)
+        {
+            // Top edge (darker)
+            if (y > 0.09) return darkColor;
+            
+            // Magnetic stripe
+            if (y > 0.04 && y < 0.08)
+                return 0xFF222222u;
+            
+            // Chip
+            if (y > -0.02 && y < 0.02 && x > 0.02 && x < 0.10)
+            {
+                // Gold contact pads
+                int pad = (int)(x * 30);
+                if (pad % 3 == 0) return 0xFFCCAA44u;
+                return 0xFFDDCC66u;
+            }
+            
+            // Card number dots
+            if (y > -0.06 && y < -0.03)
+            {
+                int dot = (int)((x + 0.12) * 25);
+                if (dot % 4 == 0 && Math.Abs(x) < 0.10)
+                    return darkColor;
+            }
+            
+            // Highlight edge
+            if (x < -0.10 || y < -0.05)
+                return lightColor;
+            
+            return mainColor;
+        }
+        return 0;
+    }
+    
+    // Exploding barrel sprite - red drum with warning stripes!
+    uint GetBarrelColor(ExplodingBarrel barrel, double x, double y)
+    {
+        double dist = x * x + y * y;
+        if (dist > 0.22) return 0;
+        
+        // Barrel body shape (ellipse, taller than wide)
+        double barrelX = x * 1.5;
+        double barrelY = y * 1.0;
+        double barrelDist = barrelX * barrelX + barrelY * barrelY;
+        if (barrelDist > 0.2) return 0;
+        
+        // Base colors
+        uint barrelRed = 0xFFCC2222u;
+        uint barrelRedLight = 0xFFDD4444u;
+        uint barrelRedDark = 0xFF991111u;
+        uint warningYellow = 0xFFFFDD00u;
+        uint warningBlack = 0xFF222222u;
+        uint rimColor = 0xFF444444u;
+        uint rimLight = 0xFF666666u;
+        
+        // Damage visual - more beat up when low HP
+        double damageLevel = 1.0 - (barrel.Hp / 30.0);
+        
+        // Top/bottom rims
+        if (y < -0.28 || y > 0.35)
+        {
+            double rimShade = Math.Abs(y) / 0.4;
+            if (rimShade > 0.9) return rimColor;
+            return y < 0 ? rimLight : rimColor;
+        }
+        
+        // Warning stripe band (middle section)
+        if (y > -0.05 && y < 0.1)
+        {
+            // Diagonal stripes
+            double stripePhase = (x + y) * 12;
+            int stripeIdx = (int)Math.Floor(stripePhase) % 4;
+            
+            if (stripeIdx < 2)
+                return warningYellow;
+            else
+                return warningBlack;
+        }
+        
+        // Barrel texture with shading
+        double shade = 1.0 - Math.Abs(barrelX) * 2;
+        shade = Math.Max(0.5, shade);
+        
+        // Add dents/damage marks based on damage
+        if (damageLevel > 0.3)
+        {
+            double dent1 = Math.Sin(x * 20 + y * 15);
+            double dent2 = Math.Sin(x * 12 - y * 18);
+            if (dent1 > 0.7 || dent2 > 0.8)
+                shade *= 0.7;
+        }
+        
+        // Vertical ribs on barrel
+        double rib = Math.Sin(x * 25);
+        if (rib > 0.8) shade *= 1.1;
+        if (rib < -0.8) shade *= 0.85;
+        
+        // Apply base color with shading
+        uint r, g, b;
+        if (shade > 0.85)
+        {
+            r = (barrelRedLight >> 16) & 0xFF;
+            g = (barrelRedLight >> 8) & 0xFF;
+            b = barrelRedLight & 0xFF;
+        }
+        else if (shade < 0.6)
+        {
+            r = (barrelRedDark >> 16) & 0xFF;
+            g = (barrelRedDark >> 8) & 0xFF;
+            b = barrelRedDark & 0xFF;
+        }
+        else
+        {
+            r = (barrelRed >> 16) & 0xFF;
+            g = (barrelRed >> 8) & 0xFF;
+            b = barrelRed & 0xFF;
+        }
+        
+        // Flicker when damaged (about to explode!)
+        if (damageLevel > 0.5)
+        {
+            double flicker = Math.Sin(_gameTime * 15 * damageLevel) * 0.5 + 0.5;
+            if (flicker > 0.6)
+            {
+                r = (uint)Math.Min(255, r + 50);
+                g = (uint)Math.Min(255, g + 30);
+            }
+        }
+        
+        return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
     double Dist(double x, double y) => (x - _px_pos) * (x - _px_pos) + (y - _py) * (y - _py);
@@ -5737,6 +7929,27 @@ public partial class SoupNukem : Window
                     }
                 }
         }
+        
+        // Render barrels on minimap (orange dots)
+        foreach (var barrel in _barrels.Where(b => !b.Exploded))
+        {
+            int bx = (int)(barrel.X * scale), by = (int)(barrel.Y * scale);
+            // Color based on barrel health (green -> yellow -> orange -> red)
+            byte barrelR = (byte)(barrel.Hp > 20 ? 255 : barrel.Hp > 10 ? 255 : 255);
+            byte barrelG = (byte)(barrel.Hp > 20 ? 140 : barrel.Hp > 10 ? 100 : 50);
+            byte barrelB = 0;
+            
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int px = bx + dx, py_m = by + dy;
+                    if (px >= 0 && px < 120 && py_m >= 0 && py_m < 120)
+                    {
+                        int i = (py_m * 120 + px) * 4;
+                        _minimapPx[i] = barrelB; _minimapPx[i + 1] = barrelG; _minimapPx[i + 2] = barrelR; _minimapPx[i + 3] = 255;
+                    }
+                }
+        }
 
         _minimapBmp.WritePixels(new Int32Rect(0, 0, 120, 120), _minimapPx, 120 * 4, 0);
     }
@@ -5929,6 +8142,7 @@ public partial class SoupNukem : Window
 
             if (IsWall(x, y)) break;
 
+            // Check enemies
             foreach (var en in _enemies)
             {
                 if (en.Dead) continue;
@@ -5939,6 +8153,27 @@ public partial class SoupNukem : Window
                     en.HurtTimer = 0.15;
                     en.Alerted = true;
                     if (en.Hp <= 0) KillEnemy(en);
+                    return;
+                }
+            }
+            
+            // Check exploding barrels
+            foreach (var barrel in _barrels)
+            {
+                if (barrel.Exploded) continue;
+                double d = Math.Sqrt((x - barrel.X) * (x - barrel.X) + (y - barrel.Y) * (y - barrel.Y));
+                if (d < 0.5)
+                {
+                    barrel.Hp -= damage;
+                    if (barrel.Hp <= 0)
+                    {
+                        ExplodeBarrel(barrel);
+                    }
+                    else
+                    {
+                        // Spark particles on barrel hit
+                        SpawnParticles(barrel.X, barrel.Y, 5, 0xFFFF8800u, 0xFFFFAA00u);
+                    }
                     return;
                 }
             }

@@ -325,6 +325,30 @@
                                 FontSize="20" FontFamily="Impact" Click="CampaignButton_Click"/>
                         <Button x:Name="EndlessButton" Width="300" Height="50" Margin="0,10" Content="ENDLESS MODE" 
                                 FontSize="20" FontFamily="Impact" Click="EndlessButton_Click"/>
+                        
+                        <!-- Difficulty Selection -->
+                        <Border Margin="0,25,0,0" BorderBrush="#444" BorderThickness="1" CornerRadius="5" Padding="20,10">
+                            <StackPanel>
+                                <TextBlock Text="DIFFICULTY" Foreground="#AAA" FontSize="14" FontFamily="Impact" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="DiffEasyBtn" Width="80" Height="35" Margin="5,0" Content="EASY" 
+                                            FontSize="12" FontFamily="Impact" Click="DifficultyButton_Click" Tag="0"
+                                            Background="#335533" Foreground="#88FF88"/>
+                                    <Button x:Name="DiffNormalBtn" Width="80" Height="35" Margin="5,0" Content="NORMAL" 
+                                            FontSize="12" FontFamily="Impact" Click="DifficultyButton_Click" Tag="1"
+                                            Background="#FFD700" Foreground="#000"/>
+                                    <Button x:Name="DiffHardBtn" Width="80" Height="35" Margin="5,0" Content="HARD" 
+                                            FontSize="12" FontFamily="Impact" Click="DifficultyButton_Click" Tag="2"
+                                            Background="#663333" Foreground="#FF8888"/>
+                                    <Button x:Name="DiffNightmareBtn" Width="80" Height="35" Margin="5,0" Content="NIGHTMARE" 
+                                            FontSize="10" FontFamily="Impact" Click="DifficultyButton_Click" Tag="3"
+                                            Background="#440000" Foreground="#FF0000"/>
+                                </StackPanel>
+                                <TextBlock x:Name="DifficultyDescText" Text="The standard challenge.&#x0a;Balanced gameplay experience." 
+                                           Foreground="#888" FontSize="10" FontFamily="Consolas" HorizontalAlignment="Center" 
+                                           TextAlignment="Center" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     
                     <!-- Instructions -->
