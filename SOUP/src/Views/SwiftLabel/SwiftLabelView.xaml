@@ -365,7 +365,8 @@
                                     CornerRadius="8" 
                                     BorderBrush="{DynamicResource SurfaceActiveBrush}" 
                                     BorderThickness="1"
-                                    Margin="0,0,0,16">
+                                    Margin="0,0,0,16"
+                                    MaxHeight="400">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="12">
                                     <ItemsControl ItemsSource="{Binding PreviewLabels}">
                                         <ItemsControl.ItemsPanel>

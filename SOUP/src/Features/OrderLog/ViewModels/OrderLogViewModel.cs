@@ -196,6 +196,17 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private async Task DeleteAsync(OrderItem? item)
+    {
+        if (item == null) return;
+
+        Items.Remove(item);
+        ArchivedItems.Remove(item);
+        await SaveAsync();
+        StatusMessage = "Deleted item";
+    }
+
+    [RelayCommand]
     private async Task BulkSetColorAsync(string? colorHex)
     {
         if (SelectedItems.Count == 0 || string.IsNullOrEmpty(colorHex)) return;
