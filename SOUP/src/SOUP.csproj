@@ -81,6 +81,8 @@
     <None Update="Assets\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- PNG images need to be Resources for WPF Image controls -->
+    <Resource Include="Assets\soup-logo.png" />
   </ItemGroup>
 
 </Project>

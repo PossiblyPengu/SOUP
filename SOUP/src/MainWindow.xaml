@@ -161,7 +161,7 @@
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{DynamicResource AppLogoShadowColor}"/>
                                 </Border.Effect>
-                                <Image Source="/Assets/soup-logo.png" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image Source="pack://application:,,,/Assets/soup-logo.png" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center" Margin="14,0,0,0">
                                 <TextBlock Text="S.O.U.P" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
