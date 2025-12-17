@@ -14,7 +14,7 @@ using SOUP.Core.Models;
 
 namespace SOUP.Windows;
 
-public partial class DoomGame : Window
+public partial class SoupNukem : Window
 {
     #region Win32 API for Mouse
     // Minimal fix: add missing field for build
@@ -326,7 +326,7 @@ public partial class DoomGame : Window
     List<BodyPart> _bodyParts = new();
     #endregion
 
-    public DoomGame()
+    public SoupNukem()
     {
         InitializeComponent();
         GenerateTextures();
@@ -723,11 +723,11 @@ public partial class DoomGame : Window
         // Update title based on mode
         if (_gameMode == GameMode.Campaign && level <= _maxCampaignLevel)
         {
-            Title = $"S.A.P NUKEM - {LevelNames[level - 1]}";
+            Title = $"S.O.U.P NUKEM - {LevelNames[level - 1]}";
         }
         else
         {
-            Title = $"S.A.P NUKEM - Endless Stage {_currentLevel}";
+            Title = $"S.O.U.P NUKEM - Endless Stage {_currentLevel}";
         }
     }
     
