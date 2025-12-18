@@ -8,7 +8,8 @@
       "Bash(findstr:*)",
       "Bash(dir:*)",
       "Bash(del \"d:\\CODE\\Cshp\\SAP\\src\\SAP\\Features\\NotesTracker\\Services\\NotesService.cs\")",
-      "Bash(powershell -Command \"Get-Process -Name SAP -ErrorAction SilentlyContinue | Stop-Process -Force\")"
+      "Bash(powershell -Command \"Get-Process -Name SAP -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-8.0.404-win-x64\\\\dotnet.exe\" build \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\src\\\\SOUP.csproj\")"
     ],
     "deny": [],
     "ask": []

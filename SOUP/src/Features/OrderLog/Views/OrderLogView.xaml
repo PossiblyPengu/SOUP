@@ -585,70 +585,13 @@
                                         BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="0,1,0,0"
                                         Padding="12,8">
-                                    <Grid>
-                                        <!-- Text Formatting Toolbar (only for sticky notes) -->
-                                        <Border Background="{DynamicResource SurfaceBrush}" 
-                                                CornerRadius="4" 
-                                                Padding="4,2"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Content="B" ToolTip="Bold (**text**)" 
-                                                        Click="FormatBold_Click" Tag="{Binding}"
-                                                        FontWeight="Bold" FontSize="11" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}"/>
-                                                <Button Content="I" ToolTip="Italic (*text*)" 
-                                                        Click="FormatItalic_Click" Tag="{Binding}"
-                                                        FontStyle="Italic" FontSize="11" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}"/>
-                                                <Button Content="U" ToolTip="Underline (__text__)" 
-                                                        Click="FormatUnderline_Click" Tag="{Binding}"
-                                                        FontSize="11" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}">
-                                                    <Button.ContentTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="U" TextDecorations="Underline"/>
-                                                        </DataTemplate>
-                                                    </Button.ContentTemplate>
-                                                </Button>
-                                                <Rectangle Width="1" Fill="{DynamicResource BorderBrush}" Margin="4,2"/>
-                                                <Button Content="•" ToolTip="Insert bullet point" 
-                                                        Click="InsertBullet_Click" Tag="{Binding}"
-                                                        FontSize="14" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}"/>
-                                                <Button Content="☐" ToolTip="Insert checkbox" 
-                                                        Click="InsertCheckbox_Click" Tag="{Binding}"
-                                                        FontSize="12" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}"/>
-                                                <Button Content="🕐" ToolTip="Insert timestamp" 
-                                                        Click="InsertTimestamp_Click" Tag="{Binding}"
-                                                        FontSize="11" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}"/>
-                                                <Button Content="―" ToolTip="Insert divider" 
-                                                        Click="InsertDivider_Click" Tag="{Binding}"
-                                                        FontSize="11" Padding="6,2" Margin="1"
-                                                        Style="{DynamicResource GhostButtonStyle}"/>
-                                            </StackPanel>
-                                        </Border>
-                                        
-                                        <Button Content="Delete"
-                                                Click="DeleteNote_Click"
-                                                Style="{DynamicResource GhostButtonStyle}"
-                                                Padding="10,6"
-                                                FontSize="12"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{DynamicResource DangerBrush}"/>
-                                    </Grid>
+                                    <Button Content="Delete"
+                                            Click="DeleteNote_Click"
+                                            Style="{DynamicResource GhostButtonStyle}"
+                                            Padding="10,6"
+                                            FontSize="12"
+                                            HorizontalAlignment="Right"
+                                            Foreground="{DynamicResource DangerBrush}"/>
                                 </Border>
                             </Grid>
                         </Border>
