@@ -22,14 +22,25 @@ public static class TextFormattingHelper
     /// <summary>
     /// Finds the NoteContent RichTextBox by walking up the visual tree from a button.
     /// </summary>
-    public static RichTextBox? FindNoteContentRichTextBox(object sender)
+    public static RichTextBox? FindNoteContentRichTextBox(object sender, FrameworkElement? view = null)
     {
         if (sender is not DependencyObject start) return null;
+        // If a view is provided, prefer searching the view's visual tree for an rtb
+        // whose DataContext matches the OrderItem (common case when buttons live in a separate toolbar).
+        OrderItem? targetOrder = null;
+        if (sender is Button b && b.Tag is OrderItem bo) targetOrder = bo;
+        if (sender is FrameworkElement fe && fe.DataContext is OrderItem fde) targetOrder ??= fde;
 
+        if (view != null && targetOrder != null)
+        {
+            var found = FindDescendantRichTextBoxes(view).FirstOrDefault(r => r.DataContext == (object?)targetOrder);
+            if (found != null) return found;
+        }
+
+        // Fallback: walk up the visual tree from the sender and look for a RichTextBox child on each ancestor
         var parent = VisualTreeHelper.GetParent(start);
         while (parent != null)
         {
-            // Look for a RichTextBox within this subtree
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
             {
                 var child = VisualTreeHelper.GetChild(parent, i);
@@ -39,7 +50,24 @@ public static class TextFormattingHelper
             parent = VisualTreeHelper.GetParent(parent);
         }
 
+        // As a last resort, if a view was provided search it for any RichTextBox
+        if (view != null)
+            return FindDescendantRichTextBoxes(view).FirstOrDefault();
+
         return null;
+    }
+
+    private static System.Collections.Generic.IEnumerable<RichTextBox> FindDescendantRichTextBoxes(DependencyObject root)
+    {
+        if (root == null) yield break;
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is RichTextBox rtb) yield return rtb;
+            foreach (var desc in FindDescendantRichTextBoxes(child))
+                yield return desc;
+        }
     }
 
     /// <summary>
@@ -111,7 +139,7 @@ public static class TextFormattingHelper
         if (order == null && sender is FrameworkElement fe && fe.DataContext is OrderItem oc) order = oc;
         if (order == null) return;
 
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             order.NoteContent = GetDocumentXaml(rtb);
@@ -191,7 +219,7 @@ public static class TextFormattingHelper
     // Click handler methods that can be called from code-behind
     public static void FormatBold(object sender, FrameworkElement view)
     {
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             EditingCommands.ToggleBold.Execute(null, rtb);
@@ -201,7 +229,7 @@ public static class TextFormattingHelper
 
     public static void FormatItalic(object sender, FrameworkElement view)
     {
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             EditingCommands.ToggleItalic.Execute(null, rtb);
@@ -211,7 +239,7 @@ public static class TextFormattingHelper
 
     public static void FormatUnderline(object sender, FrameworkElement view)
     {
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             EditingCommands.ToggleUnderline.Execute(null, rtb);
@@ -221,7 +249,7 @@ public static class TextFormattingHelper
 
     public static void InsertBullet(object sender, FrameworkElement view)
     {
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             InsertTextAtCaret(rtb, "• ", newLine: true);
@@ -231,7 +259,7 @@ public static class TextFormattingHelper
 
     public static void InsertCheckbox(object sender, FrameworkElement view)
     {
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             InsertTextAtCaret(rtb, "☐ ", newLine: true);
@@ -241,7 +269,7 @@ public static class TextFormattingHelper
 
     public static void InsertTimestamp(object sender, FrameworkElement view)
     {
-        var rtb = FindNoteContentRichTextBox(sender);
+        var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
             var timestamp = DateTime.Now.ToString("MM/dd HH:mm");
