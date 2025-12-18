@@ -225,10 +225,10 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </MenuItem.Style>
-                                        <MenuItem Header="Not Ready" Click="SetStatus_NotReady"/>
-                                        <MenuItem Header="On Deck" Click="SetStatus_OnDeck"/>
-                                        <MenuItem Header="In Progress" Click="SetStatus_InProgress"/>
-                                        <MenuItem Header="Done" Click="SetStatus_Done"/>
+                                        <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
+                                        <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
+                                        <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
+                                        <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
                                     </MenuItem>
                                     <!-- Change Color - only for sticky notes -->
                                     <MenuItem Header="Change Color..." Click="ChangeColor_Click">

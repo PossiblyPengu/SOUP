@@ -98,40 +98,53 @@ public partial class OrderItem : ObservableObject
 
     partial void OnStatusChanged(OrderStatus value)
     {
-        // Set color based on status
-        ColorHex = value switch
+        UpdateStatusColor(value);
+        UpdateArchiveState(value);
+        UpdateTimestamps(value);
+        RefreshTimeInProgress();
+    }
+
+    private void UpdateStatusColor(OrderStatus status)
+    {
+        // Only update color for non-Done statuses (keep custom colors when marking done)
+        ColorHex = status switch
         {
             OrderStatus.NotReady => "#FF4444",    // Red
             OrderStatus.OnDeck => "#FFD700",      // Yellow/Gold
             OrderStatus.InProgress => "#4CAF50",  // Green
-            OrderStatus.Done => ColorHex,          // Keep existing color
+            OrderStatus.Done => ColorHex,         // Keep existing color
             _ => ColorHex
         };
+    }
 
+    private void UpdateArchiveState(OrderStatus status)
+    {
         // Auto-archive when marked as Done (only for orders, not sticky notes)
-        if (value == OrderStatus.Done && NoteType == NoteType.Order)
+        if (status == OrderStatus.Done && NoteType == NoteType.Order)
         {
             IsArchived = true;
         }
+    }
 
-        // Manage StartedAt/CompletedAt based on status transitions
-        if (value == OrderStatus.InProgress)
+    private void UpdateTimestamps(OrderStatus status)
+    {
+        switch (status)
         {
-            if (StartedAt == null) StartedAt = DateTime.UtcNow;
-            CompletedAt = null;
-        }
-        else if (value == OrderStatus.Done)
-        {
-            if (StartedAt == null) StartedAt = DateTime.UtcNow;
-            CompletedAt = DateTime.UtcNow;
-        }
-        else // NotReady or OnDeck
-        {
-            StartedAt = null;
-            CompletedAt = null;
-        }
+            case OrderStatus.InProgress:
+                StartedAt ??= DateTime.UtcNow;
+                CompletedAt = null;
+                break;
 
-        RefreshTimeInProgress();
+            case OrderStatus.Done:
+                StartedAt ??= DateTime.UtcNow;
+                CompletedAt = DateTime.UtcNow;
+                break;
+
+            default: // NotReady or OnDeck
+                StartedAt = null;
+                CompletedAt = null;
+                break;
+        }
     }
 
     /// <summary>

@@ -2,18 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace SOUP.Features.OrderLog.Services;
 
 /// <summary>
 /// Persists group expand/collapse states for the orders UI.
+/// Uses debouncing to avoid excessive file writes.
 /// </summary>
-public sealed class GroupStateStore
+public sealed class GroupStateStore : IDisposable
 {
     private readonly string _path;
     private readonly ILogger<GroupStateStore>? _logger;
     private Dictionary<string, bool> _states = new(StringComparer.OrdinalIgnoreCase);
+    private Timer? _saveTimer;
+    private readonly object _lock = new();
+    private bool _disposed;
 
     public GroupStateStore(ILogger<GroupStateStore>? logger = null)
     {
@@ -65,20 +70,46 @@ public sealed class GroupStateStore
     public void Set(string? name, bool value)
     {
         if (string.IsNullOrEmpty(name)) return;
-        _states[name] = value;
-        Save();
+
+        lock (_lock)
+        {
+            _states[name] = value;
+
+            // Debounce: save after 500ms of no changes
+            _saveTimer?.Dispose();
+            _saveTimer = new Timer(_ => Save(), null, 500, Timeout.Infinite);
+        }
     }
 
     public void ResetAll()
     {
-        _states.Clear();
-        try
+        lock (_lock)
         {
-            if (File.Exists(_path)) File.Delete(_path);
+            _states.Clear();
+            _saveTimer?.Dispose();
+            _saveTimer = null;
+
+            try
+            {
+                if (File.Exists(_path)) File.Delete(_path);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to delete group states file");
+            }
         }
-        catch (Exception ex)
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        lock (_lock)
         {
-            _logger?.LogWarning(ex, "Failed to delete group states file");
+            // Flush any pending saves
+            _saveTimer?.Dispose();
+            Save();
+            _disposed = true;
         }
     }
 }

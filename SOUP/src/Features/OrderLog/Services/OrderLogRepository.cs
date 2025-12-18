@@ -93,12 +93,28 @@ public sealed class OrderLogRepository : IOrderLogService
         await _semaphore.WaitAsync();
         try
         {
-            _collection.DeleteAll();
+            // Use Upsert instead of DeleteAll + InsertBulk for better performance
+            // This allows the database to only update changed records
             if (items is { Count: > 0 })
             {
-                _collection.InsertBulk(items);
+                foreach (var item in items)
+                {
+                    _collection.Upsert(item);
+                }
             }
-            _logger?.LogInformation("Saved {Count} orders", items?.Count ?? 0);
+
+            // Clean up any items that were deleted (not in the current list)
+            var currentIds = items?.Select(i => i.Id).ToHashSet() ?? new HashSet<Guid>();
+            var allIds = _collection.FindAll().Select(i => i.Id).ToList();
+            var idsToDelete = allIds.Where(id => !currentIds.Contains(id)).ToList();
+
+            foreach (var id in idsToDelete)
+            {
+                _collection.Delete(id);
+            }
+
+            _logger?.LogInformation("Saved {Count} orders, deleted {DeletedCount} obsolete records",
+                items?.Count ?? 0, idsToDelete.Count);
         }
         catch (Exception ex)
         {
