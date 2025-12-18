@@ -50,7 +50,9 @@ public partial class OrderItem : ObservableObject
     private OrderStatus _status = OrderStatus.NotReady;
     [ObservableProperty]
     private string _colorHex = Constants.OrderLogColors.DefaultOrder;
-    
+    [ObservableProperty]
+    private Guid? _linkedGroupId;
+
     [ObservableProperty]
     private bool _isArchived = false;
 

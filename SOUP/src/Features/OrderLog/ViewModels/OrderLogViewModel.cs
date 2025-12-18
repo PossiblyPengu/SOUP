@@ -25,6 +25,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> Items { get; } = new();
     public ObservableCollection<OrderItem> ArchivedItems { get; } = new();
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
+    public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
 
     [ObservableProperty]
     private bool _showArchived = false;
@@ -111,6 +112,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             }
             
             StatusMessage = $"Loaded {Items.Count} orders ({ArchivedItems.Count} archived)";
+            RefreshDisplayItems();
             _logger?.LogInformation("Loaded {Count} orders into view", items.Count);
         }
         catch (Exception ex)
@@ -142,6 +144,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             var allItems = Items.Concat(ArchivedItems).ToList();
             await _orderLogService.SaveAsync(allItems);
             StatusMessage = $"Saved {Items.Count} orders ({ArchivedItems.Count} archived)";
+            RefreshDisplayItems();
             _logger?.LogInformation("Saved {Count} orders", allItems.Count);
         }
         catch (Exception ex)
@@ -194,6 +197,56 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         await SaveAsync();
         StatusMessage = $"Deleted {count} order(s)";
+    }
+
+    [RelayCommand]
+    public async Task MoveUpAsync(OrderItem? item)
+    {
+        if (item == null) return;
+
+        // Try move within active items
+        var idx = Items.IndexOf(item);
+        if (idx > 0)
+        {
+            Items.Move(idx, idx - 1);
+            await SaveAsync();
+            StatusMessage = "Moved up";
+            return;
+        }
+
+        // Try archived list
+        var aidx = ArchivedItems.IndexOf(item);
+        if (aidx > 0)
+        {
+            ArchivedItems.Move(aidx, aidx - 1);
+            await SaveAsync();
+            StatusMessage = "Moved up (archived)";
+        }
+    }
+
+    [RelayCommand]
+    public async Task MoveDownAsync(OrderItem? item)
+    {
+        if (item == null) return;
+
+        // active items
+        var idx = Items.IndexOf(item);
+        if (idx >= 0 && idx < Items.Count - 1)
+        {
+            Items.Move(idx, idx + 1);
+            await SaveAsync();
+            StatusMessage = "Moved down";
+            return;
+        }
+
+        // archived items
+        var aidx = ArchivedItems.IndexOf(item);
+        if (aidx >= 0 && aidx < ArchivedItems.Count - 1)
+        {
+            ArchivedItems.Move(aidx, aidx + 1);
+            await SaveAsync();
+            StatusMessage = "Moved down (archived)";
+        }
     }
 
     [RelayCommand]
@@ -516,6 +569,135 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         await SaveAsync();
+    }
+
+    /// <summary>
+    /// Move one or more orders as a block. Preserves relative order of moved items.
+    /// If any item belongs to a linked group and the dragged set is a single item,
+    /// the entire linked group will be moved together.
+    /// </summary>
+    public async Task MoveOrdersAsync(System.Collections.Generic.List<OrderItem> droppedItems, OrderItem? target)
+    {
+        if (droppedItems == null || droppedItems.Count == 0) return;
+
+        // If single item and it has a linked group, expand to full group
+        if (droppedItems.Count == 1 && droppedItems[0].LinkedGroupId != null)
+        {
+            var gid = droppedItems[0].LinkedGroupId;
+            var groupMembers = Items.Concat(ArchivedItems).Where(i => i.LinkedGroupId == gid).ToList();
+            if (groupMembers.Count > 1)
+            {
+                droppedItems = groupMembers;
+            }
+        }
+
+        // Determine target collection: prefer Items if any dropped item is in Items
+        bool operateOnItems = droppedItems.Any(d => Items.Contains(d));
+
+        if (target != null)
+        {
+            operateOnItems = Items.Contains(target);
+        }
+
+        if (operateOnItems)
+        {
+            // Remove all dropped from Items preserving original relative order
+            var toInsert = droppedItems.Where(d => Items.Contains(d)).ToList();
+            foreach (var d in toInsert) Items.Remove(d);
+
+            int insertIndex = target == null ? Items.Count : Math.Max(0, Items.IndexOf(target));
+
+            foreach (var d in toInsert)
+            {
+                if (insertIndex > Items.Count) insertIndex = Items.Count;
+                Items.Insert(insertIndex++, d);
+            }
+        }
+        else
+        {
+            var toInsert = droppedItems.Where(d => ArchivedItems.Contains(d)).ToList();
+            foreach (var d in toInsert) ArchivedItems.Remove(d);
+
+            int insertIndex = target == null ? ArchivedItems.Count : Math.Max(0, ArchivedItems.IndexOf(target));
+
+            foreach (var d in toInsert)
+            {
+                if (insertIndex > ArchivedItems.Count) insertIndex = ArchivedItems.Count;
+                ArchivedItems.Insert(insertIndex++, d);
+            }
+        }
+
+        await SaveAsync();
+        RefreshDisplayItems();
+    }
+
+    /// <summary>
+    /// Link the provided items together with the target (if provided) into a single LinkedGroupId.
+    /// If any item already belongs to a group, groups are unified.
+    /// </summary>
+    public async Task LinkItemsAsync(System.Collections.Generic.List<OrderItem> itemsToLink, OrderItem? target)
+    {
+        if (itemsToLink == null || itemsToLink.Count == 0) return;
+        if (target == null) return; // need a target to link to
+
+        // Collect existing group ids from items and target
+        var existingGroupIds = itemsToLink.Select(i => i.LinkedGroupId).Where(g => g != null).ToList();
+        if (target.LinkedGroupId != null) existingGroupIds.Add(target.LinkedGroupId);
+
+        Guid groupId = existingGroupIds.FirstOrDefault() ?? Guid.NewGuid();
+
+        // If there are multiple existing group ids, unify them by using groupId
+        var allCandidates = Items.Concat(ArchivedItems).Where(i =>
+            itemsToLink.Select(x => x.Id).Contains(i.Id) || i.Id == target.Id ||
+            (i.LinkedGroupId != null && existingGroupIds.Contains(i.LinkedGroupId))).ToList();
+
+        foreach (var it in allCandidates)
+        {
+            it.LinkedGroupId = groupId;
+        }
+
+        await SaveAsync();
+        RefreshDisplayItems();
+    }
+
+    private void RefreshDisplayItems()
+    {
+        DisplayItems.Clear();
+
+        // Group active Items by LinkedGroupId (nulls become singletons)
+        var groups = Items
+            .Select((item, index) => new { item, index })
+            .GroupBy(x => x.item.LinkedGroupId)
+            .OrderBy(g => g.Key == null ? 0 : 1)
+            .ToList();
+
+        // Preserve original item order within Items
+        var processed = new HashSet<Guid>();
+
+        foreach (var g in groups)
+        {
+            if (g.Key == null)
+            {
+                // individual items (LinkedGroupId == null)
+                foreach (var entry in g.OrderBy(x => Items.IndexOf(x.item)))
+                {
+                    if (processed.Add(entry.item.Id))
+                        DisplayItems.Add(new OrderItemGroup(new[] { entry.item }));
+                }
+            }
+            else
+            {
+                // linked group - collect members in Items order
+                var members = Items.Where(i => i.LinkedGroupId == g.Key).ToList();
+                if (members.Count > 0)
+                {
+                    foreach (var m in members)
+                        processed.Add(m.Id);
+
+                    DisplayItems.Add(new OrderItemGroup(members));
+                }
+            }
+        }
     }
 
     public bool GetGroupState(string? name, bool defaultValue = true)

@@ -11,6 +11,7 @@
         <converters:StatusToCardBrushConverter x:Key="StatusToCardBrushConverter"/>
         <converters:ShowForOrdersConverter x:Key="ShowForOrdersConverter"/>
         <converters:ShowForNotesConverter x:Key="ShowForNotesConverter"/>
+        <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         
         <!-- Style for phantom placeholder text -->
         <Style x:Key="PlaceholderText" TargetType="TextBlock">
@@ -151,11 +152,17 @@
                     <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="{DynamicResource BorderBrush}"
+                                <Border BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     Margin="0,0,0,14"
-                                    Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
+                                    Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}"
+                                    AllowDrop="True"
+                                    PreviewMouseLeftButtonDown="Item_PreviewMouseLeftButtonDown"
+                                    MouseMove="Item_MouseMove"
+                                    DragOver="Item_DragOver"
+                                    DragLeave="Item_DragLeave"
+                                    Drop="Item_Drop">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Style.Triggers>
@@ -175,9 +182,13 @@
                                             <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
                                             <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
                                         </MenuItem>
+                                        <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                                        <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <!-- Change Color - only for sticky notes -->
                                         <MenuItem Header="Change Color..." Click="ChangeColor_Click"
                                                   Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                                        <MenuItem Header="Link with..." Click="LinkWith_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                                        <MenuItem Header="Unlink" Click="Unlink_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <Separator/>
                                         <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
                                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
@@ -208,6 +219,8 @@
 
                                     <!-- Content -->
                                     <StackPanel Grid.Row="1" Margin="16,14">
+                                        <TextBlock Text="🔗" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}"/>
                                         <Grid>
                                             <!-- Editable VendorName for Orders (hidden for sticky notes) -->
                                             <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
@@ -409,17 +422,17 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                                <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         Foreground="{DynamicResource TextPrimaryBrush}"
-                                                         FontSize="13"
-                                                         Padding="0"
-                                                         TextWrapping="Wrap"
-                                                         AcceptsReturn="True"
-                                                         PreviewKeyDown="NoteContent_PreviewKeyDown"
-                                                         GotFocus="EditableField_GotFocus"
-                                                         LostFocus="EditableField_LostFocus"/>
+                                                <RichTextBox Background="Transparent"
+                                                             BorderThickness="0"
+                                                             Foreground="{DynamicResource TextPrimaryBrush}"
+                                                             FontSize="13"
+                                                             Padding="0"
+                                                             AcceptsReturn="True"
+                                                             VerticalScrollBarVisibility="Auto"
+                                                             PreviewKeyDown="NoteContent_PreviewKeyDown"
+                                                             Loaded="NoteContent_Loaded"
+                                                             LostFocus="NoteContent_LostFocus"
+                                                             GotFocus="EditableField_GotFocus"/>
                                             </Grid>
 
                                             <!-- Text Formatting Toolbar -->

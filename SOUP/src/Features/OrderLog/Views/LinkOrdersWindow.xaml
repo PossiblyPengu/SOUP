@@ -1,0 +1,21 @@
+<Window x:Class="SOUP.Features.OrderLog.Views.LinkOrdersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Link Orders" Height="320" Width="420" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Select an order to link with:" FontWeight="SemiBold" Margin="2"/>
+
+        <ListBox x:Name="OrdersList" Grid.Row="1" Margin="0,8,0,8" DisplayMemberPath="DisplayTitle"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CancelBtn" Content="Cancel" Width="88" Margin="0,0,8,0" Click="CancelBtn_Click"/>
+            <Button x:Name="LinkBtn" Content="Link" Width="88" Click="LinkBtn_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

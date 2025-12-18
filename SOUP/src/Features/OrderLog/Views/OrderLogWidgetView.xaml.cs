@@ -268,6 +268,111 @@ public partial class OrderLogWidgetView : UserControl
         UpdateNowPlayingUI();
     }
 
+    private System.Windows.Point _dragStartPoint;
+
+    private void Item_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement fe)
+        {
+            _dragStartPoint = e.GetPosition(null);
+        }
+    }
+
+    private void Item_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+
+        var pos = e.GetPosition(null);
+        if (Math.Abs(pos.X - _dragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(pos.Y - _dragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        if (sender is FrameworkElement fe && fe.DataContext is OrderItem order)
+        {
+            if (DataContext is OrderLogViewModel vm && vm.SelectedItems.Count > 1 && vm.SelectedItems.Contains(order))
+            {
+                var ids = vm.SelectedItems.Select(i => i.Id).ToArray();
+                var data = new DataObject();
+                data.SetData("OrderItemIds", ids);
+                DragDrop.DoDragDrop(fe, data, DragDropEffects.Move);
+            }
+            else
+            {
+                var data = new DataObject("OrderItemId", order.Id);
+                DragDrop.DoDragDrop(fe, data, DragDropEffects.Move);
+            }
+        }
+    }
+
+    private void Item_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("OrderItemId"))
+        {
+            e.Effects = DragDropEffects.Move;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        if (sender is Border b)
+        {
+            if (b.Tag == null) b.Tag = b.BorderBrush;
+            b.BorderBrush = (System.Windows.Media.Brush)Application.Current?.Resources["SuccessBrush"] ?? System.Windows.Media.Brushes.LightGreen;
+        }
+        e.Handled = true;
+    }
+
+    private void Item_DragLeave(object sender, DragEventArgs e)
+    {
+        if (sender is Border b && b.Tag is System.Windows.Media.Brush orig)
+        {
+            b.BorderBrush = orig;
+            b.Tag = null;
+        }
+    }
+
+    private async void Item_Drop(object sender, DragEventArgs e)
+    {
+        try
+        {
+            if (!e.Data.GetDataPresent("OrderItemId") && !e.Data.GetDataPresent("OrderItemIds")) return;
+
+            var droppedIds = new System.Collections.Generic.List<Guid>();
+            if (e.Data.GetDataPresent("OrderItemIds") && e.Data.GetData("OrderItemIds") is Guid[] arr)
+            {
+                droppedIds.AddRange(arr);
+            }
+            else if (e.Data.GetDataPresent("OrderItemId"))
+            {
+                droppedIds.Add((Guid)e.Data.GetData("OrderItemId"));
+            }
+
+            OrderItem? dropped = null;
+
+            if (DataContext is OrderLogViewModel vm)
+            {
+                var droppedItems = vm.Items.Concat(vm.ArchivedItems).Where(i => droppedIds.Contains(i.Id)).ToList();
+                OrderItem? target = null;
+                if (sender is FrameworkElement fe && fe.DataContext is OrderItem ti) target = ti;
+                if (droppedItems.Count > 0)
+                {
+                    if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+                    {
+                        await vm.LinkItemsAsync(droppedItems, target);
+                        vm.StatusMessage = "Linked items";
+                    }
+                    else
+                    {
+                        await vm.MoveOrdersAsync(droppedItems, target);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Widget drop failed");
+        }
+    }
+
     private void OpenSpotify()
     {
         try
@@ -418,6 +523,100 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    private async void LinkWith_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
+            {
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    var dlg = new LinkOrdersWindow(order, vm) { Owner = Window.GetWindow(this) };
+                    if (dlg.ShowDialog() == true)
+                    {
+                        await vm.SaveAsync();
+                        vm.StatusMessage = "Orders linked";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to link orders in widget view");
+        }
+    }
+
+    private async void Unlink_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
+            {
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    if (order.LinkedGroupId == null)
+                    {
+                        vm.StatusMessage = "Order was not linked";
+                        return;
+                    }
+
+                    var gid = order.LinkedGroupId;
+                    foreach (var item in vm.Items)
+                    {
+                        if (item.LinkedGroupId == gid) item.LinkedGroupId = null;
+                    }
+                    foreach (var item in vm.ArchivedItems)
+                    {
+                        if (item.LinkedGroupId == gid) item.LinkedGroupId = null;
+                    }
+
+                    await vm.SaveAsync();
+                    vm.StatusMessage = "Unlinked group";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to unlink orders in widget view");
+        }
+    }
+
+    private async void MoveUp_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
+            {
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    await vm.MoveUpCommand.ExecuteAsync(order);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed MoveUp in widget");
+        }
+    }
+
+    private async void MoveDown_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
+            {
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    await vm.MoveDownCommand.ExecuteAsync(order);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed MoveDown in widget");
+        }
+    }
+
     private async void ArchiveNote_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -552,8 +751,18 @@ public partial class OrderLogWidgetView : UserControl
 
     private void NoteContent_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (sender is TextBox textBox)
-            Helpers.TextFormattingHelper.HandleListAutoContinuation(textBox, e);
+        if (sender is RichTextBox rtb)
+            Helpers.TextFormattingHelper.HandleListAutoContinuation(rtb, e);
+    }
+
+    private void NoteContent_Loaded(object sender, RoutedEventArgs e)
+    {
+        Helpers.TextFormattingHelper.LoadNoteContent(sender);
+    }
+
+    private void NoteContent_LostFocus(object sender, RoutedEventArgs e)
+    {
+        Helpers.TextFormattingHelper.UpdateNoteContent(sender, this);
     }
 
     #endregion
