@@ -776,7 +776,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     private static string GetDataPath()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "SAP", "EssentialsBuddy");
+        return Path.Combine(appData, "SOUP", "EssentialsBuddy");
     }
 
     private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");

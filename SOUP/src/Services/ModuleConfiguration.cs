@@ -12,7 +12,7 @@ namespace SOUP.Services;
 /// <para>
 /// This singleton service reads module configuration from either:
 /// - <c>module_config.json</c> in the app directory (installer-created)
-/// - <c>%APPDATA%\SAP\modules.ini</c> (legacy/user-modified)
+/// - <c>%APPDATA%\SOUP\modules.ini</c> (legacy/user-modified)
 /// </para>
 /// <para>
 /// The configuration controls which modules are available in the application launcher.
@@ -77,7 +77,7 @@ public class ModuleConfiguration
     private ModuleConfiguration()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _iniConfigPath = Path.Combine(appDataPath, "SAP", "modules.ini");
+                _iniConfigPath = Path.Combine(appDataPath, "SOUP", "modules.ini");
         
         // JSON config is in the app directory (created by installer)
         var appDir = AppDomain.CurrentDomain.BaseDirectory;

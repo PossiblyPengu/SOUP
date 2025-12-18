@@ -17,7 +17,7 @@ public class SettingsService
     {
         _settingsDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SAP",
+            "SOUP",
             "Settings"
         );
 

@@ -51,7 +51,7 @@ public partial class ThemeService : ObservableObject
     public ThemeService()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var settingsDir = Path.Combine(appDataPath, "SAP");
+        var settingsDir = Path.Combine(appDataPath, "SOUP");
         Directory.CreateDirectory(settingsDir);
         _settingsPath = Path.Combine(settingsDir, SettingsFileName);
 

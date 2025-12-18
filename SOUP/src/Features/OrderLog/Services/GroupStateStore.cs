@@ -20,7 +20,7 @@ public sealed class GroupStateStore
         _logger = logger;
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "SAP", "OrderLog");
+        var dir = Path.Combine(appData, "SOUP", "OrderLog");
         Directory.CreateDirectory(dir);
         _path = Path.Combine(dir, "groups.json");
 

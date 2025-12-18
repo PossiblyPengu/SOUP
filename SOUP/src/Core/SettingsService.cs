@@ -13,7 +13,7 @@ public class SettingsService
     public SettingsService()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _folder = Path.Combine(appData, "SAP");
+        _folder = Path.Combine(appData, "SOUP");
         _file = Path.Combine(_folder, "settings.json");
         if (!Directory.Exists(_folder)) Directory.CreateDirectory(_folder);
     }

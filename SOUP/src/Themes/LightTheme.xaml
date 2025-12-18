@@ -39,6 +39,16 @@
     <sys:String x:Key="SwiftLabelSplashIcon">🏷️</sys:String>
     <sys:String x:Key="OrderLogIcon">🗒️</sys:String>
     <sys:String x:Key="OrderLogSplashIcon">📓</sys:String>
+    
+    <!-- Order Log Card Style -->
+    <sys:Boolean x:Key="OrderLogCardUseFullColor">True</sys:Boolean>
+    
+    <!-- Order Log Card Background Colors (full colored in light mode) -->
+    <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="#fee2e2"/>
+    <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="#fef3c7"/>
+    <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="#dcfce7"/>
+    <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="#f1f5f9"/>
+    <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="#fce7f3"/>
 
     <!-- ============================= -->
     <!-- LIGHT THEME COLORS            -->

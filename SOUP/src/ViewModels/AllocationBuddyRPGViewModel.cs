@@ -1541,7 +1541,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     private static string GetArchivePath()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "SAP", "AllocationBuddy", "Archives");
+        return Path.Combine(appData, "SOUP", "AllocationBuddy", "Archives");
     }
 
     /// <summary>

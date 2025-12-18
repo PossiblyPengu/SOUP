@@ -15,7 +15,7 @@ public class ExternalConnectionConfig
 {
     private static readonly string ConfigPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "SAP",
+        "SOUP",
         "external_config.json"
     );
 

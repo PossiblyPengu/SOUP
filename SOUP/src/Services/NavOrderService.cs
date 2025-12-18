@@ -21,7 +21,7 @@ public class NavOrderService
         _logger = logger;
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "SAP");
+        var dir = Path.Combine(appData, "SOUP");
         Directory.CreateDirectory(dir);
         _filePath = Path.Combine(dir, "nav-order.json");
 

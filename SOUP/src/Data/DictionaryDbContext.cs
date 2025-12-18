@@ -27,7 +27,7 @@ public sealed class DictionaryDbContext : IDisposable
     /// </summary>
     public static string DatabasePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "SAP",
+        "SOUP",
         "Shared",
         "dictionaries.db"
     );

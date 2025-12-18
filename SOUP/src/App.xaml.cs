@@ -28,7 +28,7 @@ public partial class App : Application
     {
         // Configure Serilog
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var logDir = Path.Combine(appDataPath, "SAP", "Logs");
+        var logDir = Path.Combine(appDataPath, "SOUP", "Logs");
         Directory.CreateDirectory(logDir);
         var logPath = Path.Combine(logDir, "app-.log");
 
@@ -106,7 +106,7 @@ public partial class App : Application
     {
         // Database configuration
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dbDir = Path.Combine(appDataPath, "SAP", "Data");
+                var dbDir = Path.Combine(appDataPath, "SOUP", "Data");
         Directory.CreateDirectory(dbDir);
         var dbPath = Path.Combine(dbDir, "SOUP.db");
 
@@ -157,8 +157,10 @@ public partial class App : Application
         services.AddTransient<ExpirationItemDialogViewModel>();
         services.AddTransient<ExpireWiseSettingsViewModel>();
 
-        // ViewModels - OrderLog (persist with LiteDB)
-        services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService, SOUP.Features.OrderLog.Services.OrderLogRepository>();
+        // ViewModels - OrderLog (persist with LiteDB, using singleton factory)
+        services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService>(sp =>
+            SOUP.Features.OrderLog.Services.OrderLogRepository.GetInstance(
+                sp.GetService<ILogger<SOUP.Features.OrderLog.Services.OrderLogRepository>>()));
         services.AddSingleton<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
         services.AddSingleton<SOUP.Features.OrderLog.Services.GroupStateStore>();
 

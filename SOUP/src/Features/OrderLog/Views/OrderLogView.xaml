@@ -187,12 +187,30 @@
                             </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{DynamicResource SurfaceBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
+                        <Border BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Width="320"
                                 Margin="0,0,16,16">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardNotReadyBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardOnDeckBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardInProgressBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardDoneBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <!-- Set Status - only for orders -->
@@ -265,19 +283,9 @@
                                 <StackPanel Grid.Row="1" Margin="16,12">
                                     <Grid>
                                         <!-- Editable VendorName for Orders (hidden for sticky notes) -->
-                                        <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
-                                                 Background="Transparent"
-                                                 BorderThickness="0"
-                                                 FontSize="15" 
-                                                 FontWeight="SemiBold" 
-                                                 Foreground="{DynamicResource TextPrimaryBrush}"
-                                                 Padding="0"
-                                                 Margin="0,0,80,0"
-                                                 Tag="Vendor name..."
-                                                 GotFocus="EditableField_GotFocus"
-                                                 LostFocus="EditableField_LostFocus">
-                                            <TextBox.Style>
-                                                <Style TargetType="TextBox">
+                                        <Grid>
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
@@ -285,8 +293,40 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBox.Style>
-                                        </TextBox>
+                                            </Grid.Style>
+                                            <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FontSize="15" 
+                                                     FontWeight="SemiBold" 
+                                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                                     Padding="0"
+                                                     Margin="0,0,80,0"
+                                                     GotFocus="EditableField_GotFocus"
+                                                     LostFocus="EditableField_LostFocus"/>
+                                            <TextBlock Text="Vendor name..." 
+                                                       FontSize="15"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                                       FontStyle="Italic"
+                                                       IsHitTestVisible="False"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,80,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding VendorName}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding VendorName}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
                                         
                                         <!-- Title for Sticky Notes (editable with placeholder) -->
                                         <Grid>
@@ -374,28 +414,68 @@
                                         </StackPanel.Style>
                                         
                                         <!-- Editable Transfer Numbers -->
-                                        <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=PropertyChanged}"
-                                                 Background="Transparent"
-                                                 BorderThickness="0"
-                                                 Foreground="{DynamicResource TextSecondaryBrush}"
-                                                 FontSize="13"
-                                                 Margin="0,6,0,0"
-                                                 Padding="0"
-                                                 Tag="Transfer #s (click to edit)"
-                                                 GotFocus="EditableField_GotFocus"
-                                                 LostFocus="EditableField_LostFocus"/>
+                                        <Grid Margin="0,6,0,0">
+                                            <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Foreground="{DynamicResource TextSecondaryBrush}"
+                                                     FontSize="13"
+                                                     Padding="0"
+                                                     GotFocus="EditableField_GotFocus"
+                                                     LostFocus="EditableField_LostFocus"/>
+                                            <TextBlock Text="Transfer #s..." 
+                                                       FontSize="13"
+                                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                                       FontStyle="Italic"
+                                                       IsHitTestVisible="False"
+                                                       VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TransferNumbers}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding TransferNumbers}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
 
                                         <!-- Editable WHS Shipment Numbers -->
-                                        <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
-                                                 Background="Transparent"
-                                                 BorderThickness="0"
-                                                 Foreground="{DynamicResource TextSecondaryBrush}"
-                                                 FontSize="13"
-                                                 Margin="0,4,0,0"
-                                                 Padding="0"
-                                                 Tag="WHS #s (click to edit)"
-                                                 GotFocus="EditableField_GotFocus"
-                                                 LostFocus="EditableField_LostFocus"/>
+                                        <Grid Margin="0,4,0,0">
+                                            <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Foreground="{DynamicResource TextSecondaryBrush}"
+                                                     FontSize="13"
+                                                     Padding="0"
+                                                     GotFocus="EditableField_GotFocus"
+                                                     LostFocus="EditableField_LostFocus"/>
+                                            <TextBlock Text="WHS #s..." 
+                                                       FontSize="13"
+                                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                                       FontStyle="Italic"
+                                                       IsHitTestVisible="False"
+                                                       VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding WhsShipmentNumbers}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding WhsShipmentNumbers}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
 
                                         <TextBlock Text="{Binding TimeInProgressDisplay}"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
@@ -482,12 +562,30 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{DynamicResource SurfaceBrush}"
-                                        BorderBrush="{DynamicResource BorderBrush}"
+                                <Border BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Width="320"
                                         Margin="0,0,16,16">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardNotReadyBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardOnDeckBrush}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardInProgressBrush}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardDoneBrush}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
                                     <Border.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>

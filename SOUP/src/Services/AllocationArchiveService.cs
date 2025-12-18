@@ -111,7 +111,7 @@ public class AllocationArchiveService : IAllocationArchiveService
         _logger = logger;
         _archiveDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "SAP", "Archives", "AllocationBuddy");
+            "SOUP", "Archives", "AllocationBuddy");
         Directory.CreateDirectory(_archiveDirectory);
     }
 

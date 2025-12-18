@@ -8,7 +8,7 @@ using SOUP.Core.Models;
 namespace SOUP.Core;
 
 /// <summary>
-/// Simple high-score persistence using JSON in %AppData%\SAP\highscores.json
+/// Simple high-score persistence using JSON in %AppData%\SOUP\highscores.json
 /// </summary>
 public class HighScoreService
 {
@@ -18,7 +18,7 @@ public class HighScoreService
     public HighScoreService()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _folder = Path.Combine(appData, "SAP");
+        _folder = Path.Combine(appData, "SOUP");
         _file = Path.Combine(_folder, "highscores.json");
         if (!Directory.Exists(_folder)) Directory.CreateDirectory(_folder);
     }

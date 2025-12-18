@@ -243,13 +243,7 @@ public partial class OrderLogView : UserControl
             if (sender is MenuItem menuItem && menuItem.DataContext is Models.OrderItem order)
                 if (DataContext is OrderLogViewModel vm)
                 {
-                    // Check if already in Items to prevent duplication
-                    if (vm.Items.Contains(order)) return;
-                    
-                    order.IsArchived = false;
-                    vm.ArchivedItems.Remove(order);
-                    vm.Items.Insert(0, order);
-                    await vm.SaveAsync();
+                    await vm.UnarchiveOrderCommand.ExecuteAsync(order);
                 }
         }
         catch (Exception ex)

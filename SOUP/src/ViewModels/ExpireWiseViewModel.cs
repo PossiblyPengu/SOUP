@@ -812,7 +812,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private static string GetDataPath()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "SAP", "ExpireWise");
+        return Path.Combine(appData, "SOUP", "ExpireWise");
     }
 
     private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");
