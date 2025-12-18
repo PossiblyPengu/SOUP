@@ -127,10 +127,11 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
-    private void LaunchOrderLog()
+    private async Task LaunchOrderLogAsync()
     {
         _logger?.LogInformation("Navigating to OrderLog module");
         var viewModel = _serviceProvider.GetRequiredService<Features.OrderLog.ViewModels.OrderLogViewModel>();
+        await viewModel.InitializeAsync();
         _navigationService.NavigateToModule("OrderLog", viewModel);
     }
 

@@ -1,0 +1,37 @@
+SOUP SOFTWARE LICENSE AGREEMENT
+
+Copyright (c) 2024-2025 SOUP. All rights reserved.
+
+PLEASE READ THIS LICENSE AGREEMENT CAREFULLY BEFORE USING THIS SOFTWARE.
+
+1. LICENSE GRANT
+   This software is provided for use within your organization. You are granted
+   a non-exclusive, non-transferable license to install and use this software
+   on computers within your organization.
+
+2. RESTRICTIONS
+   You may not:
+   - Distribute, sublicense, or transfer this software to third parties
+   - Modify, reverse engineer, or create derivative works
+   - Remove or alter any proprietary notices or labels
+
+3. DATA PRIVACY
+   This software stores data locally on your computer. No data is transmitted
+   to external servers without your explicit action (such as connecting to
+   configured databases).
+
+4. DISCLAIMER OF WARRANTIES
+   THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+5. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+   DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
+
+6. TERMINATION
+   This license is effective until terminated. It will terminate automatically
+   if you fail to comply with any term of this agreement.
+
+By installing this software, you acknowledge that you have read this agreement,
+understand it, and agree to be bound by its terms and conditions.

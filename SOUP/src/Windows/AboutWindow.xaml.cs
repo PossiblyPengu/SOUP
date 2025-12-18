@@ -172,8 +172,8 @@ public partial class AboutWindow : Window
         if (_iconClickCount >= 5)
         {
             _iconClickCount = 0;
-            var doom = new SoupNukem { Owner = this };
-            doom.ShowDialog();
+            var dungeon = new DungeonCrawler { Owner = this };
+            dungeon.ShowDialog();
         }
     }
 

@@ -47,7 +47,7 @@
                 
                 <Button Content="📝 Add Note"
                         Click="AddBlankNote_Click"
-                        Style="{DynamicResource WarningButtonStyle}"
+                        Style="{DynamicResource SecondaryButtonStyle}"
                         Padding="16,8"
                         FontSize="13"/>
             </StackPanel>
@@ -357,8 +357,7 @@
                                         Padding="12,8">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <Button Content="Delete"
-                                                Command="{Binding DataContext.DeleteAsyncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
+                                                Click="DeleteNote_Click"
                                                 Style="{DynamicResource GhostButtonStyle}"
                                                 Padding="10,6"
                                                 FontSize="12"

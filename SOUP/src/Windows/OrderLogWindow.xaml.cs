@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
@@ -14,29 +15,21 @@ namespace SOUP.Windows
             _viewModel = viewModel;
             OrderLogView.DataContext = _viewModel;
             Loaded += OrderLogWindow_Loaded;
-            Closed += OrderLogWindow_Closed;
         }
 
         private async void OrderLogWindow_Loaded(object? sender, RoutedEventArgs e)
         {
+            Log.Information("OrderLogWindow Loaded event fired");
             try
             {
+                Log.Information("Calling InitializeAsync...");
                 await _viewModel.InitializeAsync();
+                Log.Information("InitializeAsync completed, Items count: {Count}", _viewModel.Items.Count);
             }
             catch (Exception ex)
             {
                 Log.Warning(ex, "Failed to initialize OrderLog");
             }
-        }
-
-        private void OrderLogWindow_Closed(object? sender, EventArgs e)
-        {
-            // Unsubscribe events to prevent memory leaks
-            Loaded -= OrderLogWindow_Loaded;
-            Closed -= OrderLogWindow_Closed;
-            
-            // Dispose ViewModel if it implements IDisposable
-            (_viewModel as IDisposable)?.Dispose();
         }
     }
 }

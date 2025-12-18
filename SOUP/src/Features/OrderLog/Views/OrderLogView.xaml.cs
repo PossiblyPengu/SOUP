@@ -184,12 +184,19 @@ public partial class OrderLogView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is Models.OrderItem order)
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    vm.Items.Remove(order);
-                    await vm.SaveAsync();
-                }
+            Models.OrderItem? order = null;
+            
+            if (sender is Button btn)
+                order = btn.DataContext as Models.OrderItem;
+            else if (sender is MenuItem menuItem)
+                order = menuItem.DataContext as Models.OrderItem;
+            
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                vm.Items.Remove(order);
+                vm.ArchivedItems.Remove(order);
+                await vm.SaveAsync();
+            }
         }
         catch (Exception ex)
         {

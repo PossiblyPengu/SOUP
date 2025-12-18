@@ -69,7 +69,7 @@
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" FontWeight="SemiBold"/>
                             <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="13"/>
                             <TextBlock Text="{x:Static core:AppVersion.Channel}" 
-                                       Foreground="#10b981" FontSize="13" FontWeight="Medium"/>
+                                       Foreground="{DynamicResource SuccessBrush}" FontSize="13" FontWeight="Medium"/>
                         </StackPanel>
                     </Border>
 
