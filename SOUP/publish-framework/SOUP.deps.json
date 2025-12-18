@@ -19,10 +19,23 @@
           "Microsoft.Xaml.Behaviors.Wpf": "1.1.135",
           "MySql.Data": "9.1.0",
           "Serilog.Extensions.Hosting": "8.0.0",
-          "Serilog.Sinks.File": "6.0.0"
+          "Serilog.Sinks.File": "6.0.0",
+          "runtimepack.Microsoft.Windows.SDK.NET.Ref": "10.0.19041.53"
         },
         "runtime": {
           "SOUP.dll": {}
+        }
+      },
+      "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.19041.53": {
+        "runtime": {
+          "Microsoft.Windows.SDK.NET.dll": {
+            "assemblyVersion": "10.0.19041.38",
+            "fileVersion": "10.0.19041.52"
+          },
+          "WinRT.Runtime.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.1.6.47881"
+          }
         }
       },
       "BouncyCastle.Cryptography/2.3.1": {
@@ -58,7 +71,7 @@
       },
       "CommunityToolkit.Mvvm/8.4.0": {
         "runtime": {
-          "lib/net8.0/CommunityToolkit.Mvvm.dll": {
+          "lib/net8.0-windows10.0.17763/CommunityToolkit.Mvvm.dll": {
             "assemblyVersion": "8.4.0.0",
             "fileVersion": "8.4.0.1"
           }
@@ -772,6 +785,11 @@
   "libraries": {
     "SOUP/4.4.0": {
       "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.19041.53": {
+      "type": "runtimepack",
       "serviceable": false,
       "sha512": ""
     },

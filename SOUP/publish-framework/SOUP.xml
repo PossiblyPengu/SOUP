@@ -1028,7 +1028,7 @@
         </member>
         <member name="T:SOUP.Core.HighScoreService">
             <summary>
-            Simple high-score persistence using JSON in %AppData%\SAP\highscores.json
+            Simple high-score persistence using JSON in %AppData%\SOUP\highscores.json
             </summary>
         </member>
         <member name="T:SOUP.Core.Interfaces.IAllocationBuddyRepository">
@@ -1484,6 +1484,81 @@
             Get the database path for diagnostic purposes
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Constants.OrderLogColors">
+            <summary>
+            Centralized color constants for OrderLog feature.
+            Eliminates magic string color codes throughout the codebase.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.NoteTypeToVisibilityConverter">
+            <summary>
+            Converts NoteType to Visibility, with optional inversion.
+            Eliminates repetitive DataTriggers for showing/hiding elements based on NoteType.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Converters.NoteTypeToVisibilityConverter.VisibleWhen">
+            <summary>
+            The NoteType value that should result in Visible.
+            Default is StickyNote.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Converters.NoteTypeToVisibilityConverter.Invert">
+            <summary>
+            If true, inverts the logic (shows when NOT matching VisibleWhen).
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.ShowForOrdersConverter">
+            <summary>
+            Shows element only for Order items (not StickyNotes).
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.ShowForNotesConverter">
+            <summary>
+            Shows element only for StickyNote items.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.StatusToColorConverter">
+            <summary>
+            Converts OrderItem.OrderStatus to a Color or Brush resource.
+            Eliminates repetitive DataTriggers in XAML.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.StatusToCardBrushConverter">
+            <summary>
+            Converts OrderItem.OrderStatus to a card background brush resource.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Helpers.TextFormattingHelper">
+            <summary>
+            Helper class for text formatting operations on note content TextBoxes.
+            Eliminates duplicate code between OrderLogView and OrderLogWidgetView.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.FindNoteContentTextBox(System.Object)">
+            <summary>
+            Finds the NoteContent TextBox by walking up the visual tree from a button.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.WrapSelectedText(System.Windows.Controls.TextBox,System.String,System.String)">
+            <summary>
+            Wraps the selected text (or "text" if nothing selected) with prefix and suffix.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.InsertTextAtCursor(System.Windows.Controls.TextBox,System.String,System.Boolean)">
+            <summary>
+            Inserts text at the cursor position, optionally ensuring it's on a new line.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.UpdateNoteContent(System.Object,System.Windows.FrameworkElement)">
+            <summary>
+            Updates the NoteContent property on the OrderItem and saves to database.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.HandleListAutoContinuation(System.Windows.Controls.TextBox,System.Windows.Input.KeyEventArgs)">
+            <summary>
+            Handles auto-continuation of list items (bullets, checkboxes, numbered lists) when Enter is pressed.
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Models.OrderItem">
             <inheritdoc/>
         </member>
@@ -1515,6 +1590,16 @@
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.DisplayTitle">
             <summary>
             Display title - uses VendorName for orders, first line of NoteContent for sticky notes
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.CreateBlankOrder(System.String,System.String,System.String,System.String)">
+            <summary>
+            Factory helper to create a new blank Order (non-sticky note) with sensible defaults.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.CreateBlankNote(System.String,System.String)">
+            <summary>
+            Factory helper to create a new blank Sticky Note with sensible defaults.
             </summary>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.NoteType">
@@ -1552,11 +1637,31 @@
         <member name="T:SOUP.Features.OrderLog.Services.GroupStateStore">
             <summary>
             Persists group expand/collapse states for the orders UI.
+            Uses debouncing to avoid excessive file writes.
             </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.IOrderLogExportService">
+            <summary>
+            Service for exporting OrderLog data to various formats.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogExportService.ExportToCsvAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String)">
+            <summary>
+            Exports order items to CSV format.
+            </summary>
+            <param name="items">Items to export</param>
+            <param name="fileName">Optional custom file name. If null, generates a timestamped name.</param>
+            <returns>Full path to the exported file</returns>
         </member>
         <member name="T:SOUP.Features.OrderLog.Services.OrderLogRepository">
             <summary>
             LiteDB-backed repository for orders persistence.
+            Uses singleton pattern to prevent multiple connections from conflicting.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogRepository.GetInstance(Microsoft.Extensions.Logging.ILogger{SOUP.Features.OrderLog.Services.OrderLogRepository})">
+            <summary>
+            Gets or creates the singleton instance of the repository.
             </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel">
@@ -2486,7 +2591,7 @@
             <para>
             This singleton service reads module configuration from either:
             - <c>module_config.json</c> in the app directory (installer-created)
-            - <c>%APPDATA%\SAP\modules.ini</c> (legacy/user-modified)
+            - <c>%APPDATA%\SOUP\modules.ini</c> (legacy/user-modified)
             </para>
             <para>
             The configuration controls which modules are available in the application launcher.
@@ -2663,6 +2768,12 @@
         <member name="M:SOUP.Services.NavOrderService.UpdateOrder(System.Collections.Generic.IEnumerable{System.String})">
             <summary>
             Updates order for all items based on their position in the list.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.SpotifyService">
+            <summary>
+            Service for controlling Spotify playback using Windows Media Session API for metadata
+            and global media keys for control.
             </summary>
         </member>
         <member name="T:SOUP.Services.ThemeService">
@@ -5024,7 +5135,7 @@
             <summary>The backing field for <see cref="P:SOUP.ViewModels.LauncherViewModel.LaunchOrderLogCommand"/>.</summary>
         </member>
         <member name="P:SOUP.ViewModels.LauncherViewModel.LaunchOrderLogCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.LauncherViewModel.LaunchOrderLog"/>.</summary>
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.LauncherViewModel.LaunchOrderLogAsync"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.LauncherViewModel.toggleThemeCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.LauncherViewModel.ToggleThemeCommand"/>.</summary>
@@ -5544,6 +5655,19 @@
             InitializeComponent
             </summary>
         </member>
+        <member name="T:SOUP.Windows.DungeonCrawler">
+            <summary>
+            Roguelike dungeon crawler with procedural generation, turn-based combat, and fog of war.
+            </summary>
+            <summary>
+            DungeonCrawler
+            </summary>
+        </member>
+        <member name="M:SOUP.Windows.DungeonCrawler.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
         <member name="T:SOUP.Windows.EssentialsBuddyWindow">
             <summary>
             EssentialsBuddyWindow
@@ -5588,16 +5712,6 @@
             </summary>
         </member>
         <member name="M:SOUP.Windows.OrderLogWindow.InitializeComponent">
-            <summary>
-            InitializeComponent
-            </summary>
-        </member>
-        <member name="T:SOUP.Windows.SoupNukem">
-            <summary>
-            SoupNukem
-            </summary>
-        </member>
-        <member name="M:SOUP.Windows.SoupNukem.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>

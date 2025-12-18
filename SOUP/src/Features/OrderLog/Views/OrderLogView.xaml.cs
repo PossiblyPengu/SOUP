@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
+using SOUP.Features.OrderLog.Constants;
 
 namespace SOUP.Features.OrderLog.Views;
 
@@ -77,30 +78,13 @@ public partial class OrderLogView : UserControl
 
     private async Task AddBlankOrderAsync(OrderLogViewModel vm)
     {
-        var order = new Models.OrderItem
-        {
-            NoteType = Models.NoteType.Order,
-            VendorName = string.Empty,
-            TransferNumbers = string.Empty,
-            WhsShipmentNumbers = string.Empty,
-            ColorHex = "#B56576",
-            Status = Models.OrderItem.OrderStatus.NotReady
-        };
-
+        var order = Models.OrderItem.CreateBlankOrder();
         await vm.AddOrderAsync(order);
     }
 
     private async Task AddBlankNoteAsync(OrderLogViewModel vm)
     {
-        var note = new Models.OrderItem
-        {
-            NoteType = Models.NoteType.StickyNote,
-            NoteTitle = string.Empty,
-            NoteContent = string.Empty,
-            ColorHex = "#FFD700",
-            Status = Models.OrderItem.OrderStatus.OnDeck
-        };
-
+        var note = Models.OrderItem.CreateBlankNote();
         await vm.AddOrderAsync(note);
     }
 

@@ -49,7 +49,7 @@ public partial class OrderItem : ObservableObject
     [ObservableProperty]
     private OrderStatus _status = OrderStatus.NotReady;
     [ObservableProperty]
-    private string _colorHex = "#B56576";
+    private string _colorHex = Constants.OrderLogColors.DefaultOrder;
     
     [ObservableProperty]
     private bool _isArchived = false;
@@ -160,4 +160,40 @@ public partial class OrderItem : ObservableObject
     public string DisplayTitle => NoteType == NoteType.StickyNote
         ? (string.IsNullOrWhiteSpace(NoteContent) ? "Quick Note" : NoteContent.Split('\n')[0].Trim())
         : VendorName;
+
+    /// <summary>
+    /// Factory helper to create a new blank Order (non-sticky note) with sensible defaults.
+    /// </summary>
+    public static OrderItem CreateBlankOrder(string vendorName = "",
+                                            string transferNumbers = "",
+                                            string whsShipmentNumbers = "",
+                                            string? colorHex = null)
+    {
+        return new OrderItem
+        {
+            NoteType = NoteType.Order,
+            VendorName = vendorName ?? string.Empty,
+            TransferNumbers = transferNumbers ?? string.Empty,
+            WhsShipmentNumbers = whsShipmentNumbers ?? string.Empty,
+            ColorHex = colorHex ?? Constants.OrderLogColors.DefaultOrder,
+            Status = OrderStatus.NotReady,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Factory helper to create a new blank Sticky Note with sensible defaults.
+    /// </summary>
+    public static OrderItem CreateBlankNote(string content = "", string? colorHex = null)
+    {
+        return new OrderItem
+        {
+            NoteType = NoteType.StickyNote,
+            NoteTitle = string.Empty,
+            NoteContent = content ?? string.Empty,
+            ColorHex = colorHex ?? Constants.OrderLogColors.DefaultNote,
+            Status = OrderStatus.OnDeck,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 }

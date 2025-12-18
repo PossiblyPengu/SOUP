@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SOUP.Features.OrderLog.Models;
+using SOUP.Features.OrderLog.Constants;
 using SOUP.Features.OrderLog.Services;
 
 namespace SOUP.Features.OrderLog.ViewModels;
@@ -55,8 +56,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _stickyNoteContent = string.Empty;
 
-    private string _newNoteColorHex = "#B56576";
-    private string _stickyNoteColorHex = "#FFD700"; // Yellow default for sticky notes
+    private string _newNoteColorHex = OrderLogColors.DefaultOrder;
+    private string _stickyNoteColorHex = OrderLogColors.DefaultNote; // Yellow default for sticky notes
 
     public event Action? GroupStatesReset;
 
@@ -387,7 +388,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         NewNoteVendorName = string.Empty;
         NewNoteTransferNumbers = string.Empty;
         NewNoteWhsShipmentNumbers = string.Empty;
-        _newNoteColorHex = "#B56576";
+        _newNoteColorHex = OrderLogColors.DefaultOrder;
 
         StatusMessage = "Order added";
         return true;
@@ -419,7 +420,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         // Clear the form
         StickyNoteContent = string.Empty;
-        _stickyNoteColorHex = "#FFD700";
+        _stickyNoteColorHex = OrderLogColors.DefaultNote;
 
         StatusMessage = "Sticky note added";
         return true;
@@ -435,7 +436,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             NoteType = NoteType.StickyNote,
             NoteTitle = string.Empty,
             NoteContent = content.Trim(),
-            ColorHex = colorHex ?? "#FFD700",
+            ColorHex = colorHex ?? OrderLogColors.DefaultNote,
             CreatedAt = DateTime.UtcNow,
             Status = OrderItem.OrderStatus.OnDeck
         };

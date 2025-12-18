@@ -3,12 +3,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using SOUP.Features.OrderLog.Models;
+using SOUP.Features.OrderLog.Constants;
 
 namespace SOUP.Features.OrderLog.Views;
 
 public partial class AddOrderWindow : Window
 {
-    private const string DefaultColorHex = "#B56576";
+    private const string DefaultColorHex = OrderLogColors.DefaultOrder;
 
     public OrderItem? Result { get; private set; }
 

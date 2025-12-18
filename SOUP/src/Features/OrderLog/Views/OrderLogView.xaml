@@ -210,35 +210,16 @@
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <!-- Set Status - only for orders -->
-                                    <MenuItem Header="Set Status">
-                                        <MenuItem.Style>
-                                            <Style TargetType="MenuItem">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </MenuItem.Style>
+                                    <MenuItem Header="Set Status"
+                                              Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                         <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
                                         <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
                                         <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
                                         <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
                                     </MenuItem>
                                     <!-- Change Color - only for sticky notes -->
-                                    <MenuItem Header="Change Color..." Click="ChangeColor_Click">
-                                        <MenuItem.Style>
-                                            <Style TargetType="MenuItem">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </MenuItem.Style>
-                                    </MenuItem>
+                                    <MenuItem Header="Change Color..." Click="ChangeColor_Click"
+                                              Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                                 </ContextMenu>
                             </Border.ContextMenu>
                             <Grid>
@@ -251,21 +232,11 @@
                                 <!-- Color Bar - Status color for Orders, Custom color for Notes -->
                                 <Border CornerRadius="8,8,0,0"
                                         Cursor="Hand"
-                                        MouseLeftButtonDown="ColorBar_Click">
+                                        MouseLeftButtonDown="ColorBar_Click"
+                                        Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}">
                                     <Border.Style>
                                         <Style TargetType="Border">
-                                            <!-- Default: use status color for orders -->
-                                            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
-                                                    <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                                                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
-                                                    <Setter Property="Background" Value="{DynamicResource TextTertiaryBrush}"/>
-                                                </DataTrigger>
                                                 <!-- Sticky notes use custom color -->
                                                 <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
                                                     <Setter Property="Background" Value="{Binding ColorHex}"/>
@@ -279,17 +250,7 @@
                                 <StackPanel Grid.Row="1" Margin="16,12">
                                     <Grid>
                                         <!-- Editable VendorName for Orders (hidden for sticky notes) -->
-                                        <Grid>
-                                            <Grid.Style>
-                                                <Style TargetType="Grid">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Grid.Style>
+                                        <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                             <TextBlock Text="Vendor name..." 
                                                        FontSize="15"
                                                        FontWeight="SemiBold"
@@ -325,17 +286,7 @@
                                         </Grid>
                                         
                                         <!-- Title for Sticky Notes (editable with placeholder) -->
-                                        <Grid>
-                                            <Grid.Style>
-                                                <Style TargetType="Grid">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Grid.Style>
+                                        <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
                                             <TextBlock Text="Note title..." 
                                                        FontSize="15"
                                                        FontWeight="SemiBold"
@@ -378,17 +329,9 @@
                                                   FontWeight="SemiBold"
                                                   Padding="8,6"
                                                   MinHeight="28"
-                                                  MinWidth="100">
-                                            <ComboBox.Style>
-                                                <Style TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </ComboBox.Style>
+                                                  MinWidth="100"
+                                                  Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"
+                                                  Style="{StaticResource ModernComboBoxStyle}">
                                             <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
                                             <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
                                             <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
@@ -397,17 +340,7 @@
                                     </Grid>
 
                                     <!-- ORDER FIELDS (hidden for sticky notes) -->
-                                    <StackPanel>
-                                        <StackPanel.Style>
-                                            <Style TargetType="StackPanel">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </StackPanel.Style>
+                                    <StackPanel Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                         
                                         <!-- Editable Transfer Numbers -->
                                         <Grid Margin="0,6,0,0">
@@ -481,17 +414,8 @@
                                     </StackPanel>
                                     
                                     <!-- STICKY NOTE CONTENT (visible only for sticky notes, with placeholder) -->
-                                    <StackPanel Margin="0,6,0,0">
-                                        <StackPanel.Style>
-                                            <Style TargetType="StackPanel">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </StackPanel.Style>
+                                    <StackPanel Margin="0,6,0,0"
+                                                Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
                                         
                                         <!-- Note content -->
                                         <Grid>
@@ -610,20 +534,11 @@
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Width="320"
-                                        Margin="0,0,16,16">
+                                        Margin="0,0,16,16"
+                                        Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
                                     <Border.Style>
                                         <Style TargetType="Border">
-                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardNotReadyBrush}"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
-                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardOnDeckBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardInProgressBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
-                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardDoneBrush}"/>
-                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
                                                     <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
                                                 </DataTrigger>
@@ -665,17 +580,7 @@
                                             </TextBlock>
 
                                             <!-- Order fields (hidden for sticky notes) -->
-                                            <StackPanel>
-                                                <StackPanel.Style>
-                                                    <Style TargetType="StackPanel">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </StackPanel.Style>
+                                            <StackPanel Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                                 
                                                 <TextBlock Text="{Binding TransferNumbers}"
                                                            Foreground="{DynamicResource TextSecondaryBrush}"
@@ -693,18 +598,8 @@
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        FontSize="13"
                                                        Margin="0,6,0,0"
-                                                       TextWrapping="Wrap">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                       TextWrapping="Wrap"
+                                                       Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
