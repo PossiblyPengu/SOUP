@@ -446,9 +446,9 @@
                                         </StackPanel>
                                         
                                         <!-- STICKY NOTE CONTENT (visible only for sticky notes, with placeholder) -->
-                                        <Grid Margin="0,6,0,0">
-                                            <Grid.Style>
-                                                <Style TargetType="Grid">
+                                        <StackPanel Margin="0,6,0,0">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
@@ -456,38 +456,92 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </Grid.Style>
-                                            <TextBlock Text="Write your note here..." 
-                                                       FontSize="13"
-                                                       Foreground="{DynamicResource TextDisabledBrush}"
-                                                       FontStyle="Italic"
-                                                       IsHitTestVisible="False"
-                                                       VerticalAlignment="Top">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteContent}" Value="">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding NoteContent}" Value="{x:Null}">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=LostFocus}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
-                                                     Foreground="{DynamicResource TextPrimaryBrush}"
-                                                     FontSize="13"
-                                                     Padding="0"
-                                                     TextWrapping="Wrap"
-                                                     AcceptsReturn="True"
-                                                     GotFocus="EditableField_GotFocus"
-                                                     LostFocus="EditableField_LostFocus"/>
-                                        </Grid>
+                                            </StackPanel.Style>
+                                            
+                                            <!-- Text Formatting Toolbar -->
+                                            <Border Background="{DynamicResource SurfaceBrush}" 
+                                                    CornerRadius="4" 
+                                                    Padding="4,2" 
+                                                    Margin="0,0,0,6"
+                                                    HorizontalAlignment="Left">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <!-- Formatting buttons -->
+                                                    <Button Content="B" ToolTip="Bold (**text**)" 
+                                                            Click="FormatBold_Click" Tag="{Binding}"
+                                                            FontWeight="Bold" FontSize="11" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}"/>
+                                                    <Button Content="I" ToolTip="Italic (*text*)" 
+                                                            Click="FormatItalic_Click" Tag="{Binding}"
+                                                            FontStyle="Italic" FontSize="11" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}"/>
+                                                    <Button Content="U" ToolTip="Underline (__text__)" 
+                                                            Click="FormatUnderline_Click" Tag="{Binding}"
+                                                            FontSize="11" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}">
+                                                        <Button.ContentTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="U" TextDecorations="Underline"/>
+                                                            </DataTemplate>
+                                                        </Button.ContentTemplate>
+                                                    </Button>
+                                                    
+                                                    <Rectangle Width="1" Fill="{DynamicResource BorderBrush}" Margin="4,2"/>
+                                                    
+                                                    <!-- Insert buttons -->
+                                                    <Button Content="•" ToolTip="Insert bullet point" 
+                                                            Click="InsertBullet_Click" Tag="{Binding}"
+                                                            FontSize="14" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}"/>
+                                                    <Button Content="☐" ToolTip="Insert checkbox" 
+                                                            Click="InsertCheckbox_Click" Tag="{Binding}"
+                                                            FontSize="12" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}"/>
+                                                    <Button Content="🕐" ToolTip="Insert timestamp" 
+                                                            Click="InsertTimestamp_Click" Tag="{Binding}"
+                                                            FontSize="11" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}"/>
+                                                    <Button Content="―" ToolTip="Insert divider" 
+                                                            Click="InsertDivider_Click" Tag="{Binding}"
+                                                            FontSize="11" Padding="6,2" Margin="1"
+                                                            Style="{DynamicResource GhostButtonStyle}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Note content -->
+                                            <Grid>
+                                                <TextBlock Text="Write your note here..." 
+                                                           FontSize="13"
+                                                           Foreground="{DynamicResource TextDisabledBrush}"
+                                                           FontStyle="Italic"
+                                                           IsHitTestVisible="False"
+                                                           VerticalAlignment="Top">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding NoteContent}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding NoteContent}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         FontSize="13"
+                                                         Padding="0"
+                                                         TextWrapping="Wrap"
+                                                         AcceptsReturn="True"
+                                                         PreviewKeyDown="NoteContent_PreviewKeyDown"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
+                                            </Grid>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Grid>
                             </Border>

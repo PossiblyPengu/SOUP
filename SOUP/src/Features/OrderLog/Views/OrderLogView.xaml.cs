@@ -303,5 +303,237 @@ public partial class OrderLogView : UserControl
             }
         }
     }
+
+    #region Text Formatting Tools
+
+    private TextBox? FindNoteContentTextBox(object sender)
+    {
+        if (sender is not Button button) return null;
+        
+        // Navigate up to find the parent container and then find the TextBox
+        var parent = VisualTreeHelper.GetParent(button);
+        while (parent != null)
+        {
+            if (parent is Border border && border.Parent is StackPanel stackPanel)
+            {
+                // Find the Grid containing the TextBox
+                foreach (var child in stackPanel.Children)
+                {
+                    if (child is Grid grid)
+                    {
+                        foreach (var gridChild in grid.Children)
+                        {
+                            if (gridChild is TextBox tb)
+                                return tb;
+                        }
+                    }
+                }
+            }
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return null;
+    }
+
+    private void WrapSelectedText(TextBox textBox, string prefix, string suffix)
+    {
+        var start = textBox.SelectionStart;
+        var length = textBox.SelectionLength;
+        var text = textBox.Text ?? "";
+        var selectedText = length > 0 ? textBox.SelectedText : "text";
+
+        var newText = text.Substring(0, start) + prefix + selectedText + suffix + text.Substring(start + length);
+        textBox.Text = newText;
+        
+        // Position cursor after the formatted text
+        textBox.SelectionStart = start + prefix.Length + selectedText.Length + suffix.Length;
+        textBox.Focus();
+    }
+
+    private void InsertTextAtCursor(TextBox textBox, string insertText, bool newLine = false)
+    {
+        var start = textBox.SelectionStart;
+        var text = textBox.Text ?? "";
+        
+        // If newLine is true, ensure we're at the start of a line
+        var prefix = "";
+        if (newLine && start > 0 && text[start - 1] != '\n')
+        {
+            prefix = "\n";
+        }
+
+        var newText = text.Substring(0, start) + prefix + insertText + text.Substring(start + textBox.SelectionLength);
+        textBox.Text = newText;
+        textBox.SelectionStart = start + prefix.Length + insertText.Length;
+        textBox.Focus();
+    }
+
+    private void FormatBold_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            WrapSelectedText(textBox, "**", "**");
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private void FormatItalic_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            WrapSelectedText(textBox, "*", "*");
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private void FormatUnderline_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            WrapSelectedText(textBox, "__", "__");
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private void InsertBullet_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            InsertTextAtCursor(textBox, "• ", newLine: true);
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private void InsertCheckbox_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            InsertTextAtCursor(textBox, "☐ ", newLine: true);
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private void InsertTimestamp_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            var timestamp = DateTime.Now.ToString("MM/dd HH:mm");
+            InsertTextAtCursor(textBox, $"[{timestamp}] ");
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private void InsertDivider_Click(object sender, RoutedEventArgs e)
+    {
+        var textBox = FindNoteContentTextBox(sender);
+        if (textBox != null)
+        {
+            InsertTextAtCursor(textBox, "────────────", newLine: true);
+            UpdateNoteContent(sender);
+        }
+    }
+
+    private async void UpdateNoteContent(object sender)
+    {
+        if (sender is Button button && button.Tag is Models.OrderItem order)
+        {
+            var textBox = FindNoteContentTextBox(sender);
+            if (textBox != null)
+            {
+                order.NoteContent = textBox.Text;
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    await vm.SaveAsync();
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Auto-continuation for bullets/checkboxes
+
+    private void NoteContent_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not TextBox textBox)
+            return;
+
+        var text = textBox.Text ?? "";
+        var caretIndex = textBox.CaretIndex;
+
+        // Find the start of the current line
+        var lineStart = text.LastIndexOf('\n', Math.Max(0, caretIndex - 1)) + 1;
+        var currentLine = text.Substring(lineStart, caretIndex - lineStart);
+
+        // Check for list prefixes
+        string? prefix = null;
+
+        // Check for bullet point (• )
+        if (currentLine.TrimStart().StartsWith("• "))
+        {
+            var indent = currentLine.Length - currentLine.TrimStart().Length;
+            prefix = new string(' ', indent) + "• ";
+        }
+        // Check for checkbox empty (☐ )
+        else if (currentLine.TrimStart().StartsWith("☐ "))
+        {
+            var indent = currentLine.Length - currentLine.TrimStart().Length;
+            prefix = new string(' ', indent) + "☐ ";
+        }
+        // Check for checkbox checked (☑ )
+        else if (currentLine.TrimStart().StartsWith("☑ "))
+        {
+            var indent = currentLine.Length - currentLine.TrimStart().Length;
+            prefix = new string(' ', indent) + "☐ ";
+        }
+        // Check for dash list (- )
+        else if (currentLine.TrimStart().StartsWith("- "))
+        {
+            var indent = currentLine.Length - currentLine.TrimStart().Length;
+            prefix = new string(' ', indent) + "- ";
+        }
+        // Check for numbered list (1. , 2. , etc.)
+        else if (System.Text.RegularExpressions.Regex.IsMatch(currentLine.TrimStart(), @"^\d+\.\s"))
+        {
+            var indent = currentLine.Length - currentLine.TrimStart().Length;
+            var match = System.Text.RegularExpressions.Regex.Match(currentLine.TrimStart(), @"^(\d+)\.\s");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out int num))
+            {
+                prefix = new string(' ', indent) + $"{num + 1}. ";
+            }
+        }
+
+        if (prefix != null)
+        {
+            // Check if current line only has the prefix (empty list item)
+            var trimmedLine = currentLine.TrimStart();
+            var isEmptyListItem = trimmedLine == "• " || trimmedLine == "☐ " || trimmedLine == "☑ " || 
+                                  trimmedLine == "- " || System.Text.RegularExpressions.Regex.IsMatch(trimmedLine, @"^\d+\.\s*$");
+
+            if (isEmptyListItem)
+            {
+                // Remove the empty list item and just add a newline
+                var newText = text.Substring(0, lineStart) + text.Substring(caretIndex);
+                textBox.Text = newText;
+                textBox.CaretIndex = lineStart;
+            }
+            else
+            {
+                // Insert newline with prefix
+                var newText = text.Substring(0, caretIndex) + "\n" + prefix + text.Substring(caretIndex);
+                textBox.Text = newText;
+                textBox.CaretIndex = caretIndex + 1 + prefix.Length;
+            }
+
+            e.Handled = true;
+        }
+    }
+
+    #endregion
 }
 

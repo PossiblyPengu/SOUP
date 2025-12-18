@@ -2336,7 +2336,8 @@
                                         BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
-                                        Padding="4">
+                                        Padding="4"
+                                        TextElement.Foreground="{DynamicResource TextPrimaryBrush}">
                                     <Border.Effect>
                                         <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.3" Direction="270"/>
                                     </Border.Effect>
