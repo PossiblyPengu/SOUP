@@ -109,7 +109,7 @@ public partial class OrderLogView : UserControl
         var order = new Models.OrderItem
         {
             NoteType = Models.NoteType.Order,
-            VendorName = "New Order",
+            VendorName = string.Empty,
             TransferNumbers = string.Empty,
             WhsShipmentNumbers = string.Empty,
             ColorHex = "#B56576",
@@ -124,7 +124,8 @@ public partial class OrderLogView : UserControl
         var note = new Models.OrderItem
         {
             NoteType = Models.NoteType.StickyNote,
-            NoteContent = "",
+            NoteTitle = string.Empty,
+            NoteContent = string.Empty,
             ColorHex = "#FFD700",
             Status = Models.OrderItem.OrderStatus.OnDeck
         };

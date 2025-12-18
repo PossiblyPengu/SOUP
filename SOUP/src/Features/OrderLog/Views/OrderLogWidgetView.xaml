@@ -254,16 +254,6 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Grid.Style>
-                                                <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         FontSize="15"
-                                                         FontWeight="SemiBold"
-                                                         Foreground="{DynamicResource TextPrimaryBrush}"
-                                                         Padding="0"
-                                                         Margin="0,0,70,0"
-                                                         GotFocus="EditableField_GotFocus"
-                                                         LostFocus="EditableField_LostFocus"/>
                                                 <TextBlock Text="Vendor name..." 
                                                            FontSize="15"
                                                            FontWeight="SemiBold"
@@ -286,6 +276,16 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
+                                                <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         FontSize="15"
+                                                         FontWeight="SemiBold"
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         Padding="0"
+                                                         Margin="0,0,70,0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
                                             </Grid>
                                             
                                             <!-- Title for Sticky Notes (editable with placeholder) -->
@@ -300,17 +300,6 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Grid.Style>
-                                                <TextBox x:Name="NoteTitleBox"
-                                                         Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         FontSize="15" 
-                                                         FontWeight="SemiBold" 
-                                                         Foreground="{DynamicResource TextPrimaryBrush}"
-                                                         Padding="0"
-                                                         Margin="0,0,70,0"
-                                                         GotFocus="EditableField_GotFocus"
-                                                         LostFocus="EditableField_LostFocus"/>
                                                 <TextBlock Text="Note title..." 
                                                            FontSize="15"
                                                            FontWeight="SemiBold"
@@ -333,6 +322,17 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
+                                                <TextBox x:Name="NoteTitleBox"
+                                                         Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         FontSize="15" 
+                                                         FontWeight="SemiBold" 
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         Padding="0"
+                                                         Margin="0,0,70,0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
                                             </Grid>
                                             
                                             <!-- Status ComboBox (hidden for sticky notes) -->
@@ -376,14 +376,6 @@
                                             
                                             <!-- Editable Transfer Numbers -->
                                             <Grid Margin="0,6,0,0">
-                                                <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         Foreground="{DynamicResource TextSecondaryBrush}"
-                                                         FontSize="13"
-                                                         Padding="0"
-                                                         GotFocus="EditableField_GotFocus"
-                                                         LostFocus="EditableField_LostFocus"/>
                                                 <TextBlock Text="Transfer #s..." 
                                                            FontSize="13"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
@@ -404,11 +396,7 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                            </Grid>
-
-                                            <!-- Editable WHS Shipment Numbers -->
-                                            <Grid Margin="0,3,0,0">
-                                                <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                                <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
                                                          Background="Transparent"
                                                          BorderThickness="0"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
@@ -416,6 +404,10 @@
                                                          Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
+                                            </Grid>
+
+                                            <!-- Editable WHS Shipment Numbers -->
+                                            <Grid Margin="0,3,0,0">
                                                 <TextBlock Text="WHS #s..." 
                                                            FontSize="13"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
@@ -436,6 +428,14 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
+                                                <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         Foreground="{DynamicResource TextSecondaryBrush}"
+                                                         FontSize="13"
+                                                         Padding="0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
                                             </Grid>
 
                                             <TextBlock Text="{Binding TimeInProgressDisplay}"
@@ -457,16 +457,6 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Grid.Style>
-                                            <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=LostFocus}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
-                                                     Foreground="{DynamicResource TextPrimaryBrush}"
-                                                     FontSize="13"
-                                                     Padding="0"
-                                                     TextWrapping="Wrap"
-                                                     AcceptsReturn="True"
-                                                     GotFocus="EditableField_GotFocus"
-                                                     LostFocus="EditableField_LostFocus"/>
                                             <TextBlock Text="Write your note here..." 
                                                        FontSize="13"
                                                        Foreground="{DynamicResource TextDisabledBrush}"
@@ -487,6 +477,16 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
+                                            <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=LostFocus}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                                     FontSize="13"
+                                                     Padding="0"
+                                                     TextWrapping="Wrap"
+                                                     AcceptsReturn="True"
+                                                     GotFocus="EditableField_GotFocus"
+                                                     LostFocus="EditableField_LostFocus"/>
                                         </Grid>
                                     </StackPanel>
                                 </Grid>

@@ -349,7 +349,7 @@ public partial class OrderLogWidgetView : UserControl
         var order = new OrderItem
         {
             NoteType = NoteType.Order,
-            VendorName = "New Order",
+            VendorName = string.Empty,
             TransferNumbers = string.Empty,
             WhsShipmentNumbers = string.Empty,
             ColorHex = "#B56576",
@@ -364,7 +364,8 @@ public partial class OrderLogWidgetView : UserControl
         var note = new OrderItem
         {
             NoteType = NoteType.StickyNote,
-            NoteContent = "",
+            NoteTitle = string.Empty,
+            NoteContent = string.Empty,
             ColorHex = "#FFD700",
             Status = OrderItem.OrderStatus.OnDeck
         };
