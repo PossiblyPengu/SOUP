@@ -53,8 +53,8 @@ public sealed class OrderLogRepository : IOrderLogService
             Directory.CreateDirectory(dir);
             var dbPath = Path.Combine(dir, "orders.db");
 
-            // Use shared connection mode for better concurrency
-            _db = new LiteDatabase($"Filename={dbPath};Connection=shared");
+            // Use direct connection mode (singleton handles concurrency via semaphore)
+            _db = new LiteDatabase(dbPath);
             _collection = _db.GetCollection<OrderItem>("orders");
             _collection.EnsureIndex(x => x.VendorName);
             _collection.EnsureIndex(x => x.Order);

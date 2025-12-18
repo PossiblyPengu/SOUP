@@ -294,7 +294,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Grid.Style>
-                                            <TextBox Text="{Binding VendorName, UpdateSourceTrigger=PropertyChanged}"
+                                            <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      FontSize="15" 
@@ -340,7 +340,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Grid.Style>
-                                            <TextBox Text="{Binding NoteTitle, UpdateSourceTrigger=PropertyChanged}"
+                                            <TextBox Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      FontSize="15" 
@@ -415,7 +415,7 @@
                                         
                                         <!-- Editable Transfer Numbers -->
                                         <Grid Margin="0,6,0,0">
-                                            <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                            <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
@@ -447,7 +447,7 @@
 
                                         <!-- Editable WHS Shipment Numbers -->
                                         <Grid Margin="0,4,0,0">
-                                            <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=PropertyChanged}"
+                                            <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
@@ -496,7 +496,7 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Grid.Style>
-                                        <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=PropertyChanged}"
+                                        <TextBox Text="{Binding NoteContent, UpdateSourceTrigger=LostFocus}"
                                                  Background="Transparent"
                                                  BorderThickness="0"
                                                  Foreground="{DynamicResource TextPrimaryBrush}"
@@ -504,8 +504,6 @@
                                                  Padding="0"
                                                  TextWrapping="Wrap"
                                                  AcceptsReturn="True"
-                                                 MaxHeight="120"
-                                                 VerticalScrollBarVisibility="Auto"
                                                  GotFocus="EditableField_GotFocus"
                                                  LostFocus="EditableField_LostFocus"/>
                                         <TextBlock Text="Write your note here..." 
@@ -649,8 +647,7 @@
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        FontSize="13"
                                                        Margin="0,6,0,0"
-                                                       TextWrapping="Wrap"
-                                                       MaxHeight="60">
+                                                       TextWrapping="Wrap">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
