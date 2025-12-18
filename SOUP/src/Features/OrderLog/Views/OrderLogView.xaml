@@ -196,20 +196,11 @@
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Width="320"
-                                Margin="0,0,16,16">
+                                Margin="0,0,16,16"
+                                Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
                             <Border.Style>
                                 <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardNotReadyBrush}"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
-                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardOnDeckBrush}"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardInProgressBrush}"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
-                                            <Setter Property="Background" Value="{DynamicResource OrderLogCardDoneBrush}"/>
-                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
                                             <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
                                         </DataTrigger>
