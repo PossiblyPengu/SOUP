@@ -173,10 +173,12 @@
                 <StackPanel>
                     <TextBlock Text="HOW TO PLAY" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextDimBrush}" Margin="0,0,0,6"/>
                     <TextBlock Text="↑↓←→ / WASD - Wander" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="SPACE - Contemplate" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="E - Accept Invitation" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="1-5 - Consume" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="R - Try Again" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="SPACE - Rest (+1 HP)" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="E - Interact" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="Q - Elevator" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="T - Teleport" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="1-5 - Use Item" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="R - Restart" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
                 </StackPanel>
             </Border>
         </Grid>

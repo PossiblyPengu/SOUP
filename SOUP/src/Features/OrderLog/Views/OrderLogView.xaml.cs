@@ -10,6 +10,8 @@ namespace SOUP.Features.OrderLog.Views;
 
 public partial class OrderLogView : UserControl
 {
+    private bool _showingArchivedTab = false;
+
     public OrderLogView()
     {
         InitializeComponent();
@@ -19,6 +21,42 @@ public partial class OrderLogView : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Initialization complete
+    }
+
+    private void ActiveTab_Checked(object sender, RoutedEventArgs e)
+    {
+        _showingArchivedTab = false;
+        UpdateTabState();
+    }
+
+    private void ArchivedTab_Checked(object sender, RoutedEventArgs e)
+    {
+        _showingArchivedTab = true;
+        UpdateTabState();
+    }
+
+    private void UpdateTabState()
+    {
+        // Guard against null elements during initialization
+        if (ActiveItemsPanel == null || ArchivedItemsPanel == null || 
+            AddOrderButton == null || AddNoteButton == null)
+            return;
+            
+        // Update panel visibility based on selected tab
+        if (_showingArchivedTab)
+        {
+            ActiveItemsPanel.Visibility = Visibility.Collapsed;
+            ArchivedItemsPanel.Visibility = Visibility.Visible;
+            AddOrderButton.Visibility = Visibility.Collapsed;
+            AddNoteButton.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            ActiveItemsPanel.Visibility = Visibility.Visible;
+            ArchivedItemsPanel.Visibility = Visibility.Collapsed;
+            AddOrderButton.Visibility = Visibility.Visible;
+            AddNoteButton.Visibility = Visibility.Visible;
+        }
     }
 
     private void SetPlaceholder(TextBox tb)
@@ -134,22 +172,16 @@ public partial class OrderLogView : UserControl
         }
     }
 
-    private void StatusToggle_Click(object sender, MouseButtonEventArgs e)
+    private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is not Border border || border.DataContext is not Models.OrderItem order) return;
+        if (sender is not ComboBox comboBox || comboBox.DataContext is not Models.OrderItem order) return;
         if (DataContext is not OrderLogViewModel vm) return;
-        
-        // Cycle through statuses: NotReady -> OnDeck -> InProgress -> Done -> NotReady
-        var newStatus = order.Status switch
+        if (comboBox.SelectedItem is not ComboBoxItem selectedItem) return;
+
+        if (selectedItem.Tag is Models.OrderItem.OrderStatus newStatus && order.Status != newStatus)
         {
-            Models.OrderItem.OrderStatus.NotReady => Models.OrderItem.OrderStatus.OnDeck,
-            Models.OrderItem.OrderStatus.OnDeck => Models.OrderItem.OrderStatus.InProgress,
-            Models.OrderItem.OrderStatus.InProgress => Models.OrderItem.OrderStatus.Done,
-            Models.OrderItem.OrderStatus.Done => Models.OrderItem.OrderStatus.NotReady,
-            _ => Models.OrderItem.OrderStatus.NotReady
-        };
-        
-        _ = vm.SetStatusAsync(order, newStatus);
+            _ = vm.SetStatusAsync(order, newStatus);
+        }
     }
 
     private void SetStatus_NotReady(object sender, RoutedEventArgs e)
@@ -223,6 +255,23 @@ public partial class OrderLogView : UserControl
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to unarchive note");
+        }
+    }
+
+    private async void DeleteArchivedNote_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is MenuItem menuItem && menuItem.DataContext is Models.OrderItem order)
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    vm.ArchivedItems.Remove(order);
+                    await vm.SaveAsync();
+                }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete archived order");
         }
     }
 

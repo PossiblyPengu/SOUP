@@ -81,6 +81,7 @@ public partial class DungeonCrawler : Window
     private static readonly SolidColorBrush GreenBrush = new(Color.FromRgb(50, 205, 50));
     private static readonly SolidColorBrush DarkBrownBrush = new(Color.FromRgb(80, 50, 20));
     private static readonly SolidColorBrush LightBlueBrush = new(Color.FromRgb(135, 206, 250));
+    private static readonly SolidColorBrush MagentaBrush = new(Color.FromRgb(255, 0, 255));
     private static readonly SolidColorBrush TransparentBrush = new(Colors.Transparent);
     #endregion
 
@@ -218,6 +219,7 @@ public partial class DungeonCrawler : Window
         _currentFloor = 1;
         _gameOver = false;
         _victory = false;
+        _hasKey = false;
         _player = new Player
         {
             Health = 100,
@@ -643,7 +645,7 @@ public partial class DungeonCrawler : Window
                 if (_map[x, y] == Tile.Floor && !(x == _player.X && y == _player.Y))
                 {
                     _keyPosition = (x, y);
-                    _items.Add(new Item { X = x, Y = y, Type = ItemType.Key, Name = "Rusty Key", Icon = "K" });
+                    _items.Add(new Item { X = x, Y = y, Type = ItemType.Key });
                     return;
                 }
             }
@@ -704,8 +706,38 @@ public partial class DungeonCrawler : Window
         if (newX < 0 || newX >= MapWidth || newY < 0 || newY >= MapHeight)
             return;
 
-        if (_map[newX, newY] == Tile.Wall)
+        var targetTile = _map[newX, newY];
+
+        if (targetTile == Tile.Wall)
             return;
+
+        // Locked door blocks movement unless you have key
+        if (targetTile == Tile.LockedDoor)
+        {
+            if (_hasKey)
+            {
+                // Auto-unlock when walking through
+                _map[newX, newY] = Tile.Floor;
+                _lockedDoorPosition = null;
+                _hasKey = false;
+                var key = _inventory.FirstOrDefault(i => i.Type == ItemType.Key);
+                if (key != null) _inventory.Remove(key);
+                AddMessage("The key dissolves. The door relents.");
+                UpdateInventoryUI();
+            }
+            else
+            {
+                AddMessage("A locked door blocks your path. Find the key.");
+                return;
+            }
+        }
+
+        // Secret wall - reveal it and pass through
+        if (targetTile == Tile.SecretWall)
+        {
+            _map[newX, newY] = Tile.Floor;
+            AddMessage("The wall was never real. You pass through.");
+        }
 
         // Check for enemy at target
         var enemy = _enemies.FirstOrDefault(e => e.X == newX && e.Y == newY);
@@ -733,10 +765,29 @@ public partial class DungeonCrawler : Window
             TriggerTrap(trap);
         }
 
-        // Check for stairs
-        if (newX == _stairsPosition.X && newY == _stairsPosition.Y)
+        // Check for special tiles
+        CheckSpecialTileMessages();
+    }
+
+    private void CheckSpecialTileMessages()
+    {
+        var tile = _map[_player.X, _player.Y];
+        
+        switch (tile)
         {
-            AddMessage("The stairs whisper your name. Press E to answer.");
+            case Tile.Stairs:
+                AddMessage("The stairs whisper your name. Press E to descend.");
+                break;
+            case Tile.Elevator:
+                AddMessage("An elevator! Press Q or E to use it. Destination unknown.");
+                break;
+            case Tile.Teleporter:
+                AddMessage("A teleporter hums beneath you. Press T or E to vanish.");
+                break;
+            case Tile.SafeRoom:
+                if (_rng.Next(100) < 30)
+                    AddMessage("This room feels... safe? Nothing bad here. Promise.");
+                break;
         }
     }
 
@@ -850,6 +901,20 @@ public partial class DungeonCrawler : Window
                 _player.Defense += defBonus;
                 AddMessage($"You found {armorName}! {armorMsg} DEF +{defBonus}");
                 break;
+
+            case ItemType.Key:
+                _hasKey = true;
+                _keyPosition = null;
+                _inventory.Add(new InventoryItem { Icon = "K", Name = "Rusty Key", Type = ItemType.Key, Quantity = 1 });
+                string[] keyMessages = {
+                    "A key! It hums with purpose. Somewhere, a door feels nervous.",
+                    "The key chose you. Or did you choose it? Does it matter?",
+                    "You picked up a key. It's been waiting for you.",
+                    "Key acquired. Something locked wants to meet you.",
+                    "The key is warm. Someone was holding it recently."
+                };
+                AddMessage(keyMessages[_rng.Next(keyMessages.Length)]);
+                break;
         }
 
         UpdateInventoryUI();
@@ -941,6 +1006,139 @@ public partial class DungeonCrawler : Window
             GameOverStats.Text = $"You fell asleep. Forever.\nThe dungeon will remember you fondly.\nFloor {_currentFloor} | Gold: {_player.Gold} | Level: {_player.Level}";
             GameOverOverlay.Visibility = Visibility.Visible;
         }
+    }
+
+    private void HandleInteraction()
+    {
+        var tile = _map[_player.X, _player.Y];
+        
+        switch (tile)
+        {
+            case Tile.Stairs:
+                DescendStairs();
+                break;
+            case Tile.Elevator:
+                UseElevator();
+                break;
+            case Tile.Teleporter:
+                var tele = _teleporters.FirstOrDefault(t => t.X == _player.X && t.Y == _player.Y);
+                if (tele != default)
+                    UseTeleporter(tele);
+                break;
+            case Tile.LockedDoor:
+                TryUnlockDoor();
+                break;
+            case Tile.SecretWall:
+                AddMessage("The wall whispers secrets. It remembers your touch.");
+                break;
+            default:
+                AddMessage("Nothing to interact with here.");
+                break;
+        }
+        
+        UpdateUI();
+        Render();
+    }
+
+    private void UseElevator()
+    {
+        // Elevator can go up or down multiple floors
+        string[] options = { "Going up...", "Going down...", "The elevator remembers you." };
+        int floorsToMove = _rng.Next(1, 4); // 1-3 floors
+        bool goingUp = _currentFloor > floorsToMove && _rng.Next(2) == 0;
+        
+        if (goingUp)
+        {
+            _currentFloor = Math.Max(1, _currentFloor - floorsToMove);
+            AddMessage($"The elevator takes you UP {floorsToMove} floor(s). It smiles.");
+        }
+        else
+        {
+            int newFloor = _currentFloor + floorsToMove;
+            if (newFloor > MaxFloors)
+            {
+                _victory = true;
+                VictoryStats.Text = $"The elevator took you beyond.\nIt knew where you needed to go.\n\nGold: {_player.Gold} | Level: {_player.Level}";
+                VictoryOverlay.Visibility = Visibility.Visible;
+                return;
+            }
+            _currentFloor = newFloor;
+            AddMessage($"The elevator takes you DOWN {floorsToMove} floor(s). It giggles.");
+        }
+        
+        _hasKey = false;
+        GenerateFloor();
+        AddMessage(GetCreepyFloorMessage());
+        UpdateUI();
+    }
+
+    private void UseTeleporter((int X, int Y) currentTeleporter)
+    {
+        var otherTeleporter = _teleporters.FirstOrDefault(t => t != currentTeleporter);
+        if (otherTeleporter != default)
+        {
+            _player.X = otherTeleporter.X;
+            _player.Y = otherTeleporter.Y;
+            
+            string[] messages = {
+                "Reality blinks. You're somewhere else now.",
+                "The teleporter swallows you. Then spits you out.",
+                "ZZzzzap! The other teleporter missed you.",
+                "You feel your atoms rearrange. Mostly correctly.",
+                "The journey took 0.0001 seconds. It felt like forever."
+            };
+            AddMessage(messages[_rng.Next(messages.Length)]);
+            
+            // Small disorientation damage
+            if (_rng.Next(100) < 15)
+            {
+                int damage = _rng.Next(1, 5);
+                _player.Health -= damage;
+                AddMessage($"Teleportation sickness. (-{damage} HP)");
+                CheckGameState();
+            }
+            
+            UpdateVisibility();
+            Render();
+        }
+    }
+
+    private void TryUnlockDoor()
+    {
+        if (_hasKey)
+        {
+            _map[_player.X, _player.Y] = Tile.Floor;
+            _lockedDoorPosition = null;
+            _hasKey = false;
+            
+            // Remove key from inventory
+            var key = _inventory.FirstOrDefault(i => i.Type == ItemType.Key);
+            if (key != null) _inventory.Remove(key);
+            
+            string[] messages = {
+                "The door accepts your offering. It opens... reluctantly.",
+                "Click. The lock remembers when it was made. It's tired now.",
+                "The door swings open. Something was waiting on the other side.",
+                "Unlocked. The door whispers 'finally' as it opens."
+            };
+            AddMessage(messages[_rng.Next(messages.Length)]);
+            UpdateInventoryUI();
+        }
+        else
+        {
+            string[] messages = {
+                "The door won't budge. It knows you don't have the key.",
+                "Locked. The door laughs. Have you tried finding the key?",
+                "This door requires a key. Keys are real. Find one.",
+                "The lock stares at you. You don't have what it wants."
+            };
+            AddMessage(messages[_rng.Next(messages.Length)]);
+        }
+    }
+
+    private bool IsInSafeRoom()
+    {
+        return _map[_player.X, _player.Y] == Tile.SafeRoom;
     }
     #endregion
 
@@ -1034,6 +1232,11 @@ public partial class DungeonCrawler : Window
                         Tile.Wall => WallBrush,
                         Tile.Floor => FloorBrush,
                         Tile.Stairs => FloorBrush, // We'll draw stairs sprite on top
+                        Tile.Elevator => FloorBrush, // Draw elevator sprite on top
+                        Tile.Teleporter => FloorBrush, // Draw teleporter sprite on top
+                        Tile.LockedDoor => FloorBrush, // Draw door sprite on top
+                        Tile.SafeRoom => new SolidColorBrush(Color.FromRgb(40, 60, 40)), // Soft green tint
+                        Tile.SecretWall => WallBrush, // Looks like wall until discovered
                         _ => FloorBrush
                     };
                 }
@@ -1070,6 +1273,39 @@ public partial class DungeonCrawler : Window
         if (_visible[_stairsPosition.X, _stairsPosition.Y])
         {
             DrawSprite(_stairsPosition.X, _stairsPosition.Y, GetStairsSprite());
+        }
+
+        // Render elevator
+        if (_elevatorPosition.HasValue && _visible[_elevatorPosition.Value.X, _elevatorPosition.Value.Y])
+        {
+            DrawSprite(_elevatorPosition.Value.X, _elevatorPosition.Value.Y, GetElevatorSprite());
+        }
+
+        // Render teleporters
+        foreach (var tele in _teleporters)
+        {
+            if (_visible[tele.X, tele.Y])
+            {
+                DrawSprite(tele.X, tele.Y, GetTeleporterSprite());
+            }
+        }
+
+        // Render locked door
+        if (_lockedDoorPosition.HasValue && _visible[_lockedDoorPosition.Value.X, _lockedDoorPosition.Value.Y])
+        {
+            DrawSprite(_lockedDoorPosition.Value.X, _lockedDoorPosition.Value.Y, GetLockedDoorSprite());
+        }
+
+        // Render secret walls (only visible when explored but appear as slightly different)
+        for (int y = 0; y < MapHeight; y++)
+        {
+            for (int x = 0; x < MapWidth; x++)
+            {
+                if (_map[x, y] == Tile.SecretWall && _visible[x, y])
+                {
+                    DrawSprite(x, y, GetSecretWallSprite());
+                }
+            }
         }
 
         // Render enemies
@@ -1498,6 +1734,7 @@ public partial class DungeonCrawler : Window
             ItemType.HealthPotion => GetPotionSprite(),
             ItemType.Weapon => GetWeaponSprite(),
             ItemType.Armor => GetArmorSprite(),
+            ItemType.Key => GetKeySprite(),
             _ => GetGoldSprite()
         };
     }
@@ -1592,6 +1829,116 @@ public partial class DungeonCrawler : Window
             { P, D, P, P, P, P, D, P },
             { P, D, D, D, D, D, D, P },
             { P, P, P, P, P, P, P, P },
+        };
+    }
+
+    private SolidColorBrush[,] GetElevatorSprite()
+    {
+        var _ = TransparentBrush;
+        var C = CyanBrush;
+        var G = GrayBrush;
+        var D = DarkGrayBrush;
+        
+        return new SolidColorBrush[,] {
+            { G, G, G, G, G, G, G, G },
+            { G, C, C, D, D, C, C, G },
+            { G, C, _, D, D, _, C, G },
+            { G, C, _, _, _, _, C, G },
+            { G, C, _, _, _, _, C, G },
+            { G, C, _, D, D, _, C, G },
+            { G, C, C, D, D, C, C, G },
+            { G, G, G, G, G, G, G, G },
+        };
+    }
+
+    private SolidColorBrush[,] GetTeleporterSprite()
+    {
+        var _ = TransparentBrush;
+        var M = MagentaBrush;
+        var P = PurpleBrush;
+        var C = CyanBrush;
+        
+        return new SolidColorBrush[,] {
+            { _, _, M, C, C, M, _, _ },
+            { _, M, P, M, M, P, M, _ },
+            { M, P, C, P, P, C, P, M },
+            { C, M, P, _, _, P, M, C },
+            { C, M, P, _, _, P, M, C },
+            { M, P, C, P, P, C, P, M },
+            { _, M, P, M, M, P, M, _ },
+            { _, _, M, C, C, M, _, _ },
+        };
+    }
+
+    private SolidColorBrush[,] GetLockedDoorSprite()
+    {
+        var _ = TransparentBrush;
+        var B = BrownBrush;
+        var Y = YellowBrush;
+        var D = DarkGrayBrush;
+        
+        return new SolidColorBrush[,] {
+            { D, D, D, D, D, D, D, D },
+            { D, B, B, B, B, B, B, D },
+            { D, B, B, B, B, B, B, D },
+            { D, B, B, Y, Y, B, B, D },
+            { D, B, B, Y, D, B, B, D },
+            { D, B, B, B, B, B, B, D },
+            { D, B, B, B, B, B, B, D },
+            { D, D, D, D, D, D, D, D },
+        };
+    }
+
+    private SolidColorBrush[,] GetKeySprite()
+    {
+        var _ = TransparentBrush;
+        var Y = YellowBrush;
+        var O = OrangeBrush;
+        
+        return new SolidColorBrush[,] {
+            { _, _, Y, Y, Y, _, _, _ },
+            { _, Y, O, O, O, Y, _, _ },
+            { _, Y, O, _, O, Y, _, _ },
+            { _, Y, O, O, O, Y, _, _ },
+            { _, _, Y, Y, Y, _, _, _ },
+            { _, _, _, Y, _, _, _, _ },
+            { _, _, _, Y, _, Y, Y, _ },
+            { _, _, _, Y, Y, Y, _, _ },
+        };
+    }
+
+    private SolidColorBrush[,] GetSafeRoomFloorSprite()
+    {
+        var G = new SolidColorBrush(Color.FromRgb(60, 90, 60)); // Soft green
+        var L = new SolidColorBrush(Color.FromRgb(80, 110, 80)); // Light green
+        
+        return new SolidColorBrush[,] {
+            { G, L, G, L, G, L, G, L },
+            { L, G, L, G, L, G, L, G },
+            { G, L, G, L, G, L, G, L },
+            { L, G, L, G, L, G, L, G },
+            { G, L, G, L, G, L, G, L },
+            { L, G, L, G, L, G, L, G },
+            { G, L, G, L, G, L, G, L },
+            { L, G, L, G, L, G, L, G },
+        };
+    }
+
+    private SolidColorBrush[,] GetSecretWallSprite()
+    {
+        var D = DarkGrayBrush;
+        var G = GrayBrush;
+        var H = new SolidColorBrush(Color.FromRgb(70, 60, 70)); // Hint color
+        
+        return new SolidColorBrush[,] {
+            { D, G, D, G, D, G, D, G },
+            { G, D, G, D, G, D, G, D },
+            { D, G, D, H, H, D, G, D },
+            { G, D, H, D, D, H, D, G },
+            { G, D, H, D, D, H, D, G },
+            { D, G, D, H, H, D, G, D },
+            { G, D, G, D, G, D, G, D },
+            { D, G, D, G, D, G, D, G },
         };
     }
 
