@@ -473,31 +473,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             IsLoading = true;
             StatusMessage = "Exporting to CSV...";
 
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var fileName = $"OrderLog_Export_{timestamp}.csv";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = System.IO.Path.Combine(desktopPath, fileName);
+            var exportService = new Services.OrderLogExportService();
+            var itemsToExport = ShowArchived ? ArchivedItems : Items;
+            var filePath = await exportService.ExportToCsvAsync(itemsToExport);
 
-            var itemsToExport = ShowArchived ? ArchivedItems.ToList() : Items.ToList();
-            
-            var csvContent = new System.Text.StringBuilder();
-            csvContent.AppendLine("Vendor,Status,Created,Completed,Transfer Numbers,WHS Shipment Numbers");
-            
-            foreach (var item in itemsToExport)
-            {
-                var vendor = EscapeCsvField(item.VendorName);
-                var status = item.Status.ToString();
-                var created = item.CreatedAt.ToString("yyyy-MM-dd HH:mm");
-                var completed = item.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "";
-                var transfers = EscapeCsvField(item.TransferNumbers ?? "");
-                var shipments = EscapeCsvField(item.WhsShipmentNumbers ?? "");
-                
-                csvContent.AppendLine($"{vendor},{status},{created},{completed},{transfers},{shipments}");
-            }
-            
-            await System.IO.File.WriteAllTextAsync(filePath, csvContent.ToString());
-            StatusMessage = $"Exported {itemsToExport.Count} orders to {fileName}";
-            _logger?.LogInformation("Exported {Count} orders to CSV: {FilePath}", itemsToExport.Count, filePath);
+            var fileName = System.IO.Path.GetFileName(filePath);
+            StatusMessage = $"Exported {itemsToExport.Count} item(s) to {fileName}";
         }
         catch (Exception ex)
         {
@@ -508,16 +489,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             IsLoading = false;
         }
-    }
-
-    private static string EscapeCsvField(string field)
-    {
-        if (string.IsNullOrEmpty(field)) return "";
-        if (field.Contains(',') || field.Contains('"') || field.Contains('\n'))
-        {
-            return $"\"{field.Replace("\"", "\"\"")}\"";
-        }
-        return field;
     }
 
     public async Task MoveOrderAsync(OrderItem dropped, OrderItem? target)

@@ -109,9 +109,9 @@ public partial class OrderItem : ObservableObject
         // Only update color for non-Done statuses (keep custom colors when marking done)
         ColorHex = status switch
         {
-            OrderStatus.NotReady => "#FF4444",    // Red
-            OrderStatus.OnDeck => "#FFD700",      // Yellow/Gold
-            OrderStatus.InProgress => "#4CAF50",  // Green
+            OrderStatus.NotReady => Constants.OrderLogColors.StatusNotReady,
+            OrderStatus.OnDeck => Constants.OrderLogColors.StatusOnDeck,
+            OrderStatus.InProgress => Constants.OrderLogColors.StatusInProgress,
             OrderStatus.Done => ColorHex,         // Keep existing color
             _ => ColorHex
         };

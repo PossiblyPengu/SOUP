@@ -59,35 +59,6 @@ public partial class OrderLogView : UserControl
         }
     }
 
-    private void SetPlaceholder(TextBox tb)
-    {
-        if (tb.Tag is string placeholder && string.IsNullOrEmpty(tb.Text))
-        {
-            tb.Text = placeholder;
-            tb.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#71717a"));
-        }
-    }
-
-    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox tb && tb.Tag is string placeholder)
-        {
-            if (tb.Text == placeholder)
-            {
-                tb.Text = "";
-                tb.Foreground = Application.Current?.Resources["TextPrimaryBrush"] as Brush ?? Brushes.White;
-            }
-        }
-    }
-
-    private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox tb)
-        {
-            SetPlaceholder(tb);
-        }
-    }
-
     private void AddBlankOrder_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is OrderLogViewModel vm)
