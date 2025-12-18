@@ -407,6 +407,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var note = new OrderItem
         {
             NoteType = NoteType.StickyNote,
+            NoteTitle = string.Empty,
             NoteContent = StickyNoteContent.Trim(),
             ColorHex = _stickyNoteColorHex,
             CreatedAt = DateTime.UtcNow,
@@ -432,6 +433,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var note = new OrderItem
         {
             NoteType = NoteType.StickyNote,
+            NoteTitle = string.Empty,
             NoteContent = content.Trim(),
             ColorHex = colorHex ?? "#FFD700",
             CreatedAt = DateTime.UtcNow,

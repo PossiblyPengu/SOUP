@@ -24,7 +24,7 @@ public partial class OrderItem : ObservableObject
     /// Title for sticky notes (e.g., "Quick Note", "TODO", etc.)
     /// </summary>
     [ObservableProperty]
-    private string _noteTitle = "Quick Note";
+    private string _noteTitle = string.Empty;
 
     [ObservableProperty]
     private string _transferNumbers = string.Empty;
