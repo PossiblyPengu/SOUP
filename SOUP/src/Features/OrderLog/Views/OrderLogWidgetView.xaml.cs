@@ -514,6 +514,24 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    private void UnifiedStatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox comboBox) return;
+        if (comboBox.DataContext is not ViewModels.OrderItemGroup group) return;
+        if (DataContext is not OrderLogViewModel vm) return;
+        if (comboBox.SelectedItem is not ComboBoxItem selectedItem) return;
+        if (selectedItem.Tag is not OrderItem.OrderStatus newStatus) return;
+
+        // Apply status to ALL members in the group
+        foreach (var member in group.Members)
+        {
+            if (member.Status != newStatus)
+            {
+                _ = vm.SetStatusAsync(member, newStatus);
+            }
+        }
+    }
+
     private void SetStatus_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuItem { DataContext: OrderItem order, Tag: OrderItem.OrderStatus status } &&
@@ -763,6 +781,148 @@ public partial class OrderLogWidgetView : UserControl
     private void NoteContent_LostFocus(object sender, RoutedEventArgs e)
     {
         Helpers.TextFormattingHelper.UpdateNoteContent(sender, this);
+    }
+
+    #endregion
+
+    #region Merged Card Drag and Drop
+
+    private System.Windows.Point _mergedCardDragStartPoint;
+
+    private void MergedCard_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement fe)
+        {
+            _mergedCardDragStartPoint = e.GetPosition(null);
+        }
+    }
+
+    private void MergedCard_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (sender is not FrameworkElement fe || fe.DataContext is not ViewModels.OrderItemGroup group) return;
+
+        var pos = e.GetPosition(null);
+        if (Math.Abs(pos.X - _mergedCardDragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(pos.Y - _mergedCardDragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        // Drag all member IDs
+        var ids = group.Members.Select(m => m.Id).ToArray();
+        var data = new DataObject();
+        data.SetData("OrderItemIds", ids);
+        data.SetData("IsMergedCard", true); // Flag to indicate it's a merged card drag
+
+        DragDrop.DoDragDrop(fe, data, DragDropEffects.Move);
+    }
+
+    private void MergedCard_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("OrderItemId") || e.Data.GetDataPresent("OrderItemIds"))
+        {
+            e.Effects = DragDropEffects.Move;
+
+            // Visual feedback
+            if (sender is Border b)
+            {
+                if (b.Tag == null) b.Tag = b.BorderBrush;
+                b.BorderBrush = (System.Windows.Media.Brush)Application.Current?.Resources["AccentBrush"] ?? System.Windows.Media.Brushes.LightBlue;
+                b.BorderThickness = new Thickness(3);
+            }
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    private void MergedCard_DragLeave(object sender, DragEventArgs e)
+    {
+        if (sender is Border b && b.Tag is System.Windows.Media.Brush orig)
+        {
+            b.BorderBrush = orig;
+            b.BorderThickness = new Thickness(1);
+            b.Tag = null;
+        }
+    }
+
+    private async void MergedCard_Drop(object sender, DragEventArgs e)
+    {
+        try
+        {
+            // Reset visual feedback
+            if (sender is Border b && b.Tag is System.Windows.Media.Brush orig)
+            {
+                b.BorderBrush = orig;
+                b.BorderThickness = new Thickness(1);
+                b.Tag = null;
+            }
+
+            if (!e.Data.GetDataPresent("OrderItemId") && !e.Data.GetDataPresent("OrderItemIds")) return;
+
+            var droppedIds = new System.Collections.Generic.List<Guid>();
+            if (e.Data.GetDataPresent("OrderItemIds") && e.Data.GetData("OrderItemIds") is Guid[] arr)
+            {
+                droppedIds.AddRange(arr);
+            }
+            else if (e.Data.GetDataPresent("OrderItemId"))
+            {
+                droppedIds.Add((Guid)e.Data.GetData("OrderItemId"));
+            }
+
+            if (DataContext is not OrderLogViewModel vm) return;
+            if (sender is not FrameworkElement fe || fe.DataContext is not ViewModels.OrderItemGroup targetGroup) return;
+
+            var droppedItems = vm.Items.Concat(vm.ArchivedItems).Where(i => droppedIds.Contains(i.Id)).ToList();
+            var target = targetGroup.First; // Drop before the first item of target group
+
+            if (droppedItems.Count > 0)
+            {
+                await vm.MoveOrdersAsync(droppedItems, target);
+                vm.StatusMessage = $"Moved {droppedItems.Count} item(s)";
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Merged card drop failed");
+        }
+    }
+
+    #endregion
+
+    #region Section Drag Handles (Split-Drag)
+
+    private System.Windows.Point _sectionDragStartPoint;
+
+    private void SectionDragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement fe)
+        {
+            _sectionDragStartPoint = e.GetPosition(null);
+            e.Handled = true; // Prevent merged card drag from starting
+        }
+    }
+
+    private void SectionDragHandle_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (sender is not Border border) return;
+
+        // Find the OrderItem from the Border's DataContext
+        var current = border.DataContext;
+        if (current is not OrderItem orderItem) return;
+
+        var pos = e.GetPosition(null);
+        if (Math.Abs(pos.X - _sectionDragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(pos.Y - _sectionDragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        // Drag this single order (will auto-unlink when dropped elsewhere)
+        var data = new DataObject();
+        data.SetData("OrderItemId", orderItem.Id);
+        data.SetData("SplitFromGroup", true); // Flag to indicate split-drag
+
+        DragDrop.DoDragDrop(border, data, DragDropEffects.Move);
+        e.Handled = true;
     }
 
     #endregion

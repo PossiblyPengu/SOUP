@@ -353,26 +353,246 @@
             </Border>
         </DataTemplate>
 
-        <!-- Template for a grouped card (shows first member with a small list of members) -->
-        <DataTemplate x:Key="OrderItemGroupTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Grid>
-                <ContentControl Content="{Binding First}" ContentTemplate="{StaticResource OrderItemTemplate}" />
-                <StackPanel Orientation="Vertical" Margin="8,0,0,0" VerticalAlignment="Top">
-                    <ItemsControl ItemsSource="{Binding Members}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                    <TextBlock Text="• " Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding VendorName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding TransferNumbers}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Grid>
+        <!-- Template for merged order cards (shows all members side-by-side with unified status) -->
+        <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
+            <Border BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Margin="0,0,16,16"
+                    Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}"
+                    AllowDrop="True"
+                    PreviewMouseLeftButtonDown="MergedCard_PreviewMouseLeftButtonDown"
+                    MouseMove="MergedCard_MouseMove"
+                    DragOver="MergedCard_DragOver"
+                    DragLeave="MergedCard_DragLeave"
+                    Drop="MergedCard_Drop">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="6"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Unified Color Bar -->
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0"
+                            Background="{Binding First.Status, Converter={StaticResource StatusToColorConverter}}"/>
+
+                    <!-- Unified Header Section -->
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}"
+                            Padding="16,10" Margin="0">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🔗" FontSize="14" Margin="0,0,8,0"/>
+                                <TextBlock Text="Merged Order Group"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                                <Border Background="{DynamicResource AccentBrush}"
+                                        CornerRadius="10"
+                                        Padding="6,2"
+                                        Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding Count, StringFormat='{}{0} orders'}"
+                                               FontSize="10"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"/>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Unified Status ComboBox -->
+                            <ComboBox HorizontalAlignment="Right"
+                                      SelectedValue="{Binding First.Status, Mode=TwoWay}"
+                                      SelectionChanged="UnifiedStatusComboBox_SelectionChanged"
+                                      FontSize="11"
+                                      FontWeight="SemiBold"
+                                      Padding="8,6"
+                                      MinHeight="28"
+                                      MinWidth="100"
+                                      Style="{StaticResource ModernComboBoxStyle}">
+                                <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
+                                <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
+                                <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
+                                <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+
+                    <!-- Order Sections (Side-by-Side) -->
+                    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Members}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="320"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            Padding="16,12">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                                                <Style.Triggers>
+                                                    <!-- Remove right border on last section -->
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <StackPanel>
+                                            <!-- Section Header with Drag Handle -->
+                                            <Grid Margin="0,0,0,8">
+                                                <TextBlock Text="{Binding VendorName, TargetNullValue='Order'}"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+
+                                                <!-- Drag Handle -->
+                                                <Border Background="{DynamicResource SurfaceHoverBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="4,2"
+                                                        HorizontalAlignment="Right"
+                                                        Cursor="Hand"
+                                                        ToolTip="Drag to move this order separately"
+                                                        PreviewMouseLeftButtonDown="SectionDragHandle_PreviewMouseLeftButtonDown"
+                                                        MouseMove="SectionDragHandle_MouseMove">
+                                                    <TextBlock Text="⋮⋮"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               FontWeight="Bold"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Editable VendorName -->
+                                            <Grid>
+                                                <TextBlock Text="Vendor name..."
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextDisabledBrush}"
+                                                           FontStyle="Italic"
+                                                           IsHitTestVisible="False"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding VendorName}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding VendorName}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         FontSize="15"
+                                                         FontWeight="SemiBold"
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         Padding="0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
+                                            </Grid>
+
+                                            <!-- Editable Transfer Numbers -->
+                                            <Grid Margin="0,6,0,0">
+                                                <TextBlock Text="Transfer #s..."
+                                                           FontSize="13"
+                                                           Foreground="{DynamicResource TextDisabledBrush}"
+                                                           FontStyle="Italic"
+                                                           IsHitTestVisible="False"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding TransferNumbers}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding TransferNumbers}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         Foreground="{DynamicResource TextSecondaryBrush}"
+                                                         FontSize="13"
+                                                         Padding="0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
+                                            </Grid>
+
+                                            <!-- Editable WHS Shipment Numbers -->
+                                            <Grid Margin="0,4,0,0">
+                                                <TextBlock Text="WHS #s..."
+                                                           FontSize="13"
+                                                           Foreground="{DynamicResource TextDisabledBrush}"
+                                                           FontStyle="Italic"
+                                                           IsHitTestVisible="False"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding WhsShipmentNumbers}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding WhsShipmentNumbers}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         Foreground="{DynamicResource TextSecondaryBrush}"
+                                                         FontSize="13"
+                                                         Padding="0"
+                                                         GotFocus="EditableField_GotFocus"
+                                                         LostFocus="EditableField_LostFocus"/>
+                                            </Grid>
+
+                                            <!-- TimeInProgress Display -->
+                                            <TextBlock Text="{Binding TimeInProgressDisplay}"
+                                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                                       FontSize="12"
+                                                       FontFamily="Consolas"
+                                                       Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Actions Footer -->
+                    <Border Grid.Row="3"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <Button Content="Unlink Group"
+                                Click="Unlink_Click"
+                                Style="{DynamicResource GhostButtonStyle}"
+                                Padding="10,6"
+                                FontSize="12"
+                                HorizontalAlignment="Right"
+                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </Border>
+                </Grid>
+            </Border>
         </DataTemplate>
         
         <!-- Style for phantom placeholder text -->
@@ -556,19 +776,26 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
-                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupTemplate}"/>
-                                        <!-- Group badge -->
-                                        <Border Background="{DynamicResource SurfaceBrush}"
-                                                CornerRadius="10"
-                                                Padding="4,2"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Top"
-                                                Margin="0,6,8,0"
-                                                Visibility="{Binding IsGroup, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="{Binding Count}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        </Border>
-                                    </Grid>
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.Style>
+                                            <Style TargetType="ContentControl">
+                                                <!-- Default: Use single item template for non-grouped items -->
+                                                <Setter Property="ContentTemplate">
+                                                    <Setter.Value>
+                                                        <DataTemplate>
+                                                            <ContentControl Content="{Binding First}" ContentTemplate="{StaticResource OrderItemTemplate}"/>
+                                                        </DataTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <!-- When IsGroup is true, use merged template -->
+                                                    <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ContentControl.Style>
+                                    </ContentControl>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
