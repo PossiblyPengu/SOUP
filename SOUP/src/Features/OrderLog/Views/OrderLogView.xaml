@@ -771,7 +771,11 @@
                         <ItemsControl ItemsSource="{Binding DisplayItems}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
+                                    <WrapPanel Orientation="Horizontal"
+                                               Background="Transparent"
+                                               AllowDrop="True"
+                                               DragOver="Container_DragOver"
+                                               Drop="Container_Drop"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>

@@ -399,6 +399,15 @@ public partial class OrderLogView : UserControl
             {
                 var droppedItems = vm.Items.Concat(vm.ArchivedItems).Where(i => droppedIds.Contains(i.Id)).ToList();
 
+                // Check if this is a split-drag (dragging from section handle to unlink)
+                bool isSplitDrag = e.Data.GetDataPresent("SplitFromGroup") && e.Data.GetData("SplitFromGroup") is bool split && split;
+
+                // If split-drag, unlink the dragged item
+                if (isSplitDrag && droppedItems.Count == 1)
+                {
+                    droppedItems[0].LinkedGroupId = null;
+                }
+
                 // If single and linked group present, expand inside MoveOrdersAsync (it will handle)
                 Models.OrderItem? target = null;
                 if (sender is FrameworkElement fe && fe.DataContext is Models.OrderItem ti) target = ti;
@@ -414,6 +423,10 @@ public partial class OrderLogView : UserControl
                     else
                     {
                         await vm.MoveOrdersAsync(droppedItems, target);
+                        if (isSplitDrag)
+                        {
+                            vm.StatusMessage = "Split and moved order";
+                        }
                     }
                 }
             }
@@ -487,32 +500,44 @@ public partial class OrderLogView : UserControl
     {
         try
         {
+            if (DataContext is not OrderLogViewModel vm) return;
+
+            Guid? groupId = null;
+
+            // Handle MenuItem (context menu) with OrderItem DataContext
             if (sender is MenuItem menuItem && menuItem.DataContext is Models.OrderItem order)
             {
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    if (order.LinkedGroupId == null)
-                    {
-                        vm.StatusMessage = "Order was not linked";
-                        return;
-                    }
-
-                    var gid = order.LinkedGroupId;
-
-                    // Clear linked id for all items in same group
-                    foreach (var item in vm.Items)
-                    {
-                        if (item.LinkedGroupId == gid) item.LinkedGroupId = null;
-                    }
-                    foreach (var item in vm.ArchivedItems)
-                    {
-                        if (item.LinkedGroupId == gid) item.LinkedGroupId = null;
-                    }
-
-                    await vm.SaveAsync();
-                    vm.StatusMessage = "Unlinked group";
-                }
+                groupId = order.LinkedGroupId;
             }
+            // Handle Button (merged card footer) with OrderItemGroup DataContext
+            else if (sender is Button button && button.DataContext is ViewModels.OrderItemGroup group)
+            {
+                groupId = group.LinkedGroupId;
+            }
+            // Handle FrameworkElement with OrderItemGroup DataContext (generic fallback)
+            else if (sender is FrameworkElement fe && fe.DataContext is ViewModels.OrderItemGroup grp)
+            {
+                groupId = grp.LinkedGroupId;
+            }
+
+            if (groupId == null)
+            {
+                vm.StatusMessage = "Order was not linked";
+                return;
+            }
+
+            // Clear linked id for all items in same group
+            foreach (var item in vm.Items)
+            {
+                if (item.LinkedGroupId == groupId) item.LinkedGroupId = null;
+            }
+            foreach (var item in vm.ArchivedItems)
+            {
+                if (item.LinkedGroupId == groupId) item.LinkedGroupId = null;
+            }
+
+            await vm.SaveAsync();
+            vm.StatusMessage = "Unlinked group";
         }
         catch (Exception ex)
         {
@@ -625,15 +650,99 @@ public partial class OrderLogView : UserControl
             var droppedItems = vm.Items.Concat(vm.ArchivedItems).Where(i => droppedIds.Contains(i.Id)).ToList();
             var target = targetGroup.First; // Drop before the first item of target group
 
+            // Check if this is a split-drag (dragging from section handle to unlink)
+            bool isSplitDrag = e.Data.GetDataPresent("SplitFromGroup") && e.Data.GetData("SplitFromGroup") is bool split && split;
+
+            // If split-drag, unlink the dragged item
+            if (isSplitDrag && droppedItems.Count == 1)
+            {
+                droppedItems[0].LinkedGroupId = null;
+            }
+
             if (droppedItems.Count > 0)
             {
-                await vm.MoveOrdersAsync(droppedItems, target);
-                vm.StatusMessage = $"Moved {droppedItems.Count} item(s)";
+                // If Ctrl is held, link with target group
+                if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+                {
+                    await vm.LinkItemsAsync(droppedItems, target);
+                    vm.StatusMessage = "Linked items";
+                }
+                else
+                {
+                    await vm.MoveOrdersAsync(droppedItems, target);
+                    if (isSplitDrag)
+                    {
+                        vm.StatusMessage = "Split and moved order";
+                    }
+                    else
+                    {
+                        vm.StatusMessage = $"Moved {droppedItems.Count} item(s)";
+                    }
+                }
             }
         }
         catch (Exception ex)
         {
             Serilog.Log.Warning(ex, "Merged card drop failed");
+        }
+    }
+
+    #endregion
+
+    #region Container Drop Zone (for empty space drops like iOS)
+
+    private void Container_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("OrderItemId") || e.Data.GetDataPresent("OrderItemIds"))
+        {
+            e.Effects = DragDropEffects.Move;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    private async void Container_Drop(object sender, DragEventArgs e)
+    {
+        try
+        {
+            if (!e.Data.GetDataPresent("OrderItemId") && !e.Data.GetDataPresent("OrderItemIds")) return;
+
+            var droppedIds = new System.Collections.Generic.List<Guid>();
+            if (e.Data.GetDataPresent("OrderItemIds") && e.Data.GetData("OrderItemIds") is Guid[] arr)
+            {
+                droppedIds.AddRange(arr);
+            }
+            else if (e.Data.GetDataPresent("OrderItemId"))
+            {
+                droppedIds.Add((Guid)e.Data.GetData("OrderItemId"));
+            }
+
+            if (DataContext is not OrderLogViewModel vm) return;
+
+            var droppedItems = vm.Items.Concat(vm.ArchivedItems).Where(i => droppedIds.Contains(i.Id)).ToList();
+
+            // Check if this is a split-drag (dragging from section handle to unlink)
+            bool isSplitDrag = e.Data.GetDataPresent("SplitFromGroup") && e.Data.GetData("SplitFromGroup") is bool split && split;
+
+            // If split-drag, unlink the dragged item
+            if (isSplitDrag && droppedItems.Count == 1)
+            {
+                droppedItems[0].LinkedGroupId = null;
+                await vm.SaveAsync();
+                vm.StatusMessage = "Unlinked order";
+            }
+            else
+            {
+                // Just moved to empty space - keep current position
+                vm.StatusMessage = $"Moved {droppedItems.Count} item(s)";
+            }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Warning(ex, "Container drop failed");
         }
     }
 
