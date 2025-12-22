@@ -66,6 +66,23 @@ public class CardShiftAnimator
         // Detect orientation for both StackPanel and WrapPanel
         var isVertical = (_panel is StackPanel sp && sp.Orientation == Orientation.Vertical) ||
                          (_panel is System.Windows.Controls.WrapPanel wp && wp.Orientation == Orientation.Vertical);
+
+        // If this is a horizontal WrapPanel, but the dragged element (or any card) is wide
+        // (close to panel width), prefer vertical shifting so full-width/merged cards move up/down.
+        if (!isVertical && _panel is System.Windows.Controls.WrapPanel wrap)
+        {
+            double panelWidth = _panel.ActualWidth > 0 ? _panel.ActualWidth : wrap.ActualWidth;
+            // Heuristic: treat as wide if element width is > 60% of panel width
+            bool draggedIsWide = draggedElement != null && draggedElement.ActualWidth > panelWidth * 0.6;
+
+            bool anyWide = allChildren.Any(c => c.ActualWidth > panelWidth * 0.6);
+
+            if (draggedIsWide || anyWide)
+            {
+                isVertical = true;
+            }
+        }
+
         var avgSize = CalculateAverageCardSize(allChildren, isVertical);
 
         // Iterate through all children with their actual panel indices
@@ -218,16 +235,15 @@ public class CardShiftAnimator
         avgItemSize = 0;
         if (children.Count == 0) return 0;
 
-        // For WrapPanel, calculate based on actual child positions
-        // Find the child closest to the mouse position
-        int closestIndex = 0;
-        double closestDistance = double.MaxValue;
-
+        // Prefer vertical placement for WrapPanel: find the first child whose vertical midpoint
+        // is below the mouse Y. This makes wide (full-width) cards move up/down rather than
+        // shifting sideways into the other column.
         for (int i = 0; i < children.Count; i++)
         {
             var child = children[i];
-            var childPos = child.TransformToAncestor(_panel).Transform(new Point(0, 0));
+            if (child == draggedElement) continue;
 
+            var childPos = child.TransformToAncestor(_panel).Transform(new Point(0, 0));
             // Subtract any transform offset to get original layout position
             if (_transforms.TryGetValue(child, out var transform))
             {
@@ -235,50 +251,18 @@ public class CardShiftAnimator
                 childPos.Y -= transform.Y;
             }
 
-            var childCenter = new Point(
-                childPos.X + (child.ActualWidth / 2),
-                childPos.Y + (child.ActualHeight / 2)
-            );
+            var childMidY = childPos.Y + (child.ActualHeight / 2);
 
-            var distance = Math.Sqrt(
-                Math.Pow(mousePosition.X - childCenter.X, 2) +
-                Math.Pow(mousePosition.Y - childCenter.Y, 2)
-            );
-
-            if (distance < closestDistance)
+            if (mousePosition.Y < childMidY)
             {
-                closestDistance = distance;
-                closestIndex = i;
+                avgItemSize = children.FirstOrDefault()?.ActualWidth ?? 0;
+                return i;
             }
         }
 
-        // Determine if we should insert before or after the closest child
-        if (closestIndex < children.Count)
-        {
-            var child = children[closestIndex];
-            var childPos = child.TransformToAncestor(_panel).Transform(new Point(0, 0));
-
-            // Subtract any transform offset to get original layout position
-            if (_transforms.TryGetValue(child, out var transform))
-            {
-                childPos.X -= transform.X;
-                childPos.Y -= transform.Y;
-            }
-
-            var childCenter = new Point(
-                childPos.X + (child.ActualWidth / 2),
-                childPos.Y + (child.ActualHeight / 2)
-            );
-
-            // If mouse is to the right or below center, insert after
-            if (mousePosition.X > childCenter.X || mousePosition.Y > childCenter.Y)
-            {
-                closestIndex++;
-            }
-        }
-
+        // If mouse is below all items, insert at end
         avgItemSize = children.FirstOrDefault()?.ActualWidth ?? 0;
-        return Math.Clamp(closestIndex, 0, children.Count);
+        return children.Count;
     }
 
     private double CalculateAverageCardSize(List<FrameworkElement> children, bool isVertical)

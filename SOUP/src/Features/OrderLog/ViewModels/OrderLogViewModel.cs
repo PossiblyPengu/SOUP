@@ -580,6 +580,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         if (droppedItems == null || droppedItems.Count == 0) return;
 
+        // Proceed with move
+
         // If single item and it has a linked group, expand to full group
         if (droppedItems.Count == 1 && droppedItems[0].LinkedGroupId != null)
         {
@@ -629,6 +631,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         await SaveAsync();
         RefreshDisplayItems();
+
+        // Move complete
     }
 
     /// <summary>
@@ -664,31 +668,25 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         DisplayItems.Clear();
 
-        // Group active Items by LinkedGroupId (nulls become singletons)
-        var groups = Items
-            .Select((item, index) => new { item, index })
-            .GroupBy(x => x.item.LinkedGroupId)
-            .OrderBy(g => g.Key == null ? 0 : 1)
-            .ToList();
-
-        // Preserve original item order within Items
+        // Build DisplayItems by iterating Items in their current order and
+        // grouping linked members when first encountered. This preserves the
+        // overall ordering of Items so reorders are reflected in the UI.
         var processed = new HashSet<Guid>();
 
-        foreach (var g in groups)
+        foreach (var item in Items)
         {
-            if (g.Key == null)
+            if (processed.Contains(item.Id))
+                continue;
+
+            if (item.LinkedGroupId == null)
             {
-                // individual items (LinkedGroupId == null)
-                foreach (var entry in g.OrderBy(x => Items.IndexOf(x.item)))
-                {
-                    if (processed.Add(entry.item.Id))
-                        DisplayItems.Add(new OrderItemGroup(new[] { entry.item }));
-                }
+                DisplayItems.Add(new OrderItemGroup(new[] { item }));
+                processed.Add(item.Id);
             }
             else
             {
-                // linked group - collect members in Items order
-                var members = Items.Where(i => i.LinkedGroupId == g.Key).ToList();
+                var gid = item.LinkedGroupId;
+                var members = Items.Where(i => i.LinkedGroupId == gid).ToList();
                 if (members.Count > 0)
                 {
                     foreach (var m in members)

@@ -9,19 +9,10 @@ using System.Windows.Media.Animation;
 using Microsoft.Xaml.Behaviors;
 using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.ViewModels;
-
-namespace SOUP.Features.OrderLog.Behaviors;
-
-/// <summary>
-/// Attached behavior that provides fluid chess-like drag and drop for OrderLog cards.
-/// </summary>
-/// <remarks>
-/// Features:
-/// - Transform-based dragging: Cards scale to 1.02x and follow mouse cursor with smooth movement
-/// - Real-time card shifting: Other cards animate to make space (300ms QuadraticEase by default)
-/// - Mode switching: Normal drag (green border) for reordering, Ctrl+Drag (purple border) for linking
-/// - Escape to cancel: Returns card to original position with animation
-/// - Performance optimized: 60fps animations, throttled shift calculations (~16ms intervals)
+                else
+                {
+                    await viewmodel.MoveOrdersAsync(draggedItems, targetItem);
+                }
 /// - Hardware accelerated: GPU-rendered transforms, no layout invalidation
 ///
 /// Usage in XAML:
@@ -51,6 +42,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private bool _isDragging;
     private bool _isFinishingDrag; // Prevents re-entrant calls during finish
     private FrameworkElement? _draggedElement;
+    private FrameworkElement? _draggedPanelChild;
     private List<OrderItem> _draggedItems = new();
     private int _draggedIndex = -1;
     private int _currentInsertionIndex = -1;
@@ -141,12 +133,68 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         if (_draggedElement != null)
         {
-            // Store where on the element we clicked
-            _elementClickOffset = e.GetPosition(_draggedElement);
+            // Determine the direct panel child (ContentControl) that contains this card.
+            // Use a data-aware lookup so clicks inside subregions still map to the same
+            // top-level child that represents the whole card/group.
+            _draggedPanelChild = FindPanelChildForElement(_draggedElement);
+
+            // Store where on the element we clicked. Prefer coordinates relative to the panel child
+            // so dragging always moves the same visual (the panel child), regardless of click target.
+            var clickTarget = _draggedPanelChild ?? _draggedElement;
+            _elementClickOffset = e.GetPosition(clickTarget);
 
             _draggedItems = ExtractOrderItems(_draggedElement);
             _draggedIndex = GetElementIndex(_draggedElement);
         }
+    }
+
+    private FrameworkElement? FindPanelChildForElement(FrameworkElement element)
+    {
+        if (AssociatedObject == null || element == null) return null;
+
+        var elementData = element.DataContext;
+
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border == null) continue;
+
+            var bd = border.DataContext;
+
+            // Direct reference match
+            if (ReferenceEquals(bd, elementData)) return panelChild;
+
+            // OrderItem identity
+            if (bd is OrderItem bItem && elementData is OrderItem eItem)
+            {
+                if (bItem.Id == eItem.Id) return panelChild;
+            }
+
+            // Group identity - match by linked group id or first member id
+            if (bd is OrderItemGroup bGroup && elementData is OrderItemGroup eGroup)
+            {
+                if (bGroup.LinkedGroupId != null && eGroup.LinkedGroupId != null && bGroup.LinkedGroupId == eGroup.LinkedGroupId)
+                    return panelChild;
+                if (bGroup.Members.Count > 0 && eGroup.Members.Count > 0 && bGroup.First.Id == eGroup.First.Id)
+                    return panelChild;
+            }
+
+            if (bd is OrderItem bItem2 && elementData is OrderItemGroup eg2)
+            {
+                if (eg2.Members.Any(m => m.Id == bItem2.Id)) return panelChild;
+            }
+
+            if (bd is OrderItemGroup bg2 && elementData is OrderItem ei2)
+            {
+                if (bg2.Members.Any(m => m.Id == ei2.Id)) return panelChild;
+            }
+        }
+
+        // Fallback to the simple parent lookup
+        return FindPanelChild(element);
     }
 
     private void OnPreviewMouseMove(object sender, MouseEventArgs e)
@@ -205,8 +253,10 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         _isDragging = true;
         _currentInsertionIndex = _draggedIndex;
 
-        // Store the element's original layout position (before any transforms)
-        _elementOriginalPosition = _draggedElement.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
+        // Store the element's original layout position (before any transforms).
+        // Prefer the panel child if available so translations move the whole item.
+        var transformTarget = _draggedPanelChild ?? _draggedElement;
+        _elementOriginalPosition = transformTarget.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
 
         // Capture mouse
         Mouse.Capture(AssociatedObject, CaptureMode.SubTree);
@@ -214,17 +264,18 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Check if Ctrl is held for link mode
         _isLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
 
-        // Apply transform to dragged element
-        ApplyDragTransform(_draggedElement);
+        // Apply transform to the transform target (panel child when available)
+        ApplyDragTransform(transformTarget);
 
-        // Apply visual feedback
+        // Apply visual feedback to the inner border (keeps color/effect behavior)
         ApplyModeVisualFeedback(_draggedElement, _isLinkMode);
 
         // Set high Z-Index on the panel child (ContentControl), not the Border inside it
-        var panelChild = FindPanelChild(_draggedElement);
+        var panelChild = _draggedPanelChild ?? FindPanelChild(_draggedElement);
         if (panelChild != null)
         {
             Panel.SetZIndex(panelChild, DRAG_Z_INDEX);
+            _draggedPanelChild = panelChild;
         }
     }
 
@@ -291,50 +342,48 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Get target item before invoking events
         var targetItem = GetTargetItem();
         var draggedItems = new List<OrderItem>(_draggedItems);
-        var isLinkMode = _isLinkMode;
+        var isLinkMode = _isLinkMode; // Track if we are in link mode
 
-        // Always find and call ViewModel directly (don't rely on events)
+        // Prefer to raise events so host views (widget, main view code-behind) can handle the
+        // reorder/link logic. If no handlers are attached, fall back to calling the ViewModel directly.
         var viewModel = FindViewModel();
-        if (viewModel != null)
+        try
         {
-            try
+            if (isLinkMode)
             {
-                if (isLinkMode)
-                {
-                    // In link mode, we need a valid target. If target is null (inserting at end),
-                    // find the closest item to link with
-                    var linkTarget = targetItem ?? FindNearestLinkTarget();
+                var linkTarget = targetItem ?? FindNearestLinkTarget();
 
-                    if (linkTarget != null)
-                    {
-                        await viewModel.LinkItemsAsync(draggedItems, linkTarget);
-                    }
-                    else
-                    {
-                        // No target found, can't link - fall back to move
-                        await viewModel.MoveOrdersAsync(draggedItems, targetItem);
-                    }
+                if (LinkComplete != null)
+                {
+                    LinkComplete.Invoke(draggedItems, linkTarget);
                 }
-                else
+                else if (viewModel != null && linkTarget != null)
                 {
-                    // Debug: Show what we're trying to move
-                    System.Windows.MessageBox.Show(
-                        $"Reorder:\n" +
-                        $"Items: {draggedItems.Count} (IDs: {string.Join(", ", draggedItems.Select(i => i.Id))})\n" +
-                        $"Target: {targetItem?.Id.ToString() ?? "null"}\n" +
-                        $"Dragged Index: {_draggedIndex}\n" +
-                        $"Insertion Index: {_currentInsertionIndex}",
-                        "Debug: Reorder");
-
+                    await viewModel.LinkItemsAsync(draggedItems, linkTarget);
+                }
+                else if (viewModel != null)
+                {
+                    // No link target - fall back to move
                     await viewModel.MoveOrdersAsync(draggedItems, targetItem);
                 }
             }
-            catch (Exception ex)
+            else
             {
-                System.Windows.MessageBox.Show(
-                    $"Exception in drag operation!\n{ex.Message}\n\nStack:\n{ex.StackTrace}",
-                    "Drag Error");
+                if (ReorderComplete != null)
+                {
+                    ReorderComplete.Invoke(draggedItems, targetItem);
+                }
+                else if (viewModel != null)
+                {
+                    await viewModel.MoveOrdersAsync(draggedItems, targetItem);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show(
+                $"Exception in drag operation!\n{ex.Message}\n\nStack:\n{ex.StackTrace}",
+                "Drag Error");
         }
 
         // Delay cleanup to allow ItemsControl to regenerate with new DisplayItems
@@ -375,8 +424,9 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         Mouse.Capture(null);
 
-        // Animate back to original position
-        if (_draggedElement != null && _draggedTransform != null)
+        // Animate back to original position on the transform target
+        var transformTarget = _draggedPanelChild ?? _draggedElement;
+        if (transformTarget != null && _draggedTransform != null)
         {
             var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
             if (translateTransform != null)
@@ -407,12 +457,13 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private void CleanupDragState()
     {
         // Restore original visual state
-        if (_draggedElement != null)
+        var transformTarget = _draggedPanelChild ?? _draggedElement;
+        if (transformTarget != null)
         {
-            _draggedElement.RenderTransform = null;
+            transformTarget.RenderTransform = null;
 
             // Reset Z-Index on the panel child (ContentControl)
-            var panelChild = FindPanelChild(_draggedElement);
+            var panelChild = _draggedPanelChild ?? FindPanelChild(_draggedElement);
             if (panelChild != null)
             {
                 Panel.SetZIndex(panelChild, 0);
@@ -432,6 +483,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Reset state
         _isDragging = false;
         _draggedElement = null;
+        _draggedPanelChild = null;
         _draggedItems.Clear();
         _draggedIndex = -1;
         _currentInsertionIndex = -1;
@@ -460,7 +512,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
     private void UpdateDraggedElementPosition(Point currentPosition)
     {
-        if (_draggedTransform == null || _draggedElement == null || AssociatedObject == null) return;
+        if (_draggedTransform == null || (_draggedElement == null && _draggedPanelChild == null) || AssociatedObject == null || _isFinishingDrag) return;
 
         var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
         if (translateTransform == null) return;
@@ -476,8 +528,9 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Constrain position within panel bounds (prevent going under sidebar or off screen)
         // Leave a small margin (10px) to keep card visible
         const double margin = 10;
-        desiredX = Math.Max(margin, Math.Min(desiredX, panelBounds.Width - _draggedElement.ActualWidth - margin));
-        desiredY = Math.Max(margin, Math.Min(desiredY, panelBounds.Height - _draggedElement.ActualHeight - margin));
+        var sizeTarget = _draggedPanelChild ?? _draggedElement!;
+        desiredX = Math.Max(margin, Math.Min(desiredX, panelBounds.Width - sizeTarget.ActualWidth - margin));
+        desiredY = Math.Max(margin, Math.Min(desiredY, panelBounds.Height - sizeTarget.ActualHeight - margin));
 
         // Calculate the offset from the element's original layout position (stored at drag start)
         translateTransform.X = desiredX - _elementOriginalPosition.X;
@@ -673,22 +726,55 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     {
         if (AssociatedObject == null) return -1;
 
-        // Find all visible Border elements (same way CardShiftAnimator does)
-        var borders = new List<FrameworkElement>();
+        if (element == null) return -1;
+
+        // Build the list of visible card Border elements (same criteria as GetTargetItem)
+        var children = new List<FrameworkElement>();
         foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
         {
             if (panelChild.Visibility != Visibility.Visible)
                 continue;
 
-            // Look for Border in the visual tree
             var border = FindVisualChildOfType<Border>(panelChild);
-            if (border != null && (border.DataContext is Models.OrderItem || border.DataContext is ViewModels.OrderItemGroup))
+            if (border != null && (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
             {
-                borders.Add(border);
+                children.Add(border);
             }
         }
 
-        return borders.IndexOf(element);
+        // Try to find a matching index by reference first, then by logical identity (IDs/group)
+        for (int i = 0; i < children.Count; i++)
+        {
+            var b = children[i];
+            if (ReferenceEquals(b, element))
+                return i;
+
+            var bdc = b.DataContext;
+            var edc = element.DataContext;
+
+            if (bdc is OrderItem bItem && edc is OrderItem eItem)
+            {
+                if (bItem.Id == eItem.Id) return i;
+            }
+            else if (bdc is OrderItemGroup bGroup && edc is OrderItemGroup eGroup)
+            {
+                // Compare by first member id or linked group id when available
+                if (bGroup.Members.Count > 0 && eGroup.Members.Count > 0 && bGroup.First.Id == eGroup.First.Id)
+                    return i;
+                if (bGroup.LinkedGroupId != null && eGroup.LinkedGroupId != null && bGroup.LinkedGroupId == eGroup.LinkedGroupId)
+                    return i;
+            }
+            else if (bdc is OrderItem bItem2 && edc is OrderItemGroup eGroup2)
+            {
+                if (eGroup2.Members.Any(m => m.Id == bItem2.Id)) return i;
+            }
+            else if (bdc is OrderItemGroup bGroup2 && edc is OrderItem eItem2)
+            {
+                if (bGroup2.Members.Any(m => m.Id == eItem2.Id)) return i;
+            }
+        }
+
+        return -1;
     }
 
     private OrderItem? GetTargetItem()
