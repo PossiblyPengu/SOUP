@@ -4,7 +4,9 @@
              xmlns:models="clr-namespace:SOUP.Features.OrderLog.Models"
              xmlns:services="clr-namespace:SOUP.Services"
              xmlns:converters="clr-namespace:SOUP.Features.OrderLog.Converters"
-             xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels">
+             xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -13,6 +15,7 @@
         <converters:ShowForOrdersConverter x:Key="ShowForOrdersConverter"/>
         <converters:ShowForNotesConverter x:Key="ShowForNotesConverter"/>
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
+        <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         
         <!-- Style for phantom placeholder text -->
         <Style x:Key="PlaceholderText" TargetType="TextBlock">
@@ -28,13 +31,7 @@
                     BorderThickness="1"
                     CornerRadius="10"
                     Margin="0,0,0,14"
-                    Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}"
-                    AllowDrop="True"
-                    PreviewMouseLeftButtonDown="MergedCard_PreviewMouseLeftButtonDown"
-                    MouseMove="MergedCard_MouseMove"
-                    DragOver="MergedCard_DragOver"
-                    DragLeave="MergedCard_DragLeave"
-                    Drop="MergedCard_Drop">
+                    Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="8"/>
@@ -393,10 +390,11 @@
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Vertical"
-                                            Background="Transparent"
-                                            AllowDrop="True"
-                                            DragOver="Container_DragOver"
-                                            Drop="Container_Drop"/>
+                                            Background="Transparent">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
+                                    </i:Interaction.Behaviors>
+                                </StackPanel>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -415,13 +413,7 @@
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     Margin="0,0,0,14"
-                                    Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}"
-                                    AllowDrop="True"
-                                    PreviewMouseLeftButtonDown="Item_PreviewMouseLeftButtonDown"
-                                    MouseMove="Item_MouseMove"
-                                    DragOver="Item_DragOver"
-                                    DragLeave="Item_DragLeave"
-                                    Drop="Item_Drop">
+                                    Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Style.Triggers>
@@ -469,7 +461,7 @@
                                                 <Style.Triggers>
                                                     <!-- Sticky notes use custom color -->
                                                     <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                        <Setter Property="Background" Value="{Binding ColorHex}"/>
+                                                        <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -798,7 +790,7 @@
                                         </Grid.RowDefinitions>
 
                                         <!-- Color Bar -->
-                                        <Border Background="{Binding ColorHex}"
+                                        <Border Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"
                                                 CornerRadius="10,10,0,0"/>
 
                                         <!-- Content -->

@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:SOUP.Features.OrderLog.Models"
              xmlns:converters="clr-namespace:SOUP.Features.OrderLog.Converters"
-             xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels">
+             xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -20,13 +22,7 @@
                             CornerRadius="8"
                             Width="320"
                             Margin="0,0,16,16"
-                            Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}"
-                                AllowDrop="True"
-                                PreviewMouseLeftButtonDown="Item_PreviewMouseLeftButtonDown"
-                                MouseMove="Item_MouseMove"
-                                DragOver="Item_DragOver"
-                                DragLeave="Item_DragLeave"
-                                Drop="Item_Drop">
+                            Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Style.Triggers>
@@ -359,13 +355,7 @@
                     BorderThickness="1"
                     CornerRadius="8"
                     Margin="0,0,16,16"
-                    Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}"
-                    AllowDrop="True"
-                    PreviewMouseLeftButtonDown="MergedCard_PreviewMouseLeftButtonDown"
-                    MouseMove="MergedCard_MouseMove"
-                    DragOver="MergedCard_DragOver"
-                    DragLeave="MergedCard_DragLeave"
-                    Drop="MergedCard_Drop">
+                    Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="6"/>
@@ -419,11 +409,11 @@
                     </Border>
 
                     <!-- Order Sections (Side-by-Side) -->
-                    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Members}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal"/>
+                                    <WrapPanel Orientation="Horizontal" MaxWidth="680"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -772,10 +762,11 @@
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal"
-                                               Background="Transparent"
-                                               AllowDrop="True"
-                                               DragOver="Container_DragOver"
-                                               Drop="Container_Drop"/>
+                                               Background="Transparent">
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
+                                        </i:Interaction.Behaviors>
+                                    </WrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>

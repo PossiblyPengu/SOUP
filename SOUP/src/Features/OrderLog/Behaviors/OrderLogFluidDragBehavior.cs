@@ -1,0 +1,823 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using Microsoft.Xaml.Behaviors;
+using SOUP.Features.OrderLog.Models;
+using SOUP.Features.OrderLog.ViewModels;
+
+namespace SOUP.Features.OrderLog.Behaviors;
+
+/// <summary>
+/// Attached behavior that provides fluid chess-like drag and drop for OrderLog cards.
+/// </summary>
+/// <remarks>
+/// Features:
+/// - Transform-based dragging: Cards scale to 1.02x and follow mouse cursor with smooth movement
+/// - Real-time card shifting: Other cards animate to make space (300ms QuadraticEase by default)
+/// - Mode switching: Normal drag (green border) for reordering, Ctrl+Drag (purple border) for linking
+/// - Escape to cancel: Returns card to original position with animation
+/// - Performance optimized: 60fps animations, throttled shift calculations (~16ms intervals)
+/// - Hardware accelerated: GPU-rendered transforms, no layout invalidation
+///
+/// Usage in XAML:
+/// <![CDATA[
+/// <StackPanel>
+///     <i:Interaction.Behaviors>
+///         <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
+///     </i:Interaction.Behaviors>
+/// </StackPanel>
+/// ]]>
+///
+/// Wire up events in code-behind:
+/// <![CDATA[
+/// behavior.ReorderComplete += async (items, target) => {
+///     await viewModel.MoveOrdersAsync(items, target);
+/// };
+/// behavior.LinkComplete += async (items, target) => {
+///     await viewModel.LinkItemsAsync(items, target);
+/// };
+/// ]]>
+/// </remarks>
+public class OrderLogFluidDragBehavior : Behavior<Panel>
+{
+    private Point _dragStartPoint;
+    private Point _elementClickOffset; // Where on the element we clicked
+    private Point _elementOriginalPosition; // Element's layout position before drag
+    private bool _isDragging;
+    private bool _isFinishingDrag; // Prevents re-entrant calls during finish
+    private FrameworkElement? _draggedElement;
+    private List<OrderItem> _draggedItems = new();
+    private int _draggedIndex = -1;
+    private int _currentInsertionIndex = -1;
+    private CardShiftAnimator? _animator;
+    private bool _isLinkMode;
+    private TransformGroup? _draggedTransform;
+    private DateTime _lastShiftCalculation = DateTime.MinValue;
+    private Brush? _originalBorderBrush;
+    private Thickness _originalBorderThickness;
+
+    private const int SHIFT_THROTTLE_MS = 16; // ~60fps
+    private const double DRAG_SCALE = 1.02;
+    private const int DRAG_Z_INDEX = 100;
+
+    public static readonly DependencyProperty AnimationDurationProperty =
+        DependencyProperty.Register(
+            nameof(AnimationDuration),
+            typeof(double),
+            typeof(OrderLogFluidDragBehavior),
+            new PropertyMetadata(300.0));
+
+    /// <summary>
+    /// Animation duration in milliseconds (default: 300ms)
+    /// </summary>
+    public double AnimationDuration
+    {
+        get => (double)GetValue(AnimationDurationProperty);
+        set => SetValue(AnimationDurationProperty, value);
+    }
+
+    /// <summary>
+    /// Event raised when a reorder operation completes.
+    /// </summary>
+    public event Action<List<OrderItem>, OrderItem?>? ReorderComplete;
+
+    /// <summary>
+    /// Event raised when a link operation completes.
+    /// </summary>
+    public event Action<List<OrderItem>, OrderItem?>? LinkComplete;
+
+    protected override void OnAttached()
+    {
+        base.OnAttached();
+
+        if (AssociatedObject == null) return;
+
+        _animator = new CardShiftAnimator(
+            AssociatedObject,
+            TimeSpan.FromMilliseconds(AnimationDuration));
+
+        AssociatedObject.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
+        AssociatedObject.PreviewMouseMove += OnPreviewMouseMove;
+        AssociatedObject.PreviewMouseLeftButtonUp += OnPreviewMouseLeftButtonUp;
+        AssociatedObject.MouseLeave += OnMouseLeave;
+        AssociatedObject.PreviewKeyDown += OnPreviewKeyDown;
+    }
+
+    protected override void OnDetaching()
+    {
+        if (AssociatedObject != null)
+        {
+            AssociatedObject.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
+            AssociatedObject.PreviewMouseMove -= OnPreviewMouseMove;
+            AssociatedObject.PreviewMouseLeftButtonUp -= OnPreviewMouseLeftButtonUp;
+            AssociatedObject.MouseLeave -= OnMouseLeave;
+            AssociatedObject.PreviewKeyDown -= OnPreviewKeyDown;
+        }
+
+        CancelDrag();
+        base.OnDetaching();
+    }
+
+    private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDragging || _isFinishingDrag) return;
+
+        // Check if the click is on a section drag handle - if so, ignore it
+        // This allows the old DragDrop system to handle individual order drags from merged cards
+        if (IsClickOnSectionDragHandle(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        _dragStartPoint = e.GetPosition(AssociatedObject);
+
+        // Find the dragged element (Border containing the card)
+        _draggedElement = FindCardElement(e.OriginalSource as DependencyObject);
+
+        if (_draggedElement != null)
+        {
+            // Store where on the element we clicked
+            _elementClickOffset = e.GetPosition(_draggedElement);
+
+            _draggedItems = ExtractOrderItems(_draggedElement);
+            _draggedIndex = GetElementIndex(_draggedElement);
+        }
+    }
+
+    private void OnPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed)
+        {
+            if (_isDragging)
+            {
+                FinishDrag();
+            }
+            return;
+        }
+
+        var currentPosition = e.GetPosition(AssociatedObject);
+
+        if (!_isDragging)
+        {
+            // Check if we've exceeded the minimum drag distance
+            if (Math.Abs(currentPosition.X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(currentPosition.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                StartDrag();
+            }
+        }
+        else
+        {
+            UpdateDrag(currentPosition);
+        }
+    }
+
+    private void OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDragging)
+        {
+            FinishDrag();
+        }
+    }
+
+    private void OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        // Don't cancel drag on mouse leave - mouse capture keeps it going
+    }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && _isDragging)
+        {
+            CancelDrag();
+        }
+    }
+
+    private void StartDrag()
+    {
+        if (_draggedElement == null || AssociatedObject == null) return;
+
+        _isDragging = true;
+        _currentInsertionIndex = _draggedIndex;
+
+        // Store the element's original layout position (before any transforms)
+        _elementOriginalPosition = _draggedElement.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
+
+        // Capture mouse
+        Mouse.Capture(AssociatedObject, CaptureMode.SubTree);
+
+        // Check if Ctrl is held for link mode
+        _isLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+
+        // Apply transform to dragged element
+        ApplyDragTransform(_draggedElement);
+
+        // Apply visual feedback
+        ApplyModeVisualFeedback(_draggedElement, _isLinkMode);
+
+        // Set high Z-Index on the panel child (ContentControl), not the Border inside it
+        var panelChild = FindPanelChild(_draggedElement);
+        if (panelChild != null)
+        {
+            Panel.SetZIndex(panelChild, DRAG_Z_INDEX);
+        }
+    }
+
+    private void UpdateDrag(Point currentPosition)
+    {
+        if (_draggedElement == null || _animator == null || AssociatedObject == null || _isFinishingDrag) return;
+
+        // Always update dragged element position (no throttle for responsiveness)
+        UpdateDraggedElementPosition(currentPosition);
+
+        // Check for mode change (Ctrl key pressed/released)
+        bool currentLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+        if (currentLinkMode != _isLinkMode)
+        {
+            _isLinkMode = currentLinkMode;
+            ApplyModeVisualFeedback(_draggedElement, _isLinkMode);
+
+            // When switching to link mode, clear any existing card shifts
+            if (_isLinkMode)
+            {
+                _animator?.ClearTransforms();
+            }
+        }
+
+        // Skip card shifting in link mode - we only shift cards when reordering
+        if (_isLinkMode)
+        {
+            // For link mode, don't use insertion index - just track mouse position
+            // We'll find the card directly under cursor when finishing drag
+            return;
+        }
+
+        // Throttle expensive shift calculations to 60fps
+        if ((DateTime.Now - _lastShiftCalculation).TotalMilliseconds < SHIFT_THROTTLE_MS)
+            return;
+
+        _lastShiftCalculation = DateTime.Now;
+
+        // Calculate new insertion index
+        int newInsertionIndex = _animator.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
+
+        // If insertion index changed, animate card shift
+        if (newInsertionIndex != _currentInsertionIndex)
+        {
+            _currentInsertionIndex = newInsertionIndex;
+            _animator.AnimateCardShift(_currentInsertionIndex, _draggedIndex, _draggedElement);
+        }
+    }
+
+    private async void FinishDrag()
+    {
+        if (!_isDragging || _draggedElement == null || AssociatedObject == null || _isFinishingDrag)
+        {
+            CleanupDragState();
+            return;
+        }
+
+        _isFinishingDrag = true; // Prevent re-entrant calls
+        _isDragging = false; // Stop drag immediately to prevent mouse events
+
+        // Release mouse capture
+        Mouse.Capture(null);
+
+        // Get target item before invoking events
+        var targetItem = GetTargetItem();
+        var draggedItems = new List<OrderItem>(_draggedItems);
+        var isLinkMode = _isLinkMode;
+
+        // Always find and call ViewModel directly (don't rely on events)
+        var viewModel = FindViewModel();
+        if (viewModel != null)
+        {
+            try
+            {
+                if (isLinkMode)
+                {
+                    // In link mode, we need a valid target. If target is null (inserting at end),
+                    // find the closest item to link with
+                    var linkTarget = targetItem ?? FindNearestLinkTarget();
+
+                    if (linkTarget != null)
+                    {
+                        await viewModel.LinkItemsAsync(draggedItems, linkTarget);
+                    }
+                    else
+                    {
+                        // No target found, can't link - fall back to move
+                        await viewModel.MoveOrdersAsync(draggedItems, targetItem);
+                    }
+                }
+                else
+                {
+                    // Debug: Show what we're trying to move
+                    System.Windows.MessageBox.Show(
+                        $"Reorder:\n" +
+                        $"Items: {draggedItems.Count} (IDs: {string.Join(", ", draggedItems.Select(i => i.Id))})\n" +
+                        $"Target: {targetItem?.Id.ToString() ?? "null"}\n" +
+                        $"Dragged Index: {_draggedIndex}\n" +
+                        $"Insertion Index: {_currentInsertionIndex}",
+                        "Debug: Reorder");
+
+                    await viewModel.MoveOrdersAsync(draggedItems, targetItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Exception in drag operation!\n{ex.Message}\n\nStack:\n{ex.StackTrace}",
+                    "Drag Error");
+            }
+        }
+
+        // Delay cleanup to allow ItemsControl to regenerate with new DisplayItems
+        // ItemsControl needs time to rebuild its visual tree after ObservableCollection changes
+        var timer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(500)
+        };
+        timer.Tick += (s, e) =>
+        {
+            timer.Stop();
+            CleanupDragState();
+            _isFinishingDrag = false;
+        };
+        timer.Start();
+    }
+
+    private ViewModels.OrderLogViewModel? FindViewModel()
+    {
+        // Start from the panel and traverse up the visual tree
+        DependencyObject? current = AssociatedObject;
+
+        while (current != null)
+        {
+            if (current is FrameworkElement fe && fe.DataContext is ViewModels.OrderLogViewModel vm)
+            {
+                return vm;
+            }
+            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
+    }
+
+    private void CancelDrag()
+    {
+        if (!_isDragging) return;
+
+        Mouse.Capture(null);
+
+        // Animate back to original position
+        if (_draggedElement != null && _draggedTransform != null)
+        {
+            var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
+            if (translateTransform != null)
+            {
+                var animation = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                translateTransform.BeginAnimation(TranslateTransform.XProperty, animation);
+                translateTransform.BeginAnimation(TranslateTransform.YProperty, animation);
+            }
+        }
+
+        _animator?.ResetAllCardPositions();
+
+        var timer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(AnimationDuration + 50)
+        };
+        timer.Tick += (s, e) =>
+        {
+            timer.Stop();
+            CleanupDragState();
+        };
+        timer.Start();
+    }
+
+    private void CleanupDragState()
+    {
+        // Restore original visual state
+        if (_draggedElement != null)
+        {
+            _draggedElement.RenderTransform = null;
+
+            // Reset Z-Index on the panel child (ContentControl)
+            var panelChild = FindPanelChild(_draggedElement);
+            if (panelChild != null)
+            {
+                Panel.SetZIndex(panelChild, 0);
+            }
+
+            if (_draggedElement is Border border)
+            {
+                border.BorderBrush = _originalBorderBrush;
+                border.BorderThickness = _originalBorderThickness;
+                border.Effect = null; // Clear any glow effects
+            }
+        }
+
+        // Clear animator transforms
+        _animator?.ClearTransforms();
+
+        // Reset state
+        _isDragging = false;
+        _draggedElement = null;
+        _draggedItems.Clear();
+        _draggedIndex = -1;
+        _currentInsertionIndex = -1;
+        _draggedTransform = null;
+        _originalBorderBrush = null;
+    }
+
+    private void ApplyDragTransform(FrameworkElement element)
+    {
+        // Create transform group with scale and translate
+        _draggedTransform = new TransformGroup();
+
+        var scaleTransform = new ScaleTransform(DRAG_SCALE, DRAG_SCALE)
+        {
+            CenterX = element.ActualWidth / 2,
+            CenterY = element.ActualHeight / 2
+        };
+
+        var translateTransform = new TranslateTransform(0, 0);
+
+        _draggedTransform.Children.Add(scaleTransform);
+        _draggedTransform.Children.Add(translateTransform);
+
+        element.RenderTransform = _draggedTransform;
+    }
+
+    private void UpdateDraggedElementPosition(Point currentPosition)
+    {
+        if (_draggedTransform == null || _draggedElement == null || AssociatedObject == null) return;
+
+        var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
+        if (translateTransform == null) return;
+
+        // Calculate where the element should be positioned so the click point follows the mouse
+        // desiredPosition = mousePosition - clickOffset
+        var desiredX = currentPosition.X - _elementClickOffset.X;
+        var desiredY = currentPosition.Y - _elementClickOffset.Y;
+
+        // Get panel bounds to constrain the drag
+        var panelBounds = new Rect(0, 0, AssociatedObject.ActualWidth, AssociatedObject.ActualHeight);
+
+        // Constrain position within panel bounds (prevent going under sidebar or off screen)
+        // Leave a small margin (10px) to keep card visible
+        const double margin = 10;
+        desiredX = Math.Max(margin, Math.Min(desiredX, panelBounds.Width - _draggedElement.ActualWidth - margin));
+        desiredY = Math.Max(margin, Math.Min(desiredY, panelBounds.Height - _draggedElement.ActualHeight - margin));
+
+        // Calculate the offset from the element's original layout position (stored at drag start)
+        translateTransform.X = desiredX - _elementOriginalPosition.X;
+        translateTransform.Y = desiredY - _elementOriginalPosition.Y;
+    }
+
+    private void AnimateDraggedElementToFinal()
+    {
+        if (_draggedElement == null || _draggedTransform == null) return;
+
+        var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
+        if (translateTransform == null) return;
+
+        // Animate back to 0 offset
+        var animationX = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
+        {
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        var animationY = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
+        {
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+
+        translateTransform.BeginAnimation(TranslateTransform.XProperty, animationX);
+        translateTransform.BeginAnimation(TranslateTransform.YProperty, animationY);
+    }
+
+    private void ApplyModeVisualFeedback(FrameworkElement element, bool isLinkMode)
+    {
+        if (element is not Border border) return;
+
+        // Store original if not already stored
+        if (_originalBorderBrush == null)
+        {
+            _originalBorderBrush = border.BorderBrush;
+            _originalBorderThickness = border.BorderThickness;
+        }
+
+        // Determine target color based on mode
+        var targetColor = isLinkMode
+            ? Color.FromRgb(138, 43, 226) // Purple for link mode
+            : Color.FromRgb(34, 197, 94); // Green for reorder (from SuccessBrush)
+
+        var targetThickness = new Thickness(4); // Slightly thicker for more visibility
+
+        // Create a new mutable brush for animation (frozen brushes can't be animated)
+        var newBrush = new SolidColorBrush(border.BorderBrush is SolidColorBrush currentBrush
+            ? currentBrush.Color
+            : Colors.Gray);
+
+        border.BorderBrush = newBrush;
+        border.BorderThickness = targetThickness;
+
+        // Add glow effect for link mode
+        if (isLinkMode)
+        {
+            var dropShadow = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = Color.FromRgb(138, 43, 226), // Purple glow
+                BlurRadius = 20,
+                ShadowDepth = 0,
+                Opacity = 0.8
+            };
+            border.Effect = dropShadow;
+        }
+        else
+        {
+            // Remove glow effect for reorder mode
+            border.Effect = null;
+        }
+
+        // Animate to target color
+        var colorAnimation = new ColorAnimation
+        {
+            To = targetColor,
+            Duration = TimeSpan.FromMilliseconds(150),
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+
+        newBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnimation);
+    }
+
+    private FrameworkElement? FindCardElement(DependencyObject? source)
+    {
+        var current = source;
+        while (current != null)
+        {
+            // Check if this is the Border with OrderItem/OrderItemGroup DataContext
+            if (current is Border border &&
+                (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+            {
+                return border;
+            }
+
+            // Check ContentControl and search its visual children
+            if (current is ContentControl control &&
+                (control.DataContext is OrderItem || control.DataContext is OrderItemGroup))
+            {
+                // Search visual children for Border
+                var childBorder = FindVisualChildOfType<Border>(control);
+                if (childBorder != null)
+                    return childBorder;
+            }
+
+            // Stop if we've reached the panel (don't go beyond the ItemsControl)
+            if (current == AssociatedObject)
+                break;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
+    }
+
+    private static T? FindVisualChildOfType<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T typedChild)
+                return typedChild;
+
+            var result = FindVisualChildOfType<T>(child);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+
+    private bool IsClickOnSectionDragHandle(DependencyObject? source)
+    {
+        var current = source;
+        while (current != null)
+        {
+            // Check if this is a Border with a drag handle tooltip
+            if (current is Border border)
+            {
+                var tooltip = ToolTipService.GetToolTip(border);
+                if (tooltip is string tooltipText &&
+                    tooltipText.Contains("Drag to move this order separately", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            // Stop if we've reached the panel
+            if (current == AssociatedObject)
+                break;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
+    }
+
+    private FrameworkElement? FindPanelChild(DependencyObject? element)
+    {
+        if (element == null || AssociatedObject == null) return null;
+
+        var current = element;
+        while (current != null)
+        {
+            var parent = VisualTreeHelper.GetParent(current);
+
+            // If parent is the panel, then current is the direct child we want
+            if (parent == AssociatedObject && current is FrameworkElement fe)
+            {
+                return fe;
+            }
+
+            current = parent;
+        }
+
+        return null;
+    }
+
+    private List<OrderItem> ExtractOrderItems(FrameworkElement element)
+    {
+        if (element.DataContext is OrderItem item)
+        {
+            return new List<OrderItem> { item };
+        }
+
+        if (element.DataContext is OrderItemGroup group)
+        {
+            return group.Members.ToList();
+        }
+
+        return new List<OrderItem>();
+    }
+
+    private int GetElementIndex(FrameworkElement element)
+    {
+        if (AssociatedObject == null) return -1;
+
+        // Find all visible Border elements (same way CardShiftAnimator does)
+        var borders = new List<FrameworkElement>();
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            // Look for Border in the visual tree
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border != null && (border.DataContext is Models.OrderItem || border.DataContext is ViewModels.OrderItemGroup))
+            {
+                borders.Add(border);
+            }
+        }
+
+        return borders.IndexOf(element);
+    }
+
+    private OrderItem? GetTargetItem()
+    {
+        if (AssociatedObject == null) return null;
+
+        // In link mode, find the card directly under the mouse cursor
+        if (_isLinkMode)
+        {
+            return FindCardUnderCursor();
+        }
+
+        // In reorder mode, use insertion index
+        if (_currentInsertionIndex < 0 || _animator == null)
+            return null;
+
+        // Get all Border elements EXCEPT the dragged one
+        var children = new List<FrameworkElement>();
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border != null &&
+                border != _draggedElement &&  // Exclude dragged element
+                (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+            {
+                children.Add(border);
+            }
+        }
+
+        // Adjust insertion index since we excluded the dragged element
+        // If dragging forward (insertion index > dragged index), subtract 1
+        int adjustedIndex = _currentInsertionIndex;
+        if (_currentInsertionIndex > _draggedIndex)
+        {
+            adjustedIndex = _currentInsertionIndex - 1;
+        }
+
+        // Target is the item at the adjusted position
+        if (adjustedIndex >= children.Count)
+        {
+            // Inserting at the end - target is null (append)
+            return null;
+        }
+
+        var targetElement = children[adjustedIndex];
+
+        if (targetElement.DataContext is OrderItem item)
+            return item;
+
+        if (targetElement.DataContext is OrderItemGroup group)
+            return group.First;
+
+        return null;
+    }
+
+    private OrderItem? FindCardUnderCursor()
+    {
+        if (AssociatedObject == null || _draggedElement == null) return null;
+
+        // Get current mouse position relative to the panel
+        var mousePosition = Mouse.GetPosition(AssociatedObject);
+
+        // Find all Border elements EXCEPT the dragged one
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border == null || border == _draggedElement)
+                continue;
+
+            if (!(border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+                continue;
+
+            // Check if mouse is over this border
+            var borderBounds = new Rect(
+                border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)),
+                new Size(border.ActualWidth, border.ActualHeight)
+            );
+
+            if (borderBounds.Contains(mousePosition))
+            {
+                if (border.DataContext is OrderItem item)
+                    return item;
+
+                if (border.DataContext is OrderItemGroup group)
+                    return group.First;
+            }
+        }
+
+        return null; // No card under cursor
+    }
+
+    private OrderItem? FindNearestLinkTarget()
+    {
+        if (AssociatedObject == null || _draggedElement == null) return null;
+
+        // Get all Border elements EXCEPT the one being dragged
+        var children = new List<FrameworkElement>();
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border != null &&
+                border != _draggedElement &&  // Exclude the dragged element
+                (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+            {
+                children.Add(border);
+            }
+        }
+
+        if (children.Count == 0) return null;
+
+        // When dropping at the end in link mode, link with the last item
+        // This handles cases like dragging a 3rd order to link with an existing group of 2
+        var targetElement = children[children.Count - 1];
+
+        if (targetElement.DataContext is OrderItem item)
+            return item;
+
+        if (targetElement.DataContext is OrderItemGroup group)
+            return group.First;
+
+        return null;
+    }
+}

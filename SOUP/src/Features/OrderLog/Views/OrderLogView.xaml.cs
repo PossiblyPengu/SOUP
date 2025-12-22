@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Windows;
@@ -6,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
+using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.Constants;
 
 namespace SOUP.Features.OrderLog.Views;
@@ -23,7 +26,65 @@ public partial class OrderLogView : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Initialization complete
+        // Wire up fluid drag behavior events
+        WireUpFluidDragBehavior();
+    }
+
+    private void WireUpFluidDragBehavior()
+    {
+        // Find the ItemsControl and its panel
+        var itemsControl = FindVisualChild<ItemsControl>(ActiveItemsPanel);
+        if (itemsControl == null) return;
+
+        // Wait for the panel to be generated
+        itemsControl.Loaded += (s, e) =>
+        {
+            var panel = FindVisualChild<Panel>(itemsControl);
+            if (panel == null) return;
+
+            // Find the behavior
+            var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
+            var fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+
+            if (fluidDragBehavior != null)
+            {
+                fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
+                fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
+            }
+        };
+    }
+
+    private async void OnFluidDragReorderComplete(List<OrderItem> items, OrderItem? target)
+    {
+        if (DataContext is OrderLogViewModel vm)
+        {
+            await vm.MoveOrdersAsync(items, target);
+            vm.StatusMessage = $"Reordered {items.Count} item(s)";
+        }
+    }
+
+    private async void OnFluidDragLinkComplete(List<OrderItem> items, OrderItem? target)
+    {
+        if (DataContext is OrderLogViewModel vm)
+        {
+            await vm.LinkItemsAsync(items, target);
+            vm.StatusMessage = $"Linked {items.Count} item(s)";
+        }
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T typedChild)
+                return typedChild;
+
+            var childOfChild = FindVisualChild<T>(child);
+            if (childOfChild != null)
+                return childOfChild;
+        }
+        return null;
     }
 
     private void ActiveTab_Checked(object sender, RoutedEventArgs e)
