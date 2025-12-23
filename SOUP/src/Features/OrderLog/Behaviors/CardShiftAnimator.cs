@@ -288,21 +288,23 @@ public class CardShiftAnimator
 
     private double CalculateShiftOffset(int cardIndex, int insertionIndex, int draggedIndex, double cardSize)
     {
-        // Card is between insertion point and dragged item's original position
-        if (insertionIndex <= draggedIndex)
+        // Visual approach: shift cards to make space at the insertion point
+        // Cards at/after insertion point shift down/forward to make room
+
+        if (insertionIndex < draggedIndex)
         {
-            // Dragging up: shift cards down that are >= insertionIndex and < draggedIndex
+            // Dragging backward: cards between insertion and dragged position shift down
             if (cardIndex >= insertionIndex && cardIndex < draggedIndex)
             {
-                return cardSize; // Shift down
+                return cardSize; // Shift down/forward
             }
         }
-        else
+        else if (insertionIndex > draggedIndex)
         {
-            // Dragging down: shift cards up that are > draggedIndex and < insertionIndex
+            // Dragging forward: cards between dragged and insertion shift down
             if (cardIndex > draggedIndex && cardIndex < insertionIndex)
             {
-                return -cardSize; // Shift up
+                return cardSize; // Shift down/forward to make space
             }
         }
 

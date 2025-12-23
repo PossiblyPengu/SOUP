@@ -49,6 +49,13 @@ public partial class DungeonCrawler : Window
     private ObservableCollection<InventoryItem> _inventory = new();
     private List<UIElement> _entityLabels = new();
     private List<(int X, int Y, SolidColorBrush Color, DateTime ExpireTime)> _weaponEffects = new();
+    private List<ParticleEffect> _particles = new();
+    private PlayerSkills _playerSkills = new();
+    private int _comboCounter = 0;
+    private DateTime _lastAttackTime = DateTime.MinValue;
+    private Dictionary<int, Enemy> _bossEnemies = new(); // Floor -> Boss
+    private System.Windows.Media.MediaPlayer? _musicPlayer;
+    private Dictionary<string, System.Windows.Media.MediaPlayer> _soundEffects = new();
     #endregion
 
     #region Brushes
@@ -211,6 +218,10 @@ public partial class DungeonCrawler : Window
             case Key.R:
                 RestartGame();
                 return;
+            case Key.K:
+                // Open skill menu
+                ShowSkillMenu();
+                return;
         }
 
         if (acted && !isTurn && (dx != 0 || dy != 0))
@@ -334,6 +345,9 @@ public partial class DungeonCrawler : Window
 
         // Generate traversal features
         GenerateTraversalFeatures(rooms);
+
+        // Spawn boss on boss floors
+        SpawnBoss(rooms, _currentFloor);
 
         UpdateVisibility();
         Render();
@@ -810,18 +824,68 @@ public partial class DungeonCrawler : Window
 
     private void AttackEnemy(Enemy enemy)
     {
-        int damage = Math.Max(1, _player.Attack - enemy.Defense + _rng.Next(-2, 3));
+        // Base damage calculation
+        int baseDamage = _player.Attack + _playerSkills.GetAttackBonus();
+        baseDamage += _playerSkills.GetBerserkerBonus(_player.Health, _player.MaxHealth);
+        int damage = Math.Max(1, baseDamage - enemy.Defense + _rng.Next(-2, 3));
+
+        // Check for critical hit
+        bool isCrit = _rng.Next(100) < _playerSkills.GetCritChance();
+        if (isCrit)
+        {
+            damage = (int)(damage * 2.0);
+            AddMessage($"💥 CRITICAL HIT! The {enemy.Name} FEELS ALL YOUR JOY at once! 💥");
+            CreateParticles(enemy.X, enemy.Y, Brushes.Yellow, 10);
+        }
+        else
+        {
+            CreateParticles(enemy.X, enemy.Y, Brushes.Orange, 5);
+        }
+
+        // Update combo counter
+        var timeSinceLastAttack = DateTime.Now - _lastAttackTime;
+        if (timeSinceLastAttack.TotalSeconds < 3)
+        {
+            _comboCounter++;
+            if (_comboCounter >= 3)
+            {
+                damage = (int)(damage * (1.0 + _comboCounter * 0.1));
+                AddMessage($"🎯 {_comboCounter}x COMBO! Your FRIENDSHIP is OVERWHELMING! 🎯");
+                CreateParticles(enemy.X, enemy.Y, Brushes.Purple, 15);
+            }
+        }
+        else
+        {
+            _comboCounter = 1;
+        }
+        _lastAttackTime = DateTime.Now;
+
+        // Apply damage
         enemy.Health -= damage;
         AddMessage(GetCreepyAttackMessage(enemy, damage));
+
+        // Lifesteal from vampiric skill
+        int lifestealPercent = _playerSkills.GetLifestealPercent();
+        if (lifestealPercent > 0)
+        {
+            int heal = (int)(damage * lifestealPercent / 100.0);
+            if (heal > 0 && _player.Health < _player.MaxHealth)
+            {
+                _player.Health = Math.Min(_player.MaxHealth, _player.Health + heal);
+                AddMessage($"💉 You ABSORB their essence! +{heal} HP! They're SHARING! 💉");
+                CreateParticles(_player.X, _player.Y, Brushes.Pink, 8);
+            }
+        }
 
         if (enemy.Health <= 0)
         {
             _enemies.Remove(enemy);
             int xpGain = enemy.XPValue;
             _player.XP += xpGain;
-            int goldDrop = _rng.Next(1, 10) * _currentFloor;
+            int goldDrop = (int)(_rng.Next(1, 10) * _currentFloor * _playerSkills.GetGoldMultiplier());
             _player.Gold += goldDrop;
             AddMessage(GetCreepyDeathMessage(enemy, xpGain, goldDrop));
+            CreateParticles(enemy.X, enemy.Y, Brushes.Gold, 20);
 
             // Check for level up
             CheckLevelUp();
@@ -1069,16 +1133,23 @@ public partial class DungeonCrawler : Window
                 continue; // Skip turn
             }
 
-            // Simple AI: move toward player if visible
+            // Enhanced AI: Use A* pathfinding if visible, otherwise wander
             if (!_visible[enemy.X, enemy.Y])
+            {
+                // Random wander when not visible
+                if (_rng.Next(100) < 30) // 30% chance to move
+                {
+                    int wanderDir = _rng.Next(4);
+                    int wanderX = enemy.X + (wanderDir == 0 ? 1 : wanderDir == 1 ? -1 : 0);
+                    int wanderY = enemy.Y + (wanderDir == 2 ? 1 : wanderDir == 3 ? -1 : 0);
+                    if (CanMoveTo(wanderX, wanderY) && !_enemies.Any(e => e != enemy && e.X == wanderX && e.Y == wanderY))
+                    {
+                        enemy.X = wanderX;
+                        enemy.Y = wanderY;
+                    }
+                }
                 continue;
-
-            int dx = Math.Sign(_player.X - enemy.X);
-            int dy = Math.Sign(_player.Y - enemy.Y);
-
-            // Try to move toward player
-            int newX = enemy.X + dx;
-            int newY = enemy.Y + dy;
+            }
 
             // Check if adjacent to player - attack!
             if (Math.Abs(_player.X - enemy.X) <= 1 && Math.Abs(_player.Y - enemy.Y) <= 1 &&
@@ -1087,22 +1158,35 @@ public partial class DungeonCrawler : Window
                 int damage = Math.Max(1, enemy.Attack - _player.Defense + _rng.Next(-2, 3));
                 _player.Health -= damage;
                 AddMessage(GetCreepyEnemyAttackMessage(enemy, damage));
-            }
-            else if (CanMoveTo(newX, newY) && !_enemies.Any(e => e != enemy && e.X == newX && e.Y == newY))
-            {
-                enemy.X = newX;
-                enemy.Y = newY;
+                CreateParticles(enemy.X, enemy.Y, Brushes.Red, 5);
             }
             else
             {
-                // Try alternative moves
-                if (dx != 0 && CanMoveTo(enemy.X + dx, enemy.Y) && !_enemies.Any(e => e != enemy && e.X == enemy.X + dx && e.Y == enemy.Y))
+                // Use A* pathfinding for smarter movement
+                var path = FindPathAStar(enemy.X, enemy.Y, _player.X, _player.Y);
+                if (path != null && path.Count > 1)
                 {
-                    enemy.X += dx;
+                    var nextStep = path[1]; // path[0] is current position
+                    if (CanMoveTo(nextStep.X, nextStep.Y) && !_enemies.Any(e => e != enemy && e.X == nextStep.X && e.Y == nextStep.Y))
+                    {
+                        enemy.X = nextStep.X;
+                        enemy.Y = nextStep.Y;
+                    }
                 }
-                else if (dy != 0 && CanMoveTo(enemy.X, enemy.Y + dy) && !_enemies.Any(e => e != enemy && e.X == enemy.X && e.Y == enemy.Y + dy))
+                else
                 {
-                    enemy.Y += dy;
+                    // Fallback to simple movement if pathfinding fails
+                    int dx = Math.Sign(_player.X - enemy.X);
+                    int dy = Math.Sign(_player.Y - enemy.Y);
+
+                    if (dx != 0 && CanMoveTo(enemy.X + dx, enemy.Y) && !_enemies.Any(e => e != enemy && e.X == enemy.X + dx && e.Y == enemy.Y))
+                    {
+                        enemy.X += dx;
+                    }
+                    else if (dy != 0 && CanMoveTo(enemy.X, enemy.Y + dy) && !_enemies.Any(e => e != enemy && e.X == enemy.X && e.Y == enemy.Y + dy))
+                    {
+                        enemy.Y += dy;
+                    }
                 }
             }
         }
@@ -1122,6 +1206,8 @@ public partial class DungeonCrawler : Window
     private void PickupItem(Item item)
     {
         _items.Remove(item);
+        PlaySound("pickup");
+        CreateParticles(item.X, item.Y, Brushes.Gold, 8);
 
         switch (item.Type)
         {
@@ -1237,11 +1323,14 @@ public partial class DungeonCrawler : Window
         {
             _player.XP -= xpNeeded;
             _player.Level++;
-            _player.MaxHealth += 10;
+            _player.MaxHealth += 10 + _playerSkills.GetMaxHPBonus();
             _player.Health = _player.MaxHealth;
             _player.Attack += 2;
             _player.Defense += 1;
+            _playerSkills.SkillPoints += 2; // Gain 2 skill points per level
             AddMessage(GetCreepyLevelUpMessage());
+            AddMessage($"⭐ You gained 2 SKILL POINTS! Press K to unlock SPECIAL POWERS! ⭐");
+            CreateParticles(_player.X, _player.Y, Brushes.Gold, 30);
             xpNeeded = _player.Level * 100;
         }
     }
@@ -1454,11 +1543,17 @@ public partial class DungeonCrawler : Window
         GameCanvas.Children.Clear();
         _entityLabels.Clear();
 
+        // Update particles
+        UpdateParticles();
+
         // Render first-person 3D view
         RenderFirstPersonView();
 
         // Render mini-map in bottom-left corner
         RenderMiniMap();
+
+        // Render particles on top
+        RenderParticles();
     }
 
     private void RenderFirstPersonView()
@@ -1466,32 +1561,141 @@ public partial class DungeonCrawler : Window
         double canvasWidth = GameCanvas.ActualWidth > 0 ? GameCanvas.ActualWidth : 800;
         double canvasHeight = GameCanvas.ActualHeight > 0 ? GameCanvas.ActualHeight : 600;
 
-        // Draw floor
-        var floor = new Rectangle
-        {
-            Width = canvasWidth,
-            Height = canvasHeight / 2,
-            Fill = FloorBrush
-        };
-        Canvas.SetLeft(floor, 0);
-        Canvas.SetTop(floor, canvasHeight / 2);
-        GameCanvas.Children.Add(floor);
+        // Draw fancy floor with tiles
+        DrawFancyFloor(canvasWidth, canvasHeight);
 
-        // Draw ceiling
-        var ceiling = new Rectangle
-        {
-            Width = canvasWidth,
-            Height = canvasHeight / 2,
-            Fill = new SolidColorBrush(Color.FromRgb(10, 10, 15))
-        };
-        Canvas.SetLeft(ceiling, 0);
-        Canvas.SetTop(ceiling, 0);
-        GameCanvas.Children.Add(ceiling);
+        // Draw fancy ceiling with patterns
+        DrawFancyCeiling(canvasWidth, canvasHeight);
 
         // Render walls at different distances (up to 4 tiles ahead)
         for (int distance = 4; distance >= 1; distance--)
         {
             RenderWallSlice(distance, canvasWidth, canvasHeight);
+        }
+    }
+
+    private void DrawFancyFloor(double canvasWidth, double canvasHeight)
+    {
+        // Base floor color based on current floor theme
+        Color baseColor = _currentFloor switch
+        {
+            <= 2 => Color.FromRgb(255, 240, 250),  // Soft pink (nursery)
+            <= 4 => Color.FromRgb(245, 220, 200),  // Sandbox tan (playground)
+            <= 6 => Color.FromRgb(220, 220, 230),  // Institutional gray (school)
+            <= 8 => Color.FromRgb(200, 180, 170),  // Warm wood (home)
+            _ => Color.FromRgb(180, 160, 190)      // Dim purple (the end)
+        };
+
+        // Draw checkered floor pattern
+        double tileSize = 40;
+        int tilesX = (int)(canvasWidth / tileSize) + 1;
+        int tilesY = (int)((canvasHeight / 2) / tileSize) + 1;
+
+        for (int y = 0; y < tilesY; y++)
+        {
+            for (int x = 0; x < tilesX; x++)
+            {
+                // Alternating pattern
+                bool isDark = (x + y) % 2 == 0;
+                Color tileColor = isDark
+                    ? Color.FromRgb((byte)(baseColor.R * 0.9), (byte)(baseColor.G * 0.9), (byte)(baseColor.B * 0.9))
+                    : baseColor;
+
+                // Add depth shading (darker toward horizon)
+                double depthFactor = 1.0 - (y / (double)tilesY * 0.4);
+                tileColor = Color.FromRgb(
+                    (byte)(tileColor.R * depthFactor),
+                    (byte)(tileColor.G * depthFactor),
+                    (byte)(tileColor.B * depthFactor));
+
+                var tile = new Rectangle
+                {
+                    Width = tileSize,
+                    Height = tileSize,
+                    Fill = new SolidColorBrush(tileColor),
+                    Stroke = new SolidColorBrush(Color.FromArgb(30, 0, 0, 0)),
+                    StrokeThickness = 1
+                };
+
+                Canvas.SetLeft(tile, x * tileSize);
+                Canvas.SetTop(tile, canvasHeight / 2 + y * tileSize);
+                GameCanvas.Children.Add(tile);
+                _entityLabels.Add(tile);
+            }
+        }
+    }
+
+    private void DrawFancyCeiling(double canvasWidth, double canvasHeight)
+    {
+        // Base ceiling color based on current floor theme
+        Color baseColor = _currentFloor switch
+        {
+            <= 2 => Color.FromRgb(255, 200, 230),  // Baby pink (nursery)
+            <= 4 => Color.FromRgb(180, 220, 255),  // Sky blue (playground)
+            <= 6 => Color.FromRgb(200, 200, 210),  // Fluorescent (school)
+            <= 8 => Color.FromRgb(180, 160, 150),  // Dusty (home)
+            _ => Color.FromRgb(100, 80, 120)       // Deep purple (the end)
+        };
+
+        // Draw ceiling with panels
+        double panelSize = 60;
+        int panelsX = (int)(canvasWidth / panelSize) + 1;
+        int panelsY = (int)((canvasHeight / 2) / panelSize) + 1;
+
+        for (int y = 0; y < panelsY; y++)
+        {
+            for (int x = 0; x < panelsX; x++)
+            {
+                // Add variation
+                bool hasPattern = (x + y) % 3 == 0;
+                Color panelColor = hasPattern
+                    ? Color.FromRgb((byte)(baseColor.R * 0.95), (byte)(baseColor.G * 0.95), (byte)(baseColor.B * 0.95))
+                    : baseColor;
+
+                // Darken near horizon
+                double depthFactor = 1.0 - ((panelsY - y) / (double)panelsY * 0.3);
+                panelColor = Color.FromRgb(
+                    (byte)(panelColor.R * depthFactor),
+                    (byte)(panelColor.G * depthFactor),
+                    (byte)(panelColor.B * depthFactor));
+
+                var panel = new Rectangle
+                {
+                    Width = panelSize,
+                    Height = panelSize,
+                    Fill = new SolidColorBrush(panelColor),
+                    Stroke = new SolidColorBrush(Color.FromArgb(40, 0, 0, 0)),
+                    StrokeThickness = 2
+                };
+
+                Canvas.SetLeft(panel, x * panelSize);
+                Canvas.SetTop(panel, y * panelSize);
+                GameCanvas.Children.Add(panel);
+                _entityLabels.Add(panel);
+            }
+        }
+
+        // Add creepy details based on floor
+        if (_currentFloor >= 7)
+        {
+            // Add occasional "watching eyes" in ceiling
+            for (int i = 0; i < 3; i++)
+            {
+                if (_rng.Next(100) < 30)
+                {
+                    var eye = new TextBlock
+                    {
+                        Text = "👁️",
+                        FontSize = 20,
+                        Foreground = new SolidColorBrush(Color.FromArgb(100, 255, 100, 100)),
+                        FontFamily = new FontFamily("Segoe UI Emoji")
+                    };
+                    Canvas.SetLeft(eye, _rng.Next((int)canvasWidth - 30));
+                    Canvas.SetTop(eye, _rng.Next((int)(canvasHeight / 2) - 30));
+                    GameCanvas.Children.Add(eye);
+                    _entityLabels.Add(eye);
+                }
+            }
         }
     }
 
@@ -1553,13 +1757,29 @@ public partial class DungeonCrawler : Window
     private void DrawWall3D(double x, double y, double width, double height, int distance, bool isSide)
     {
         // Darken walls based on distance
-        byte brightness = (byte)(200 - distance * 40);
+        byte brightness = (byte)(220 - distance * 40);
         brightness = Math.Max(brightness, (byte)60);
 
-        var wallColor = isSide
-            ? Color.FromRgb((byte)(brightness * 0.7), (byte)(brightness * 0.7), (byte)(brightness * 0.8))
-            : Color.FromRgb(brightness, brightness, (byte)(brightness * 1.1));
+        // Themed wall colors based on floor
+        Color baseWallColor = _currentFloor switch
+        {
+            <= 2 => Color.FromRgb(255, 200, 230),  // Pastel pink (nursery)
+            <= 4 => Color.FromRgb(200, 220, 180),  // Faded green (playground)
+            <= 6 => Color.FromRgb(200, 200, 220),  // Institutional blue-gray (school)
+            <= 8 => Color.FromRgb(210, 180, 160),  // Warm beige (home)
+            _ => Color.FromRgb(150, 130, 170)      // Purple-gray (the end)
+        };
 
+        // Apply brightness and side darkening
+        double sideFactor = isSide ? 0.75 : 1.0;
+        double distanceFactor = brightness / 220.0;
+
+        Color wallColor = Color.FromRgb(
+            (byte)(baseWallColor.R * distanceFactor * sideFactor),
+            (byte)(baseWallColor.G * distanceFactor * sideFactor),
+            (byte)(baseWallColor.B * distanceFactor * sideFactor));
+
+        // Draw main wall
         var wall = new Rectangle
         {
             Width = width,
@@ -1573,6 +1793,153 @@ public partial class DungeonCrawler : Window
         Canvas.SetTop(wall, y);
         GameCanvas.Children.Add(wall);
         _entityLabels.Add(wall);
+
+        // Add wall decorations if close enough and not a side wall
+        if (distance <= 2 && !isSide && width > 100)
+        {
+            AddWallDecorations(x, y, width, height, distance);
+        }
+    }
+
+    private void AddWallDecorations(double x, double y, double width, double height, int distance)
+    {
+        // Add themed decorations based on floor
+        if (_currentFloor <= 2) // Nursery
+        {
+            // Add stars or moon stickers
+            if (_rng.Next(100) < 40)
+            {
+                var decoration = new TextBlock
+                {
+                    Text = _rng.Next(2) == 0 ? "⭐" : "🌙",
+                    FontSize = height * 0.15,
+                    Foreground = new SolidColorBrush(Color.FromArgb(150, 255, 255, 150)),
+                    FontFamily = new FontFamily("Segoe UI Emoji")
+                };
+                Canvas.SetLeft(decoration, x + width * 0.7);
+                Canvas.SetTop(decoration, y + height * 0.3);
+                GameCanvas.Children.Add(decoration);
+                _entityLabels.Add(decoration);
+            }
+        }
+        else if (_currentFloor <= 4) // Playground
+        {
+            // Add handprints or chalk marks
+            if (_rng.Next(100) < 30)
+            {
+                var decoration = new TextBlock
+                {
+                    Text = "👋",
+                    FontSize = height * 0.12,
+                    Foreground = new SolidColorBrush(Color.FromArgb(120, 200, 150, 100)),
+                    FontFamily = new FontFamily("Segoe UI Emoji")
+                };
+                Canvas.SetLeft(decoration, x + width * 0.6);
+                Canvas.SetTop(decoration, y + height * 0.5);
+                GameCanvas.Children.Add(decoration);
+                _entityLabels.Add(decoration);
+            }
+        }
+        else if (_currentFloor <= 6) // School
+        {
+            // Add posters or notices
+            if (_rng.Next(100) < 35)
+            {
+                var poster = new Rectangle
+                {
+                    Width = width * 0.2,
+                    Height = height * 0.25,
+                    Fill = new SolidColorBrush(Color.FromArgb(150, 240, 240, 200)),
+                    Stroke = new SolidColorBrush(Color.FromArgb(100, 100, 100, 100)),
+                    StrokeThickness = 1
+                };
+                Canvas.SetLeft(poster, x + width * 0.4);
+                Canvas.SetTop(poster, y + height * 0.3);
+                GameCanvas.Children.Add(poster);
+                _entityLabels.Add(poster);
+
+                var text = new TextBlock
+                {
+                    Text = "☺",
+                    FontSize = height * 0.15,
+                    Foreground = Brushes.Black,
+                    FontFamily = new FontFamily("Segoe UI Emoji")
+                };
+                Canvas.SetLeft(text, x + width * 0.45);
+                Canvas.SetTop(text, y + height * 0.35);
+                GameCanvas.Children.Add(text);
+                _entityLabels.Add(text);
+            }
+        }
+        else if (_currentFloor <= 8) // Home
+        {
+            // Add picture frames
+            if (_rng.Next(100) < 40)
+            {
+                var frame = new Rectangle
+                {
+                    Width = width * 0.25,
+                    Height = height * 0.2,
+                    Fill = new SolidColorBrush(Color.FromArgb(150, 180, 150, 120)),
+                    Stroke = new SolidColorBrush(Color.FromArgb(150, 100, 80, 60)),
+                    StrokeThickness = 3
+                };
+                Canvas.SetLeft(frame, x + width * 0.4);
+                Canvas.SetTop(frame, y + height * 0.25);
+                GameCanvas.Children.Add(frame);
+                _entityLabels.Add(frame);
+            }
+        }
+        else // The End
+        {
+            // Add creepy eyes watching
+            if (_rng.Next(100) < 25)
+            {
+                var eye = new TextBlock
+                {
+                    Text = "👁️",
+                    FontSize = height * 0.1,
+                    Foreground = new SolidColorBrush(Color.FromArgb(120, 255, 50, 50)),
+                    FontFamily = new FontFamily("Segoe UI Emoji")
+                };
+                Canvas.SetLeft(eye, x + width * (_rng.NextDouble() * 0.6 + 0.2));
+                Canvas.SetTop(eye, y + height * (_rng.NextDouble() * 0.6 + 0.2));
+                GameCanvas.Children.Add(eye);
+                _entityLabels.Add(eye);
+            }
+        }
+
+        // Add wall panels/trim
+        if (distance == 1)
+        {
+            // Vertical trim lines
+            for (int i = 1; i < 3; i++)
+            {
+                var trim = new System.Windows.Shapes.Line
+                {
+                    X1 = x + (width * i / 3.0),
+                    Y1 = y,
+                    X2 = x + (width * i / 3.0),
+                    Y2 = y + height,
+                    Stroke = new SolidColorBrush(Color.FromArgb(60, 0, 0, 0)),
+                    StrokeThickness = 2
+                };
+                GameCanvas.Children.Add(trim);
+                _entityLabels.Add(trim);
+            }
+
+            // Horizontal baseboard
+            var baseboard = new Rectangle
+            {
+                Width = width,
+                Height = height * 0.1,
+                Fill = new SolidColorBrush(Color.FromArgb(80, 100, 80, 60))
+            };
+            Canvas.SetLeft(baseboard, x);
+            Canvas.SetTop(baseboard, y + height * 0.9);
+            GameCanvas.Children.Add(baseboard);
+            _entityLabels.Add(baseboard);
+        }
     }
 
     private void DrawSpecialTile(int tileX, int tileY, double x, double y, double width, double height)
@@ -2542,105 +2909,105 @@ public partial class DungeonCrawler : Window
 
     private Weapon GetWeaponForFloor()
     {
-        // Weapons themed by floor area with special abilities
-        var nurseryWeapons = new[] {
-            new Weapon { Name = "Baby Rattle of Doom", Icon = "🍼", AttackBonus = 3, Type = WeaponType.Melee,
-                Ability = WeaponAbility.Stun, AbilityPower = 1, SpecialMaxCooldown = 4,
-                Description = "It makes soothing sounds as it strikes.",
-                AbilityDescription = "Special: Lullaby - Stuns enemy for 1 turn" },
-            new Weapon { Name = "Teething Ring", Icon = "⭕", AttackBonus = 3, Type = WeaponType.Melee,
-                Ability = WeaponAbility.Lifesteal, AbilityPower = 2, SpecialMaxCooldown = 3,
-                Description = "Someone else's teeth marks are on it.",
-                AbilityDescription = "Special: Bite - Steals 2 HP from enemy" },
-            new Weapon { Name = "Mobile Star", Icon = "⭐", AttackBonus = 4, Type = WeaponType.Ranged,
-                Ability = WeaponAbility.DoubleDamage, AbilityPower = 2, SpecialMaxCooldown = 5,
-                Description = "It fell from above your crib. Finally.",
-                AbilityDescription = "Special: Spinning Strike - Deals double damage" },
+        // Creepy-cheerful weapons matching the SUPER HAPPY FUN ZONE aesthetic!
+        var earlyWeapons = new[] {
+            new Weapon { Name = "Plastic Safety Knife", Icon = "🔪", AttackBonus = 3, Type = WeaponType.Melee,
+                Ability = WeaponAbility.Bleed, AbilityPower = 2, SpecialMaxCooldown = 3,
+                Description = "For spreading FRIENDSHIP JAM! (It's not jam)",
+                AbilityDescription = "Special: Happy Spreading - They LEAK happiness!" },
+            new Weapon { Name = "Smile Enforcer 3000", Icon = "🔫", AttackBonus = 4, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.DoubleDamage, AbilityPower = 2, SpecialMaxCooldown = 4,
+                Description = "Helps friends remember to SMILE! ☺",
+                AbilityDescription = "Special: Permanent Grin - Smile SO HARD!" },
+            new Weapon { Name = "Friendship Spreader", Icon = "💥", AttackBonus = 5, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 4, SpecialMaxCooldown = 5,
+                Description = "Shares love with EVERYONE nearby!",
+                AbilityDescription = "Special: Group Hug - Love for all friends!" },
         };
 
-        var playgroundWeapons = new[] {
-            new Weapon { Name = "Rusty Swing Chain", Icon = "⛓️", AttackBonus = 5, Type = WeaponType.Melee,
-                Ability = WeaponAbility.Knockback, AbilityPower = 2, SpecialMaxCooldown = 3,
-                Description = "Still has momentum from the last child.",
-                AbilityDescription = "Special: Momentum - Pushes enemy back 2 tiles" },
-            new Weapon { Name = "Jump Rope of Binding", Icon = "🪢", AttackBonus = 5, Type = WeaponType.Ranged,
+        var midWeapons = new[] {
+            new Weapon { Name = "Joy Distributor", Icon = "🔫", AttackBonus = 6, Type = WeaponType.Ranged,
                 Ability = WeaponAbility.Stun, AbilityPower = 2, SpecialMaxCooldown = 4,
-                Description = "It ties itself to enemies.",
-                AbilityDescription = "Special: Bind - Stuns enemy for 2 turns" },
-            new Weapon { Name = "Tetherball of Regret", Icon = "🏐", AttackBonus = 6, Type = WeaponType.Ranged,
-                Ability = WeaponAbility.AreaDamage, AbilityPower = 4, SpecialMaxCooldown = 4,
-                Description = "It always comes back.",
-                AbilityDescription = "Special: Rebound - Hits all adjacent enemies" },
-            new Weapon { Name = "Splinter Stick", Icon = "🪵", AttackBonus = 4, Type = WeaponType.Melee,
-                Ability = WeaponAbility.Bleed, AbilityPower = 3, SpecialMaxCooldown = 3,
-                Description = "From the old wooden playground. The one they tore down.",
-                AbilityDescription = "Special: Splinter - Enemy bleeds 3 damage/turn for 3 turns" },
+                Description = "Delivers happiness SO FAST they can't move!",
+                AbilityDescription = "Special: Overwhelming Joy - They're TOO HAPPY!" },
+            new Weapon { Name = "Kindness Blade", Icon = "🔪", AttackBonus = 5, Type = WeaponType.Melee,
+                Ability = WeaponAbility.Lifesteal, AbilityPower = 3, SpecialMaxCooldown = 3,
+                Description = "Shares their energy! They're GIVING!",
+                AbilityDescription = "Special: Energy Sharing - They give YOU life!" },
+            new Weapon { Name = "Giggle Generator", Icon = "🔫", AttackBonus = 7, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.DoubleDamage, AbilityPower = 3, SpecialMaxCooldown = 4,
+                Description = "Makes them laugh SO MUCH!",
+                AbilityDescription = "Special: Laughing Fit - They can't stop EVER!" },
+            new Weapon { Name = "Party Confetti Cannon", Icon = "🎉", AttackBonus = 8, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.Knockback, AbilityPower = 3, SpecialMaxCooldown = 4,
+                Description = "It's PARTY TIME! (The confetti is sharp)",
+                AbilityDescription = "Special: CELEBRATION - They FLY with joy!" },
         };
 
-        var schoolWeapons = new[] {
-            new Weapon { Name = "Hall Pass", Icon = "📝", AttackBonus = 7, Type = WeaponType.Magic,
-                Ability = WeaponAbility.Knockback, AbilityPower = 3, SpecialMaxCooldown = 3,
-                Description = "Allows you to go anywhere. ANYWHERE.",
-                AbilityDescription = "Special: Expulsion - Teleports enemy away" },
-            new Weapon { Name = "Detention Slip", Icon = "📄", AttackBonus = 7, Type = WeaponType.Magic,
-                Ability = WeaponAbility.Stun, AbilityPower = 3, SpecialMaxCooldown = 5,
-                Description = "Write someone's name. They stay.",
-                AbilityDescription = "Special: Detention - Stuns enemy for 3 turns" },
-            new Weapon { Name = "Safety Scissors", Icon = "✂️", AttackBonus = 8, Type = WeaponType.Melee,
-                Ability = WeaponAbility.DoubleDamage, AbilityPower = 3, SpecialMaxCooldown = 4,
-                Description = "Not safe. Never were.",
-                AbilityDescription = "Special: Snip - Deals triple damage" },
-            new Weapon { Name = "Cafeteria Spork", Icon = "🥄", AttackBonus = 6, Type = WeaponType.Melee,
-                Ability = WeaponAbility.Lifesteal, AbilityPower = 4, SpecialMaxCooldown = 3,
-                Description = "It's seen things.",
-                AbilityDescription = "Special: Consume - Steals 4 HP from enemy" },
-        };
-
-        var homeWeapons = new[] {
-            new Weapon { Name = "Wooden Spoon", Icon = "🥄", AttackBonus = 9, Type = WeaponType.Melee,
-                Ability = WeaponAbility.DoubleDamage, AbilityPower = 3, SpecialMaxCooldown = 4,
-                Description = "Mom's. Still has the sting.",
-                AbilityDescription = "Special: Discipline - Deals triple damage" },
-            new Weapon { Name = "Photo Album", Icon = "📔", AttackBonus = 9, Type = WeaponType.Magic,
-                Ability = WeaponAbility.Stun, AbilityPower = 2, SpecialMaxCooldown = 4,
-                Description = "The faces blur when you strike.",
-                AbilityDescription = "Special: Lost Memories - Confuses enemy for 2 turns" },
-            new Weapon { Name = "Attic Key", Icon = "🗝️", AttackBonus = 10, Type = WeaponType.Magic,
-                Ability = WeaponAbility.AreaDamage, AbilityPower = 6, SpecialMaxCooldown = 5,
-                Description = "Opens things that should stay closed.",
-                AbilityDescription = "Special: Unlock - Releases energy hitting all visible enemies" },
-            new Weapon { Name = "Family Recipe", Icon = "📜", AttackBonus = 8, Type = WeaponType.Magic,
+        var advancedWeapons = new[] {
+            new Weapon { Name = "MEGA HAPPINESS BLASTER", Icon = "🎈", AttackBonus = 9, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.DoubleDamage, AbilityPower = 4, SpecialMaxCooldown = 4,
+                Description = "MAXIMUM JOY CAPACITY! Can't handle it!",
+                AbilityDescription = "Special: JOY OVERLOAD - TOO MUCH HAPPY!" },
+            new Weapon { Name = "Fun Times Rapidfire", Icon = "✨", AttackBonus = 10, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 5, SpecialMaxCooldown = 5,
+                Description = "Shares fun with EVERYONE you can see!",
+                AbilityDescription = "Special: FUN FOR ALL - Nobody escapes fun!" },
+            new Weapon { Name = "Smile Carver", Icon = "🔪", AttackBonus = 8, Type = WeaponType.Melee,
                 Ability = WeaponAbility.Bleed, AbilityPower = 4, SpecialMaxCooldown = 3,
-                Description = "The secret ingredient is violence.",
-                AbilityDescription = "Special: Poison Dish - Enemy takes 4 damage/turn for 4 turns" },
+                Description = "Helps friends smile PERMANENTLY! ☺",
+                AbilityDescription = "Special: Forever Smile - Smiling NEVER STOPS!" },
+            new Weapon { Name = "Glitter Bomb Launcher", Icon = "✨", AttackBonus = 11, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 6, SpecialMaxCooldown = 5,
+                Description = "Sparkles EVERYWHERE! (It burns)",
+                AbilityDescription = "Special: SPARKLE STORM - Beautiful agony!" },
         };
 
-        var endWeapons = new[] {
-            new Weapon { Name = "Mirror Shard", Icon = "🔮", AttackBonus = 12, Type = WeaponType.Magic,
-                Ability = WeaponAbility.DoubleDamage, AbilityPower = 4, SpecialMaxCooldown = 3,
-                Description = "Your reflection keeps attacking.",
-                AbilityDescription = "Special: Reflection - Attacks twice (quadruple damage)" },
-            new Weapon { Name = "Yesterday's Regret", Icon = "💭", AttackBonus = 11, Type = WeaponType.Magic,
+        var eliteWeapons = new[] {
+            new Weapon { Name = "Precision Love Beam", Icon = "💖", AttackBonus = 12, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.DoubleDamage, AbilityPower = 5, SpecialMaxCooldown = 5,
+                Description = "Sends love DIRECTLY to the heart!",
+                AbilityDescription = "Special: True Love - Love HURTS SO GOOD!" },
+            new Weapon { Name = "Endless Laughter Machine", Icon = "😂", AttackBonus = 11, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 7, SpecialMaxCooldown = 6,
+                Description = "Makes EVERYONE laugh forever and ever!",
+                AbilityDescription = "Special: Comedy Gold - They'll DIE laughing!" },
+            new Weapon { Name = "Birthday Surprise Cannon", Icon = "🎂", AttackBonus = 13, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 8, SpecialMaxCooldown = 6,
+                Description = "SURPRISE! It's your party! (It's not good)",
+                AbilityDescription = "Special: HAPPY BIRTHDAY - Best day EVER!" },
+            new Weapon { Name = "Friendship Forever Blade", Icon = "🔪", AttackBonus = 10, Type = WeaponType.Melee,
+                Ability = WeaponAbility.Bleed, AbilityPower = 5, SpecialMaxCooldown = 4,
+                Description = "Makes PERMANENT friends! They NEVER leave!",
+                AbilityDescription = "Special: Eternal Bond - Friends FOREVER!" },
+        };
+
+        var legendaryWeapons = new[] {
+            new Weapon { Name = "The ULTIMATE JOY CANNON", Icon = "🌈", AttackBonus = 15, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.DoubleDamage, AbilityPower = 6, SpecialMaxCooldown = 5,
+                Description = "MORE JOY THAN PHYSICALLY POSSIBLE!",
+                AbilityDescription = "Special: MAXIMUM HAPPINESS - Reality can't handle it!" },
+            new Weapon { Name = "Party Time Infinity Gun", Icon = "🎊", AttackBonus = 14, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 10, SpecialMaxCooldown = 7,
+                Description = "The party NEVER ENDS! NEVER EVER!",
+                AbilityDescription = "Special: ETERNAL CELEBRATION - Dance forever!" },
+            new Weapon { Name = "Love Explosion Launcher", Icon = "💝", AttackBonus = 16, Type = WeaponType.Ranged,
+                Ability = WeaponAbility.AreaDamage, AbilityPower = 12, SpecialMaxCooldown = 8,
+                Description = "Spreads SO MUCH LOVE it explodes!",
+                AbilityDescription = "Special: LOVE BOMB - Violent affection!" },
+            new Weapon { Name = "The Hugger", Icon = "🤗", AttackBonus = 13, Type = WeaponType.Melee,
                 Ability = WeaponAbility.Lifesteal, AbilityPower = 8, SpecialMaxCooldown = 4,
-                Description = "Weaponized nostalgia.",
-                AbilityDescription = "Special: Drain Memories - Steals 8 HP and stuns" },
-            new Weapon { Name = "The Truth", Icon = "👁️", AttackBonus = 14, Type = WeaponType.Magic,
-                Ability = WeaponAbility.AreaDamage, AbilityPower = 10, SpecialMaxCooldown = 6,
-                Description = "Nobody can handle it.",
-                AbilityDescription = "Special: Revelation - Massive damage to all enemies in sight" },
-            new Weapon { Name = "Goodbye Letter", Icon = "💌", AttackBonus = 13, Type = WeaponType.Magic,
-                Ability = WeaponAbility.Bleed, AbilityPower = 6, SpecialMaxCooldown = 4,
-                Description = "You never sent it. Until now.",
-                AbilityDescription = "Special: Final Words - Enemy bleeds 6 damage/turn until death" },
+                Description = "Gives INFINITE HUGS! You take their warmth!",
+                AbilityDescription = "Special: EMBRACE - Hug so tight they SHARE life!" },
         };
 
         var weapons = _currentFloor switch
         {
-            <= 2 => nurseryWeapons,
-            <= 4 => playgroundWeapons,
-            <= 6 => schoolWeapons,
-            <= 8 => homeWeapons,
-            _ => endWeapons
+            <= 2 => earlyWeapons,
+            <= 4 => midWeapons,
+            <= 6 => advancedWeapons,
+            <= 8 => eliteWeapons,
+            _ => legendaryWeapons
         };
 
         var weapon = weapons[_rng.Next(weapons.Length)];
@@ -2767,6 +3134,360 @@ public partial class DungeonCrawler : Window
     }
     #endregion
 
+    #region Skill System
+    private void ShowSkillMenu()
+    {
+        if (_playerSkills.SkillPoints <= 0)
+        {
+            AddMessage("💫 No skill points available! Level up to gain more! 💫");
+            return;
+        }
+
+        var skillOptions = $@"🌟 SKILL MENU 🌟
+Available Points: {_playerSkills.SkillPoints}
+
+1. Critical Hit [{_playerSkills.CriticalHitLevel}/5] - +10% crit chance
+2. Vitality [{_playerSkills.VitalityLevel}/5] - +20 max HP
+3. Power [{_playerSkills.PowerLevel}/5] - +3 attack
+4. Resilience [{_playerSkills.ResilienceLevel}/5] - +2 defense
+5. Vampiric [{_playerSkills.VampiricLevel}/5] - +5% lifesteal
+6. Berserker [{_playerSkills.BerserkerLevel}/5] - +5 damage when low HP
+7. Treasure Hunter [{_playerSkills.TreasureHunterLevel}/5] - +25% gold
+8. Cancel
+
+Choose a skill to upgrade (1-7):";
+
+        var result = MessageBox.Show(skillOptions, "Skill Upgrade", MessageBoxButton.OK);
+
+        // For now, let's add a simple message-based system
+        AddMessage("💫 Press 1-7 in the game to upgrade skills! Press 0 to cancel! 💫");
+    }
+
+    private void TryUpgradeSkill(int skillIndex)
+    {
+        if (_playerSkills.SkillPoints <= 0)
+        {
+            AddMessage("💫 No skill points! Level up first! 💫");
+            return;
+        }
+
+        bool upgraded = false;
+        string skillName = "";
+
+        switch (skillIndex)
+        {
+            case 1 when _playerSkills.CriticalHitLevel < 5:
+                _playerSkills.CriticalHitLevel++;
+                skillName = "Critical Hit";
+                upgraded = true;
+                break;
+            case 2 when _playerSkills.VitalityLevel < 5:
+                _playerSkills.VitalityLevel++;
+                _player.MaxHealth += 20;
+                _player.Health += 20;
+                skillName = "Vitality";
+                upgraded = true;
+                break;
+            case 3 when _playerSkills.PowerLevel < 5:
+                _playerSkills.PowerLevel++;
+                skillName = "Power";
+                upgraded = true;
+                break;
+            case 4 when _playerSkills.ResilienceLevel < 5:
+                _playerSkills.ResilienceLevel++;
+                skillName = "Resilience";
+                upgraded = true;
+                break;
+            case 5 when _playerSkills.VampiricLevel < 5:
+                _playerSkills.VampiricLevel++;
+                skillName = "Vampiric";
+                upgraded = true;
+                break;
+            case 6 when _playerSkills.BerserkerLevel < 5:
+                _playerSkills.BerserkerLevel++;
+                skillName = "Berserker";
+                upgraded = true;
+                break;
+            case 7 when _playerSkills.TreasureHunterLevel < 5:
+                _playerSkills.TreasureHunterLevel++;
+                skillName = "Treasure Hunter";
+                upgraded = true;
+                break;
+        }
+
+        if (upgraded)
+        {
+            _playerSkills.SkillPoints--;
+            AddMessage($"⭐ {skillName} upgraded! Points remaining: {_playerSkills.SkillPoints} ⭐");
+            CreateParticles(_player.X, _player.Y, Brushes.Cyan, 15);
+            PlaySound("levelup");
+        }
+        else
+        {
+            AddMessage("❌ Can't upgrade that skill! (Max level or invalid choice)");
+        }
+
+        UpdateUI();
+    }
+    #endregion
+
+    #region Boss System
+    private void SpawnBoss(List<Room> rooms, int floor)
+    {
+        // Boss spawns on floors 3, 6, 9
+        if (floor % 3 != 0) return;
+
+        var endRoom = rooms[^1];
+        int x = endRoom.CenterX;
+        int y = endRoom.CenterY;
+
+        Enemy boss = floor switch
+        {
+            3 => new Enemy
+            {
+                X = x, Y = y,
+                Type = EnemyType.CarouselHorse,
+                Name = "MEGA CAROUSEL KING",
+                Icon = "👑",
+                Health = 150,
+                MaxHealth = 150,
+                Attack = 15,
+                Defense = 8,
+                XPValue = 200,
+                AttackMessages = new[] {
+                    "GALLOPS through your memories at MAXIMUM SPEED",
+                    "The music NEVER STOPS and it HURTS SO GOOD",
+                    "Spins and spins and YOU'RE SPINNING TOO NOW"
+                }
+            },
+            6 => new Enemy
+            {
+                X = x, Y = y,
+                Type = EnemyType.SubstituteTeacher,
+                Name = "THE PRINCIPAL",
+                Icon = "📜",
+                Health = 300,
+                MaxHealth = 300,
+                Attack = 22,
+                Defense = 12,
+                XPValue = 400,
+                AttackMessages = new[] {
+                    "Assigns PERMANENT DETENTION to your soul",
+                    "Calls your parents (they don't recognize your name)",
+                    "Marks you ABSENT from existence"
+                }
+            },
+            9 => new Enemy
+            {
+                X = x, Y = y,
+                Type = EnemyType.YourBestFriend,
+                Name = "THE ONE WHO WAITED",
+                Icon = "💝",
+                Health = 500,
+                MaxHealth = 500,
+                Attack = 30,
+                Defense = 18,
+                XPValue = 800,
+                AttackMessages = new[] {
+                    "Hugs you with INFINITE ARMS",
+                    "Says 'I MISSED YOU' with EVERY VOICE YOU EVER KNEW",
+                    "Promises to NEVER LET GO EVER AGAIN"
+                }
+            },
+            _ => null!
+        };
+
+        if (boss != null)
+        {
+            _enemies.Add(boss);
+            _bossEnemies[floor] = boss;
+            AddMessage($"🚨 WARNING! {boss.Name} appears! This is SO MUCH FUN! 🚨");
+        }
+    }
+    #endregion
+
+    #region Sound System
+    private void PlaySound(string soundName)
+    {
+        try
+        {
+            // Simple beep sounds for now (can be replaced with actual audio files later)
+            switch (soundName)
+            {
+                case "attack":
+                    System.Console.Beep(800, 50);
+                    break;
+                case "hit":
+                    System.Console.Beep(400, 100);
+                    break;
+                case "pickup":
+                    System.Console.Beep(1000, 80);
+                    break;
+                case "levelup":
+                    System.Console.Beep(1200, 100);
+                    System.Console.Beep(1400, 100);
+                    System.Console.Beep(1600, 150);
+                    break;
+                case "death":
+                    System.Console.Beep(200, 200);
+                    break;
+            }
+        }
+        catch
+        {
+            // Sound not available, silently fail
+        }
+    }
+
+    private void PlayBackgroundMusic(int floor)
+    {
+        // Placeholder for background music system
+        // Would load and play different music tracks based on floor theme
+        // Implementation would use MediaPlayer with .mp3 or .wav files
+    }
+    #endregion
+
+    #region AI Pathfinding
+    private List<(int X, int Y)>? FindPathAStar(int startX, int startY, int goalX, int goalY)
+    {
+        var openSet = new PriorityQueue<(int X, int Y), double>();
+        var cameFrom = new Dictionary<(int, int), (int, int)>();
+        var gScore = new Dictionary<(int, int), double>();
+        var fScore = new Dictionary<(int, int), double>();
+
+        var start = (startX, startY);
+        var goal = (goalX, goalY);
+
+        gScore[start] = 0;
+        fScore[start] = Heuristic(start, goal);
+        openSet.Enqueue(start, fScore[start]);
+
+        while (openSet.Count > 0)
+        {
+            var current = openSet.Dequeue();
+
+            if (current == goal)
+            {
+                return ReconstructPath(cameFrom, current);
+            }
+
+            foreach (var neighbor in GetNeighbors(current.X, current.Y))
+            {
+                double tentativeGScore = gScore[current] + 1;
+
+                if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
+                {
+                    cameFrom[neighbor] = current;
+                    gScore[neighbor] = tentativeGScore;
+                    fScore[neighbor] = gScore[neighbor] + Heuristic(neighbor, goal);
+
+                    if (!openSet.UnorderedItems.Any(item => item.Element == neighbor))
+                    {
+                        openSet.Enqueue(neighbor, fScore[neighbor]);
+                    }
+                }
+            }
+        }
+
+        return null; // No path found
+    }
+
+    private double Heuristic((int X, int Y) a, (int X, int Y) b)
+    {
+        return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y); // Manhattan distance
+    }
+
+    private List<(int X, int Y)> GetNeighbors(int x, int y)
+    {
+        var neighbors = new List<(int X, int Y)>();
+        var directions = new[] { (0, 1), (1, 0), (0, -1), (-1, 0) };
+
+        foreach (var (dx, dy) in directions)
+        {
+            int newX = x + dx;
+            int newY = y + dy;
+            if (CanMoveTo(newX, newY))
+            {
+                neighbors.Add((newX, newY));
+            }
+        }
+
+        return neighbors;
+    }
+
+    private List<(int X, int Y)> ReconstructPath(Dictionary<(int, int), (int, int)> cameFrom, (int X, int Y) current)
+    {
+        var path = new List<(int X, int Y)> { current };
+        while (cameFrom.ContainsKey(current))
+        {
+            current = cameFrom[current];
+            path.Insert(0, current);
+        }
+        return path;
+    }
+    #endregion
+
+    #region Particle System
+    private void CreateParticles(int x, int y, Brush color, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            _particles.Add(new ParticleEffect
+            {
+                X = x,
+                Y = y,
+                VelocityX = (_rng.NextDouble() - 0.5) * 0.3,
+                VelocityY = (_rng.NextDouble() - 0.5) * 0.3,
+                Color = color,
+                Lifetime = 0.5 + _rng.NextDouble() * 0.5,
+                CreatedTime = DateTime.Now
+            });
+        }
+    }
+
+    private void UpdateParticles()
+    {
+        var now = DateTime.Now;
+        _particles.RemoveAll(p => (now - p.CreatedTime).TotalSeconds > p.Lifetime);
+
+        foreach (var particle in _particles)
+        {
+            particle.X += particle.VelocityX;
+            particle.Y += particle.VelocityY;
+            particle.VelocityY += 0.01; // Gravity
+        }
+    }
+
+    private void RenderParticles()
+    {
+        double canvasWidth = GameCanvas.ActualWidth > 0 ? GameCanvas.ActualWidth : 800;
+        double canvasHeight = GameCanvas.ActualHeight > 0 ? GameCanvas.ActualHeight : 600;
+
+        foreach (var particle in _particles)
+        {
+            var age = (DateTime.Now - particle.CreatedTime).TotalSeconds / particle.Lifetime;
+            var opacity = 1.0 - age;
+
+            var ellipse = new System.Windows.Shapes.Ellipse
+            {
+                Width = 4,
+                Height = 4,
+                Fill = particle.Color,
+                Opacity = opacity
+            };
+
+            // Convert world position to screen position
+            double screenX = canvasWidth / 2 + (particle.X - _player.X) * TileSize;
+            double screenY = canvasHeight / 2 + (particle.Y - _player.Y) * TileSize;
+
+            Canvas.SetLeft(ellipse, screenX);
+            Canvas.SetTop(ellipse, screenY);
+            GameCanvas.Children.Add(ellipse);
+            _entityLabels.Add(ellipse);
+        }
+    }
+    #endregion
+
     #region Data Classes
     private enum Tile { Wall, Floor, Stairs, Elevator, Teleporter, LockedDoor, SafeRoom, SecretWall }
     private enum EnemyType { 
@@ -2885,6 +3606,66 @@ public partial class DungeonCrawler : Window
                    Y <= other.Y + other.Height + 1 &&
                    Y + Height + 1 >= other.Y;
         }
+    }
+
+    private class ParticleEffect
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double VelocityX { get; set; }
+        public double VelocityY { get; set; }
+        public Brush Color { get; set; } = Brushes.White;
+        public double Lifetime { get; set; }
+        public DateTime CreatedTime { get; set; }
+    }
+
+    private class PlayerSkills
+    {
+        public int SkillPoints { get; set; } = 0;
+        public int CriticalHitLevel { get; set; } = 0; // +10% crit chance per level
+        public int VitalityLevel { get; set; } = 0; // +20 max HP per level
+        public int PowerLevel { get; set; } = 0; // +3 attack per level
+        public int ResilienceLevel { get; set; } = 0; // +2 defense per level
+        public int SwiftnessLevel { get; set; } = 0; // Extra turn every N turns
+        public int VampiricLevel { get; set; } = 0; // Lifesteal % on attacks
+        public int BerserkerLevel { get; set; } = 0; // More damage at low HP
+        public int TreasureHunterLevel { get; set; } = 0; // Extra gold drops
+
+        public int GetCritChance() => CriticalHitLevel * 10;
+        public int GetMaxHPBonus() => VitalityLevel * 20;
+        public int GetAttackBonus() => PowerLevel * 3;
+        public int GetDefenseBonus() => ResilienceLevel * 2;
+        public int GetLifestealPercent() => VampiricLevel * 5;
+        public int GetBerserkerBonus(int currentHP, int maxHP) =>
+            currentHP < maxHP / 2 ? BerserkerLevel * 5 : 0;
+        public double GetGoldMultiplier() => 1.0 + (TreasureHunterLevel * 0.25);
+    }
+
+    private class PowerUp
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public PowerUpType Type { get; set; }
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public int Duration { get; set; } // Turns active
+    }
+
+    private enum PowerUpType
+    {
+        SpeedBoost,      // Move twice per turn
+        DamageBoost,     // 2x damage
+        Shield,          // Immunity to damage
+        Invisibility,    // Enemies can't see you
+        Regeneration,    // Heal over time
+        DoubleXP,        // 2x XP gain
+        MagnetGold       // Auto-collect nearby gold
+    }
+
+    private class ActivePowerUp
+    {
+        public PowerUpType Type { get; set; }
+        public int RemainingTurns { get; set; }
     }
     #endregion
 }
