@@ -56,6 +56,11 @@ public partial class DungeonCrawler : Window
     private Dictionary<int, Enemy> _bossEnemies = new(); // Floor -> Boss
     private System.Windows.Media.MediaPlayer? _musicPlayer;
     private Dictionary<string, System.Windows.Media.MediaPlayer> _soundEffects = new();
+
+    // Combat mode
+    private bool _inCombat = false;
+    private Enemy? _combatEnemy = null;
+    private bool _playerDefending = false;
     #endregion
 
     #region Brushes
@@ -116,6 +121,13 @@ public partial class DungeonCrawler : Window
             return;
         }
 
+        // Handle combat mode separately
+        if (_inCombat)
+        {
+            ProcessCombatInput(e.Key);
+            return;
+        }
+
         int dx = 0, dy = 0;
         bool acted = false;
         bool isTurn = false;
@@ -150,6 +162,16 @@ public partial class DungeonCrawler : Window
                 acted = true;
                 isTurn = true;
                 break;
+            case Key.Q:
+                // Strafe left
+                (dx, dy) = GetDirectionDelta(TurnLeft(_player.Facing));
+                acted = true;
+                break;
+            case Key.E:
+                // Strafe right
+                (dx, dy) = GetDirectionDelta(TurnRight(_player.Facing));
+                acted = true;
+                break;
             case Key.Space:
                 // Wait/Rest - heal more in safe room
                 int healAmount = IsInSafeRoom() ? 5 : 1;
@@ -167,19 +189,19 @@ public partial class DungeonCrawler : Window
                 }
                 acted = true;
                 break;
-            case Key.E:
+            case Key.F:
                 // Interact with special tiles
                 HandleInteraction();
                 return;
-            case Key.F:
+            case Key.V:
                 // Use weapon special ability
                 UseWeaponSpecial();
                 acted = true;
                 break;
-            case Key.Q:
+            case Key.G:
                 // Use elevator (if on elevator tile)
-                if (_elevatorPosition.HasValue && 
-                    _player.X == _elevatorPosition.Value.X && 
+                if (_elevatorPosition.HasValue &&
+                    _player.X == _elevatorPosition.Value.X &&
                     _player.Y == _elevatorPosition.Value.Y)
                 {
                     UseElevator();
@@ -774,7 +796,8 @@ public partial class DungeonCrawler : Window
         var enemy = _enemies.FirstOrDefault(e => e.X == newX && e.Y == newY);
         if (enemy != null)
         {
-            AttackEnemy(enemy);
+            // Enter turn-based combat mode
+            EnterCombat(enemy);
             return;
         }
 
@@ -891,6 +914,154 @@ public partial class DungeonCrawler : Window
             CheckLevelUp();
         }
     }
+
+    #region Turn-Based Combat
+    private void EnterCombat(Enemy enemy)
+    {
+        _inCombat = true;
+        _combatEnemy = enemy;
+        _playerDefending = false;
+
+        AddMessage($"⚔️ BATTLE TIME with {enemy.Name}! Choose your action! ⚔️");
+        AddMessage("💥 [1] Attack | [2] Defend | [3] Use Item | [4] Try to Run!");
+
+        Render();
+    }
+
+    private void ExitCombat()
+    {
+        _inCombat = false;
+        _combatEnemy = null;
+        _playerDefending = false;
+    }
+
+    private void CombatAction_Attack()
+    {
+        if (_combatEnemy == null) return;
+
+        AttackEnemy(_combatEnemy);
+
+        // Check if enemy died
+        if (!_enemies.Contains(_combatEnemy))
+        {
+            ExitCombat();
+            return;
+        }
+
+        // Enemy's turn
+        EnemyTurn();
+    }
+
+    private void CombatAction_Defend()
+    {
+        if (_combatEnemy == null) return;
+
+        _playerDefending = true;
+        AddMessage("🛡️ You brace for impact! Defense doubled for this turn! 🛡️");
+
+        // Enemy's turn
+        EnemyTurn();
+
+        _playerDefending = false;
+    }
+
+    private void CombatAction_UseItem()
+    {
+        if (_combatEnemy == null) return;
+
+        AddMessage("🎁 Press 1-5 to use an item, or any other key to cancel!");
+        // Item use will be handled by existing item system
+        // After item use, enemy gets a turn
+    }
+
+    private void CombatAction_Run()
+    {
+        if (_combatEnemy == null) return;
+
+        // 50% chance to escape (varies based on player level)
+        int escapeChance = 50 + (_player.Level - _currentFloor) * 5;
+        escapeChance = Math.Clamp(escapeChance, 20, 80);
+
+        if (_rng.Next(100) < escapeChance)
+        {
+            AddMessage("💨 You RUN AWAY! (The voices say that's SMART sometimes!) 💨");
+
+            // Move player back to previous position
+            var (dx, dy) = GetDirectionDelta(_player.Facing);
+            _player.X -= dx;
+            _player.Y -= dy;
+
+            ExitCombat();
+            Render();
+        }
+        else
+        {
+            AddMessage("❌ You can't escape! They're SO HAPPY to see you! ❌");
+            EnemyTurn();
+        }
+    }
+
+    private void EnemyTurn()
+    {
+        if (_combatEnemy == null || !_enemies.Contains(_combatEnemy)) return;
+
+        // Enemy attacks player
+        int enemyDamage = Math.Max(1, _combatEnemy.Attack - _player.Defense + _rng.Next(-1, 2));
+
+        // Apply defense bonus if player is defending
+        if (_playerDefending)
+        {
+            enemyDamage = enemyDamage / 2;
+            AddMessage($"🛡️ Your defense blocks some damage! 🛡️");
+        }
+
+        _player.Health -= enemyDamage;
+        CreateParticles(_player.X, _player.Y, Brushes.Red, 8);
+        PlaySound("hit");
+
+        AddMessage($"💢 {_combatEnemy.Name} hits you for {enemyDamage} damage! OW! (But you're OKAY!) 💢");
+
+        // Check if player died
+        if (_player.Health <= 0)
+        {
+            _gameOver = true;
+            GameOverStats.Text = $"☺ You're RESTING now! Forever! You can't leave! ☺\nThe Fun Zone will keep your body! We'll be SUCH good friends!\nFun Level {_currentFloor} | Smile Points: {_player.Gold} | Level: {_player.Level}";
+            GameOverOverlay.Visibility = Visibility.Visible;
+            ExitCombat();
+            return;
+        }
+
+        // Combat continues
+        AddMessage("💥 [1] Attack | [2] Defend | [3] Use Item | [4] Try to Run!");
+        Render();
+    }
+
+    private void ProcessCombatInput(Key key)
+    {
+        switch (key)
+        {
+            case Key.D1:
+            case Key.NumPad1:
+                CombatAction_Attack();
+                break;
+            case Key.D2:
+            case Key.NumPad2:
+                CombatAction_Defend();
+                break;
+            case Key.D3:
+            case Key.NumPad3:
+                CombatAction_UseItem();
+                break;
+            case Key.D4:
+            case Key.NumPad4:
+                CombatAction_Run();
+                break;
+            default:
+                AddMessage("❓ Invalid action! Choose 1-4!");
+                break;
+        }
+    }
+    #endregion
 
     private void UseWeaponSpecial()
     {
@@ -1543,6 +1714,9 @@ public partial class DungeonCrawler : Window
         GameCanvas.Children.Clear();
         _entityLabels.Clear();
 
+        double canvasWidth = GameCanvas.ActualWidth > 0 ? GameCanvas.ActualWidth : 800;
+        double canvasHeight = GameCanvas.ActualHeight > 0 ? GameCanvas.ActualHeight : 600;
+
         // Update particles
         UpdateParticles();
 
@@ -1554,6 +1728,9 @@ public partial class DungeonCrawler : Window
 
         // Render particles on top
         RenderParticles();
+
+        // Render weapon sprite (right side FPS style)
+        RenderWeaponSprite(canvasWidth, canvasHeight);
     }
 
     private void RenderFirstPersonView()
@@ -1561,16 +1738,213 @@ public partial class DungeonCrawler : Window
         double canvasWidth = GameCanvas.ActualWidth > 0 ? GameCanvas.ActualWidth : 800;
         double canvasHeight = GameCanvas.ActualHeight > 0 ? GameCanvas.ActualHeight : 600;
 
-        // Draw fancy floor with tiles
-        DrawFancyFloor(canvasWidth, canvasHeight);
+        // DOOM-style ray-casting renderer
+        RenderRayCastView(canvasWidth, canvasHeight);
+    }
 
-        // Draw fancy ceiling with patterns
-        DrawFancyCeiling(canvasWidth, canvasHeight);
+    private void RenderRayCastView(double canvasWidth, double canvasHeight)
+    {
+        int numRays = 120; // Number of vertical strips to render
+        double fov = Math.PI / 3; // 60 degree field of view
+        double rayAngleStep = fov / numRays;
+        double stripWidth = canvasWidth / numRays;
 
-        // Render walls at different distances (up to 4 tiles ahead)
-        for (int distance = 4; distance >= 1; distance--)
+        // Get player facing angle
+        double playerAngle = _player.Facing switch
         {
-            RenderWallSlice(distance, canvasWidth, canvasHeight);
+            Direction.North => -Math.PI / 2,
+            Direction.East => 0,
+            Direction.South => Math.PI / 2,
+            Direction.West => Math.PI,
+            _ => 0
+        };
+
+        // Ray-cast from left to right across field of view
+        for (int rayIndex = 0; rayIndex < numRays; rayIndex++)
+        {
+            // Calculate ray angle
+            double rayAngle = playerAngle + (rayAngleStep * rayIndex) - (fov / 2);
+
+            // Cast ray and get distance to nearest wall
+            var (hitDistance, hitWall, hitX, hitY) = CastRay(_player.X + 0.5, _player.Y + 0.5, rayAngle, 20);
+
+            double stripX = rayIndex * stripWidth;
+
+            if (hitWall)
+            {
+                // Fix fish-eye effect by using perpendicular distance
+                double perpendicularDistance = hitDistance * Math.Cos(rayAngle - playerAngle);
+
+                // Calculate wall height based on distance
+                double wallHeight = (canvasHeight / perpendicularDistance) * 0.6;
+                wallHeight = Math.Min(wallHeight, canvasHeight * 2);
+
+                double wallTop = (canvasHeight - wallHeight) / 2;
+                double wallBottom = wallTop + wallHeight;
+
+                // Calculate brightness based on distance
+                double brightness = Math.Max(0.2, 1.0 - (perpendicularDistance / 15.0));
+
+                // Get wall color based on floor theme
+                Color baseColor = _currentFloor switch
+                {
+                    <= 2 => Color.FromRgb(255, 200, 230),
+                    <= 4 => Color.FromRgb(200, 220, 180),
+                    <= 6 => Color.FromRgb(200, 200, 220),
+                    <= 8 => Color.FromRgb(210, 180, 160),
+                    _ => Color.FromRgb(150, 130, 170)
+                };
+
+                // Determine if this is a horizontal or vertical wall hit for shading
+                double hitFraction = hitX - Math.Floor(hitX);
+                bool isVerticalWall = Math.Abs(hitFraction - 0) < 0.01 || Math.Abs(hitFraction - 1) < 0.01;
+                double shadeFactor = isVerticalWall ? 0.85 : 1.0;
+
+                Color wallColor = Color.FromRgb(
+                    (byte)(baseColor.R * brightness * shadeFactor),
+                    (byte)(baseColor.G * brightness * shadeFactor),
+                    (byte)(baseColor.B * brightness * shadeFactor)
+                );
+
+                // Draw ceiling (gradient from dark to base color)
+                if (wallTop > 0)
+                {
+                    DrawCeilingStrip(stripX, 0, stripWidth, wallTop, canvasHeight, perpendicularDistance);
+                }
+
+                // Draw wall strip
+                var wallStrip = new Rectangle
+                {
+                    Width = Math.Ceiling(stripWidth) + 1,
+                    Height = wallHeight,
+                    Fill = new SolidColorBrush(wallColor),
+                    StrokeThickness = 0
+                };
+                Canvas.SetLeft(wallStrip, stripX);
+                Canvas.SetTop(wallStrip, wallTop);
+                GameCanvas.Children.Add(wallStrip);
+                _entityLabels.Add(wallStrip);
+
+                // Draw floor (gradient with perspective)
+                if (wallBottom < canvasHeight)
+                {
+                    DrawFloorStrip(stripX, wallBottom, stripWidth, canvasHeight - wallBottom, canvasHeight, perpendicularDistance);
+                }
+            }
+            else
+            {
+                // No wall hit - draw full height ceiling and floor
+                DrawCeilingStrip(stripX, 0, stripWidth, canvasHeight / 2, canvasHeight, 10);
+                DrawFloorStrip(stripX, canvasHeight / 2, stripWidth, canvasHeight / 2, canvasHeight, 10);
+            }
+        }
+
+        // Draw entities after walls
+        DrawVisibleEntities(canvasWidth, canvasHeight, playerAngle, fov);
+    }
+
+    private (double distance, bool hitWall, double hitX, double hitY) CastRay(double startX, double startY, double angle, double maxDistance)
+    {
+        double dx = Math.Cos(angle);
+        double dy = Math.Sin(angle);
+        double stepSize = 0.05;
+
+        for (double distance = 0; distance < maxDistance; distance += stepSize)
+        {
+            double x = startX + dx * distance;
+            double y = startY + dy * distance;
+
+            int tileX = (int)Math.Floor(x);
+            int tileY = (int)Math.Floor(y);
+
+            if (IsWall(tileX, tileY))
+            {
+                return (distance, true, x, y);
+            }
+        }
+
+        return (maxDistance, false, 0, 0);
+    }
+
+    private void DrawCeilingStrip(double x, double y, double width, double height, double canvasHeight, double distance)
+    {
+        Color baseColor = _currentFloor switch
+        {
+            <= 2 => Color.FromRgb(200, 180, 220),
+            <= 4 => Color.FromRgb(180, 220, 255),
+            <= 6 => Color.FromRgb(180, 180, 200),
+            <= 8 => Color.FromRgb(160, 140, 130),
+            _ => Color.FromRgb(80, 60, 100)
+        };
+
+        // Create gradient from dark at top to lighter at horizon
+        var gradient = new LinearGradientBrush();
+        gradient.StartPoint = new Point(0, 0);
+        gradient.EndPoint = new Point(0, 1);
+
+        gradient.GradientStops.Add(new GradientStop(
+            Color.FromRgb((byte)(baseColor.R * 0.3), (byte)(baseColor.G * 0.3), (byte)(baseColor.B * 0.3)), 0.0));
+        gradient.GradientStops.Add(new GradientStop(
+            Color.FromRgb((byte)(baseColor.R * 0.6), (byte)(baseColor.G * 0.6), (byte)(baseColor.B * 0.6)), 1.0));
+
+        var ceiling = new Rectangle
+        {
+            Width = Math.Ceiling(width) + 1,
+            Height = height,
+            Fill = gradient,
+            StrokeThickness = 0
+        };
+        Canvas.SetLeft(ceiling, x);
+        Canvas.SetTop(ceiling, y);
+        GameCanvas.Children.Add(ceiling);
+        _entityLabels.Add(ceiling);
+    }
+
+    private void DrawFloorStrip(double x, double y, double width, double height, double canvasHeight, double distance)
+    {
+        Color baseColor = _currentFloor switch
+        {
+            <= 2 => Color.FromRgb(255, 220, 240),
+            <= 4 => Color.FromRgb(230, 200, 180),
+            <= 6 => Color.FromRgb(200, 200, 210),
+            <= 8 => Color.FromRgb(180, 160, 150),
+            _ => Color.FromRgb(140, 120, 150)
+        };
+
+        // Create gradient from lighter at horizon to darker at bottom
+        var gradient = new LinearGradientBrush();
+        gradient.StartPoint = new Point(0, 0);
+        gradient.EndPoint = new Point(0, 1);
+
+        gradient.GradientStops.Add(new GradientStop(
+            Color.FromRgb((byte)(baseColor.R * 0.7), (byte)(baseColor.G * 0.7), (byte)(baseColor.B * 0.7)), 0.0));
+        gradient.GradientStops.Add(new GradientStop(
+            Color.FromRgb((byte)(baseColor.R * 0.4), (byte)(baseColor.G * 0.4), (byte)(baseColor.B * 0.4)), 1.0));
+
+        var floor = new Rectangle
+        {
+            Width = Math.Ceiling(width) + 1,
+            Height = height,
+            Fill = gradient,
+            StrokeThickness = 0
+        };
+        Canvas.SetLeft(floor, x);
+        Canvas.SetTop(floor, y);
+        GameCanvas.Children.Add(floor);
+        _entityLabels.Add(floor);
+    }
+
+    private void DrawVisibleEntities(double canvasWidth, double canvasHeight, double playerAngle, double fov)
+    {
+        // Draw enemies and items visible in FOV
+        var (dx, dy) = GetDirectionDelta(_player.Facing);
+
+        for (int distance = 1; distance <= 8; distance++)
+        {
+            int frontX = _player.X + dx * distance;
+            int frontY = _player.Y + dy * distance;
+
+            DrawEntitiesAt(frontX, frontY, distance, canvasWidth, canvasHeight);
         }
     }
 
@@ -1586,39 +1960,48 @@ public partial class DungeonCrawler : Window
             _ => Color.FromRgb(180, 160, 190)      // Dim purple (the end)
         };
 
-        // Draw checkered floor pattern
-        double tileSize = 40;
-        int tilesX = (int)(canvasWidth / tileSize) + 1;
-        int tilesY = (int)((canvasHeight / 2) / tileSize) + 1;
+        // DOOM-style perspective floor with converging tiles
+        double horizon = canvasHeight / 2;
+        int numRows = 8; // Perspective rows
 
-        for (int y = 0; y < tilesY; y++)
+        for (int row = 0; row < numRows; row++)
         {
-            for (int x = 0; x < tilesX; x++)
+            // Calculate perspective depth
+            double depthRatio = (row + 1) / (double)numRows;
+            double tileHeight = (canvasHeight / 2) / numRows * (1 + row * 0.3); // Tiles get taller near player
+            double yPos = horizon + (row * canvasHeight / 2 / numRows);
+
+            // DOOM-style darkening with distance
+            double darkFactor = 1.0 - (depthRatio * 0.6);
+
+            // Calculate number of tiles across based on perspective
+            int tilesAcross = Math.Max(3, (int)(12 - row * 1.2)); // Fewer tiles at distance
+
+            for (int col = 0; col < tilesAcross; col++)
             {
                 // Alternating pattern
-                bool isDark = (x + y) % 2 == 0;
+                bool isDark = (col + row) % 2 == 0;
                 Color tileColor = isDark
-                    ? Color.FromRgb((byte)(baseColor.R * 0.9), (byte)(baseColor.G * 0.9), (byte)(baseColor.B * 0.9))
-                    : baseColor;
+                    ? Color.FromRgb((byte)(baseColor.R * 0.9 * darkFactor), (byte)(baseColor.G * 0.9 * darkFactor), (byte)(baseColor.B * 0.9 * darkFactor))
+                    : Color.FromRgb((byte)(baseColor.R * darkFactor), (byte)(baseColor.G * darkFactor), (byte)(baseColor.B * darkFactor));
 
-                // Add depth shading (darker toward horizon)
-                double depthFactor = 1.0 - (y / (double)tilesY * 0.4);
-                tileColor = Color.FromRgb(
-                    (byte)(tileColor.R * depthFactor),
-                    (byte)(tileColor.G * depthFactor),
-                    (byte)(tileColor.B * depthFactor));
+                double tileWidth = canvasWidth / tilesAcross;
+                double xPos = col * tileWidth;
+
+                // Create textured brush for this tile
+                var textureBrush = CreateFloorTexture(tileColor, tileWidth);
 
                 var tile = new Rectangle
                 {
-                    Width = tileSize,
-                    Height = tileSize,
-                    Fill = new SolidColorBrush(tileColor),
-                    Stroke = new SolidColorBrush(Color.FromArgb(30, 0, 0, 0)),
+                    Width = tileWidth,
+                    Height = tileHeight,
+                    Fill = textureBrush,
+                    Stroke = new SolidColorBrush(Color.FromArgb((byte)(50 * darkFactor), 0, 0, 0)),
                     StrokeThickness = 1
                 };
 
-                Canvas.SetLeft(tile, x * tileSize);
-                Canvas.SetTop(tile, canvasHeight / 2 + y * tileSize);
+                Canvas.SetLeft(tile, xPos);
+                Canvas.SetTop(tile, yPos);
                 GameCanvas.Children.Add(tile);
                 _entityLabels.Add(tile);
             }
@@ -1637,39 +2020,48 @@ public partial class DungeonCrawler : Window
             _ => Color.FromRgb(100, 80, 120)       // Deep purple (the end)
         };
 
-        // Draw ceiling with panels
-        double panelSize = 60;
-        int panelsX = (int)(canvasWidth / panelSize) + 1;
-        int panelsY = (int)((canvasHeight / 2) / panelSize) + 1;
+        // DOOM-style perspective ceiling with converging panels
+        double horizon = canvasHeight / 2;
+        int numRows = 8; // Perspective rows
 
-        for (int y = 0; y < panelsY; y++)
+        for (int row = 0; row < numRows; row++)
         {
-            for (int x = 0; x < panelsX; x++)
+            // Calculate perspective depth (inverted for ceiling)
+            double depthRatio = (row + 1) / (double)numRows;
+            double panelHeight = (canvasHeight / 2) / numRows * (1 + row * 0.3); // Panels get taller near player
+            double yPos = horizon - ((row + 1) * canvasHeight / 2 / numRows);
+
+            // DOOM-style darkening with distance
+            double darkFactor = 1.0 - (depthRatio * 0.5);
+
+            // Calculate number of panels across based on perspective
+            int panelsAcross = Math.Max(3, (int)(10 - row * 1.0)); // Fewer panels at distance
+
+            for (int col = 0; col < panelsAcross; col++)
             {
                 // Add variation
-                bool hasPattern = (x + y) % 3 == 0;
+                bool hasPattern = (col + row) % 3 == 0;
                 Color panelColor = hasPattern
-                    ? Color.FromRgb((byte)(baseColor.R * 0.95), (byte)(baseColor.G * 0.95), (byte)(baseColor.B * 0.95))
-                    : baseColor;
+                    ? Color.FromRgb((byte)(baseColor.R * 0.95 * darkFactor), (byte)(baseColor.G * 0.95 * darkFactor), (byte)(baseColor.B * 0.95 * darkFactor))
+                    : Color.FromRgb((byte)(baseColor.R * darkFactor), (byte)(baseColor.G * darkFactor), (byte)(baseColor.B * darkFactor));
 
-                // Darken near horizon
-                double depthFactor = 1.0 - ((panelsY - y) / (double)panelsY * 0.3);
-                panelColor = Color.FromRgb(
-                    (byte)(panelColor.R * depthFactor),
-                    (byte)(panelColor.G * depthFactor),
-                    (byte)(panelColor.B * depthFactor));
+                double panelWidth = canvasWidth / panelsAcross;
+                double xPos = col * panelWidth;
+
+                // Create textured brush for this panel
+                var textureBrush = CreateCeilingTexture(panelColor, panelWidth);
 
                 var panel = new Rectangle
                 {
-                    Width = panelSize,
-                    Height = panelSize,
-                    Fill = new SolidColorBrush(panelColor),
-                    Stroke = new SolidColorBrush(Color.FromArgb(40, 0, 0, 0)),
+                    Width = panelWidth,
+                    Height = panelHeight,
+                    Fill = textureBrush,
+                    Stroke = new SolidColorBrush(Color.FromArgb((byte)(60 * darkFactor), 0, 0, 0)),
                     StrokeThickness = 2
                 };
 
-                Canvas.SetLeft(panel, x * panelSize);
-                Canvas.SetTop(panel, y * panelSize);
+                Canvas.SetLeft(panel, xPos);
+                Canvas.SetTop(panel, yPos);
                 GameCanvas.Children.Add(panel);
                 _entityLabels.Add(panel);
             }
@@ -1716,14 +2108,15 @@ public partial class DungeonCrawler : Window
         int rightX = frontX + rightDx;
         int rightY = frontY + rightDy;
 
-        // Calculate perspective scale (closer = bigger)
-        double scale = 1.0 / distance;
-        double wallHeight = canvasHeight * scale * 0.8;
+        // DOOM-style dramatic perspective scaling
+        double scale = 1.0 / (distance * 0.7); // More dramatic scaling
+        double wallHeight = canvasHeight * scale * 1.2; // Much taller walls
+        wallHeight = Math.Min(wallHeight, canvasHeight * 1.5); // Cap maximum height
         double wallTop = (canvasHeight - wallHeight) / 2;
 
-        // Wall segment widths
-        double sideWallWidth = canvasWidth * scale * 0.25;
-        double centerWallWidth = canvasWidth * scale * 0.5;
+        // DOOM-style wall segment widths with more presence
+        double sideWallWidth = canvasWidth * scale * 0.35;
+        double centerWallWidth = canvasWidth * scale * 0.7;
 
         // Draw left wall
         if (IsWall(leftX, leftY))
@@ -1756,9 +2149,9 @@ public partial class DungeonCrawler : Window
 
     private void DrawWall3D(double x, double y, double width, double height, int distance, bool isSide)
     {
-        // Darken walls based on distance
-        byte brightness = (byte)(220 - distance * 40);
-        brightness = Math.Max(brightness, (byte)60);
+        // DOOM-style dramatic distance fog
+        byte brightness = (byte)(240 - distance * 35);
+        brightness = Math.Max(brightness, (byte)30); // Much darker at distance
 
         // Themed wall colors based on floor
         Color baseWallColor = _currentFloor switch
@@ -1779,12 +2172,15 @@ public partial class DungeonCrawler : Window
             (byte)(baseWallColor.G * distanceFactor * sideFactor),
             (byte)(baseWallColor.B * distanceFactor * sideFactor));
 
+        // Create textured wall brush
+        var wallTexture = CreateWallTexture(wallColor, distance);
+
         // Draw main wall
         var wall = new Rectangle
         {
             Width = width,
             Height = height,
-            Fill = new SolidColorBrush(wallColor),
+            Fill = wallTexture,
             Stroke = new SolidColorBrush(Color.FromRgb(20, 20, 30)),
             StrokeThickness = 2
         };
@@ -3347,6 +3743,291 @@ Choose a skill to upgrade (1-7):";
     }
     #endregion
 
+    #region Texture Generation
+    private Brush CreateFloorTexture(Color baseColor, double tileSize)
+    {
+        var drawingGroup = new DrawingGroup();
+
+        // Background base
+        var bgRect = new RectangleGeometry(new Rect(0, 0, tileSize, tileSize));
+        drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(baseColor), null, bgRect));
+
+        // Theme-specific floor patterns
+        if (_currentFloor <= 2) // Nursery - soft carpet texture
+        {
+            // Fuzzy carpet effect with small dots
+            for (int i = 0; i < 20; i++)
+            {
+                double x = _rng.NextDouble() * tileSize;
+                double y = _rng.NextDouble() * tileSize;
+                var dot = new EllipseGeometry(new Point(x, y), 0.5, 0.5);
+                var dotColor = Color.FromRgb(
+                    (byte)(baseColor.R * (0.95 + _rng.NextDouble() * 0.1)),
+                    (byte)(baseColor.G * (0.95 + _rng.NextDouble() * 0.1)),
+                    (byte)(baseColor.B * (0.95 + _rng.NextDouble() * 0.1)));
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(dotColor), null, dot));
+            }
+        }
+        else if (_currentFloor <= 4) // Playground - textured ground/sand
+        {
+            // Grainy sand texture
+            for (int i = 0; i < 30; i++)
+            {
+                double x = _rng.NextDouble() * tileSize;
+                double y = _rng.NextDouble() * tileSize;
+                var grain = new EllipseGeometry(new Point(x, y), 0.3, 0.3);
+                var grainColor = Color.FromArgb(30,
+                    (byte)(_rng.Next(180, 220)),
+                    (byte)(_rng.Next(160, 200)),
+                    (byte)(_rng.Next(140, 180)));
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(grainColor), null, grain));
+            }
+        }
+        else if (_currentFloor <= 6) // School - linoleum tiles
+        {
+            // Speckled linoleum pattern
+            for (int i = 0; i < 15; i++)
+            {
+                double x = _rng.NextDouble() * tileSize;
+                double y = _rng.NextDouble() * tileSize;
+                var speck = new EllipseGeometry(new Point(x, y), 0.8, 0.8);
+                var speckColor = Color.FromArgb(60, 0, 0, 0);
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(speckColor), null, speck));
+            }
+        }
+        else if (_currentFloor <= 8) // Home - wood planks
+        {
+            // Wood grain lines
+            for (int i = 0; i < 8; i++)
+            {
+                double y = (tileSize / 8) * i + _rng.NextDouble() * 3;
+                var line = new LineGeometry(new Point(0, y), new Point(tileSize, y));
+                var lineColor = Color.FromArgb(40,
+                    (byte)(baseColor.R * 0.7),
+                    (byte)(baseColor.G * 0.6),
+                    (byte)(baseColor.B * 0.5));
+                drawingGroup.Children.Add(new GeometryDrawing(null,
+                    new Pen(new SolidColorBrush(lineColor), 0.5), line));
+            }
+        }
+        else // The End - cracked/damaged
+        {
+            // Cracks and damage
+            for (int i = 0; i < 5; i++)
+            {
+                double x1 = _rng.NextDouble() * tileSize;
+                double y1 = _rng.NextDouble() * tileSize;
+                double x2 = x1 + (_rng.NextDouble() - 0.5) * 20;
+                double y2 = y1 + (_rng.NextDouble() - 0.5) * 20;
+                var crack = new LineGeometry(new Point(x1, y1), new Point(x2, y2));
+                drawingGroup.Children.Add(new GeometryDrawing(null,
+                    new Pen(Brushes.Black, 1), crack));
+            }
+        }
+
+        var drawingBrush = new DrawingBrush(drawingGroup)
+        {
+            TileMode = TileMode.Tile,
+            Viewport = new Rect(0, 0, tileSize, tileSize),
+            ViewportUnits = BrushMappingMode.Absolute
+        };
+
+        return drawingBrush;
+    }
+
+    private Brush CreateWallTexture(Color baseColor, int distance)
+    {
+        var drawingGroup = new DrawingGroup();
+        double size = 40;
+
+        // Background base color
+        var bgRect = new RectangleGeometry(new Rect(0, 0, size, size));
+        drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(baseColor), null, bgRect));
+
+        if (_currentFloor <= 2) // Nursery - wallpaper with patterns
+        {
+            // Polka dots wallpaper
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    var dot = new EllipseGeometry(new Point(i * 15 + 7, j * 15 + 7), 3, 3);
+                    var dotColor = Color.FromArgb(60,
+                        (byte)(255 - baseColor.R),
+                        (byte)(255 - baseColor.G),
+                        (byte)(255 - baseColor.B));
+                    drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(dotColor), null, dot));
+                }
+            }
+        }
+        else if (_currentFloor <= 4) // Playground - painted bricks
+        {
+            // Brick pattern
+            for (int row = 0; row < 3; row++)
+            {
+                int offset = (row % 2) * 10;
+                for (int col = -1; col < 3; col++)
+                {
+                    var brick = new RectangleGeometry(
+                        new Rect(col * 20 + offset, row * 13, 18, 11));
+                    var brickColor = Color.FromRgb(
+                        (byte)(baseColor.R * 0.95),
+                        (byte)(baseColor.G * 0.95),
+                        (byte)(baseColor.B * 0.95));
+                    drawingGroup.Children.Add(new GeometryDrawing(
+                        new SolidColorBrush(brickColor),
+                        new Pen(new SolidColorBrush(Color.FromArgb(80, 0, 0, 0)), 1),
+                        brick));
+                }
+            }
+        }
+        else if (_currentFloor <= 6) // School - cinder blocks
+        {
+            // Cinder block pattern
+            for (int row = 0; row < 2; row++)
+            {
+                for (int col = 0; col < 2; col++)
+                {
+                    var block = new RectangleGeometry(new Rect(col * 20 + 2, row * 20 + 2, 18, 18));
+                    var blockColor = Color.FromRgb(
+                        (byte)(baseColor.R * 0.92),
+                        (byte)(baseColor.G * 0.92),
+                        (byte)(baseColor.B * 0.92));
+                    drawingGroup.Children.Add(new GeometryDrawing(
+                        new SolidColorBrush(blockColor),
+                        new Pen(new SolidColorBrush(Color.FromArgb(100, 0, 0, 0)), 2),
+                        block));
+
+                    // Holes in cinder blocks
+                    var hole1 = new EllipseGeometry(new Point(col * 20 + 8, row * 20 + 11), 2, 3);
+                    var hole2 = new EllipseGeometry(new Point(col * 20 + 14, row * 20 + 11), 2, 3);
+                    drawingGroup.Children.Add(new GeometryDrawing(Brushes.Black, null, hole1));
+                    drawingGroup.Children.Add(new GeometryDrawing(Brushes.Black, null, hole2));
+                }
+            }
+        }
+        else if (_currentFloor <= 8) // Home - painted drywall
+        {
+            // Subtle paint texture with imperfections
+            for (int i = 0; i < 20; i++)
+            {
+                double x = _rng.NextDouble() * size;
+                double y = _rng.NextDouble() * size;
+                var imperfection = new EllipseGeometry(new Point(x, y), 1, 1);
+                var imperfColor = Color.FromArgb(15,
+                    (byte)(baseColor.R * 0.9),
+                    (byte)(baseColor.G * 0.9),
+                    (byte)(baseColor.B * 0.9));
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(imperfColor), null, imperfection));
+            }
+        }
+        else // The End - deteriorating/moldy
+        {
+            // Mold/stain patches
+            for (int i = 0; i < 8; i++)
+            {
+                double x = _rng.NextDouble() * size;
+                double y = _rng.NextDouble() * size;
+                var stain = new EllipseGeometry(new Point(x, y), 3 + _rng.NextDouble() * 3, 3 + _rng.NextDouble() * 3);
+                var stainColor = Color.FromArgb((byte)(30 + _rng.Next(40)),
+                    (byte)(baseColor.R * 0.5),
+                    (byte)(baseColor.G * 0.5),
+                    (byte)(baseColor.B * 0.5));
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(stainColor), null, stain));
+            }
+        }
+
+        var drawingBrush = new DrawingBrush(drawingGroup)
+        {
+            TileMode = TileMode.Tile,
+            Viewport = new Rect(0, 0, size, size),
+            ViewportUnits = BrushMappingMode.Absolute,
+            Stretch = Stretch.Fill
+        };
+
+        return drawingBrush;
+    }
+
+    private Brush CreateCeilingTexture(Color baseColor, double panelSize)
+    {
+        var drawingGroup = new DrawingGroup();
+
+        // Background
+        var bgRect = new RectangleGeometry(new Rect(0, 0, panelSize, panelSize));
+        drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(baseColor), null, bgRect));
+
+        if (_currentFloor <= 2) // Nursery - smooth painted ceiling
+        {
+            // Soft glow effect with subtle clouds
+            var cloud = new EllipseGeometry(new Point(panelSize / 2, panelSize / 2), 15, 10);
+            var cloudColor = Color.FromArgb(20, 255, 255, 255);
+            drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(cloudColor), null, cloud));
+        }
+        else if (_currentFloor <= 4) // Playground - sky ceiling
+        {
+            // Wispy clouds
+            for (int i = 0; i < 3; i++)
+            {
+                double x = _rng.NextDouble() * panelSize;
+                double y = _rng.NextDouble() * panelSize;
+                var wisp = new EllipseGeometry(new Point(x, y), 8, 4);
+                var wispColor = Color.FromArgb(40, 255, 255, 255);
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(wispColor), null, wisp));
+            }
+        }
+        else if (_currentFloor <= 6) // School - acoustic tile ceiling
+        {
+            // Acoustic tile holes pattern
+            for (int row = 0; row < 6; row++)
+            {
+                for (int col = 0; col < 6; col++)
+                {
+                    var hole = new EllipseGeometry(
+                        new Point(col * 10 + 5, row * 10 + 5), 1.5, 1.5);
+                    drawingGroup.Children.Add(new GeometryDrawing(
+                        new SolidColorBrush(Color.FromArgb(80, 0, 0, 0)), null, hole));
+                }
+            }
+        }
+        else if (_currentFloor <= 8) // Home - textured ceiling
+        {
+            // Popcorn ceiling texture
+            for (int i = 0; i < 30; i++)
+            {
+                double x = _rng.NextDouble() * panelSize;
+                double y = _rng.NextDouble() * panelSize;
+                var bump = new EllipseGeometry(new Point(x, y), 0.8, 0.8);
+                var bumpColor = Color.FromArgb(40,
+                    (byte)(255 - baseColor.R),
+                    (byte)(255 - baseColor.G),
+                    (byte)(255 - baseColor.B));
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(bumpColor), null, bump));
+            }
+        }
+        else // The End - damaged/peeling
+        {
+            // Peeling and water damage
+            for (int i = 0; i < 5; i++)
+            {
+                double x = _rng.NextDouble() * panelSize;
+                double y = _rng.NextDouble() * panelSize;
+                var damage = new EllipseGeometry(new Point(x, y), 4, 4);
+                var damageColor = Color.FromArgb(60, 0, 0, 0);
+                drawingGroup.Children.Add(new GeometryDrawing(new SolidColorBrush(damageColor), null, damage));
+            }
+        }
+
+        var drawingBrush = new DrawingBrush(drawingGroup)
+        {
+            TileMode = TileMode.Tile,
+            Viewport = new Rect(0, 0, panelSize, panelSize),
+            ViewportUnits = BrushMappingMode.Absolute
+        };
+
+        return drawingBrush;
+    }
+    #endregion
+
     #region AI Pathfinding
     private List<(int X, int Y)>? FindPathAStar(int startX, int startY, int goalX, int goalY)
     {
@@ -3485,6 +4166,344 @@ Choose a skill to upgrade (1-7):";
             GameCanvas.Children.Add(ellipse);
             _entityLabels.Add(ellipse);
         }
+    }
+
+    private void RenderWeaponSprite(double canvasWidth, double canvasHeight)
+    {
+        if (_player.EquippedWeapon == null) return;
+
+        // Position weapon in lower-right corner (not centered like DOOM)
+        double weaponX = canvasWidth - 350;  // Right side offset
+        double weaponY = canvasHeight - 300; // Bottom offset
+        double weaponScale = 2.0;
+
+        var weapon = _player.EquippedWeapon;
+
+        // Draw weapon based on type/icon
+        DrawWeaponGraphic(weapon, weaponX, weaponY, weaponScale);
+    }
+
+    private void DrawWeaponGraphic(Weapon weapon, double x, double y, double scale)
+    {
+        // Determine weapon type from name/icon and draw appropriate sprite
+        string weaponName = weapon.Name.ToLower();
+
+        if (weaponName.Contains("knife") || weaponName.Contains("blade"))
+        {
+            DrawKnife(x, y, scale);
+        }
+        else if (weaponName.Contains("pistol") || weaponName.Contains("enforcer") || weaponName.Contains("joy"))
+        {
+            DrawPistol(x, y, scale);
+        }
+        else if (weaponName.Contains("shotgun") || weaponName.Contains("distributor") || weaponName.Contains("hugs"))
+        {
+            DrawShotgun(x, y, scale);
+        }
+        else if (weaponName.Contains("rifle") || weaponName.Contains("friendship") || weaponName.Contains("cuddle"))
+        {
+            DrawRifle(x, y, scale);
+        }
+        else if (weaponName.Contains("launcher") || weaponName.Contains("cannon") || weaponName.Contains("blaster"))
+        {
+            DrawLauncher(x, y, scale);
+        }
+        else
+        {
+            // Default to pistol for unknown weapons
+            DrawPistol(x, y, scale);
+        }
+    }
+
+    private void DrawKnife(double x, double y, double scale)
+    {
+        // Blade
+        var blade = new System.Windows.Shapes.Polygon
+        {
+            Points = new PointCollection
+            {
+                new Point(x + 60 * scale, y),
+                new Point(x + 80 * scale, y + 20 * scale),
+                new Point(x + 40 * scale, y + 60 * scale),
+                new Point(x + 20 * scale, y + 40 * scale)
+            },
+            Fill = new SolidColorBrush(Color.FromRgb(200, 200, 220)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Handle
+        var handle = new System.Windows.Shapes.Rectangle
+        {
+            Width = 15 * scale,
+            Height = 50 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(139, 90, 43)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        Canvas.SetLeft(handle, x + 10 * scale);
+        Canvas.SetTop(handle, y + 50 * scale);
+        GameCanvas.Children.Add(handle);
+        _entityLabels.Add(handle);
+
+        GameCanvas.Children.Add(blade);
+        _entityLabels.Add(blade);
+    }
+
+    private void DrawPistol(double x, double y, double scale)
+    {
+        // Barrel
+        var barrel = new System.Windows.Shapes.Rectangle
+        {
+            Width = 40 * scale,
+            Height = 12 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(60, 60, 70)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Slide
+        var slide = new System.Windows.Shapes.Rectangle
+        {
+            Width = 50 * scale,
+            Height = 18 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(80, 80, 90)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Grip
+        var grip = new System.Windows.Shapes.Rectangle
+        {
+            Width = 20 * scale,
+            Height = 40 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(255, 192, 203)), // Pink creepy grip
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Trigger
+        var trigger = new System.Windows.Shapes.Ellipse
+        {
+            Width = 8 * scale,
+            Height = 12 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(200, 150, 150)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 1
+        };
+
+        Canvas.SetLeft(barrel, x + 50 * scale);
+        Canvas.SetTop(barrel, y + 20 * scale);
+        GameCanvas.Children.Add(barrel);
+        _entityLabels.Add(barrel);
+
+        Canvas.SetLeft(slide, x + 40 * scale);
+        Canvas.SetTop(slide, y + 15 * scale);
+        GameCanvas.Children.Add(slide);
+        _entityLabels.Add(slide);
+
+        Canvas.SetLeft(grip, x + 25 * scale);
+        Canvas.SetTop(grip, y + 30 * scale);
+        GameCanvas.Children.Add(grip);
+        _entityLabels.Add(grip);
+
+        Canvas.SetLeft(trigger, x + 38 * scale);
+        Canvas.SetTop(trigger, y + 35 * scale);
+        GameCanvas.Children.Add(trigger);
+        _entityLabels.Add(trigger);
+    }
+
+    private void DrawShotgun(double x, double y, double scale)
+    {
+        // Double barrel
+        var barrel1 = new System.Windows.Shapes.Rectangle
+        {
+            Width = 60 * scale,
+            Height = 10 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(50, 50, 60)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        var barrel2 = new System.Windows.Shapes.Rectangle
+        {
+            Width = 60 * scale,
+            Height = 10 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(50, 50, 60)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Stock
+        var stock = new System.Windows.Shapes.Polygon
+        {
+            Points = new PointCollection
+            {
+                new Point(x, y + 40 * scale),
+                new Point(x + 30 * scale, y + 25 * scale),
+                new Point(x + 30 * scale, y + 45 * scale),
+                new Point(x, y + 55 * scale)
+            },
+            Fill = new SolidColorBrush(Color.FromRgb(255, 200, 230)), // Creepy pink wood
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Pump
+        var pump = new System.Windows.Shapes.Rectangle
+        {
+            Width = 25 * scale,
+            Height = 15 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(255, 182, 193)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        Canvas.SetLeft(barrel1, x + 40 * scale);
+        Canvas.SetTop(barrel1, y + 20 * scale);
+        GameCanvas.Children.Add(barrel1);
+        _entityLabels.Add(barrel1);
+
+        Canvas.SetLeft(barrel2, x + 40 * scale);
+        Canvas.SetTop(barrel2, y + 32 * scale);
+        GameCanvas.Children.Add(barrel2);
+        _entityLabels.Add(barrel2);
+
+        GameCanvas.Children.Add(stock);
+        _entityLabels.Add(stock);
+
+        Canvas.SetLeft(pump, x + 35 * scale);
+        Canvas.SetTop(pump, y + 42 * scale);
+        GameCanvas.Children.Add(pump);
+        _entityLabels.Add(pump);
+    }
+
+    private void DrawRifle(double x, double y, double scale)
+    {
+        // Long barrel
+        var barrel = new System.Windows.Shapes.Rectangle
+        {
+            Width = 70 * scale,
+            Height = 10 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(60, 60, 70)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Body
+        var body = new System.Windows.Shapes.Rectangle
+        {
+            Width = 50 * scale,
+            Height = 20 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(255, 179, 217)), // Pink body
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Magazine
+        var magazine = new System.Windows.Shapes.Rectangle
+        {
+            Width = 15 * scale,
+            Height = 30 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(80, 80, 90)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        // Stock
+        var stock = new System.Windows.Shapes.Rectangle
+        {
+            Width = 35 * scale,
+            Height = 18 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(255, 200, 230)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        Canvas.SetLeft(barrel, x + 50 * scale);
+        Canvas.SetTop(barrel, y + 20 * scale);
+        GameCanvas.Children.Add(barrel);
+        _entityLabels.Add(barrel);
+
+        Canvas.SetLeft(body, x + 30 * scale);
+        Canvas.SetTop(body, y + 25 * scale);
+        GameCanvas.Children.Add(body);
+        _entityLabels.Add(body);
+
+        Canvas.SetLeft(magazine, x + 45 * scale);
+        Canvas.SetTop(magazine, y + 45 * scale);
+        GameCanvas.Children.Add(magazine);
+        _entityLabels.Add(magazine);
+
+        Canvas.SetLeft(stock, x - 5 * scale);
+        Canvas.SetTop(stock, y + 26 * scale);
+        GameCanvas.Children.Add(stock);
+        _entityLabels.Add(stock);
+    }
+
+    private void DrawLauncher(double x, double y, double scale)
+    {
+        // Large tube
+        var tube = new System.Windows.Shapes.Rectangle
+        {
+            Width = 80 * scale,
+            Height = 25 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(70, 70, 80)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 3,
+            RadiusX = 5,
+            RadiusY = 5
+        };
+
+        // Muzzle
+        var muzzle = new System.Windows.Shapes.Ellipse
+        {
+            Width = 30 * scale,
+            Height = 30 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(50, 50, 60)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 3
+        };
+
+        // Happy face decal on launcher (creepy)
+        var happyFace = new TextBlock
+        {
+            Text = "☺",
+            FontSize = 20 * scale,
+            Foreground = new SolidColorBrush(Color.FromRgb(255, 105, 180)),
+            FontWeight = FontWeights.Bold
+        };
+
+        // Grip
+        var grip = new System.Windows.Shapes.Rectangle
+        {
+            Width = 20 * scale,
+            Height = 35 * scale,
+            Fill = new SolidColorBrush(Color.FromRgb(255, 182, 193)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+
+        Canvas.SetLeft(tube, x + 30 * scale);
+        Canvas.SetTop(tube, y + 15 * scale);
+        GameCanvas.Children.Add(tube);
+        _entityLabels.Add(tube);
+
+        Canvas.SetLeft(muzzle, x + 100 * scale);
+        Canvas.SetTop(muzzle, y + 10 * scale);
+        GameCanvas.Children.Add(muzzle);
+        _entityLabels.Add(muzzle);
+
+        Canvas.SetLeft(happyFace, x + 55 * scale);
+        Canvas.SetTop(happyFace, y + 15 * scale);
+        GameCanvas.Children.Add(happyFace);
+        _entityLabels.Add(happyFace);
+
+        Canvas.SetLeft(grip, x + 40 * scale);
+        Canvas.SetTop(grip, y + 40 * scale);
+        GameCanvas.Children.Add(grip);
+        _entityLabels.Add(grip);
     }
     #endregion
 

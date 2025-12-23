@@ -257,8 +257,17 @@ public partial class App : Application
                 Log.Warning(ex, "Error loading persisted app data");
             }
 
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            // Check for command-line arguments to launch specific windows
+            if (e.Args.Length > 0 && e.Args[0].Equals("--dungeon", StringComparison.OrdinalIgnoreCase))
+            {
+                var dungeonWindow = new Windows.DungeonCrawler();
+                dungeonWindow.Show();
+            }
+            else
+            {
+                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                mainWindow.Show();
+            }
 
             base.OnStartup(e);
         }
