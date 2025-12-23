@@ -580,8 +580,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         if (droppedItems == null || droppedItems.Count == 0) return;
 
-        // Proceed with move
-
         // If single item and it has a linked group, expand to full group
         if (droppedItems.Count == 1 && droppedItems[0].LinkedGroupId != null)
         {
@@ -593,46 +591,48 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             }
         }
 
-        // Determine target collection: prefer Items if any dropped item is in Items
+        // Determine target collection based on where items/target are located
         bool operateOnItems = droppedItems.Any(d => Items.Contains(d));
-
         if (target != null)
         {
             operateOnItems = Items.Contains(target);
         }
 
-        if (operateOnItems)
-        {
-            // Remove all dropped from Items preserving original relative order
-            var toInsert = droppedItems.Where(d => Items.Contains(d)).ToList();
-            foreach (var d in toInsert) Items.Remove(d);
-
-            int insertIndex = target == null ? Items.Count : Math.Max(0, Items.IndexOf(target));
-
-            foreach (var d in toInsert)
-            {
-                if (insertIndex > Items.Count) insertIndex = Items.Count;
-                Items.Insert(insertIndex++, d);
-            }
-        }
-        else
-        {
-            var toInsert = droppedItems.Where(d => ArchivedItems.Contains(d)).ToList();
-            foreach (var d in toInsert) ArchivedItems.Remove(d);
-
-            int insertIndex = target == null ? ArchivedItems.Count : Math.Max(0, ArchivedItems.IndexOf(target));
-
-            foreach (var d in toInsert)
-            {
-                if (insertIndex > ArchivedItems.Count) insertIndex = ArchivedItems.Count;
-                ArchivedItems.Insert(insertIndex++, d);
-            }
-        }
+        // Perform the move operation on the appropriate collection
+        var collection = operateOnItems ? Items : ArchivedItems;
+        MoveItemsInCollection(droppedItems, target, collection);
 
         await SaveAsync();
         RefreshDisplayItems();
+    }
 
-        // Move complete
+    /// <summary>
+    /// Helper method to move items within a collection while preserving their relative order.
+    /// </summary>
+    private void MoveItemsInCollection(List<OrderItem> droppedItems, OrderItem? target, ObservableCollection<OrderItem> collection)
+    {
+        // Remove items from collection, preserving the order they appear in the collection
+        var toInsert = droppedItems
+            .Where(d => collection.Contains(d))
+            .OrderBy(d => collection.IndexOf(d))
+            .ToList();
+
+        foreach (var item in toInsert)
+        {
+            collection.Remove(item);
+        }
+
+        // Calculate insertion index and insert items
+        int insertIndex = target == null ? collection.Count : Math.Max(0, collection.IndexOf(target));
+
+        foreach (var item in toInsert)
+        {
+            if (insertIndex > collection.Count)
+            {
+                insertIndex = collection.Count;
+            }
+            collection.Insert(insertIndex++, item);
+        }
     }
 
     /// <summary>

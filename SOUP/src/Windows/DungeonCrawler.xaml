@@ -1,26 +1,26 @@
 <Window x:Class="SOUP.Windows.DungeonCrawler"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="☺ A Nice Place" 
+        Title="🎉 SUPER HAPPY FUN ZONE 🎈 Everything Is Fine! 🌈"
         Height="800" Width="1000"
         MinHeight="600" MinWidth="800"
         WindowStartupLocation="CenterScreen"
-        Background="#0a0a0f"
+        Background="#ffeef7"
         KeyDown="Window_KeyDown"
         Loaded="Window_Loaded">
 
     <Window.Resources>
-        <!-- Color Palette -->
-        <Color x:Key="BackgroundColor">#0a0a0f</Color>
-        <Color x:Key="WallColor">#2d2d3a</Color>
-        <Color x:Key="FloorColor">#1a1a24</Color>
+        <!-- Color Palette - Overly Cheerful Fun Zone! -->
+        <Color x:Key="BackgroundColor">#ffeef7</Color>
+        <Color x:Key="WallColor">#ffb3d9</Color>
+        <Color x:Key="FloorColor">#ffe4f2</Color>
         <Color x:Key="PlayerColor">#22c55e</Color>
-        <Color x:Key="EnemyColor">#ef4444</Color>
-        <Color x:Key="TreasureColor">#fbbf24</Color>
-        <Color x:Key="StairsColor">#8b5cf6</Color>
-        <Color x:Key="TrapColor">#f97316</Color>
-        <Color x:Key="FogColor">#050508</Color>
-        <Color x:Key="ExploredFogColor">#0d0d14</Color>
+        <Color x:Key="EnemyColor">#ff69b4</Color>
+        <Color x:Key="TreasureColor">#ffd700</Color>
+        <Color x:Key="StairsColor">#da70d6</Color>
+        <Color x:Key="TrapColor">#ff1493</Color>
+        <Color x:Key="FogColor">#ffe4f8</Color>
+        <Color x:Key="ExploredFogColor">#ffd5f0</Color>
         
         <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
         <SolidColorBrush x:Key="WallBrush" Color="{StaticResource WallColor}"/>
@@ -31,10 +31,10 @@
         <SolidColorBrush x:Key="StairsBrush" Color="{StaticResource StairsColor}"/>
         <SolidColorBrush x:Key="TrapBrush" Color="{StaticResource TrapColor}"/>
         <SolidColorBrush x:Key="FogBrush" Color="{StaticResource FogColor}"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#e4e4e7"/>
-        <SolidColorBrush x:Key="TextDimBrush" Color="#71717a"/>
-        <SolidColorBrush x:Key="PanelBrush" Color="#18181b"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="#27272a"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#8b008b"/>
+        <SolidColorBrush x:Key="TextDimBrush" Color="#ff1493"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#fff0f8"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#ffb3d9"/>
         <SolidColorBrush x:Key="HealthBrush" Color="#22c55e"/>
         <SolidColorBrush x:Key="HealthLowBrush" Color="#ef4444"/>
         <SolidColorBrush x:Key="ManaBrush" Color="#3b82f6"/>
@@ -64,9 +64,9 @@
             </Grid.RowDefinitions>
 
             <!-- Player Stats -->
-            <Border Grid.Row="0" Background="#1f1f23" Padding="16" Margin="12,12,12,0" CornerRadius="8">
+            <Border Grid.Row="0" Background="#ffccee" Padding="16" Margin="12,12,12,0" CornerRadius="8" BorderBrush="#ff99dd" BorderThickness="2">
                 <StackPanel>
-                    <TextBlock Text="☺ YOU" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="☺ YOU (You're Doing GREAT!) ☺" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,12"/>
                     
                     <!-- Health Bar -->
                     <Grid Margin="0,0,0,8">
@@ -111,23 +111,23 @@
             </Border>
 
             <!-- Dungeon Info -->
-            <Border Grid.Row="1" Background="#1f1f23" Padding="16" Margin="12,12,12,0" CornerRadius="8">
+            <Border Grid.Row="1" Background="#ffccee" Padding="16" Margin="12,12,12,0" CornerRadius="8" BorderBrush="#ff99dd" BorderThickness="2">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="🏰 Floor:" Foreground="{StaticResource TextDimBrush}" FontSize="13" Margin="0,0,6,0"/>
+                        <TextBlock Text="🎈 Fun Level:" Foreground="{StaticResource TextDimBrush}" FontSize="13" Margin="0,0,6,0"/>
                         <TextBlock x:Name="FloorText" Text="1" Foreground="{StaticResource StairsBrush}" FontSize="13" FontWeight="Bold"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="💰 Gold:" Foreground="{StaticResource TextDimBrush}" FontSize="13" Margin="0,0,6,0"/>
+                        <TextBlock Text="🌟 Smile Points:" Foreground="{StaticResource TextDimBrush}" FontSize="13" Margin="0,0,6,0"/>
                         <TextBlock x:Name="GoldText" Text="0" Foreground="{StaticResource GoldBrush}" FontSize="13" FontWeight="Bold"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Inventory -->
-            <Border Grid.Row="2" Background="#1f1f23" Padding="16" Margin="12,12,12,0" CornerRadius="8">
+            <Border Grid.Row="2" Background="#ffccee" Padding="16" Margin="12,12,12,0" CornerRadius="8" BorderBrush="#ff99dd" BorderThickness="2">
                 <StackPanel>
-                    <TextBlock Text="🎒 INVENTORY" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                    <TextBlock Text="🎁 YOUR HAPPY THINGS" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                     <ItemsControl x:Name="InventoryList">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -148,18 +148,18 @@
             </Border>
 
             <!-- Message Log -->
-            <Border Grid.Row="3" Background="#1f1f23" Padding="16" Margin="12,12,12,0" CornerRadius="8">
+            <Border Grid.Row="3" Background="#ffe0f5" Padding="16" Margin="12,12,12,0" CornerRadius="8" BorderBrush="#ff99dd" BorderThickness="2">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="📜 WHISPERS" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                    <TextBlock Text="💖 HAPPY THOUGHTS 💖" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="MessageLog">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding}" Foreground="{StaticResource TextDimBrush}" 
+                                    <TextBlock Text="{Binding}" Foreground="{StaticResource TextBrush}"
                                                FontSize="11" TextWrapping="Wrap" Margin="0,0,0,4"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -169,43 +169,45 @@
             </Border>
 
             <!-- Controls -->
-            <Border Grid.Row="4" Background="#1f1f23" Padding="12" Margin="12" CornerRadius="8">
+            <Border Grid.Row="4" Background="#ffe0f5" Padding="12" Margin="12" CornerRadius="8" BorderBrush="#ff99dd" BorderThickness="2">
                 <StackPanel>
-                    <TextBlock Text="HOW TO PLAY" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextDimBrush}" Margin="0,0,0,6"/>
-                    <TextBlock Text="↑↓←→ / WASD - Wander" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="SPACE - Rest (+1 HP)" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="E - Interact" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="Q - Elevator" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="T - Teleport" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="1-5 - Use Item" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
-                    <TextBlock Text="R - Restart" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+                    <TextBlock Text="🎮 FRIENDLY REMINDERS 🎮" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,6"/>
+                    <TextBlock Text="W/↑ - Walk to Joy" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="S/↓ - Return to Joy" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="A/← - Spin Left (Wheee!)" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="D/→ - Spin Right (Wheee!)" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="SPACE - Smile Break (+1 HP)" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="E - Make Friends" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="F - Weapon Special! (Fun Power!)" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="Q - Party Lift | T - Happy Jump" Foreground="{StaticResource TextBrush}" FontSize="10"/>
+                    <TextBlock Text="1-5 - Share Item | R - New Fun!" Foreground="{StaticResource TextBrush}" FontSize="10"/>
                 </StackPanel>
             </Border>
         </Grid>
 
         <!-- Game Over Overlay -->
-        <Border x:Name="GameOverOverlay" Grid.ColumnSpan="2" Background="#CC000000" Visibility="Collapsed">
+        <Border x:Name="GameOverOverlay" Grid.ColumnSpan="2" Background="#CCFFB3D9" Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock x:Name="GameOverTitle" Text="☺ REST NOW" FontSize="48" FontWeight="Bold" 
-                           Foreground="#ef4444" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="GameOverStats" Text="You reached Floor 3" FontSize="18" 
-                           Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" Margin="0,12,0,0"
+                <TextBlock x:Name="GameOverTitle" Text="☺ NAP TIME! ☺" FontSize="48" FontWeight="Bold"
+                           Foreground="#ff1493" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="GameOverStats" Text="You reached Fun Level 3! Wow!" FontSize="18"
+                           Foreground="#8b008b" HorizontalAlignment="Center" Margin="0,12,0,0"
                            TextAlignment="Center"/>
-                <TextBlock Text="Press R to try again (or don't)" FontSize="14" 
-                           Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" Margin="0,24,0,0"/>
+                <TextBlock Text="Press R to KEEP PLAYING FOREVER ☺" FontSize="14"
+                           Foreground="#8b008b" HorizontalAlignment="Center" Margin="0,24,0,0"/>
             </StackPanel>
         </Border>
 
         <!-- Victory Overlay -->
-        <Border x:Name="VictoryOverlay" Grid.ColumnSpan="2" Background="#CC000000" Visibility="Collapsed">
+        <Border x:Name="VictoryOverlay" Grid.ColumnSpan="2" Background="#CCFFB3D9" Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="☺ YOU MADE IT" FontSize="48" FontWeight="Bold" 
+                <TextBlock Text="☺ ☺ ☺ YOU WIN FOREVER ☺ ☺ ☺" FontSize="48" FontWeight="Bold"
                            Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="VictoryStats" Text="You conquered the dungeon!" FontSize="18" 
-                           Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" Margin="0,12,0,0"
+                <TextBlock x:Name="VictoryStats" Text="Maximum Fun Achieved! You are SO GOOD AT THIS!" FontSize="18"
+                           Foreground="#8b008b" HorizontalAlignment="Center" Margin="0,12,0,0"
                            TextAlignment="Center"/>
-                <TextBlock Text="Press R to return (you will return)" FontSize="14" 
-                           Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" Margin="0,24,0,0"/>
+                <TextBlock Text="Press R to PLAY AGAIN AND AGAIN AND AGAIN ☺" FontSize="14"
+                           Foreground="#8b008b" HorizontalAlignment="Center" Margin="0,24,0,0"/>
             </StackPanel>
         </Border>
     </Grid>

@@ -9,10 +9,16 @@ using System.Windows.Media.Animation;
 using Microsoft.Xaml.Behaviors;
 using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.ViewModels;
-                else
-                {
-                    await viewmodel.MoveOrdersAsync(draggedItems, targetItem);
-                }
+
+namespace SOUP.Features.OrderLog.Behaviors;
+
+/// <summary>
+/// Fluid drag-and-drop behavior for OrderLog cards with smooth animations.
+///
+/// Features:
+/// - iOS-like fluid card shifting during drag
+/// - Ctrl+Drag to link items instead of reorder
+/// - Multi-item drag support
 /// - Hardware accelerated: GPU-rendered transforms, no layout invalidation
 ///
 /// Usage in XAML:
@@ -43,6 +49,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private bool _isFinishingDrag; // Prevents re-entrant calls during finish
     private FrameworkElement? _draggedElement;
     private FrameworkElement? _draggedPanelChild;
+    private FrameworkElement? _visualFeedbackBorder; // The border element that gets visual feedback (highlight)
     private List<OrderItem> _draggedItems = new();
     private int _draggedIndex = -1;
     private int _currentInsertionIndex = -1;
@@ -252,30 +259,33 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         _isDragging = true;
         _currentInsertionIndex = _draggedIndex;
+        _isLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
 
-        // Store the element's original layout position (before any transforms).
-        // Prefer the panel child if available so translations move the whole item.
+        // Ensure we have the panel child reference
+        _draggedPanelChild ??= FindPanelChild(_draggedElement);
+
+        // Use panel child as transform target for consistent movement, fallback to element
         var transformTarget = _draggedPanelChild ?? _draggedElement;
         _elementOriginalPosition = transformTarget.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
 
-        // Capture mouse
+        // Capture mouse and apply transforms
         Mouse.Capture(AssociatedObject, CaptureMode.SubTree);
-
-        // Check if Ctrl is held for link mode
-        _isLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
-
-        // Apply transform to the transform target (panel child when available)
         ApplyDragTransform(transformTarget);
 
-        // Apply visual feedback to the inner border (keeps color/effect behavior)
-        ApplyModeVisualFeedback(_draggedElement, _isLinkMode);
-
-        // Set high Z-Index on the panel child (ContentControl), not the Border inside it
-        var panelChild = _draggedPanelChild ?? FindPanelChild(_draggedElement);
-        if (panelChild != null)
+        // Bring card to front
+        if (_draggedPanelChild != null)
         {
-            Panel.SetZIndex(panelChild, DRAG_Z_INDEX);
-            _draggedPanelChild = panelChild;
+            Panel.SetZIndex(_draggedPanelChild, DRAG_Z_INDEX);
+        }
+
+        // Apply visual feedback to the outermost border (entire card, not clicked sub-element)
+        _visualFeedbackBorder = _draggedPanelChild != null
+            ? FindVisualChildOfType<Border>(_draggedPanelChild)
+            : _draggedElement;
+
+        if (_visualFeedbackBorder != null)
+        {
+            ApplyModeVisualFeedback(_visualFeedbackBorder, _isLinkMode);
         }
     }
 
@@ -291,7 +301,10 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         if (currentLinkMode != _isLinkMode)
         {
             _isLinkMode = currentLinkMode;
-            ApplyModeVisualFeedback(_draggedElement, _isLinkMode);
+            if (_visualFeedbackBorder != null)
+            {
+                ApplyModeVisualFeedback(_visualFeedbackBorder, _isLinkMode);
+            }
 
             // When switching to link mode, clear any existing card shifts
             if (_isLinkMode)
@@ -424,24 +437,21 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         Mouse.Capture(null);
 
-        // Animate back to original position on the transform target
-        var transformTarget = _draggedPanelChild ?? _draggedElement;
-        if (transformTarget != null && _draggedTransform != null)
+        // Animate back to original position
+        var translateTransform = GetTranslateTransform();
+        if (translateTransform != null)
         {
-            var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
-            if (translateTransform != null)
+            var animation = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
             {
-                var animation = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
-                {
-                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-                };
-                translateTransform.BeginAnimation(TranslateTransform.XProperty, animation);
-                translateTransform.BeginAnimation(TranslateTransform.YProperty, animation);
-            }
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            translateTransform.BeginAnimation(TranslateTransform.XProperty, animation);
+            translateTransform.BeginAnimation(TranslateTransform.YProperty, animation);
         }
 
         _animator?.ResetAllCardPositions();
 
+        // Delay cleanup to allow animation to complete
         var timer = new System.Windows.Threading.DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(AnimationDuration + 50)
@@ -454,36 +464,45 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         timer.Start();
     }
 
+    /// <summary>
+    /// Gets the TranslateTransform from the current drag transform group.
+    /// </summary>
+    private TranslateTransform? GetTranslateTransform()
+    {
+        return _draggedTransform?.Children.OfType<TranslateTransform>().FirstOrDefault();
+    }
+
     private void CleanupDragState()
     {
-        // Restore original visual state
+        // Clear transforms
         var transformTarget = _draggedPanelChild ?? _draggedElement;
         if (transformTarget != null)
         {
             transformTarget.RenderTransform = null;
+        }
 
-            // Reset Z-Index on the panel child (ContentControl)
-            var panelChild = _draggedPanelChild ?? FindPanelChild(_draggedElement);
-            if (panelChild != null)
-            {
-                Panel.SetZIndex(panelChild, 0);
-            }
+        // Reset Z-Index
+        if (_draggedPanelChild != null)
+        {
+            Panel.SetZIndex(_draggedPanelChild, 0);
+        }
 
-            if (_draggedElement is Border border)
-            {
-                border.BorderBrush = _originalBorderBrush;
-                border.BorderThickness = _originalBorderThickness;
-                border.Effect = null; // Clear any glow effects
-            }
+        // Restore visual feedback border
+        if (_visualFeedbackBorder is Border border)
+        {
+            border.BorderBrush = _originalBorderBrush;
+            border.BorderThickness = _originalBorderThickness;
+            border.Effect = null;
         }
 
         // Clear animator transforms
         _animator?.ClearTransforms();
 
-        // Reset state
+        // Reset all state variables
         _isDragging = false;
         _draggedElement = null;
         _draggedPanelChild = null;
+        _visualFeedbackBorder = null;
         _draggedItems.Clear();
         _draggedIndex = -1;
         _currentInsertionIndex = -1;
@@ -512,9 +531,9 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
     private void UpdateDraggedElementPosition(Point currentPosition)
     {
-        if (_draggedTransform == null || (_draggedElement == null && _draggedPanelChild == null) || AssociatedObject == null || _isFinishingDrag) return;
+        if (_draggedElement == null || AssociatedObject == null || _isFinishingDrag) return;
 
-        var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
+        var translateTransform = GetTranslateTransform();
         if (translateTransform == null) return;
 
         // Calculate where the element should be positioned so the click point follows the mouse
@@ -525,37 +544,16 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Get panel bounds to constrain the drag
         var panelBounds = new Rect(0, 0, AssociatedObject.ActualWidth, AssociatedObject.ActualHeight);
 
-        // Constrain position within panel bounds (prevent going under sidebar or off screen)
-        // Leave a small margin (10px) to keep card visible
+        // Constrain position to keep card visible horizontally and prevent going above panel
+        // Allow dragging below panel bounds so tall cards can reach the bottom insertion point
         const double margin = 10;
         var sizeTarget = _draggedPanelChild ?? _draggedElement!;
         desiredX = Math.Max(margin, Math.Min(desiredX, panelBounds.Width - sizeTarget.ActualWidth - margin));
-        desiredY = Math.Max(margin, Math.Min(desiredY, panelBounds.Height - sizeTarget.ActualHeight - margin));
+        desiredY = Math.Max(margin, desiredY); // Only constrain top, allow dragging below panel
 
         // Calculate the offset from the element's original layout position (stored at drag start)
         translateTransform.X = desiredX - _elementOriginalPosition.X;
         translateTransform.Y = desiredY - _elementOriginalPosition.Y;
-    }
-
-    private void AnimateDraggedElementToFinal()
-    {
-        if (_draggedElement == null || _draggedTransform == null) return;
-
-        var translateTransform = _draggedTransform.Children.OfType<TranslateTransform>().FirstOrDefault();
-        if (translateTransform == null) return;
-
-        // Animate back to 0 offset
-        var animationX = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
-        {
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-        };
-        var animationY = new DoubleAnimation(0, TimeSpan.FromMilliseconds(AnimationDuration))
-        {
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-        };
-
-        translateTransform.BeginAnimation(TranslateTransform.XProperty, animationX);
-        translateTransform.BeginAnimation(TranslateTransform.YProperty, animationY);
     }
 
     private void ApplyModeVisualFeedback(FrameworkElement element, bool isLinkMode)
