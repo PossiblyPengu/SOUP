@@ -605,67 +605,80 @@
                         </Button.Template>
                     </Button>
                     
-                    <!-- Theme Toggle Button -->
-                    <Button Grid.Column="2" HorizontalAlignment="Right"
-                            Command="{Binding ToggleThemeCommand}"
-                            Cursor="Hand" Background="Transparent" BorderThickness="0"
-                            ToolTip="Toggle Light/Dark Mode">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="12,10">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontSize="16" VerticalAlignment="Center">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="🌙"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
-                                                            <Setter Property="Text" Value="☀️"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                        <TextBlock FontSize="13" FontWeight="Medium"
-                                                   VerticalAlignment="Center" Margin="8,0,0,0"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="Dark"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
-                                                            <Setter Property="Text" Value="Light"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
-                                        <Setter Property="Content">
-                                            <Setter.Value>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="☀️" FontSize="16"/>
-                                                    <TextBlock Text="Light" FontSize="13" FontWeight="Medium" Margin="8,0,0,0"/>
-                                                </StackPanel>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                    <!-- Widget (OrderLog) + Theme Toggle -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0">
+                        <Button Command="{Binding LauncherViewModel.OpenOrderLogWidgetCommand}"
+                                Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=OrderLog}"
+                                Style="{DynamicResource SecondaryButtonStyle}"
+                                ToolTip="Open docked widget (Ctrl+Alt+W)"
+                                Margin="0,0,8,0" Padding="10,6">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="▫" FontSize="14" Margin="0,0,6,0"/>
+                                <TextBlock Text="Widget" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Theme Toggle Button -->
+                        <Button Command="{Binding ToggleThemeCommand}"
+                                Cursor="Hand" Background="Transparent" BorderThickness="0"
+                                ToolTip="Toggle Light/Dark Mode">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Border" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="12,10">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="16" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="🌙"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                                <Setter Property="Text" Value="☀️"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock FontSize="13" FontWeight="Medium"
+                                                       VerticalAlignment="Center" Margin="8,0,0,0"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Dark"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                                <Setter Property="Text" Value="Light"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                            <Setter Property="Content">
+                                                <Setter.Value>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="☀️" FontSize="16"/>
+                                                        <TextBlock Text="Light" FontSize="13" FontWeight="Medium" Margin="8,0,0,0"/>
+                                                    </StackPanel>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 
