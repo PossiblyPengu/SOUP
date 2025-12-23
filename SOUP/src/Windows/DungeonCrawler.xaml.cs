@@ -1002,7 +1002,7 @@ public partial class DungeonCrawler : Window
         ProcessEnemyTurns();
         UpdateVisibility();
         Render();
-        CheckGameOver();
+        CheckGameState();
     }
 
     private void CheckEnemyDeath(Enemy enemy)
