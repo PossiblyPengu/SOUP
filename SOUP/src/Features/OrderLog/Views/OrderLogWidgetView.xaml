@@ -392,7 +392,11 @@
                                 <StackPanel Orientation="Vertical"
                                             Background="Transparent">
                                     <i:Interaction.Behaviors>
+                                        <!-- New geometry-first grid drag behavior -->
+                                        <behaviors:GridDragBehavior />
+                                        <!-- Legacy behavior kept for reference:
                                         <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
+                                        -->
                                     </i:Interaction.Behaviors>
                                 </StackPanel>
                             </ItemsPanelTemplate>

@@ -54,6 +54,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private int _draggedIndex = -1;
     private int _currentInsertionIndex = -1;
     private CardShiftAnimator? _animator;
+    private double? _lockedPanelWidth;
     private bool _isLinkMode;
     private TransformGroup? _draggedTransform;
     private DateTime _lastShiftCalculation = DateTime.MinValue;
@@ -270,6 +271,8 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         // Capture mouse and apply transforms
         Mouse.Capture(AssociatedObject, CaptureMode.SubTree);
+        // Lock the panel width to prevent wrapping changes while dragging
+        _lockedPanelWidth = AssociatedObject.ActualWidth;
         ApplyDragTransform(transformTarget);
 
         // Bring card to front
@@ -327,14 +330,38 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         _lastShiftCalculation = DateTime.Now;
 
-        // Calculate new insertion index
-        int newInsertionIndex = _animator.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
+        // Calculate new insertion index. For WrapPanel we prefer a grid-based
+        // 2-column placement helper that understands single- and double-wide cards.
+        int newInsertionIndex;
+        if (AssociatedObject is System.Windows.Controls.WrapPanel)
+        {
+            // Compute the dragged element's prospective rectangle (based on mouse position
+            // and click offset) so placement decisions are based on card geometry rather
+            // than the raw cursor point.
+            var sizeTarget = _draggedPanelChild ?? _draggedElement!;
+            var panelBounds = new Rect(0, 0, AssociatedObject.ActualWidth, AssociatedObject.ActualHeight);
+            const double margin = 10;
+
+            double desiredX = currentPosition.X - _elementClickOffset.X;
+            double desiredY = currentPosition.Y - _elementClickOffset.Y;
+            desiredX = Math.Max(margin, Math.Min(desiredX, panelBounds.Width - sizeTarget.ActualWidth - margin));
+            desiredY = Math.Max(margin, desiredY);
+
+            var draggedRect = new Rect(new Point(desiredX, desiredY), new Size(sizeTarget.ActualWidth, sizeTarget.ActualHeight));
+
+            newInsertionIndex = CardGridPlacement.CalculateInsertionIndexGrid(AssociatedObject, draggedRect, _draggedElement, _lockedPanelWidth);
+        }
+        else
+        {
+            // Fallback to existing animator calculation
+            newInsertionIndex = _animator.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
+        }
 
         // If insertion index changed, animate card shift
         if (newInsertionIndex != _currentInsertionIndex)
         {
             _currentInsertionIndex = newInsertionIndex;
-            _animator.AnimateCardShift(_currentInsertionIndex, _draggedIndex, _draggedElement);
+            _animator.AnimateCardShift(_currentInsertionIndex, _draggedIndex, _draggedElement, _lockedPanelWidth);
         }
     }
 
@@ -508,6 +535,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         _currentInsertionIndex = -1;
         _draggedTransform = null;
         _originalBorderBrush = null;
+        _lockedPanelWidth = null;
     }
 
     private void ApplyDragTransform(FrameworkElement element)

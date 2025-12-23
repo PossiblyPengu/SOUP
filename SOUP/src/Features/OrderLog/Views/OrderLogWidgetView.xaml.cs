@@ -158,14 +158,20 @@ public partial class OrderLogWidgetView : UserControl
                 return;
             }
 
-            // Find the behavior
+            // Find attached behaviors (support legacy fluid drag and new GridDragBehavior)
             var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
             var fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+            var gridDrag = behaviors.OfType<Behaviors.GridDragBehavior>().FirstOrDefault();
 
             if (fluidDragBehavior != null)
             {
                 fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
                 fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
+            }
+
+            if (gridDrag != null)
+            {
+                gridDrag.ReorderComplete += OnFluidDragReorderComplete;
             }
         };
     }
