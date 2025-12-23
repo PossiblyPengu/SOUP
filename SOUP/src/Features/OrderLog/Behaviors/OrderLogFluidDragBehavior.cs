@@ -620,6 +620,18 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             if (current is Border border &&
                 (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
             {
+                // Prefer the outermost card Border belonging to the same panel child
+                // to ensure the behavior consistently uses the full card element
+                // (clicks on inner elements like the color bar should map to the
+                // same top-level Border instance).
+                var panelChild = FindPanelChild(border);
+                if (panelChild != null)
+                {
+                    var outerBorder = FindVisualChildOfType<Border>(panelChild);
+                    if (outerBorder != null && (outerBorder.DataContext is OrderItem || outerBorder.DataContext is OrderItemGroup))
+                        return outerBorder;
+                }
+
                 return border;
             }
 
