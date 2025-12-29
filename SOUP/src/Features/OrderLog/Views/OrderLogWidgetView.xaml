@@ -487,15 +487,16 @@
                                     </Border>
 
                                     <!-- Drag handle for sticky notes (top-right) -->
-                                    <Button Tag="DragHandle"
+                                        <Button Tag="DragHandle"
                                             Width="32"
                                             Height="28"
                                             HorizontalAlignment="Right"
                                             VerticalAlignment="Top"
                                             Margin="0,6,6,0"
-                                            Background="Transparent"
+                                            Background="{DynamicResource SurfaceHoverBrush}"
                                             BorderThickness="0"
                                             Cursor="SizeAll"
+                                            ToolTip="Drag to reorder"
                                             Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
                                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.75" IsHitTestVisible="False">
                                             <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
@@ -839,7 +840,7 @@
                                         </Grid.RowDefinitions>
                                         <!-- Drag Handle (right side) -->
                                         <Button Tag="DragHandle" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                Margin="0,0,6,0" Background="Transparent" BorderThickness="0" Cursor="SizeAll">
+                                            Margin="0,0,6,0" Background="{DynamicResource SurfaceHoverBrush}" BorderThickness="0" Cursor="SizeAll" ToolTip="Drag to reorder">
                                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.6" IsHitTestVisible="False">
                                                 <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
                                                 <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
