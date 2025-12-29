@@ -5,8 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using Microsoft.Xaml.Behaviors;
+using System.Windows.Documents;
+using System.IO;
 
 namespace SOUP.Behaviors;
 
@@ -19,10 +22,27 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
     private Point _startPoint;
     private object? _draggedItem;
     private int _draggedIndex = -1;
+    private int _dragStartIndex = -1;
     private int _currentPreviewIndex = -1;
     private ListBoxItem? _draggedListBoxItem;
     private bool _isDragging;
+    private bool _isLinkMode;
     private readonly Dictionary<ListBoxItem, TranslateTransform> _transforms = new();
+    private AdornerLayer? _adornerLayer;
+    // insertion adorner removed; sliding animations are used instead
+    private FloatingAdorner? _floatingAdorner;
+    private Point _dragOffset;
+    private double? _floatingFixedLeft;
+    private Point _lastMousePos;
+
+    // Path for persistent drag debug logs (helps when console isn't attached)
+    private static readonly string _dragLogPath = Path.Combine(Path.GetTempPath(), "SoupDragDebug.log");
+
+    private static void DebugLog(string message)
+    {
+        // logging removed in production; no-op
+        _ = message;
+    }
 
     public static readonly DependencyProperty OnReorderProperty =
         DependencyProperty.Register(nameof(OnReorder), typeof(Action), typeof(ListBoxDragDropBehavior));
@@ -90,6 +110,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             sv.ScrollToVerticalOffset(newOffset);
             e.Handled = true;
         }
+    }
 
     // Safely get a parent for DependencyObjects that may not be Visuals (eg FlowDocument elements like Paragraph)
     private DependencyObject? GetParentSafe(DependencyObject child)
@@ -174,8 +195,30 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         // Don't interfere if already dragging
         if (_isDragging)
             return;
-            
+        // Only start potential drag when pressing the visible handle (Tag="DragHandle")
+        var srcCheck = e.OriginalSource as DependencyObject;
+        bool isHandle = false;
+        while (srcCheck != null)
+        {
+            if (srcCheck is FrameworkElement fe && fe.Tag is string t && t == "DragHandle") { isHandle = true; break; }
+            srcCheck = VisualTreeHelper.GetParent(srcCheck);
+        }
+        if (!isHandle)
+            return;
         _startPoint = e.GetPosition(AssociatedObject);
+        // detect ctrl for link-mode (Ctrl-drag to link orders)
+        try
+        {
+            _isLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+            if (_isLinkMode) _currentPreviewIndex = -1; // don't show reorder preview for linking
+        }
+        catch { _isLinkMode = false; }
+        try
+        {
+            var srcType = e.OriginalSource?.GetType().Name ?? "(null)";
+            DebugLog($"[DragDebug] MouseDown src={srcType} start={_startPoint}");
+        }
+        catch { }
         
         // Find the item being clicked
         var item = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
@@ -195,14 +238,18 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             return;
 
         var currentPoint = e.GetPosition(AssociatedObject);
+        try
+        {
+            DebugLog($"[DragDebug] MouseMove current={currentPoint} left={e.LeftButton} isDragging={_isDragging} draggedIndex={_draggedIndex} previewIndex={_currentPreviewIndex}");
+        }
+        catch { }
 
         if (!_isDragging)
         {
             var diff = _startPoint - currentPoint;
-            
-            // Check if we've moved far enough to start a drag
-            if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+
+            // Start drag only on vertical movement (disable horizontal dragging)
+            if (Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
             {
                 StartDrag();
             }
@@ -219,23 +266,142 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         if (_draggedListBoxItem == null)
             return;
 
+        try { DebugLog($"[DragDebug] StartDrag draggedIndex={_draggedIndex}"); } catch { }
         _isDragging = true;
-        _currentPreviewIndex = _draggedIndex;
+        _dragStartIndex = _draggedIndex;
+        _currentPreviewIndex = _dragStartIndex;
         
         // Capture mouse to receive events even outside the control
         Mouse.Capture(AssociatedObject, CaptureMode.SubTree);
 
-        // Bring dragged item to front and add slight scale effect
+        // Bring dragged item to front; we'll hide the original only after creating a floating snapshot
         _draggedListBoxItem.SetValue(Panel.ZIndexProperty, 100);
-        
-        // Add a subtle shadow/scale effect to the dragged item
-        var scaleTransform = new ScaleTransform(1.02, 1.02, 
-            _draggedListBoxItem.ActualWidth / 2, _draggedListBoxItem.ActualHeight / 2);
-        var transformGroup = new TransformGroup();
-        transformGroup.Children.Add(new TranslateTransform());
-        transformGroup.Children.Add(scaleTransform);
-        _draggedListBoxItem.RenderTransform = transformGroup;
-        _transforms[_draggedListBoxItem] = (TranslateTransform)transformGroup.Children[0];
+        // prepare adorner layer. prefer the window content so the floating adorner renders above list items
+        try
+        {
+            UIElement host = AssociatedObject;
+            var window = FindAncestorSafe<Window>(AssociatedObject);
+            if (window != null && window.Content is UIElement wc)
+            {
+                host = wc;
+            }
+            else
+            {
+                // fallback to nearest ScrollViewer so the adorner aligns with the viewport
+                var sv = FindAncestorSafe<ScrollViewer>(AssociatedObject) as UIElement;
+                if (sv != null) host = sv;
+            }
+
+            _adornerLayer = AdornerLayer.GetAdornerLayer(host);
+            if (_adornerLayer != null)
+            {
+                // Create a bitmap snapshot of the dragged item and show it in a floating adorner
+                try
+                {
+                    // Use Actual size when available, otherwise fall back to DesiredSize
+                    double itemW = _draggedListBoxItem.ActualWidth;
+                    double itemH = _draggedListBoxItem.ActualHeight;
+                    if (itemW <= 1 || itemH <= 1)
+                    {
+                        itemW = Math.Max(itemW, _draggedListBoxItem.DesiredSize.Width);
+                        itemH = Math.Max(itemH, _draggedListBoxItem.DesiredSize.Height);
+                    }
+
+                    // NOTE: snapshot creation (including special-case for grouped items) handled below
+                        if (itemW > 1 && itemH > 1)
+                        {
+                            try
+                            {
+                                // Special-case rendering for grouped items: instantiate the merged template into an off-screen presenter
+                                ImageSource bitmapSource = null;
+                                bool usedTemplate = false;
+
+                                try
+                                {
+                                    if (_draggedItem != null && _draggedItem.GetType().Name == "OrderItemGroup")
+                                    {
+                                        // Try to find the merged template resource from the visual tree
+                                        object? tmplObj = null;
+                                        try { tmplObj = AssociatedObject.TryFindResource("OrderItemGroupMergedTemplate"); } catch { tmplObj = null; }
+                                        if (tmplObj is DataTemplate dt)
+                                        {
+                                            var presenter = new ContentPresenter { Content = _draggedItem, ContentTemplate = dt };
+                                            presenter.Measure(new Size(itemW, itemH));
+                                            presenter.Arrange(new Rect(0, 0, itemW, itemH));
+
+                                            var dv = new DrawingVisual();
+                                            using (var ctx = dv.RenderOpen())
+                                            {
+                                                var vb = new VisualBrush(presenter);
+                                                ctx.DrawRectangle(vb, null, new Rect(0, 0, itemW, itemH));
+                                            }
+
+                                            var rtb2 = new RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, PixelFormats.Pbgra32);
+                                            rtb2.Render(dv);
+                                            bitmapSource = rtb2;
+                                            usedTemplate = true;
+                                        }
+                                    }
+                                }
+                                catch { }
+
+                                if (!usedTemplate)
+                                {
+                                    var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+                                    rtb.Render(_draggedListBoxItem);
+                                    bitmapSource = rtb;
+                                }
+
+                                if (bitmapSource != null)
+                                {
+                                    _floatingAdorner = new FloatingAdorner(host, bitmapSource, itemW, itemH);
+                                    _adornerLayer.Add(_floatingAdorner);
+
+                                    // compute pointer offset within the item so the snapshot tracks the pointer naturally
+                                    var itemTopLeft = _draggedListBoxItem.TransformToVisual(AssociatedObject).Transform(new Point(0, 0));
+                                    _dragOffset = new Point(_startPoint.X - itemTopLeft.X, _startPoint.Y - itemTopLeft.Y);
+
+                                    // position adorner initially and lock X to avoid horizontal dragging
+                                    var adorned = _floatingAdorner.AdornedElement as UIElement ?? AssociatedObject;
+                                    var posInAdorned = AssociatedObject.TransformToVisual(adorned).Transform(_startPoint);
+                                    var left = posInAdorned.X - _dragOffset.X;
+                                    var top = posInAdorned.Y - _dragOffset.Y;
+                                    _floatingFixedLeft = left;
+                                    _floatingAdorner.UpdatePosition(left, top);
+
+                                    // If this is a grouped (double) card, hide the original item to avoid a visible duplicate
+                                    try
+                                    {
+                                        if (_draggedItem != null && _draggedItem.GetType().Name == "OrderItemGroup")
+                                        {
+                                            if (_draggedListBoxItem != null)
+                                                _draggedListBoxItem.Opacity = 0.0;
+                                        }
+                                    }
+                                    catch { }
+                                }
+
+                                // keep the original visible (don't set Opacity=0) to avoid container-recycling visual issues
+                            }
+                            catch (Exception ex)
+                            {
+                                try { DebugLog($"[DragDebug] Snapshot creation failed: {ex.Message}"); } catch { }
+                                _floatingAdorner = null;
+                            }
+                        }
+                    else
+                    {
+                        try { DebugLog("[DragDebug] Skipping snapshot: invalid item size"); } catch { }
+                        _floatingAdorner = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    try { DebugLog($"[DragDebug] Adorner setup failed: {ex.Message}"); } catch { }
+                }
+            }
+        }
+        catch { }
     }
 
     private void UpdateDrag(Point mousePos)
@@ -245,6 +411,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
         // Calculate how far we've moved from the start
         double offsetY = mousePos.Y - _startPoint.Y;
+        try { DebugLog($"[DragDebug] UpdateDrag mouseY={mousePos.Y} offsetY={offsetY} currentPreview={_currentPreviewIndex}"); } catch { }
         
         // Update dragged item position
         if (_transforms.TryGetValue(_draggedListBoxItem, out var dragTransform))
@@ -252,15 +419,107 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             dragTransform.Y = offsetY;
         }
 
-        // Calculate which index we're hovering over using item midpoints (more accurate for varying heights)
-        int previewIndex = CalculatePreviewIndexFromPosition(mousePos);
+        // Move floating snapshot with the pointer
+            if (_floatingAdorner != null)
+            {
+                try
+                {
+                    var adorned = _floatingAdorner.AdornedElement as UIElement ?? AssociatedObject;
+                    var posInAdorned = AssociatedObject.TransformToVisual(adorned).Transform(mousePos);
+                    var topPos = posInAdorned.Y - _dragOffset.Y;
+                    // keep X locked to initial left to disable horizontal movement
+                    var leftPos = _floatingFixedLeft ?? (posInAdorned.X - _dragOffset.X);
+                    _floatingAdorner.UpdatePosition(leftPos, topPos);
+                }
+                catch { }
+            }
 
-        // Update animations if preview index changed
-        if (previewIndex != _currentPreviewIndex)
+        // Determine insertion index using midpoint calculation (insertion semantics)
+        int hoverIndex = CalculatePreviewIndexFromPosition(mousePos);
+        _lastMousePos = mousePos;
+        try { DebugLog($"[DragDebug] PreviewIndex={hoverIndex} dragStart={_dragStartIndex} currentPreview={_currentPreviewIndex}"); } catch { }
+
+        // If hovering over a different item than the drag start, show a swap preview
+        if (hoverIndex >= 0 && hoverIndex != _currentPreviewIndex)
         {
-            _currentPreviewIndex = previewIndex;
+            _currentPreviewIndex = hoverIndex;
+            // Use insertion midpoint behavior: animate other items to make room for insertion at hoverIndex
             AnimateOtherItemsToPreviewPositions();
+            // (insertion adorner removed) sliding animations show preview instead
         }
+    }
+
+    // Returns the index of the item whose bounds contain the given mouse position, or -1.
+    private int GetIndexAtPosition(Point mousePos)
+    {
+        for (int i = 0; i < AssociatedObject.Items.Count; i++)
+        {
+            if (i == _dragStartIndex) continue; // skip original dragged slot
+
+            var container = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+            if (container == null) continue;
+
+            var topLeft = container.TransformToVisual(AssociatedObject).Transform(new Point(0, 0));
+            var rect = new Rect(topLeft, new Size(container.ActualWidth, container.ActualHeight));
+            if (rect.Contains(mousePos))
+                return i;
+        }
+        return -1;
+    }
+
+    // After the dragged item has been removed from the underlying list, compute insertion index
+    // by checking midpoints of the remaining containers.
+    private int GetIndexAtPositionAfterRemoval(Point mousePos)
+    {
+        for (int i = 0; i < AssociatedObject.Items.Count; i++)
+        {
+            var container = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+            if (container == null) continue;
+
+            var topLeft = container.TransformToVisual(AssociatedObject).Transform(new Point(0, 0));
+            double mid = topLeft.Y + (container.ActualHeight / 2.0);
+            if (mousePos.Y < mid)
+                return i;
+        }
+        return AssociatedObject.Items.Count;
+    }
+
+    // Animate the item at targetIndex to move into the dragged item's original slot (visual swap preview)
+    private void AnimateSwapPreview(int draggedIndex, int targetIndex)
+    {
+        // Clear existing transforms on all items except the dragged visual (which follows the pointer)
+        foreach (var kvp in _transforms)
+        {
+            if (kvp.Key != _draggedListBoxItem)
+            {
+                kvp.Value.BeginAnimation(TranslateTransform.YProperty, null);
+            }
+        }
+
+        var draggedContainer = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(draggedIndex) as ListBoxItem;
+        var targetContainer = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(targetIndex) as ListBoxItem;
+        if (draggedContainer == null || targetContainer == null) return;
+
+        // Ensure transforms exist for target container
+        if (!_transforms.TryGetValue(targetContainer, out var targetTransform))
+        {
+            targetTransform = new TranslateTransform();
+            _transforms[targetContainer] = targetTransform;
+            targetContainer.RenderTransform = targetTransform;
+        }
+
+        // Compute vertical distance to move target into dragged slot
+        var draggedTop = draggedContainer.TransformToVisual(AssociatedObject).Transform(new Point(0, 0)).Y;
+        var targetTop = targetContainer.TransformToVisual(AssociatedObject).Transform(new Point(0, 0)).Y;
+        double delta = draggedTop - targetTop;
+
+        var animation = new DoubleAnimation
+        {
+            To = delta,
+            Duration = TimeSpan.FromMilliseconds(200),
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        targetTransform.BeginAnimation(TranslateTransform.YProperty, animation);
     }
 
     private void AnimateOtherItemsToPreviewPositions()
@@ -268,13 +527,30 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         if (_draggedIndex < 0 || _currentPreviewIndex < 0)
             return;
 
-        var itemHeight = GetAverageItemHeight();
+        // Use the floating snapshot height when available (handles grouped/double cards), otherwise fall back to the dragged container ActualHeight
+        double itemHeight;
+        try
+        {
+            if (_floatingAdorner != null)
+            {
+                try { itemHeight = _floatingAdorner.AdornedHeight; }
+                catch { itemHeight = GetAverageItemHeight(); }
+            }
+            else
+            {
+                var draggedContainer = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_draggedIndex) as ListBoxItem;
+                itemHeight = (draggedContainer != null && draggedContainer.ActualHeight > 0) ? draggedContainer.ActualHeight : GetAverageItemHeight();
+            }
+        }
+        catch
+        {
+            itemHeight = GetAverageItemHeight();
+        }
         var duration = TimeSpan.FromMilliseconds(200);
         var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
 
         for (int i = 0; i < AssociatedObject.Items.Count; i++)
         {
-            // Skip the dragged item
             if (i == _draggedIndex)
                 continue;
 
@@ -282,7 +558,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             if (container == null)
                 continue;
 
-            // Get or create transform
             if (!_transforms.TryGetValue(container, out var transform))
             {
                 transform = new TranslateTransform();
@@ -290,27 +565,18 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                 container.RenderTransform = transform;
             }
 
-            // Calculate target offset
             double targetY = 0;
-            
             if (_draggedIndex < _currentPreviewIndex)
             {
-                // Dragging down: items between old and new position slide up
                 if (i > _draggedIndex && i <= _currentPreviewIndex)
-                {
                     targetY = -itemHeight;
-                }
             }
             else if (_draggedIndex > _currentPreviewIndex)
             {
-                // Dragging up: items between new and old position slide down
                 if (i >= _currentPreviewIndex && i < _draggedIndex)
-                {
                     targetY = itemHeight;
-                }
             }
 
-            // Animate to target
             var animation = new DoubleAnimation
             {
                 To = targetY,
@@ -319,37 +585,85 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             };
             transform.BeginAnimation(TranslateTransform.YProperty, animation);
         }
+        // Ensure ZIndex ordering so animated items don't cover the floating snapshot
+        try
+        {
+            for (int i = 0; i < AssociatedObject.Items.Count; i++)
+            {
+                var cont = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+                if (cont == null) continue;
+                if (cont == _draggedListBoxItem)
+                    cont.SetValue(Panel.ZIndexProperty, 200);
+                else
+                    cont.SetValue(Panel.ZIndexProperty, 0);
+            }
+        }
+        catch { }
     }
 
     private int CalculatePreviewIndexFromPosition(Point mousePos)
     {
-        // Iterate items and use the container top/bottom edges (including margin) to determine insertion point
         int itemCount = AssociatedObject.Items.Count;
+        if (itemCount == 0) return 0;
+
         for (int i = 0; i < itemCount; i++)
         {
+            if (i == _draggedIndex) continue;
+
             var container = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
             if (container == null) continue;
 
-            // Get container top-left relative to the ListBox
             var topLeft = container.TransformToVisual(AssociatedObject).Transform(new Point(0, 0));
             double top = topLeft.Y;
-            double bottom = top + container.ActualHeight + container.Margin.Bottom;
+            double mid = top + (container.ActualHeight / 2.0);
 
-            // If pointer is above the top border of this item, insert before it
-            if (mousePos.Y < top)
-            {
+            if (mousePos.Y < mid)
                 return i;
-            }
-
-            // If pointer is within this item's vertical bounds, return this index
-            if (mousePos.Y >= top && mousePos.Y <= bottom)
-            {
-                return i;
-            }
         }
 
-        // If below all items, return last index
-        return Math.Max(0, itemCount - 1);
+        return itemCount;
+    }
+
+    // Return the underlying OrderItem (if any) for the ListBox item under the given mouse position.
+    private Features.OrderLog.Models.OrderItem? GetOrderItemAtPosition(Point mousePos)
+    {
+        for (int i = 0; i < AssociatedObject.Items.Count; i++)
+        {
+            if (i == _dragStartIndex) continue; // skip the dragged original
+
+            var container = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+            if (container == null) continue;
+
+            var topLeft = container.TransformToVisual(AssociatedObject).Transform(new Point(0, 0));
+            var rect = new Rect(topLeft, new Size(container.ActualWidth, container.ActualHeight));
+            if (!rect.Contains(mousePos)) continue;
+
+            // DataContext may be an OrderItem or an OrderItemGroup
+            if (container.DataContext is Features.OrderLog.Models.OrderItem oi)
+                return oi;
+            if (container.DataContext is Features.OrderLog.ViewModels.OrderItemGroup grp)
+                return grp.First;
+        }
+        return null;
+    }
+
+    // insertion adorner removed: visual preview is communicated by sliding animations
+
+    private void HideAdorners()
+    {
+        try
+        {
+            if (_adornerLayer != null)
+            {
+                if (_floatingAdorner != null)
+                {
+                    _adornerLayer.Remove(_floatingAdorner);
+                }
+            }
+            _floatingAdorner = null;
+            _adornerLayer = null;
+        }
+        catch { }
     }
 
     private void OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -380,47 +694,95 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
     private void FinishDrag()
     {
-        if (!_isDragging || _draggedIndex < 0 || _currentPreviewIndex < 0)
+        if (!_isDragging || _draggedIndex < 0)
         {
             CancelDrag();
             return;
         }
 
+        try { DebugLog($"[DragDebug] FinishDrag oldIndex={_draggedIndex} newIndex={_currentPreviewIndex}"); } catch { }
+            HideAdorners();
         Mouse.Capture(null);
 
         var newIndex = _currentPreviewIndex;
-        var oldIndex = _draggedIndex;
+        var oldIndex = _dragStartIndex;
+        try { DebugLog($"[DragDebug] Before move: listCount={(AssociatedObject.ItemsSource as IList)?.Count ?? -1} oldIndex={oldIndex} newIndex={newIndex}"); } catch { }
 
         // Reset all transforms immediately (no animation for the final snap)
         ResetAllTransformsImmediate();
 
-        // Move the item in the data source if position changed
-        if (newIndex != oldIndex && AssociatedObject.ItemsSource is IList list)
+        // Restore original item's visibility
+        try { if (_draggedListBoxItem != null) _draggedListBoxItem.Opacity = 1.0; } catch { }
+
+        // Remove floating adorner if present
+        try
         {
-            var selectedItem = AssociatedObject.SelectedItem;
-            var item = list[oldIndex];
+            if (_adornerLayer != null && _floatingAdorner != null)
+            {
+                _adornerLayer.Remove(_floatingAdorner);
+            }
+            _floatingAdorner = null;
+        }
+        catch { }
 
-            // Adjust insert index because removing the old item shifts indexes
-            int insertIndex = newIndex;
-            if (insertIndex > oldIndex)
-                insertIndex--;
+        // If user held Ctrl, treat this as a link operation instead of reorder
+        if (_isLinkMode)
+        {
+            try
+            {
+                if (AssociatedObject.DataContext is Features.OrderLog.ViewModels.OrderLogViewModel vm)
+                {
+                    // resolve dragged order item from the DataContext (could be OrderItem or OrderItemGroup)
+                    Features.OrderLog.Models.OrderItem? draggedOrder = null;
+                    if (_draggedItem is Features.OrderLog.Models.OrderItem oi) draggedOrder = oi;
+                    else if (_draggedItem is Features.OrderLog.ViewModels.OrderItemGroup grp) draggedOrder = grp.First;
 
-            // Clamp insertIndex to [0, list.Count]
-            insertIndex = Math.Max(0, Math.Min(insertIndex, list.Count));
+                    if (draggedOrder != null)
+                    {
+                        var target = GetOrderItemAtPosition(_lastMousePos);
+                        if (target != null)
+                        {
+                            var toLink = new System.Collections.Generic.List<Features.OrderLog.Models.OrderItem> { draggedOrder };
+                            _ = vm.LinkItemsAsync(toLink, target);
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+        else
+        {
+            // Move the item in the data source if position changed (insertion semantics)
+            if (newIndex != oldIndex && AssociatedObject.ItemsSource is IList list)
+            {
+                var selectedItem = AssociatedObject.SelectedItem;
+                var item = list[oldIndex];
 
-            list.RemoveAt(oldIndex);
-            list.Insert(insertIndex, item);
-            AssociatedObject.SelectedItem = selectedItem;
-            OnReorder?.Invoke();
+                // Adjust insert index because removing the old item shifts indexes
+                int insertIndex = newIndex;
+                if (insertIndex > oldIndex)
+                    insertIndex--;
+
+                try { DebugLog($"[DragDebug] Computed insertIndex={insertIndex}"); } catch { }
+
+                // Clamp insertIndex to [0, list.Count]
+                insertIndex = Math.Max(0, Math.Min(insertIndex, list.Count));
+
+                list.RemoveAt(oldIndex);
+                list.Insert(insertIndex, item);
+                AssociatedObject.SelectedItem = selectedItem;
+                OnReorder?.Invoke();
+            }
         }
 
         _isDragging = false;
         _draggedItem = null;
         _draggedIndex = -1;
+        _dragStartIndex = -1;
         _draggedListBoxItem = null;
         _currentPreviewIndex = -1;
+        HideAdorners();
     }
-
     private void CancelDrag()
     {
         Mouse.Capture(null);
@@ -435,10 +797,15 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         }
 
         _isDragging = false;
+        HideAdorners();
         _draggedItem = null;
         _draggedIndex = -1;
+        _dragStartIndex = -1;
+        // restore original item visibility
+        try { if (_draggedListBoxItem != null) _draggedListBoxItem.Opacity = 1.0; } catch { }
         _draggedListBoxItem = null;
         _currentPreviewIndex = -1;
+        HideAdorners();
     }
 
     private void ResetAllTransformsImmediate()

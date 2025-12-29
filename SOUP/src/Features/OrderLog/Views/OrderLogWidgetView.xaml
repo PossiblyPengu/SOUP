@@ -118,12 +118,12 @@
                                                        Foreground="{DynamicResource TextTertiaryBrush}"/>
 
                                             <!-- Drag Handle -->
-                                                    <Border Background="{DynamicResource SurfaceHoverBrush}"
+                                            <Border Tag="DragHandle" Background="{DynamicResource SurfaceHoverBrush}"
                                                     CornerRadius="4"
                                                     Padding="4,2"
                                                     HorizontalAlignment="Right"
                                                     Cursor="Hand"
-                                                    ToolTip="Drag disabled; use list reorder to move">
+                                                    ToolTip="Drag to reorder">
                                                 <TextBlock Text="⋮⋮"
                                                            FontSize="10"
                                                            Foreground="{DynamicResource TextTertiaryBrush}"
@@ -386,7 +386,10 @@
             <Grid>
                 <!-- Active Notes Panel -->
                 <StackPanel x:Name="ActiveItemsPanel">
-                    <ListBox ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent" SelectionMode="Single">
+                    <ListBox ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent" SelectionMode="Single"
+                             VirtualizingStackPanel.IsVirtualizing="False"
+                             VirtualizingStackPanel.VirtualizationMode="Standard"
+                             ScrollViewer.CanContentScroll="False">
                         <i:Interaction.Behaviors>
                             <commonBehaviors:ListBoxDragDropBehavior />
                         </i:Interaction.Behaviors>
@@ -483,6 +486,23 @@
                                         </Border.Style>
                                     </Border>
 
+                                    <!-- Drag handle for sticky notes (top-right) -->
+                                    <Button Tag="DragHandle"
+                                            Width="32"
+                                            Height="28"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Margin="0,6,6,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="SizeAll"
+                                            Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
+                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.75" IsHitTestVisible="False">
+                                            <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
+                                            <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
+                                        </StackPanel>
+                                    </Button>
+
                                     <!-- Content -->
                                     <StackPanel Grid.Row="1" Margin="16,14">
                                         <TextBlock Text="🔗" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="{DynamicResource TextSecondaryBrush}"
@@ -570,6 +590,7 @@
                                                       Padding="8,6"
                                                       MinHeight="28"
                                                       MinWidth="100"
+                                                      Margin="0,0,28,0"
                                                       Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"
                                                       Style="{StaticResource ModernComboBoxStyle}">
                                                 <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
@@ -612,6 +633,19 @@
                                                          Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
+                                                <!-- Inline drag handle for single items -->
+                                                <Border Tag="DragHandle" Background="{DynamicResource SurfaceHoverBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="4,2"
+                                                        HorizontalAlignment="Right"
+                                                        Cursor="Hand"
+                                                        Margin="0,0,2,0"
+                                                        Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                                                    <TextBlock Text="⋮⋮"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               FontWeight="Bold"/>
+                                                </Border>
                                             </Grid>
 
                                             <!-- Editable WHS Shipment Numbers -->
@@ -803,6 +837,15 @@
                                             <RowDefinition Height="4"/>
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
+                                        <!-- Drag Handle (right side) -->
+                                        <Button Tag="DragHandle" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Margin="0,0,6,0" Background="Transparent" BorderThickness="0" Cursor="SizeAll">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.6" IsHitTestVisible="False">
+                                                <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
+                                                <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
+                                                <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
+                                            </StackPanel>
+                                        </Button>
 
                                         <!-- Color Bar -->
                                         <Border Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"

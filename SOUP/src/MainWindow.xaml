@@ -192,9 +192,7 @@
                                  BorderThickness="0"
                                  Padding="0"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                            <i:Interaction.Behaviors>
-                                <behaviors:ListBoxDragDropBehavior OnReorder="{Binding SaveNavOrderAction}"/>
-                            </i:Interaction.Behaviors>
+                        
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Template">
