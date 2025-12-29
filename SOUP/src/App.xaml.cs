@@ -258,10 +258,23 @@ public partial class App : Application
             }
 
             // Check for command-line arguments to launch specific windows
-            if (e.Args.Length > 0 && e.Args[0].Equals("--dungeon", StringComparison.OrdinalIgnoreCase))
+            if (e.Args.Length > 0)
             {
-                var dungeonWindow = new Windows.DungeonCrawler();
-                dungeonWindow.Show();
+                if (e.Args[0].Equals("--dungeon", StringComparison.OrdinalIgnoreCase))
+                {
+                    var dungeonWindow = new Windows.DungeonCrawler();
+                    dungeonWindow.Show();
+                }
+                else if (e.Args[0].Equals("--widget", StringComparison.OrdinalIgnoreCase))
+                {
+                    var widgetWindow = _host.Services.GetRequiredService<Windows.OrderLogWidgetWindow>();
+                    widgetWindow.Show();
+                }
+                else
+                {
+                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                    mainWindow.Show();
+                }
             }
             else
             {

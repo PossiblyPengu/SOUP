@@ -138,6 +138,30 @@ public partial class OrderLogWidgetView : UserControl
 
         // Wire up fluid drag behavior events
         WireUpFluidDragBehavior();
+
+        // Ensure the main ScrollViewer receives mouse wheel even when children mark events handled
+        try
+        {
+            if (MainScrollViewer != null)
+            {
+                MouseWheelEventHandler handler = (s, ev) =>
+                {
+                    try
+                    {
+                        double newOffset = MainScrollViewer.VerticalOffset - (ev.Delta / 3.0);
+                        newOffset = Math.Max(0, Math.Min(newOffset, MainScrollViewer.ExtentHeight - MainScrollViewer.ViewportHeight));
+                        MainScrollViewer.ScrollToVerticalOffset(newOffset);
+                        ev.Handled = true;
+                    }
+                    catch { }
+                };
+
+                // Attach both preview and bubbling with handledEventsToo
+                MainScrollViewer.AddHandler(UIElement.PreviewMouseWheelEvent, handler, true);
+                MainScrollViewer.AddHandler(UIElement.MouseWheelEvent, handler, true);
+            }
+        }
+        catch { }
     }
 
     private void WireUpFluidDragBehavior()
@@ -439,6 +463,7 @@ public partial class OrderLogWidgetView : UserControl
                 if (sender is FrameworkElement fe && fe.DataContext is OrderItem ti) target = ti;
                 if (droppedItems.Count > 0)
                 {
+                    // Only link when Ctrl is held; otherwise move the items.
                     if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
                     {
                         await vm.LinkItemsAsync(droppedItems, target);
@@ -572,9 +597,22 @@ public partial class OrderLogWidgetView : UserControl
 
     private void ChangeColor_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem menuItem || menuItem.DataContext is not OrderItem order) return;
+        // Locate the OrderItem robustly: ContextMenu menu items don't always have DataContext set.
+        OrderItem? order = null;
+        MenuItem? menuItem = sender as MenuItem;
+        if (menuItem != null)
+        {
+            order = menuItem.DataContext as OrderItem;
+            if (order == null)
+            {
+                if (menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
+                    order = pt.DataContext as OrderItem;
+            }
+        }
+
+        if (order == null) return;
         if (DataContext is not OrderLogViewModel vm) return;
-        
+
         // Only allow color picking for sticky notes - orders use status colors
         if (order.NoteType != NoteType.StickyNote) return;
 

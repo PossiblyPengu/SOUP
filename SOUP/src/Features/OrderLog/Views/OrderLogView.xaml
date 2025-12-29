@@ -763,13 +763,7 @@
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal"
                                                Background="Transparent">
-                                        <i:Interaction.Behaviors>
-                                            <!-- New geometry-first grid drag behavior (uses card bounds) -->
-                                            <behaviors:GridDragBehavior />
-                                            <!-- Legacy behavior kept for reference:
-                                            <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
-                                            -->
-                                        </i:Interaction.Behaviors>
+                                        <!-- Drag behaviors removed to disable drag-and-drop in main view -->
                                     </WrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>

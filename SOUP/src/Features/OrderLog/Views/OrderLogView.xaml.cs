@@ -179,9 +179,19 @@ public partial class OrderLogView : UserControl
 
     private void ChangeColor_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem menuItem || menuItem.DataContext is not Models.OrderItem order) return;
+        // Resolve OrderItem even when ContextMenu/DataContext isn't inherited
+        Models.OrderItem? order = null;
+        MenuItem? menuItem = sender as MenuItem;
+        if (menuItem != null)
+        {
+            order = menuItem.DataContext as Models.OrderItem;
+            if (order == null && menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
+                order = pt.DataContext as Models.OrderItem;
+        }
+
+        if (order == null) return;
         if (DataContext is not OrderLogViewModel vm) return;
-        
+
         // Only allow color picking for sticky notes - orders use status colors
         if (order.NoteType != Models.NoteType.StickyNote) return;
 
@@ -728,7 +738,7 @@ public partial class OrderLogView : UserControl
 
             if (droppedItems.Count > 0)
             {
-                // If Ctrl is held, link with target group
+                // Only link when Ctrl is held; otherwise move the items into the group.
                 if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
                 {
                     await vm.LinkItemsAsync(droppedItems, target);

@@ -43,6 +43,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         AssociatedObject.PreviewMouseMove += OnPreviewMouseMove;
         AssociatedObject.PreviewMouseLeftButtonUp += OnPreviewMouseLeftButtonUp;
         AssociatedObject.MouseLeave += OnMouseLeave;
+        AssociatedObject.PreviewMouseWheel += OnPreviewMouseWheel;
     }
 
     protected override void OnDetaching()
@@ -52,7 +53,120 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         AssociatedObject.PreviewMouseMove -= OnPreviewMouseMove;
         AssociatedObject.PreviewMouseLeftButtonUp -= OnPreviewMouseLeftButtonUp;
         AssociatedObject.MouseLeave -= OnMouseLeave;
+        AssociatedObject.PreviewMouseWheel -= OnPreviewMouseWheel;
         CancelDrag();
+    }
+
+    private void HookWindowWheelHandler()
+    {
+        // Removed: window-level debug wheel hook (no longer needed)
+    }
+
+    private void OnPreviewMouseWheel(object? sender, MouseWheelEventArgs e)
+    {
+        // If the source is a scrollable control (TextBox, RichTextBox, inner ScrollViewer), let it handle the event.
+        DependencyObject? src = e.OriginalSource as DependencyObject;
+        while (src != null)
+        {
+            if (src is ScrollViewer || src is TextBox || src is RichTextBox)
+            {
+                return; // let the inner control handle scrolling
+            }
+            src = GetParentSafe(src);
+        }
+
+        // Otherwise, find nearest parent ScrollViewer from the event source
+        var sv = e.OriginalSource is DependencyObject srcObj ? FindAncestorSafe<ScrollViewer>(srcObj) : null;
+
+        // Fallback to ListBox ancestor if none found
+        if (sv == null)
+            sv = FindAncestor<ScrollViewer>(AssociatedObject);
+
+        if (sv != null)
+        {
+            // Adjust the offset (Delta is in multiples of 120 per notch)
+            double newOffset = sv.VerticalOffset - (e.Delta / 3.0);
+            newOffset = Math.Max(0, Math.Min(newOffset, sv.ExtentHeight - sv.ViewportHeight));
+            sv.ScrollToVerticalOffset(newOffset);
+            e.Handled = true;
+        }
+
+    // Safely get a parent for DependencyObjects that may not be Visuals (eg FlowDocument elements like Paragraph)
+    private DependencyObject? GetParentSafe(DependencyObject child)
+    {
+        if (child == null) return null;
+        // Use VisualTreeHelper for Visual/Visual3D, otherwise fall back to LogicalTreeHelper
+        if (child is Visual || child is System.Windows.Media.Media3D.Visual3D)
+        {
+            try
+            {
+                return VisualTreeHelper.GetParent(child);
+            }
+            catch
+            {
+                // Fall through to logical parent
+            }
+        }
+
+        try
+        {
+            return LogicalTreeHelper.GetParent(child);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private T? FindAncestorSafe<T>(DependencyObject? start) where T : DependencyObject
+    {
+        var current = start;
+        while (current != null)
+        {
+            if (current is T t) return t;
+            current = GetParentSafe(current);
+        }
+        return null;
+    }
+
+    // Searches descendants (visual + logical) for a descendant of type T using BFS, safe against non-visual nodes.
+    private T? FindDescendantSafe<T>(DependencyObject? start) where T : DependencyObject
+    {
+        if (start == null) return null;
+        var q = new Queue<DependencyObject>();
+        q.Enqueue(start);
+
+        while (q.Count > 0)
+        {
+            var cur = q.Dequeue();
+            if (cur is T found) return found;
+
+            // Enqueue visual children when available
+            try
+            {
+                int count = VisualTreeHelper.GetChildrenCount(cur);
+                for (int i = 0; i < count; i++)
+                {
+                    var child = VisualTreeHelper.GetChild(cur, i);
+                    if (child != null)
+                        q.Enqueue(child);
+                }
+            }
+            catch { }
+
+            // Enqueue logical children when available
+            try
+            {
+                foreach (var logical in LogicalTreeHelper.GetChildren(cur))
+                {
+                    if (logical is DependencyObject dob)
+                        q.Enqueue(dob);
+                }
+            }
+            catch { }
+        }
+
+        return null;
     }
 
     private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -138,12 +252,8 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             dragTransform.Y = offsetY;
         }
 
-        // Calculate which index we're hovering over
-        var itemHeight = GetAverageItemHeight();
-        int previewIndex = _draggedIndex + (int)Math.Round(offsetY / itemHeight);
-        
-        // Clamp to valid range
-        previewIndex = Math.Max(0, Math.Min(previewIndex, AssociatedObject.Items.Count - 1));
+        // Calculate which index we're hovering over using item midpoints (more accurate for varying heights)
+        int previewIndex = CalculatePreviewIndexFromPosition(mousePos);
 
         // Update animations if preview index changed
         if (previewIndex != _currentPreviewIndex)
@@ -211,6 +321,37 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         }
     }
 
+    private int CalculatePreviewIndexFromPosition(Point mousePos)
+    {
+        // Iterate items and use the container top/bottom edges (including margin) to determine insertion point
+        int itemCount = AssociatedObject.Items.Count;
+        for (int i = 0; i < itemCount; i++)
+        {
+            var container = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
+            if (container == null) continue;
+
+            // Get container top-left relative to the ListBox
+            var topLeft = container.TransformToVisual(AssociatedObject).Transform(new Point(0, 0));
+            double top = topLeft.Y;
+            double bottom = top + container.ActualHeight + container.Margin.Bottom;
+
+            // If pointer is above the top border of this item, insert before it
+            if (mousePos.Y < top)
+            {
+                return i;
+            }
+
+            // If pointer is within this item's vertical bounds, return this index
+            if (mousePos.Y >= top && mousePos.Y <= bottom)
+            {
+                return i;
+            }
+        }
+
+        // If below all items, return last index
+        return Math.Max(0, itemCount - 1);
+    }
+
     private void OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (_isDragging)
@@ -258,8 +399,17 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         {
             var selectedItem = AssociatedObject.SelectedItem;
             var item = list[oldIndex];
+
+            // Adjust insert index because removing the old item shifts indexes
+            int insertIndex = newIndex;
+            if (insertIndex > oldIndex)
+                insertIndex--;
+
+            // Clamp insertIndex to [0, list.Count]
+            insertIndex = Math.Max(0, Math.Min(insertIndex, list.Count));
+
             list.RemoveAt(oldIndex);
-            list.Insert(newIndex, item);
+            list.Insert(insertIndex, item);
             AssociatedObject.SelectedItem = selectedItem;
             OnReorder?.Invoke();
         }

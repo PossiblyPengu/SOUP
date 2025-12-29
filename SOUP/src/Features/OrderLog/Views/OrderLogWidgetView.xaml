@@ -6,7 +6,8 @@
              xmlns:converters="clr-namespace:SOUP.Features.OrderLog.Converters"
              xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors">
+             xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors"
+             xmlns:commonBehaviors="clr-namespace:SOUP.Behaviors">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -28,10 +29,11 @@
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
             <Border BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="10"
-                    Margin="0,0,0,14"
-                    Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}">
+                BorderThickness="1"
+                CornerRadius="10"
+                Width="320"
+                Margin="0,0,0,14"
+                Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="8"/>
@@ -116,14 +118,12 @@
                                                        Foreground="{DynamicResource TextTertiaryBrush}"/>
 
                                             <!-- Drag Handle -->
-                                            <Border Background="{DynamicResource SurfaceHoverBrush}"
+                                                    <Border Background="{DynamicResource SurfaceHoverBrush}"
                                                     CornerRadius="4"
                                                     Padding="4,2"
                                                     HorizontalAlignment="Right"
                                                     Cursor="Hand"
-                                                    ToolTip="Drag to move this order separately"
-                                                    PreviewMouseLeftButtonDown="SectionDragHandle_PreviewMouseLeftButtonDown"
-                                                    MouseMove="SectionDragHandle_MouseMove">
+                                                    ToolTip="Drag disabled; use list reorder to move">
                                                 <TextBlock Text="⋮⋮"
                                                            FontSize="10"
                                                            Foreground="{DynamicResource TextTertiaryBrush}"
@@ -382,26 +382,36 @@
         </Border>
 
         <!-- Notes List -->
-        <ScrollViewer Grid.Row="2" Padding="12">
+        <ScrollViewer x:Name="MainScrollViewer" Grid.Row="2" Padding="12">
             <Grid>
                 <!-- Active Notes Panel -->
                 <StackPanel x:Name="ActiveItemsPanel">
-                    <ItemsControl ItemsSource="{Binding DisplayItems}">
-                        <ItemsControl.ItemsPanel>
+                    <ListBox ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent" SelectionMode="Single">
+                        <i:Interaction.Behaviors>
+                            <commonBehaviors:ListBoxDragDropBehavior />
+                        </i:Interaction.Behaviors>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,14"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                <!-- Replace the default template to eliminate selection visuals entirely -->
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical"
-                                            Background="Transparent">
-                                    <i:Interaction.Behaviors>
-                                        <!-- New geometry-first grid drag behavior -->
-                                        <behaviors:GridDragBehavior />
-                                        <!-- Legacy behavior kept for reference:
-                                        <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
-                                        -->
-                                    </i:Interaction.Behaviors>
-                                </StackPanel>
+                                <StackPanel Orientation="Vertical" Background="Transparent"/>
                             </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
                         <DataTemplate>
                             <ContentControl Content="{Binding}">
                                 <ContentControl.Style>
@@ -416,6 +426,7 @@
                                                                 <Border BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="10"
+                                    Width="320"
                                     Margin="0,0,0,14"
                                     Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
                                 <Border.Style>
@@ -758,8 +769,8 @@
                                 </ContentControl.Style>
                             </ContentControl>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ListBox.ItemTemplate>
+                </ListBox>
                 </StackPanel>
             
                 <!-- Archived Notes Panel (separate tab) -->
