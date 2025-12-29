@@ -201,7 +201,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         while (srcCheck != null)
         {
             if (srcCheck is FrameworkElement fe && fe.Tag is string t && t == "DragHandle") { isHandle = true; break; }
-            srcCheck = VisualTreeHelper.GetParent(srcCheck);
+            srcCheck = GetParentSafe(srcCheck);
         }
         if (!isHandle)
             return;
@@ -869,7 +869,21 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         {
             if (current is T match)
                 return match;
-            current = VisualTreeHelper.GetParent(current);
+            try
+            {
+                current = VisualTreeHelper.GetParent(current);
+            }
+            catch
+            {
+                try
+                {
+                    current = LogicalTreeHelper.GetParent(current);
+                }
+                catch
+                {
+                    current = null;
+                }
+            }
         }
         return null;
     }
