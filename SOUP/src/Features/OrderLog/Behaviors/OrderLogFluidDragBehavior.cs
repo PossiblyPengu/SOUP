@@ -57,6 +57,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private double? _lockedPanelWidth;
     private bool _isLinkMode;
     private TransformGroup? _draggedTransform;
+    private FrameworkElement? _currentLinkTargetBorder; // Visual feedback for the card we will link to
     private DateTime _lastShiftCalculation = DateTime.MinValue;
     private Brush? _originalBorderBrush;
     private Thickness _originalBorderThickness;
@@ -316,9 +317,20 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             }
         }
 
-        // Skip card shifting in link mode - we only shift cards when reordering
+        // Link mode: highlight target under cursor and skip shifting
         if (_isLinkMode)
         {
+            var targetBorder = FindBorderUnderCursor();
+            if (!ReferenceEquals(targetBorder, _currentLinkTargetBorder))
+            {
+                ClearTargetVisualFeedback();
+                if (targetBorder != null)
+                {
+                    ApplyTargetVisualFeedback(targetBorder);
+                }
+                _currentLinkTargetBorder = targetBorder;
+            }
+
             // For link mode, don't use insertion index - just track mouse position
             // We'll find the card directly under cursor when finishing drag
             return;
@@ -522,6 +534,10 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             border.Effect = null;
         }
 
+        // Clear any link-mode target feedback
+        ClearTargetVisualFeedback();
+        _currentLinkTargetBorder = null;
+
         // Clear animator transforms
         _animator?.ClearTransforms();
 
@@ -637,6 +653,69 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         };
 
         newBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnimation);
+    }
+
+    // Finds the Border element under the mouse cursor (excluding the dragged element)
+    private Border? FindBorderUnderCursor()
+    {
+        if (AssociatedObject == null || _draggedElement == null) return null;
+
+        var mousePosition = Mouse.GetPosition(AssociatedObject);
+
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border == null || border == _draggedElement)
+                continue;
+
+            if (!(border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+                continue;
+
+            var borderBounds = new Rect(
+                border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)),
+                new Size(border.ActualWidth, border.ActualHeight)
+            );
+
+            if (borderBounds.Contains(mousePosition))
+                return border;
+        }
+
+        return null;
+    }
+
+    // Apply visual feedback to the candidate link target (non-dragged card)
+    private void ApplyTargetVisualFeedback(FrameworkElement element)
+    {
+        if (element is not Border border) return;
+
+        // Apply a purple dashed outline + glow so it's clear we're linking to this card
+        var dashBrush = new SolidColorBrush(Color.FromRgb(138, 43, 226));
+        border.BorderBrush = dashBrush;
+        border.BorderThickness = new Thickness(3);
+
+        var dropShadow = new System.Windows.Media.Effects.DropShadowEffect
+        {
+            Color = Color.FromRgb(138, 43, 226),
+            BlurRadius = 18,
+            ShadowDepth = 0,
+            Opacity = 0.75
+        };
+        border.Effect = dropShadow;
+    }
+
+    private void ClearTargetVisualFeedback()
+    {
+        if (_currentLinkTargetBorder is Border tb)
+        {
+            // Attempt to restore to default look - if this border is the same as the
+            // dragged element's visualFeedbackBorder we will restore that separately.
+            tb.BorderBrush = _originalBorderBrush ?? new SolidColorBrush(Colors.Transparent);
+            tb.BorderThickness = _originalBorderThickness;
+            tb.Effect = null;
+        }
     }
 
     private FrameworkElement? FindCardElement(DependencyObject? source)

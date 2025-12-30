@@ -184,7 +184,12 @@ public partial class OrderLogView : UserControl
         MenuItem? menuItem = sender as MenuItem;
         if (menuItem != null)
         {
-            order = menuItem.DataContext as Models.OrderItem;
+            // Use CommandParameter when provided by XAML (reliable with ContextMenu)
+            if (menuItem.CommandParameter is Models.OrderItem cp)
+                order = cp;
+            else
+                order = menuItem.DataContext as Models.OrderItem;
+
             if (order == null && menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
                 order = pt.DataContext as Models.OrderItem;
         }
@@ -267,6 +272,37 @@ public partial class OrderLogView : UserControl
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to delete note");
+        }
+    }
+
+    private async void ArchiveNote_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Models.OrderItem? order = null;
+
+            if (sender is MenuItem menuItem)
+            {
+                order = menuItem.DataContext as Models.OrderItem;
+                if (order == null && menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
+                    order = pt.DataContext as Models.OrderItem;
+            }
+            else if (sender is Button btn)
+            {
+                order = btn.DataContext as Models.OrderItem;
+            }
+
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                if (vm.Items.Contains(order)) vm.Items.Remove(order);
+                if (!vm.ArchivedItems.Contains(order)) vm.ArchivedItems.Add(order);
+                await vm.SaveAsync();
+                vm.StatusMessage = "Archived item";
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to archive note");
         }
     }
 

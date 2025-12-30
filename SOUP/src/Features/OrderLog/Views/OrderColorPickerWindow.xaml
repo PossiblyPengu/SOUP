@@ -152,30 +152,53 @@
                 
                 <Grid Margin="0,0,0,20">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="60"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                        <Border x:Name="CustomColorPreview"
-                            Width="40"
-                            Height="40"
+                    <Border x:Name="CustomColorPreview"
+                            Width="48"
+                            Height="48"
                             CornerRadius="6"
                             BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="1"
-                            Background="{Binding Source={x:Static constants:OrderLogColors.PaletteViolet}}"/>
+                            Background="{Binding Source={x:Static constants:OrderLogColors.PaletteViolet}}"
+                            VerticalAlignment="Top"/>
 
-                        <TextBox x:Name="HexBox"
-                             Grid.Column="1"
-                             Text="{x:Static constants:OrderLogColors.PaletteViolet}"
-                             TextChanged="HexBox_TextChanged"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderBrush="{DynamicResource BorderBrush}"
-                             BorderThickness="1"
-                             Padding="10,8"
-                             FontSize="13"
-                             FontFamily="Consolas"
-                             Margin="10,0,0,0"/>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,6">
+                            <TextBlock Text="Hex:" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}" Width="40"/>
+                            <TextBox x:Name="HexBox"
+                                 Text="{x:Static constants:OrderLogColors.PaletteViolet}"
+                                 TextChanged="HexBox_TextChanged"
+                                 Background="{DynamicResource SurfaceHoverBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 BorderThickness="1"
+                                 Padding="8,6"
+                                 FontSize="13"
+                                 FontFamily="Consolas"
+                                 Width="120"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="R" Width="18" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                <Slider x:Name="RSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged" Width="220"/>
+                                <TextBlock x:Name="RValue" Width="36" TextAlignment="Right" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,0,0">
+                                <TextBlock Text="G" Width="18" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                <Slider x:Name="GSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged" Width="220"/>
+                                <TextBlock x:Name="GValue" Width="36" TextAlignment="Right" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,0,0">
+                                <TextBlock Text="B" Width="18" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                <Slider x:Name="BSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged" Width="220"/>
+                                <TextBlock x:Name="BValue" Width="36" TextAlignment="Right" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
                 </Grid>
 
                 <!-- Buttons -->

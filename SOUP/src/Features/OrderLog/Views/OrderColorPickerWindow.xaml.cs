@@ -14,6 +14,16 @@ public partial class OrderColorPickerWindow : Window
         InitializeComponent();
         SelectedColor = initialColor ?? "#8b5cf6";
         HexBox.Text = SelectedColor;
+        // Initialize sliders from initial color
+        try
+        {
+            var color = (Color)ColorConverter.ConvertFromString(SelectedColor);
+            RSlider.Value = color.R;
+            GSlider.Value = color.G;
+            BSlider.Value = color.B;
+            UpdateSlidersText();
+        }
+        catch { }
         UpdatePreview(SelectedColor);
     }
 
@@ -23,6 +33,16 @@ public partial class OrderColorPickerWindow : Window
         {
             SelectedColor = color;
             HexBox.Text = color;
+            // Update sliders to reflect this color
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(color);
+                RSlider.Value = c.R;
+                GSlider.Value = c.G;
+                BSlider.Value = c.B;
+                UpdateSlidersText();
+            }
+            catch { }
             UpdatePreview(color);
         }
     }
@@ -40,6 +60,11 @@ public partial class OrderColorPickerWindow : Window
             try
             {
                 var color = (Color)ColorConverter.ConvertFromString(hex);
+                // Update sliders to match typed hex
+                RSlider.Value = color.R;
+                GSlider.Value = color.G;
+                BSlider.Value = color.B;
+                UpdateSlidersText();
                 UpdatePreview(hex);
                 SelectedColor = hex;
             }
@@ -48,6 +73,26 @@ public partial class OrderColorPickerWindow : Window
                 // Invalid color format - ignore silently as user is typing
             }
         }
+    }
+
+    private void Slider_ValueChanged(object? sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // Build hex from RGB sliders and update preview/hex box
+        var r = (byte)RSlider.Value;
+        var g = (byte)GSlider.Value;
+        var b = (byte)BSlider.Value;
+        var hex = $"#{r:X2}{g:X2}{b:X2}";
+        SelectedColor = hex;
+        HexBox.Text = hex;
+        UpdateSlidersText();
+        UpdatePreview(hex);
+    }
+
+    private void UpdateSlidersText()
+    {
+        RValue.Text = ((int)RSlider.Value).ToString();
+        GValue.Text = ((int)GSlider.Value).ToString();
+        BValue.Text = ((int)BSlider.Value).ToString();
     }
 
     private void UpdatePreview(string hex)

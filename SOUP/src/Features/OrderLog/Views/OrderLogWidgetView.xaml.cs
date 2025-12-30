@@ -602,7 +602,11 @@ public partial class OrderLogWidgetView : UserControl
         MenuItem? menuItem = sender as MenuItem;
         if (menuItem != null)
         {
-            order = menuItem.DataContext as OrderItem;
+            // Prefer CommandParameter when supplied (more reliable inside ContextMenu)
+            if (menuItem.CommandParameter is OrderItem cp)
+                order = cp;
+            else
+                order = menuItem.DataContext as OrderItem;
             if (order == null)
             {
                 if (menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)

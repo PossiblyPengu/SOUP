@@ -32,11 +32,40 @@
             <Setter Property="CornerRadius" Value="{StaticResource CardCornerRadius}" />
             <Setter Property="Width" Value="{StaticResource CardWidth}" />
             <Setter Property="Margin" Value="{StaticResource CardMargin}" />
+            <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                    <!-- Use the same note brush as main view so sticky notes have a visible background. -->
                     <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
+        </Style>
+
+        <!-- Group style: when the DataContext is an OrderItemGroup use First.Status for background -->
+        <Style x:Key="GroupCardBorderStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
+            <Setter Property="Background" Value="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}" />
+        </Style>
+
+        <!-- Unified drag-handle style used across cards -->
+        <Style x:Key="DragHandleButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="SizeAll" />
+            <Setter Property="Panel.ZIndex" Value="250" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.9" IsHitTestVisible="False">
+                                <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
+                                <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Style for phantom placeholder text -->
@@ -49,8 +78,7 @@
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{StaticResource CardBorderStyle}"
-                Background="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}">
+            <Border Style="{StaticResource GroupCardBorderStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -129,25 +157,20 @@
                                     </Border.Style>
 
                                     <StackPanel>
-                                        <!-- Section Header with Drag Handle -->
+                                        <!-- Section Header with Drag Handle (text left, handle right) -->
                                         <Grid Margin="0,0,0,8">
-                                            <TextBlock Text="{Binding VendorName, TargetNullValue='Order'}"
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="{Binding VendorName, TargetNullValue='Order'}"
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextTertiaryBrush}"/>
 
-                                            <!-- Drag Handle -->
-                                            <Border Tag="DragHandle" Background="{DynamicResource SurfaceHoverBrush}"
-                                                    CornerRadius="4"
-                                                    Padding="4,2"
-                                                    HorizontalAlignment="Right"
-                                                    Cursor="Hand"
-                                                    ToolTip="Drag to reorder">
-                                                <TextBlock Text="⋮⋮"
-                                                           FontSize="10"
-                                                           Foreground="{DynamicResource TextTertiaryBrush}"
-                                                           FontWeight="Bold"/>
-                                            </Border>
+                                            <!-- Drag Handle (unified style) -->
+                                            <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" HorizontalAlignment="Right"/>
                                         </Grid>
 
                                         <!-- Editable VendorName -->
@@ -287,11 +310,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Header (hidden - window chrome already shows title) -->
         <Border Background="{DynamicResource SurfaceBrush}" 
                 Padding="16,14"
                 BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,0,0,1">
+                BorderThickness="0,0,0,1"
+                Visibility="Collapsed">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="📋" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
                 <TextBlock Text="Order Log"
@@ -430,7 +454,11 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical" Background="Transparent"/>
+                                <StackPanel Orientation="Vertical" Background="Transparent">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:OrderLogFluidDragBehavior AnimationDuration="300" />
+                                    </i:Interaction.Behaviors>
+                                </StackPanel>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
@@ -445,8 +473,7 @@
                                                     <ContentControl Content="{Binding First}">
                                                         <ContentControl.ContentTemplate>
                                                                 <DataTemplate>
-                                                                <Border Style="{StaticResource CardBorderStyle}"
-                                    Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
+                                                                <Border Style="{StaticResource CardBorderStyle}">
                                 <!-- Background for sticky notes handled by CardBorderStyle DataTrigger -->
                                 <Border.ContextMenu>
                                     <ContextMenu>
@@ -462,6 +489,7 @@
                                         <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <!-- Change Color - only for sticky notes -->
                                         <MenuItem Header="Change Color..." Click="ChangeColor_Click"
+                                                  CommandParameter="{Binding}"
                                                   Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                                         <MenuItem Header="Link with..." Click="LinkWith_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Unlink" Click="Unlink_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
@@ -472,7 +500,7 @@
                                 </Border.ContextMenu>
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="{StaticResource CardColorBarHeight}"/>
+                                        <RowDefinition Height="8"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
@@ -481,13 +509,25 @@
                                     <Border Grid.Row="0" CornerRadius="8,8,0,0"
                                             Cursor="Hand"
                                             MouseLeftButtonDown="ColorBar_Click"
-                                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}" Height="{StaticResource CardColorBarHeight}"/>
+                                            Height="{StaticResource CardColorBarHeight}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                        <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
 
                                     <!-- Header (Vendor/Note title on left, Status + Drag handle on right) -->
-                                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="12,8" Margin="0">
+                                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="0" MinHeight="36" Panel.ZIndex="50">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
@@ -556,130 +596,46 @@
                                                 </Grid>
                                             </StackPanel>
 
-                                            <!-- Right: Status and Drag Handle -->
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <ComboBox HorizontalAlignment="Right" Margin="0,0,8,0"
-                                                          SelectedValue="{Binding Status, Mode=TwoWay}"
-                                                          SelectedValuePath="Tag"
-                                                          SelectionChanged="StatusComboBox_SelectionChanged"
-                                                          FontSize="11"
-                                                          FontWeight="SemiBold"
-                                                          Padding="8,6"
-                                                          MinHeight="28"
-                                                          MinWidth="120"
-                                                          Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"
-                                                          Foreground="{DynamicResource TextPrimaryBrush}"
-                                                          Style="{StaticResource ModernComboBoxStyle}">
-                                                    <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
-                                                    <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
-                                                    <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
-                                                    <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                                </ComboBox>
+                                            <!-- Right: Status (col 1) and Drag Handle (col 2) -->
+                                            <ComboBox Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,8,0"
+                                                      SelectedValue="{Binding Status, Mode=TwoWay}"
+                                                      SelectedValuePath="Tag"
+                                                      SelectionChanged="StatusComboBox_SelectionChanged"
+                                                      FontSize="11"
+                                                      FontWeight="SemiBold"
+                                                      Padding="8,6"
+                                                      MinHeight="28"
+                                                      MinWidth="120"
+                                                      Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"
+                                                      Foreground="{DynamicResource TextPrimaryBrush}"
+                                                      Style="{StaticResource ModernComboBoxStyle}">
+                                                <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
+                                                <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
+                                                <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
+                                                <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                            </ComboBox>
 
-                                                <Button Tag="DragHandle"
-                                                        Width="32"
-                                                        Height="28"
-                                                        Background="{DynamicResource SurfaceHoverBrush}"
-                                                        BorderThickness="0"
-                                                        Cursor="SizeAll"
-                                                        ToolTip="Drag to reorder"
-                                                        Panel.ZIndex="250">
-                                                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.9">
-                                                        <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
-                                                        <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </StackPanel>
+                                            <!-- Drag handle moved into the body for single-item cards to match merged/linked sections -->
                                         </Grid>
                                     </Border>
 
                                     <!-- Content -->
-                                    <StackPanel Grid.Row="1" Margin="16,14">
+                                    <StackPanel Grid.Row="2" Margin="16,14">
                                         <TextBlock Text="🔗" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="{DynamicResource TextSecondaryBrush}"
                                                    Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}"/>
-                                        <Grid>
-                                            <!-- Editable VendorName for Orders (hidden for sticky notes) -->
-                                            <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
-                                                <TextBlock Text="Vendor name..." 
-                                                           FontSize="15"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource TextDisabledBrush}"
-                                                           FontStyle="Italic"
-                                                           IsHitTestVisible="False"
-                                                           VerticalAlignment="Center"
-                                                           Margin="0,0,70,0">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding VendorName}" Value="">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding VendorName}" Value="{x:Null}">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         FontSize="15"
-                                                         FontWeight="SemiBold"
-                                                         Foreground="{DynamicResource TextPrimaryBrush}"
-                                                         Padding="0"
-                                                        Margin="0,0,140,0"
-                                                         GotFocus="EditableField_GotFocus"
-                                                         LostFocus="EditableField_LostFocus"/>
-                                            </Grid>
-                                            
-                                            <!-- Title for Sticky Notes (editable with placeholder) -->
-                                            <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
-                                                <TextBlock Text="Note title..." 
-                                                           FontSize="15"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource TextDisabledBrush}"
-                                                           FontStyle="Italic"
-                                                           IsHitTestVisible="False"
-                                                           VerticalAlignment="Center"
-                                                           Margin="0,0,70,0">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding NoteTitle}" Value="">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding NoteTitle}" Value="{x:Null}">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBox x:Name="NoteTitleBox"
-                                                         Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         FontSize="15" 
-                                                         FontWeight="SemiBold" 
-                                                         Foreground="{DynamicResource TextPrimaryBrush}"
-                                                         Padding="0"
-                                                         Margin="0,0,70,0"
-                                                         GotFocus="EditableField_GotFocus"
-                                                         LostFocus="EditableField_LostFocus"/>
-                                            </Grid>
-                                            
-                                            <!-- Status moved into header; removed duplicate here -->
-                                        </Grid>
+                                        <!-- Vendor/title moved into header; remove duplicate fields from body -->
 
                                         <!-- ORDER FIELDS (hidden for sticky notes) -->
                                         <StackPanel Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                             
-                                            <!-- Editable Transfer Numbers -->
+                                            <!-- Editable Transfer Numbers with inline drag handle (moved here for single-item cards) -->
                                             <Grid Margin="0,6,0,0">
-                                                <TextBlock Text="Transfer #s..." 
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0" Text="Transfer #s..." 
                                                            FontSize="13"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
                                                            FontStyle="Italic"
@@ -699,7 +655,8 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                                <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+
+                                                <TextBox Grid.Column="0" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
                                                          Background="Transparent"
                                                          BorderThickness="0"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
@@ -707,7 +664,9 @@
                                                          Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
-                                                <!-- Inline drag handle removed (now in header) -->
+
+                                                <!-- Drag handle (visible because this block is only shown for orders) -->
+                                                <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" Margin="6,0,0,0" HorizontalAlignment="Right"/>
                                             </Grid>
 
                                             <!-- Editable WHS Shipment Numbers -->
@@ -882,9 +841,10 @@
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
-                                                </DataTrigger>
+                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                        <!-- Keep the card background transparent for sticky notes; header uses SurfaceHoverBrush. -->
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                    </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
@@ -900,14 +860,7 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
                                         <!-- Drag Handle (right side) -->
-                                        <Button Tag="DragHandle" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                            Margin="0,0,6,0" Background="{DynamicResource SurfaceHoverBrush}" BorderThickness="0" Cursor="SizeAll" ToolTip="Drag to reorder" Panel.ZIndex="250">
-                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.6" IsHitTestVisible="False">
-                                                <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
-                                                <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
-                                                <Rectangle Width="18" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,1"/>
-                                            </StackPanel>
-                                        </Button>
+                                        <Button Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" />
 
                                         <!-- Color Bar -->
                                         <Border Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"
