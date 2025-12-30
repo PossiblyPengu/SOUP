@@ -41,7 +41,7 @@ public class ViewModelToViewConverter : IValueConverter
             EssentialsBuddyViewModel vm => new EssentialsBuddyView { DataContext = vm },
             ExpireWiseViewModel vm => new ExpireWiseView { DataContext = vm },
             SwiftLabelViewModel vm => new SwiftLabelView { DataContext = vm },
-            OrderLogViewModel vm => new OrderLogView { DataContext = vm },
+            OrderLogViewModel vm => new SOUP.Features.OrderLog.Views.OrderLogSettingsView { DataContext = vm },
             null => null,
             _ => throw new ArgumentException($"Unknown ViewModel type: {value.GetType().Name}")
         };

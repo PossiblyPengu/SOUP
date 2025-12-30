@@ -641,23 +641,57 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task LinkItemsAsync(System.Collections.Generic.List<OrderItem> itemsToLink, OrderItem? target)
     {
+        // Simple, deterministic linking algorithm
         if (itemsToLink == null || itemsToLink.Count == 0) return;
-        if (target == null) return; // need a target to link to
 
-        // Collect existing group ids from items and target
-        var existingGroupIds = itemsToLink.Select(i => i.LinkedGroupId).Where(g => g != null).ToList();
-        if (target.LinkedGroupId != null) existingGroupIds.Add(target.LinkedGroupId);
+        // Ensure target exists and is renderable
+        if (target == null) return;
+        if (!target.IsRenderable) return;
 
-        Guid groupId = existingGroupIds.FirstOrDefault() ?? Guid.NewGuid();
-
-        // If there are multiple existing group ids, unify them by using groupId
-        var allCandidates = Items.Concat(ArchivedItems).Where(i =>
-            itemsToLink.Select(x => x.Id).Contains(i.Id) || i.Id == target.Id ||
-            (i.LinkedGroupId != null && existingGroupIds.Contains(i.LinkedGroupId))).ToList();
-
-        foreach (var it in allCandidates)
+        // Resolve items that actually exist in our collections and are renderable
+        var known = Items.Concat(ArchivedItems).ToDictionary(i => i.Id);
+        var candidates = new List<OrderItem>();
+        foreach (var it in itemsToLink)
         {
-            it.LinkedGroupId = groupId;
+            if (it == null) continue;
+            if (!known.TryGetValue(it.Id, out var knownItem)) continue;
+            if (!knownItem.IsRenderable) continue;
+            candidates.Add(knownItem);
+        }
+        if (candidates.Count == 0) return;
+
+        // Enforce same NoteType as target
+        candidates = candidates.Where(i => i.NoteType == target.NoteType).ToList();
+        if (candidates.Count == 0) return;
+
+        // Determine group id: prefer target's group, otherwise any candidate's group, otherwise new
+        Guid groupId;
+        if (target.LinkedGroupId != null) groupId = target.LinkedGroupId.Value;
+        else
+        {
+            var existing = candidates.Select(c => c.LinkedGroupId).FirstOrDefault(g => g != null);
+            groupId = existing ?? Guid.NewGuid();
+        }
+
+        // Assign group id to target
+        target.LinkedGroupId = groupId;
+
+        // Assign group id to candidates and unify any existing groups by reassigning their members
+        foreach (var c in candidates)
+            c.LinkedGroupId = groupId;
+
+        // Also pull in any items that already belonged to these groups (to unify groups)
+        var groupsToUnify = new HashSet<Guid>(candidates.Select(c => c.LinkedGroupId ?? Guid.Empty).Where(g => g != Guid.Empty));
+        if (target.LinkedGroupId != null) groupsToUnify.Add(target.LinkedGroupId.Value);
+
+        foreach (var it in Items.Concat(ArchivedItems))
+        {
+            if (it.LinkedGroupId != null && groupsToUnify.Contains(it.LinkedGroupId.Value))
+            {
+                // Only include renderable items
+                if (it.IsRenderable)
+                    it.LinkedGroupId = groupId;
+            }
         }
 
         await SaveAsync();
@@ -677,6 +711,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             if (processed.Contains(item.Id))
                 continue;
+            // Skip non-renderable items (orders with empty vendor name)
+            if (!item.IsRenderable)
+            {
+                processed.Add(item.Id);
+                continue;
+            }
 
             if (item.LinkedGroupId == null)
             {
@@ -686,13 +726,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             else
             {
                 var gid = item.LinkedGroupId;
-                var members = Items.Where(i => i.LinkedGroupId == gid).ToList();
+                var members = Items.Where(i => i.LinkedGroupId == gid && i.IsRenderable).ToList();
                 if (members.Count > 0)
                 {
                     foreach (var m in members)
                         processed.Add(m.Id);
 
                     DisplayItems.Add(new OrderItemGroup(members));
+                }
+                else
+                {
+                    // No renderable members in this group - mark item processed so it's skipped
+                    processed.Add(item.Id);
                 }
             }
         }

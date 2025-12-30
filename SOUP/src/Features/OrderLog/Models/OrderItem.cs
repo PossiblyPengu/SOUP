@@ -156,6 +156,13 @@ public partial class OrderItem : ObservableObject
     public bool IsStickyNote => NoteType == NoteType.StickyNote;
 
     /// <summary>
+    /// Whether this item should be rendered as an order card in the UI.
+    /// Sticky notes are always renderable; orders with empty vendor name are considered invalid.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsRenderable => NoteType == NoteType.StickyNote || !string.IsNullOrWhiteSpace(VendorName);
+
+    /// <summary>
     /// Display title - uses VendorName for orders, first line of NoteContent for sticky notes
     /// </summary>
     [JsonIgnore]

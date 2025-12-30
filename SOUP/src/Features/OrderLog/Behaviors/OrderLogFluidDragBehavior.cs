@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using System.Windows;
+using System.IO;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -42,6 +44,19 @@ namespace SOUP.Features.OrderLog.Behaviors;
 /// </remarks>
 public class OrderLogFluidDragBehavior : Behavior<Panel>
 {
+        private static readonly string _debugLogPath = Path.Combine(Path.GetTempPath(), "OrderLogDebug.log");
+
+        private static void AppendDebug(string msg)
+        {
+            try
+            {
+                File.AppendAllText(_debugLogPath, DateTime.Now.ToString("o") + " " + msg + Environment.NewLine);
+            }
+            catch
+            {
+                // swallow logging errors to avoid interfering with app
+            }
+        }
     private Point _dragStartPoint;
     private Point _elementClickOffset; // Where on the element we clicked
     private Point _elementOriginalPosition; // Element's layout position before drag
@@ -403,24 +418,125 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         {
             if (isLinkMode)
             {
-                var linkTarget = targetItem ?? FindNearestLinkTarget();
+                // Prefer the currently highlighted border (visual feedback) as the link target
+                OrderItem? linkTarget = null;
+                if (_currentLinkTargetBorder != null)
+                {
+                    var dc = _currentLinkTargetBorder.DataContext;
+                    if (dc is OrderItem highlightedItem) linkTarget = highlightedItem;
+                    else if (dc is OrderItemGroup highlightedGroup) linkTarget = highlightedGroup.First;
+                }
+
+                linkTarget ??= targetItem ?? FindNearestLinkTarget();
+
+                var finishMsg = $"[OrderLogFluidDrag] FinishDrag: isLinkMode=TRUE draggedCount={draggedItems.Count} draggedIds={string.Join(',', draggedItems.Select(i => i.Id))} targetId={(linkTarget == null ? "null" : linkTarget.Id.ToString())} targetVendor={(linkTarget == null ? string.Empty : linkTarget.VendorName)}";
+                Debug.WriteLine(finishMsg);
+                AppendDebug(finishMsg);
+
+                // If the resolved link target appears to be a practically-empty placeholder,
+                // try to find a nearby non-blank card to use instead (defensive).
+                static bool IsBlankCandidate(OrderItem it)
+                    => string.IsNullOrWhiteSpace(it.VendorName)
+                       && string.IsNullOrWhiteSpace(it.TransferNumbers)
+                       && string.IsNullOrWhiteSpace(it.WhsShipmentNumbers)
+                       && string.IsNullOrWhiteSpace(it.NoteContent);
+
+                if (linkTarget != null && IsBlankCandidate(linkTarget))
+                {
+                    try
+                    {
+                        AppendDebug("[OrderLogFluidDrag] Detected blank link target; searching for nearest non-blank replacement");
+
+                        OrderItem? replacement = null;
+                        Point mousePos = Mouse.GetPosition(AssociatedObject);
+                        double bestDist = double.MaxValue;
+
+                        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+                        {
+                            if (panelChild.Visibility != Visibility.Visible)
+                                continue;
+
+                            var border = FindVisualChildOfType<Border>(panelChild);
+                            if (border == null || border == _draggedElement)
+                                continue;
+
+                            OrderItem? candidate = null;
+                            if (border.DataContext is OrderItem oi) candidate = oi;
+                            else if (border.DataContext is OrderItemGroup og) candidate = og.First;
+                            if (candidate == null) continue;
+                            if (IsBlankCandidate(candidate)) continue;
+
+                            var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
+                            var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+                            var dist = (center - mousePos).Length;
+                            if (dist < bestDist)
+                            {
+                                bestDist = dist;
+                                replacement = candidate;
+                            }
+                        }
+
+                        if (replacement != null)
+                        {
+                            AppendDebug($"[OrderLogFluidDrag] Using replacement target {replacement.Id} (vendor='{replacement.VendorName}')");
+                            Debug.WriteLine($"[OrderLogFluidDrag] Using replacement target {replacement.Id}");
+                            linkTarget = replacement;
+                        }
+                        else
+                        {
+                            AppendDebug("[OrderLogFluidDrag] No non-blank replacement found; proceeding with original target");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendDebug("[OrderLogFluidDrag] Error searching for replacement: " + ex.Message);
+                    }
+                }
 
                 if (LinkComplete != null)
                 {
+                    Debug.WriteLine("[OrderLogFluidDrag] Raising LinkComplete event");
+                    AppendDebug("[OrderLogFluidDrag] Raising LinkComplete event");
                     LinkComplete.Invoke(draggedItems, linkTarget);
                 }
                 else if (viewModel != null && linkTarget != null)
                 {
+                    Debug.WriteLine("[OrderLogFluidDrag] Calling ViewModel.LinkItemsAsync...");
+                    AppendDebug("[OrderLogFluidDrag] Calling ViewModel.LinkItemsAsync...");
                     await viewModel.LinkItemsAsync(draggedItems, linkTarget);
                 }
                 else if (viewModel != null)
                 {
-                    // No link target - fall back to move
+                    Debug.WriteLine("[OrderLogFluidDrag] No link target found, falling back to MoveOrdersAsync");
+                    AppendDebug("[OrderLogFluidDrag] No link target found, falling back to MoveOrdersAsync");
                     await viewModel.MoveOrdersAsync(draggedItems, targetItem);
                 }
             }
             else
             {
+                // Emit diagnostic snapshot for reorder: insertion indices and visible children
+                try
+                {
+                    var visible = new System.Text.StringBuilder();
+                    foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+                    {
+                        if (panelChild.Visibility != Visibility.Visible) continue;
+                        var border = FindVisualChildOfType<Border>(panelChild);
+                        if (border == null) continue;
+                        if (border.DataContext is OrderItem oi)
+                        {
+                            visible.Append($"[{oi.Id.ToString().Substring(0,8)}:{oi.VendorName}] ");
+                        }
+                        else if (border.DataContext is OrderItemGroup og)
+                        {
+                            var first = og.First;
+                            visible.Append($"[G:{(first!=null?first.Id.ToString().Substring(0,8):"null")}({og.Members.Count})] ");
+                        }
+                    }
+                    AppendDebug($"[OrderLogFluidDrag] Reorder finish snapshot: currentInsertionIndex={_currentInsertionIndex} draggedIndex={_draggedIndex} visible={visible}");
+                }
+                catch { }
+
                 if (ReorderComplete != null)
                 {
                     ReorderComplete.Invoke(draggedItems, targetItem);
@@ -671,7 +787,17 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             if (border == null || border == _draggedElement)
                 continue;
 
-            if (!(border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+            // If we're dragging orders (Ctrl+drag link mode), do not consider sticky-note targets
+            bool draggingHasOrder = _draggedItems != null && _draggedItems.Count > 0 && _draggedItems.Any(d => d.NoteType == NoteType.Order);
+            if (draggingHasOrder)
+            {
+                if (border.DataContext is OrderItem targetOi && targetOi.NoteType == NoteType.StickyNote)
+                    continue;
+                if (border.DataContext is OrderItemGroup targetOg && targetOg.First != null && targetOg.First.NoteType == NoteType.StickyNote)
+                    continue;
+            }
+
+            if (!IsRenderableDataContext(border.DataContext))
                 continue;
 
             var borderBounds = new Rect(
@@ -735,7 +861,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 if (panelChild != null)
                 {
                     var outerBorder = FindVisualChildOfType<Border>(panelChild);
-                    if (outerBorder != null && (outerBorder.DataContext is OrderItem || outerBorder.DataContext is OrderItemGroup))
+                    if (outerBorder != null && IsRenderableDataContext(outerBorder.DataContext))
                         return outerBorder;
                 }
 
@@ -743,8 +869,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             }
 
             // Check ContentControl and search its visual children
-            if (current is ContentControl control &&
-                (control.DataContext is OrderItem || control.DataContext is OrderItemGroup))
+            if (current is ContentControl control && IsRenderableDataContext(control.DataContext))
             {
                 // Search visual children for Border
                 var childBorder = FindVisualChildOfType<Border>(control);
@@ -853,7 +978,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 continue;
 
             var border = FindVisualChildOfType<Border>(panelChild);
-            if (border != null && (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+            if (border != null && IsRenderableDataContext(border.DataContext))
             {
                 children.Add(border);
             }
@@ -918,7 +1043,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             var border = FindVisualChildOfType<Border>(panelChild);
             if (border != null &&
                 border != _draggedElement &&  // Exclude dragged element
-                (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+                IsRenderableDataContext(border.DataContext))
             {
                 children.Add(border);
             }
@@ -967,7 +1092,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             if (border == null || border == _draggedElement)
                 continue;
 
-            if (!(border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+            if (!IsRenderableDataContext(border.DataContext))
                 continue;
 
             // Check if mouse is over this border
@@ -978,6 +1103,16 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
             if (borderBounds.Contains(mousePosition))
             {
+                // If dragging orders, ignore sticky-note cards
+                bool draggingHasOrder = _draggedItems != null && _draggedItems.Count > 0 && _draggedItems.Any(d => d.NoteType == NoteType.Order);
+                if (draggingHasOrder)
+                {
+                    if (border.DataContext is OrderItem oi && oi.NoteType == NoteType.StickyNote)
+                        continue;
+                    if (border.DataContext is OrderItemGroup og && og.First != null && og.First.NoteType == NoteType.StickyNote)
+                        continue;
+                }
+
                 if (border.DataContext is OrderItem item)
                     return item;
 
@@ -1003,7 +1138,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             var border = FindVisualChildOfType<Border>(panelChild);
             if (border != null &&
                 border != _draggedElement &&  // Exclude the dragged element
-                (border.DataContext is OrderItem || border.DataContext is OrderItemGroup))
+                IsRenderableDataContext(border.DataContext))
             {
                 children.Add(border);
             }
@@ -1011,16 +1146,54 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         if (children.Count == 0) return null;
 
-        // When dropping at the end in link mode, link with the last item
-        // This handles cases like dragging a 3rd order to link with an existing group of 2
-        var targetElement = children[children.Count - 1];
+        // Compute nearest candidate by center-to-mouse distance, preferring same NoteType
+        var mousePos = Mouse.GetPosition(AssociatedObject);
+        double bestDist = double.MaxValue;
+        FrameworkElement? best = null;
 
-        if (targetElement.DataContext is OrderItem item)
-            return item;
+        bool draggingHasOrder = _draggedItems != null && _draggedItems.Count > 0 && _draggedItems.Any(d => d.NoteType == NoteType.Order);
 
-        if (targetElement.DataContext is OrderItemGroup group)
-            return group.First;
+        foreach (var c in children)
+        {
+            // If dragging orders, skip sticky-note targets
+            if (draggingHasOrder)
+            {
+                if (c.DataContext is OrderItem oi && oi.NoteType == NoteType.StickyNote) continue;
+                if (c.DataContext is OrderItemGroup og && og.First != null && og.First.NoteType == NoteType.StickyNote) continue;
+            }
+
+            var bounds = new Rect(c.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), new Size(c.ActualWidth, c.ActualHeight));
+            var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+            var dist = (center - mousePos).Length;
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                best = c;
+            }
+        }
+
+        if (best == null)
+        {
+            // fallback to last element if nothing closer found
+            best = children.LastOrDefault();
+            if (best == null) return null;
+        }
+
+        if (best.DataContext is OrderItem bi)
+            return bi;
+        if (best.DataContext is OrderItemGroup bg)
+            return bg.First;
 
         return null;
+    }
+
+    private static bool IsRenderableDataContext(object? dc)
+    {
+        if (dc == null) return false;
+        if (dc is OrderItem oi)
+            return oi.IsRenderable;
+        if (dc is OrderItemGroup og)
+            return og.Members != null && og.Members.Count > 0 && og.First.IsRenderable;
+        return false;
     }
 }

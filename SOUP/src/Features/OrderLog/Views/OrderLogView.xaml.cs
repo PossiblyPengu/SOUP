@@ -530,6 +530,52 @@ public partial class OrderLogView : UserControl
                     // If Ctrl is held, create/merge linked group instead of moving
                     if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
                     {
+                        static bool IsPracticallyEmpty(Models.OrderItem it)
+                            => string.IsNullOrWhiteSpace(it.VendorName)
+                               && string.IsNullOrWhiteSpace(it.TransferNumbers)
+                               && string.IsNullOrWhiteSpace(it.WhsShipmentNumbers)
+                               && string.IsNullOrWhiteSpace(it.NoteContent);
+
+                        if (target == null || IsPracticallyEmpty(target))
+                        {
+                            try
+                            {
+                                var panel = ActiveItemsPanel as Panel;
+                                if (panel != null)
+                                {
+                                    var mousePos = e.GetPosition(panel);
+                                    OrderItem? replacement = null;
+                                    double best = double.MaxValue;
+
+                                    foreach (var panelChild in panel.Children.OfType<FrameworkElement>())
+                                    {
+                                        if (panelChild.Visibility != Visibility.Visible) continue;
+                                        var border = FindVisualChild<Border>(panelChild);
+                                        if (border == null) continue;
+                                        OrderItem? oi = null;
+                                        if (border.DataContext is OrderItem o) oi = o;
+                                        else if (border.DataContext is ViewModels.OrderItemGroup grp && grp.Members.Count>0) oi = grp.First;
+                                        if (oi == null) continue;
+                                        if (IsPracticallyEmpty(oi)) continue;
+
+                                        var bounds = new Rect(border.TransformToAncestor(panel).Transform(new Point(0,0)), new Size(border.ActualWidth, border.ActualHeight));
+                                        var center = new Point(bounds.Left + bounds.Width/2, bounds.Top + bounds.Height/2);
+                                        var dist = (center - mousePos).Length;
+                                        if (dist < best) { best = dist; replacement = oi; }
+                                    }
+
+                                    if (replacement != null) target = replacement;
+                                }
+                            }
+                            catch { }
+
+                            if (target == null || IsPracticallyEmpty(target))
+                            {
+                                vm.StatusMessage = "Cannot link to an empty placeholder";
+                                return;
+                            }
+                        }
+
                         await vm.LinkItemsAsync(droppedItems, target);
                         vm.StatusMessage = "Linked items";
                     }

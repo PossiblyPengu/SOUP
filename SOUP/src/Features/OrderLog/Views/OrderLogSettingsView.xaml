@@ -1,0 +1,48 @@
+<UserControl x:Class="SOUP.Features.OrderLog.Views.OrderLogSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SOUP.Features.OrderLog.Views"
+             xmlns:widgets="clr-namespace:SOUP.Features.OrderLog.Views"
+             xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
+             Height="600" Width="900">
+
+    <Grid Background="{DynamicResource BackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Settings pane -->
+        <StackPanel Grid.Column="0" Margin="16">
+            <TextBlock Text="Order Log — Widget Settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
+
+            <TextBlock Text="Behavior" FontWeight="SemiBold" Margin="0,8,0,4" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Enable drag linking" VerticalAlignment="Center" Width="180" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <CheckBox IsChecked="{Binding EnableLinking, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Show archived" VerticalAlignment="Center" Width="180" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <CheckBox IsChecked="{Binding ShowArchived, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <TextBlock Text="Quick Actions" FontWeight="SemiBold" Margin="0,8,0,4" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <Button Content="Add Blank Order" Click="AddBlankOrder_Click" Margin="0,0,0,6" Style="{DynamicResource SidebarActionButton}" />
+            <Button Content="Add Blank Note" Click="AddBlankNote_Click" Margin="0,0,0,6" Style="{DynamicResource SidebarActionButton}" />
+            <Button Content="Open Widget Window" Click="OpenWidgetWindow_Click" Style="{DynamicResource SidebarActionButton}" />
+
+            <TextBlock Text="Status" FontWeight="SemiBold" Margin="0,16,0,4" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="{DynamicResource TextTertiaryBrush}"/>
+        </StackPanel>
+
+        <!-- Widget preview -->
+        <Border Grid.Column="1" Padding="12">
+            <ContentControl>
+                <ContentControl.Content>
+                    <widgets:OrderLogWidgetView DataContext="{Binding}" />
+                </ContentControl.Content>
+            </ContentControl>
+        </Border>
+    </Grid>
+</UserControl>

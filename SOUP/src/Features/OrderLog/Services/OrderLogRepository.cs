@@ -93,18 +93,28 @@ public sealed class OrderLogRepository : IOrderLogService
         await _semaphore.WaitAsync();
         try
         {
-            // Use Upsert instead of DeleteAll + InsertBulk for better performance
-            // This allows the database to only update changed records
-            if (items is { Count: > 0 })
+            // Do not persist practically-empty placeholder orders. Filter them out here
+            // so they are never saved to disk.
+            static bool IsPracticallyEmpty(OrderItem it)
+                => string.IsNullOrWhiteSpace(it.VendorName)
+                   && string.IsNullOrWhiteSpace(it.TransferNumbers)
+                   && string.IsNullOrWhiteSpace(it.WhsShipmentNumbers)
+                   && string.IsNullOrWhiteSpace(it.NoteContent);
+
+            var toSave = items?.Where(i => !IsPracticallyEmpty(i)).ToList() ?? new List<OrderItem>();
+
+            if (toSave.Count > 0)
             {
-                foreach (var item in items)
+                foreach (var item in toSave)
                 {
                     _collection.Upsert(item);
                 }
             }
 
             // Clean up any items that were deleted (not in the current list)
-            var currentIds = items?.Select(i => i.Id).ToHashSet() ?? new HashSet<Guid>();
+            // Build current IDs from the filtered set so any blank placeholders
+            // that were intentionally excluded will be removed from the DB below.
+            var currentIds = toSave?.Select(i => i.Id).ToHashSet() ?? new HashSet<Guid>();
             var allIds = _collection.FindAll().Select(i => i.Id).ToList();
             var idsToDelete = allIds.Where(id => !currentIds.Contains(id)).ToList();
 

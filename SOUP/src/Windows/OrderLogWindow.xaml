@@ -6,6 +6,31 @@
         MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterOwner">
     <Grid>
-        <views:OrderLogView x:Name="OrderLogView"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="320" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left: lightweight embedded widget preview (read-only) -->
+        <views:OrderLogWidgetView Grid.Column="0" x:Name="WidgetPreview"/>
+
+        <!-- Right: Settings panel for widget (main view becomes settings) -->
+        <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" Padding="12" CornerRadius="6" Margin="12,0,0,0">
+            <StackPanel>
+                <TextBlock Text="Widget Settings" FontSize="16" FontWeight="SemiBold" Margin="4"/>
+                <TextBlock Text="Use the widget preview on the left to see changes." Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,0,0,8"/>
+
+                <Separator Margin="0,12,0,12"/>
+
+                <TextBlock Text="Quick Actions" FontWeight="SemiBold" Margin="0,6,0,6"/>
+                <Button Content="Add Blank Order" Click="AddBlankOrder_Click" Margin="0,4" Style="{DynamicResource SidebarActionButton}"/>
+                <Button Content="Add Blank Note" Click="AddBlankNote_Click" Margin="0,4" Style="{DynamicResource SidebarActionButton}"/>
+
+                <Button Content="Open Widget Window" Click="OpenWidgetWindow_Click" Margin="0,8,0,0" Style="{DynamicResource SidebarActionButton}"/>
+
+                <TextBlock Text="" Height="8"/>
+                <TextBlock Text="Advanced settings are available in the widget window." Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
