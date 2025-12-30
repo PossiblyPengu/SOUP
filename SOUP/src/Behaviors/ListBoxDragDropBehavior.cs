@@ -6,9 +6,11 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using System.Windows.Media.Animation;
 using Microsoft.Xaml.Behaviors;
 using System.Windows.Documents;
+using SOUP.Features.OrderLog.Helpers;
 using System.IO;
 
 namespace SOUP.Behaviors;
@@ -35,13 +37,19 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
     private double? _floatingFixedLeft;
     private Point _lastMousePos;
 
-    // Path for persistent drag debug logs (helps when console isn't attached)
+    // Toggle persistent drag debug logs (set true temporarily to collect diagnostics)
+    private static readonly bool _dragDebugEnabled = false;
     private static readonly string _dragLogPath = Path.Combine(Path.GetTempPath(), "SoupDragDebug.log");
 
     private static void DebugLog(string message)
     {
-        // logging removed in production; no-op
-        _ = message;
+        if (!_dragDebugEnabled) return;
+        try
+        {
+            var p = _dragLogPath;
+            File.AppendAllText(p, DateTime.Now.ToString("o") + " " + message + Environment.NewLine);
+        }
+        catch { }
     }
 
     public static readonly DependencyProperty OnReorderProperty =
@@ -318,7 +326,74 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
                                 try
                                 {
-                                    if (_draggedItem != null && _draggedItem.GetType().Name == "OrderItemGroup")
+                                    // Prefer rendering the inner ContentControl's DataTemplate if present
+                                    try
+                                    {
+                                        var innerContent = FindDescendantSafe<ContentControl>(_draggedListBoxItem);
+                                            if (innerContent != null && innerContent.ContentTemplate != null)
+                                        {
+                                            var presenter = new ContentPresenter { Content = innerContent.Content, ContentTemplate = innerContent.ContentTemplate };
+                                            // Ensure bindings inside the template resolve by setting DataContext to the inner content's DataContext
+                                            try { presenter.DataContext = innerContent.DataContext; } catch { }
+                                            presenter.Measure(new Size(itemW, itemH));
+                                            presenter.Arrange(new Rect(0, 0, itemW, itemH));
+
+                                            // If the template contains a RichTextBox that expects note XAML to be loaded
+                                            // by the view's Loaded handler, populate it explicitly so the off-screen
+                                            // presenter renders the note content.
+                                            try
+                                            {
+                                                var rtbInPresenter = FindDescendantSafe<System.Windows.Controls.RichTextBox>(presenter);
+                                                if (rtbInPresenter != null)
+                                                {
+                                                    try { TextFormattingHelper.LoadNoteContent(rtbInPresenter); } catch { }
+                                                }
+                                            }
+                                            catch { }
+
+                                            try
+                                            {
+                                                try { DebugLog($"[DragDebug] Presenter.DataContext={(presenter.DataContext==null?"(null)":presenter.DataContext.GetType().FullName)}"); } catch { }
+
+                                                // Allow the presenter to perform layout/render passes before snapshotting
+                                                try { presenter.ApplyTemplate(); presenter.UpdateLayout(); } catch { }
+                                                try { presenter.Dispatcher.Invoke(() => { presenter.UpdateLayout(); }, DispatcherPriority.Render, System.Threading.CancellationToken.None); } catch { }
+
+                                                bool rtbPopulated = false;
+                                                try
+                                                {
+                                                    var rtbInPresenter = FindDescendantSafe<System.Windows.Controls.RichTextBox>(presenter);
+                                                    if (rtbInPresenter != null)
+                                                    {
+                                                        try { DebugLog("[DragDebug] Found RichTextBox inside presenter; attempting to LoadNoteContent"); } catch { }
+                                                        try { TextFormattingHelper.LoadNoteContent(rtbInPresenter); rtbPopulated = true; } catch (Exception ex) { try { DebugLog($"[DragDebug] LoadNoteContent failed: {ex.Message}"); } catch { } }
+                                                        try { DebugLog($"[DragDebug] RichTextBox populated={rtbPopulated}"); } catch { }
+                                                    }
+                                                }
+                                                catch { }
+
+                                                var dv = new DrawingVisual();
+                                                using (var ctx = dv.RenderOpen())
+                                                {
+                                                    var vb = new VisualBrush(presenter);
+                                                    ctx.DrawRectangle(vb, null, new Rect(0, 0, itemW, itemH));
+                                                }
+
+                                                var rtb2 = new RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, PixelFormats.Pbgra32);
+                                                rtb2.Render(dv);
+                                                bitmapSource = rtb2;
+                                                try { DebugLog($"[DragDebug] Rendered presenter -> RenderTargetBitmap size={rtb2.PixelWidth}x{rtb2.PixelHeight}"); } catch { }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                try { DebugLog($"[DragDebug] Exception while rendering presenter: {ex.Message}"); } catch { }
+                                            }
+                                            usedTemplate = true;
+                                        }
+                                    }
+                                    catch { }
+
+                                    if (!usedTemplate && _draggedItem != null && _draggedItem.GetType().Name == "OrderItemGroup")
                                     {
                                         // Try to find the merged template resource from the visual tree
                                         object? tmplObj = null;
@@ -326,6 +401,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                         if (tmplObj is DataTemplate dt)
                                         {
                                             var presenter = new ContentPresenter { Content = _draggedItem, ContentTemplate = dt };
+                                            try { presenter.DataContext = _draggedItem; } catch { }
                                             presenter.Measure(new Size(itemW, itemH));
                                             presenter.Arrange(new Rect(0, 0, itemW, itemH));
 
@@ -350,6 +426,102 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                     var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
                                     rtb.Render(_draggedListBoxItem);
                                     bitmapSource = rtb;
+                                }
+
+                                try { DebugLog($"[DragDebug] bitmapSource={(bitmapSource==null?"null":bitmapSource.GetType().Name)} usedTemplate={usedTemplate}"); } catch { }
+
+                                // If bitmap rendering failed or produced no content, fall back to a textual snapshot
+                                bool needsTextFallback = false;
+                                try
+                                {
+                                    if (bitmapSource == null) needsTextFallback = true;
+                                    else if (bitmapSource is RenderTargetBitmap rtbCheck)
+                                    {
+                                        if (rtbCheck.PixelWidth == 0 || rtbCheck.PixelHeight == 0)
+                                        {
+                                            needsTextFallback = true;
+                                        }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                int bitsPerPixel = rtbCheck.Format.BitsPerPixel;
+                                                int bytesPerPixel = Math.Max(1, bitsPerPixel / 8);
+                                                int stride = rtbCheck.PixelWidth * bytesPerPixel;
+                                                var pixels = new byte[stride * rtbCheck.PixelHeight];
+                                                rtbCheck.CopyPixels(pixels, stride, 0);
+                                                bool anyNonZero = false;
+                                                for (int pi = 0; pi + bytesPerPixel - 1 < pixels.Length; pi += bytesPerPixel)
+                                                {
+                                                    // check any channel or alpha is non-zero
+                                                    bool allZero = true;
+                                                    for (int c = 0; c < bytesPerPixel; c++)
+                                                    {
+                                                        if (pixels[pi + c] != 0) { allZero = false; break; }
+                                                    }
+                                                    if (!allZero) { anyNonZero = true; break; }
+                                                }
+                                                if (!anyNonZero)
+                                                {
+                                                    needsTextFallback = true;
+                                                        try
+                                                        {
+                                                            // Log a small sample of the raw pixels for diagnostics
+                                                            int sampleLen = Math.Min(32, pixels.Length);
+                                                            try
+                                                            {
+                                                                var sb = new System.Text.StringBuilder();
+                                                                for (int si = 0; si < sampleLen; si++) sb.AppendFormat("{0:X2}", pixels[si]);
+                                                                DebugLog($"[DragDebug] RenderTargetBitmap appears empty -> falling back; sample={sb}");
+                                                            }
+                                                            catch { DebugLog("[DragDebug] RenderTargetBitmap appears empty -> falling back (failed to sample)"); }
+                                                        }
+                                                        catch { }
+                                                }
+                                            }
+                                            catch { needsTextFallback = true; }
+                                        }
+                                    }
+                                }
+                                catch { needsTextFallback = true; }
+
+                                if (needsTextFallback)
+                                {
+                                    try
+                                    {
+                                        string title = string.Empty;
+                                        string content = string.Empty;
+                                        if (_draggedItem != null)
+                                        {
+                                            try { var tprop = _draggedItem.GetType().GetProperty("NoteTitle"); if (tprop != null) title = (tprop.GetValue(_draggedItem) ?? string.Empty).ToString(); } catch { }
+                                            try { var cprop = _draggedItem.GetType().GetProperty("NoteContent"); if (cprop != null) content = (cprop.GetValue(_draggedItem) ?? string.Empty).ToString(); } catch { }
+                                        }
+
+                                        // Compose a simple visual containing title and content
+                                        var border = new Border { Background = Brushes.White, BorderBrush = Brushes.Gray, BorderThickness = new Thickness(1) };
+                                        var sp = new StackPanel { Margin = new Thickness(6) };
+                                        if (!string.IsNullOrEmpty(title)) sp.Children.Add(new TextBlock { Text = title, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+                                        sp.Children.Add(new TextBlock { Text = content, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,4,0,0) });
+                                        border.Child = sp;
+                                        border.Measure(new Size(itemW, itemH));
+                                        border.Arrange(new Rect(0, 0, itemW, itemH));
+
+                                        var dv2 = new DrawingVisual();
+                                        using (var ctx2 = dv2.RenderOpen())
+                                        {
+                                            var vb2 = new VisualBrush(border);
+                                            ctx2.DrawRectangle(vb2, null, new Rect(0, 0, itemW, itemH));
+                                        }
+
+                                        var rtbFb = new RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, PixelFormats.Pbgra32);
+                                        rtbFb.Render(dv2);
+                                        bitmapSource = rtbFb;
+                                        try { DebugLog("[DragDebug] Used textual fallback snapshot"); } catch { }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        try { DebugLog($"[DragDebug] Textual fallback failed: {ex.Message}"); } catch { }
+                                    }
                                 }
 
                                 if (bitmapSource != null)
