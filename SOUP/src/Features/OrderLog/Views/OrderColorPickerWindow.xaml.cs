@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,19 +13,37 @@ public partial class OrderColorPickerWindow : Window
 
     public OrderColorPickerWindow(string initialColor)
     {
-        InitializeComponent();
-        SelectedColor = initialColor ?? "#8b5cf6";
-        HexBox.Text = SelectedColor;
-        // Initialize sliders from initial color
         try
         {
-            var color = (Color)ColorConverter.ConvertFromString(SelectedColor);
-            RSlider.Value = color.R;
-            GSlider.Value = color.G;
-            BSlider.Value = color.B;
-            UpdateSlidersText();
+            InitializeComponent();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            try { var path = Path.Combine(Path.GetTempPath(), "OrderColorPickerError.log"); File.AppendAllText(path, DateTime.Now.ToString("o") + " InitializeComponent failed:\n" + ex.ToString() + "\n\n"); } catch { }
+            throw;
+        }
+
+        try
+        {
+            SelectedColor = initialColor ?? "#8b5cf6";
+            HexBox.Text = SelectedColor;
+            // Initialize sliders from initial color
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(SelectedColor);
+                RSlider.Value = color.R;
+                GSlider.Value = color.G;
+                BSlider.Value = color.B;
+                UpdateSlidersText();
+            }
+            catch { }
+        }
+        catch (Exception ex)
+        {
+            try { var path = Path.Combine(Path.GetTempPath(), "OrderColorPickerError.log"); File.AppendAllText(path, DateTime.Now.ToString("o") + " Constructor post-init failed:\n" + ex.ToString() + "\n\n"); } catch { }
+            throw;
+        }
+
         UpdatePreview(SelectedColor);
     }
 
@@ -49,7 +69,8 @@ public partial class OrderColorPickerWindow : Window
 
     private void HexBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var hex = HexBox.Text?.Trim();
+        var tb = sender as TextBox;
+        var hex = tb?.Text?.Trim();
         if (string.IsNullOrEmpty(hex)) return;
 
         if (!hex.StartsWith("#"))
@@ -60,17 +81,22 @@ public partial class OrderColorPickerWindow : Window
             try
             {
                 var color = (Color)ColorConverter.ConvertFromString(hex);
-                // Update sliders to match typed hex
-                RSlider.Value = color.R;
-                GSlider.Value = color.G;
-                BSlider.Value = color.B;
+                // Update sliders to match typed hex (guard null sliders during XAML load)
+                if (RSlider != null) RSlider.Value = color.R;
+                if (GSlider != null) GSlider.Value = color.G;
+                if (BSlider != null) BSlider.Value = color.B;
                 UpdateSlidersText();
-                UpdatePreview(hex);
+                if (CustomColorPreview != null)
+                    UpdatePreview(hex);
                 SelectedColor = hex;
             }
             catch (FormatException)
             {
                 // Invalid color format - ignore silently as user is typing
+            }
+            catch (Exception ex)
+            {
+                try { var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "OrderColorPickerError.log"); System.IO.File.AppendAllText(path, DateTime.Now.ToString("o") + " HexBox_TextChanged unexpected:\n" + ex.ToString() + "\n\n"); } catch { }
             }
         }
     }

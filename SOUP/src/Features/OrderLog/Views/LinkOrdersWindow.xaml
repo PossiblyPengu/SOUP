@@ -5,8 +5,13 @@
         Title="Link Orders" Height="600" Width="720" WindowStartupLocation="CenterOwner" ResizeMode="CanResize" MinHeight="400" MinWidth="600">
 
     <Window.Resources>
-        <!-- Status to Color Converter -->
-        <Style x:Key="StatusIndicatorStyle" TargetType="Border">
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/SOUP;component/Themes/ModernStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Status to Color Converter -->
+            <Style x:Key="StatusIndicatorStyle" TargetType="Border">
             <Setter Property="Width" Value="4"/>
             <Setter Property="CornerRadius" Value="2"/>
             <Style.Triggers>
@@ -45,7 +50,7 @@
 
                     <!-- Order Info -->
                     <StackPanel Grid.Column="1">
-                        <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="{DynamicResource CardFontSize}"/>
                         <TextBlock Margin="0,2,0,0" FontSize="11" Opacity="0.7">
                             <Run Text="Vendor:"/>
                             <Run Text="{Binding VendorName, TargetNullValue='(none)', Mode=OneWay}"/>
@@ -72,6 +77,7 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Grid Margin="16">

@@ -35,18 +35,15 @@
             <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                    <!-- Use the same note brush as main view so sticky notes have a visible background. -->
                     <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <!-- Group style: when the DataContext is an OrderItemGroup use First.Status for background -->
         <Style x:Key="GroupCardBorderStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
             <Setter Property="Background" Value="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}" />
         </Style>
 
-        <!-- Unified drag-handle style used across cards -->
         <Style x:Key="DragHandleButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="32" />
             <Setter Property="Height" Value="28" />
@@ -67,6 +64,94 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Template for a single OrderItem card (copied from main view) -->
+        <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Border.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Set Status" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                            <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
+                            <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
+                            <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
+                            <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
+                        </MenuItem>
+                        <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                        <MenuItem Header="Link with..." Click="LinkWith_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <MenuItem Header="Unlink" Click="Unlink_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <Separator/>
+                        <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
+                        <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Cursor="Hand" MouseLeftButtonDown="ColorBar_Click" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                        <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Vertical">
+                                <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                                    <TextBlock Text="Vendor name..." FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VendorName}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VendorName}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding VendorName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+
+                                <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Style="{StaticResource DragHandleButtonStyle}" Tag="DragHandle" ToolTip="Drag to reorder"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Margin="14,10">
+                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+        
+        
 
         <!-- Style for phantom placeholder text -->
         <Style x:Key="PlaceholderText" TargetType="TextBlock">
@@ -124,7 +209,7 @@
                                       MinHeight="28"
                                       MinWidth="120"
                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                      Style="{StaticResource ModernComboBoxStyle}">
+                                      Style="{DynamicResource ModernComboBoxStyle}">
                                 <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
                                 <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
                                 <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
@@ -608,13 +693,15 @@
                                                       MinWidth="120"
                                                       Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"
                                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                                      Style="{StaticResource ModernComboBoxStyle}">
+                                                      Style="{DynamicResource ModernComboBoxStyle}">
                                                 <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
                                                 <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
                                                 <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
                                                 <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                             </ComboBox>
 
+                                            <!-- Drag handle for sticky notes (notes need a handle too) -->
+                                            <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                                             <!-- Drag handle moved into the body for single-item cards to match merged/linked sections -->
                                         </Grid>
                                     </Border>
@@ -830,109 +917,32 @@
             
                 <!-- Archived Notes Panel (separate tab) -->
                 <StackPanel x:Name="ArchivedItemsPanel" Visibility="Collapsed">
-                    <ItemsControl ItemsSource="{Binding ArchivedItems}">
+                    <ItemsControl ItemsSource="{Binding DisplayArchivedItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="{DynamicResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="10"
-                                        Margin="0,0,0,12"
-                                        Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
+                                <ContentControl Content="{Binding}">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="ContentTemplate">
+                                                <Setter.Value>
+                                                    <DataTemplate>
+                                                        <ContentControl Content="{Binding First}" ContentTemplate="{StaticResource OrderItemTemplate}"/>
+                                                    </DataTemplate>
+                                                </Setter.Value>
+                                            </Setter>
                                             <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                        <!-- Keep the card background transparent for sticky notes; header uses SurfaceHoverBrush. -->
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                    </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </Border.Style>
-                                    <Border.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
-                                            <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}"/>
-                                        </ContextMenu>
-                                    </Border.ContextMenu>
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="4"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- Drag Handle (right side) -->
-                                        <Button Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" />
-
-                                        <!-- Color Bar -->
-                                        <Border Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"
-                                                CornerRadius="10,10,0,0"/>
-
-                                        <!-- Content -->
-                                        <StackPanel Grid.Row="1" Margin="14,10">
-                                            <!-- Vendor Name (for orders) or Note Title (for sticky notes) -->
-                                            <TextBlock FontSize="14"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                                       TextTrimming="CharacterEllipsis">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="{Binding VendorName}"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                <Setter Property="Text" Value="{Binding NoteTitle}"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-
-                                            <!-- Order fields (hidden for sticky notes) -->
-                                            <StackPanel>
-                                                <StackPanel.Style>
-                                                    <Style TargetType="StackPanel">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </StackPanel.Style>
-                                                
-                                                <TextBlock Text="{Binding TransferNumbers}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           FontSize="12"
-                                                           Margin="0,4,0,0"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                                           
-                                                <TextBlock Text="{Binding WhsShipmentNumbers}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           FontSize="12"
-                                                           Margin="0,2,0,0"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                            </StackPanel>
-                                            
-                                            <!-- Sticky note content -->
-                                            <TextBlock Text="{Binding NoteContent}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       FontSize="12"
-                                                       Margin="0,4,0,0"
-                                                       TextWrapping="Wrap"
-                                                       MaxHeight="40"
-                                                       TextTrimming="CharacterEllipsis">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
+                                    </ContentControl.Style>
+                                </ContentControl>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

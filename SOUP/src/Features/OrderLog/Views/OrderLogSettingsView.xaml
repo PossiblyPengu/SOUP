@@ -27,6 +27,13 @@
                 <CheckBox IsChecked="{Binding ShowArchived, Mode=TwoWay}"/>
             </StackPanel>
 
+            <TextBlock Text="Appearance" FontWeight="SemiBold" Margin="0,12,0,4" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="Card font size" VerticalAlignment="Center" Width="180" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <Slider Minimum="10" Maximum="20" Width="200" Value="{Binding CardFontSize, Mode=TwoWay}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                <TextBlock Text="{Binding CardFontSize, StringFormat='{}{0:0}'}" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
+
             <TextBlock Text="Quick Actions" FontWeight="SemiBold" Margin="0,8,0,4" Foreground="{DynamicResource TextSecondaryBrush}"/>
             <Button Content="Add Blank Order" Click="AddBlankOrder_Click" Margin="0,0,0,6" Style="{DynamicResource SidebarActionButton}" />
             <Button Content="Add Blank Note" Click="AddBlankNote_Click" Margin="0,0,0,6" Style="{DynamicResource SidebarActionButton}" />

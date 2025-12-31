@@ -160,7 +160,14 @@ public partial class OrderItem : ObservableObject
     /// Sticky notes are always renderable; orders with empty vendor name are considered invalid.
     /// </summary>
     [JsonIgnore]
-    public bool IsRenderable => NoteType == NoteType.StickyNote || !string.IsNullOrWhiteSpace(VendorName);
+    public bool IsRenderable => NoteType == NoteType.StickyNote || !string.IsNullOrWhiteSpace(VendorName) || IsPlaceholder;
+
+    /// <summary>
+    /// Transient flag used to indicate this order is a UI placeholder (should render, but not be treated as a filled order).
+    /// This is not persisted.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsPlaceholder { get; set; } = false;
 
     /// <summary>
     /// Display title - uses VendorName for orders, first line of NoteContent for sticky notes
@@ -176,7 +183,8 @@ public partial class OrderItem : ObservableObject
     public static OrderItem CreateBlankOrder(string vendorName = "",
                                             string transferNumbers = "",
                                             string whsShipmentNumbers = "",
-                                            string? colorHex = null)
+                                            string? colorHex = null,
+                                            bool isPlaceholder = false)
     {
         return new OrderItem
         {
@@ -186,6 +194,7 @@ public partial class OrderItem : ObservableObject
             WhsShipmentNumbers = whsShipmentNumbers ?? string.Empty,
             ColorHex = colorHex ?? Constants.OrderLogColors.DefaultOrder,
             Status = OrderStatus.NotReady,
+            IsPlaceholder = isPlaceholder,
             CreatedAt = DateTime.UtcNow
         };
     }

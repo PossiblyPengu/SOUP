@@ -131,8 +131,16 @@ public partial class OrderLogView : UserControl
 
     private void AddBlankOrder_Click(object sender, RoutedEventArgs e)
     {
+        try
+        {
+            var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "OrderLogDebug.log");
+            System.IO.File.AppendAllText(path, DateTime.Now.ToString("o") + " AddBlankOrder_Click fired (main view)\n");
+        }
+        catch { }
+
         if (DataContext is OrderLogViewModel vm)
         {
+            // Immediately create an inline blank order (no dialog)
             _ = AddBlankOrderAsync(vm);
         }
     }
@@ -147,7 +155,7 @@ public partial class OrderLogView : UserControl
 
     private async Task AddBlankOrderAsync(OrderLogViewModel vm)
     {
-        var order = Models.OrderItem.CreateBlankOrder();
+        var order = Models.OrderItem.CreateBlankOrder(vendorName: string.Empty, isPlaceholder: true);
         await vm.AddOrderAsync(order);
     }
 
@@ -636,16 +644,28 @@ public partial class OrderLogView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is Models.OrderItem order)
+            // Resolve the OrderItem robustly: MenuItem.DataContext may be null when using ContextMenu
+            Models.OrderItem? order = null;
+            if (sender is MenuItem menuItem)
             {
-                if (DataContext is OrderLogViewModel vm)
+                if (menuItem.CommandParameter is Models.OrderItem cp)
+                    order = cp;
+                else
+                    order = menuItem.DataContext as Models.OrderItem;
+
+                if (order == null && menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
+                    order = pt.DataContext as Models.OrderItem;
+            }
+
+            if (order == null) return;
+
+            if (DataContext is OrderLogViewModel vm)
+            {
+                var dlg = new LinkOrdersWindow(order, vm) { Owner = Window.GetWindow(this) };
+                if (dlg.ShowDialog() == true)
                 {
-                    var dlg = new LinkOrdersWindow(order, vm) { Owner = Window.GetWindow(this) };
-                    if (dlg.ShowDialog() == true)
-                    {
-                        await vm.SaveAsync();
-                        vm.StatusMessage = "Orders linked";
-                    }
+                    await vm.SaveAsync();
+                    vm.StatusMessage = "Orders linked";
                 }
             }
         }

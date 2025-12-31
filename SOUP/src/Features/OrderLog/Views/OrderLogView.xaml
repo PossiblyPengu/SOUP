@@ -113,7 +113,7 @@
 
                             <StackPanel Orientation="Vertical">
                                 <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
-                                    <TextBlock Text="Vendor name..." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
+                                    <TextBlock Text="Vendor name..." FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -128,11 +128,11 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Padding="0"/>
+                                    <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Padding="0"/>
                                 </Grid>
 
                                 <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
-                                    <TextBlock Text="Note title..." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
+                                    <TextBlock Text="Note title..." FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -147,7 +147,7 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBox Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Padding="0"/>
+                                    <TextBox Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Padding="0"/>
                                 </Grid>
                             </StackPanel>
 
@@ -157,6 +157,8 @@
                                 <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
                                 <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </ComboBox>
+                            <!-- Drag handle for sticky notes (notes need a handle too) -->
+                            <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                         </Grid>
                     </Border>
 
@@ -170,7 +172,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="Transfer #s..." FontSize="13" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
+                                <TextBlock Grid.Column="0" Text="Transfer #s..." FontSize="{DynamicResource CardFontSize}" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -186,13 +188,13 @@
                                     </TextBlock.Style>
                                 </TextBlock>
 
-                                <TextBox Grid.Column="0" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" Padding="0" GotFocus="EditableField_GotFocus" LostFocus="EditableField_LostFocus"/>
+                                <TextBox Grid.Column="0" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Padding="0" GotFocus="EditableField_GotFocus" LostFocus="EditableField_LostFocus"/>
 
                                 <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" Margin="6,0,0,0" HorizontalAlignment="Right"/>
                             </Grid>
 
                             <Grid Margin="0,3,0,0">
-                                <TextBlock Text="WHS #s..." FontSize="13" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
+                                <TextBlock Text="WHS #s..." FontSize="{DynamicResource CardFontSize}" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -207,7 +209,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" Padding="0" GotFocus="EditableField_GotFocus" LostFocus="EditableField_LostFocus"/>
+                                <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Padding="0" GotFocus="EditableField_GotFocus" LostFocus="EditableField_LostFocus"/>
                             </Grid>
 
                             <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0"/>
@@ -226,7 +228,7 @@
                             </StackPanel.Style>
 
                             <Grid>
-                                <TextBlock Text="Write your note here..." FontSize="13" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Top">
+                                <TextBlock Text="Write your note here..." FontSize="{DynamicResource CardFontSize}" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Top">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -241,7 +243,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <RichTextBox Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" Padding="0" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" PreviewKeyDown="NoteContent_PreviewKeyDown" Loaded="NoteContent_Loaded" LostFocus="NoteContent_LostFocus" GotFocus="EditableField_GotFocus"/>
+                                <RichTextBox Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="{DynamicResource CardFontSize}" Padding="0" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" PreviewKeyDown="NoteContent_PreviewKeyDown" Loaded="NoteContent_Loaded" LostFocus="NoteContent_LostFocus" GotFocus="EditableField_GotFocus"/>
                             </Grid>
 
                             <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="4,2" Margin="0,8,0,0" HorizontalAlignment="Left">
@@ -637,21 +639,21 @@
                     <Button x:Name="AddOrderButton" Click="AddBlankOrder_Click" Style="{StaticResource SidebarActionButton}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="➕" FontSize="16" Margin="0,0,12,0" Foreground="{DynamicResource SuccessBrush}"/>
-                            <TextBlock Text="Add Order" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Add Order" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}"/>
                         </StackPanel>
                     </Button>
                     
                     <Button x:Name="AddNoteButton" Click="AddBlankNote_Click" Style="{StaticResource SidebarActionButton}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📝" FontSize="16" Margin="0,0,12,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="Add Note" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Add Note" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}"/>
                         </StackPanel>
                     </Button>
                     
                     <Button Command="{Binding ExportToCsvCommand}" Style="{StaticResource SidebarActionButton}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📤" FontSize="16" Margin="0,0,12,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="Export CSV" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Export CSV" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -718,7 +720,7 @@
             
                 <!-- Archived Notes Panel (separate tab) -->
                 <StackPanel x:Name="ArchivedItemsPanel" Visibility="Collapsed">
-                    <ItemsControl ItemsSource="{Binding ArchivedItems}">
+                    <ItemsControl ItemsSource="{Binding DisplayArchivedItems}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal"/>
@@ -726,88 +728,28 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="{DynamicResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="8"
-                                    Width="320"
-                                        Margin="0,0,16,16"
-                                    Background="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}"
-                                    AllowDrop="True"
-                                    PreviewMouseLeftButtonDown="Item_PreviewMouseLeftButtonDown"
-                                    MouseMove="Item_MouseMove"
-                                    DragOver="Item_DragOver"
-                                    Drop="Item_Drop">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
+                                <ContentControl Content="{Binding}">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="ContentTemplate">
+                                                <Setter.Value>
+                                                    <DataTemplate>
+                                                        <ContentControl Content="{Binding First}" ContentTemplate="{StaticResource OrderItemTemplate}"/>
+                                                    </DataTemplate>
+                                                </Setter.Value>
+                                            </Setter>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                    <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
+                                                <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </Border.Style>
-                                    <Border.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
-                                            <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}"/>
-                                        </ContextMenu>
-                                    </Border.ContextMenu>
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="{StaticResource CardColorBarHeight}"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
-
-                                                            <!-- Color Bar -->
-                                                            <Border Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0" Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"
-                                                                    CornerRadius="8,8,0,0"/>
-
-                                        <!-- Content -->
-                                        <StackPanel Grid.Row="1" Margin="16,12">
-                                            <!-- Vendor Name (for orders) or Note Title (for sticky notes) -->
-                                            <TextBlock FontSize="15"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="{Binding VendorName}"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                <Setter Property="Text" Value="{Binding NoteTitle}"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-
-                                            <!-- Order fields (hidden for sticky notes) -->
-                                            <StackPanel Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
-                                                
-                                                <TextBlock Text="{Binding TransferNumbers}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           FontSize="13"
-                                                           Margin="0,6,0,0"/>
-
-                                                <TextBlock Text="{Binding WhsShipmentNumbers}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           FontSize="13"
-                                                           Margin="0,4,0,0"/>
-                                            </StackPanel>
-                                            
-                                            <!-- Sticky note content -->
-                                            <TextBlock Text="{Binding NoteContent}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       FontSize="13"
-                                                       Margin="0,6,0,0"
-                                                       TextWrapping="Wrap"
-                                                       Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
+                                    </ContentControl.Style>
+                                </ContentControl>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    
+
                     <!-- Empty state for archived -->
                     <TextBlock Text="No archived items"
                                FontSize="14"

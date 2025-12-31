@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:SOUP.ViewModels"
         xmlns:local="clr-namespace:SOUP.Views"
         xmlns:converters="clr-namespace:SOUP.Converters"
+        xmlns:orderlog="clr-namespace:SOUP.Features.OrderLog.Views"
         mc:Ignorable="d"
         Title="S.A.P - Settings"
         Height="850"
@@ -253,6 +254,17 @@
                                     <StackPanel>
                                         <TextBlock Text="External Data" FontSize="13" FontWeight="SemiBold"/>
                                         <TextBlock Text="MySQL &amp; BC sync" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabOrderLog" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📝" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Order Log" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Widget settings" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </RadioButton>
@@ -557,6 +569,9 @@
                         <local:DictionaryManagementView DataContext="{Binding DictionaryManagement}"/>
                     </Border>
                     
+                    <!-- OrderLog Panel -->
+                        <Border x:Name="PanelOrderLog" Grid.Row="1" Visibility="Collapsed" Margin="12" />
+
                     <!-- External Data Panel -->
                     <Border x:Name="PanelExternalData" Visibility="Collapsed">
                         <local:ExternalDataSettingsView/>

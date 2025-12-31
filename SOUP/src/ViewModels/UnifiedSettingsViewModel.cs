@@ -12,6 +12,7 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
     public EssentialsBuddySettingsViewModel EssentialsBuddySettings { get; }
     public ExpireWiseSettingsViewModel ExpireWiseSettings { get; }
     public DictionaryManagementViewModel DictionaryManagement { get; }
+    public SOUP.Features.OrderLog.ViewModels.OrderLogViewModel OrderLogSettings { get; }
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
@@ -28,12 +29,14 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         AllocationBuddySettingsViewModel allocationBuddySettings,
         EssentialsBuddySettingsViewModel essentialsBuddySettings,
         ExpireWiseSettingsViewModel expireWiseSettings,
-        DictionaryManagementViewModel dictionaryManagement)
+        DictionaryManagementViewModel dictionaryManagement,
+        SOUP.Features.OrderLog.ViewModels.OrderLogViewModel orderLogSettings)
     {
         AllocationBuddySettings = allocationBuddySettings;
         EssentialsBuddySettings = essentialsBuddySettings;
         ExpireWiseSettings = expireWiseSettings;
         DictionaryManagement = dictionaryManagement;
+        OrderLogSettings = orderLogSettings;
 
         // Create named handlers so we can unsubscribe
         _allocationBuddyHandler = (s, e) =>
@@ -58,6 +61,13 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         {
             if (e.PropertyName == nameof(DictionaryManagement.StatusMessage))
                 StatusMessage = DictionaryManagement.StatusMessage;
+        };
+
+        // OrderLog status passthrough
+        OrderLogSettings.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(OrderLogSettings.StatusMessage))
+                StatusMessage = OrderLogSettings.StatusMessage;
         };
 
         // Subscribe to status message changes from child ViewModels

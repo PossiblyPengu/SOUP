@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using SOUP.ViewModels;
 using SOUP.Windows;
+using SOUP.Features.OrderLog.Views;
 
 namespace SOUP.Views;
 
@@ -77,6 +78,7 @@ public partial class UnifiedSettingsWindow : Window
             PanelEssentials.Visibility = Visibility.Collapsed;
             PanelExpireWise.Visibility = Visibility.Collapsed;
             PanelDictionary.Visibility = Visibility.Collapsed;
+            PanelOrderLog.Visibility = Visibility.Collapsed;
             PanelExternalData.Visibility = Visibility.Collapsed;
 
             // Show the selected panel
@@ -101,6 +103,25 @@ public partial class UnifiedSettingsWindow : Window
                 {
                     Serilog.Log.Information("Dictionary tab selected, loading dictionary...");
                     await _viewModel.DictionaryManagement.LoadDictionaryAsync();
+                }
+            }
+            else if (TabOrderLog.IsChecked == true)
+            {
+                PanelOrderLog.Visibility = Visibility.Visible;
+
+                // Lazy-create the OrderLog settings view to avoid loading heavy controls unnecessarily
+                try
+                {
+                    if (PanelOrderLog.Child == null)
+                    {
+                        var orderLogView = new OrderLogSettingsView();
+                        orderLogView.DataContext = _viewModel.OrderLogSettings;
+                        PanelOrderLog.Child = orderLogView;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "Failed to create OrderLogSettingsView lazily");
                 }
             }
             else if (TabExternalData.IsChecked == true)

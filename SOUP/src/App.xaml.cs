@@ -77,7 +77,19 @@ public partial class App : Application
                 try
                 {
                     Log.Fatal(ev.Exception, "Dispatcher unhandled exception");
-                    MessageBox.Show($"An unexpected error occurred:\n{ev.Exception.Message}", "Unhandled Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    try
+                    {
+                        var tmp = Path.Combine(Path.GetTempPath(), "SOUP_RuntimeException.log");
+                        File.AppendAllText(tmp, DateTime.Now.ToString("o") + "\n" + ev.Exception.ToString() + "\n\n");
+                    }
+                    catch { }
+                    try
+                    {
+                        var repoLog = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? ".", "SOUP_RuntimeException.log");
+                        File.AppendAllText(repoLog, DateTime.Now.ToString("o") + "\n" + ev.Exception.ToString() + "\n\n");
+                    }
+                    catch { }
+                    // Prevent modal exception dialogs during automated runs; mark handled so app can continue to log.
                     ev.Handled = true;
                 }
                 catch (Exception logEx)

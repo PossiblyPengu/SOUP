@@ -362,25 +362,22 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         int newInsertionIndex;
         if (AssociatedObject is System.Windows.Controls.WrapPanel)
         {
-            // Compute the dragged element's prospective rectangle (based on mouse position
-            // and click offset) so placement decisions are based on card geometry rather
-            // than the raw cursor point.
+            // Compute the dragged element's center point (based on mouse position and click offset)
+            // and use the animator's insertion calculation to keep insertion logic consistent
             var sizeTarget = _draggedPanelChild ?? _draggedElement!;
-            var panelBounds = new Rect(0, 0, AssociatedObject.ActualWidth, AssociatedObject.ActualHeight);
             const double margin = 10;
 
             double desiredX = currentPosition.X - _elementClickOffset.X;
             double desiredY = currentPosition.Y - _elementClickOffset.Y;
-            desiredX = Math.Max(margin, Math.Min(desiredX, panelBounds.Width - sizeTarget.ActualWidth - margin));
+            desiredX = Math.Max(margin, Math.Min(desiredX, Math.Max(0, AssociatedObject.ActualWidth - sizeTarget.ActualWidth - margin)));
             desiredY = Math.Max(margin, desiredY);
 
-            var draggedRect = new Rect(new Point(desiredX, desiredY), new Size(sizeTarget.ActualWidth, sizeTarget.ActualHeight));
-
-            newInsertionIndex = CardGridPlacement.CalculateInsertionIndexGrid(AssociatedObject, draggedRect, _draggedElement, _lockedPanelWidth);
+            var center = new Point(desiredX + sizeTarget.ActualWidth / 2.0, desiredY + sizeTarget.ActualHeight / 2.0);
+            newInsertionIndex = _animator.CalculateInsertionIndex(center, _draggedElement, out _);
         }
         else
         {
-            // Fallback to existing animator calculation
+            // Use animator calculation for non-wrap panels as well
             newInsertionIndex = _animator.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
         }
 
@@ -514,29 +511,6 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             }
             else
             {
-                // Emit diagnostic snapshot for reorder: insertion indices and visible children
-                try
-                {
-                    var visible = new System.Text.StringBuilder();
-                    foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
-                    {
-                        if (panelChild.Visibility != Visibility.Visible) continue;
-                        var border = FindVisualChildOfType<Border>(panelChild);
-                        if (border == null) continue;
-                        if (border.DataContext is OrderItem oi)
-                        {
-                            visible.Append($"[{oi.Id.ToString().Substring(0,8)}:{oi.VendorName}] ");
-                        }
-                        else if (border.DataContext is OrderItemGroup og)
-                        {
-                            var first = og.First;
-                            visible.Append($"[G:{(first!=null?first.Id.ToString().Substring(0,8):"null")}({og.Members.Count})] ");
-                        }
-                    }
-                    AppendDebug($"[OrderLogFluidDrag] Reorder finish snapshot: currentInsertionIndex={_currentInsertionIndex} draggedIndex={_draggedIndex} visible={visible}");
-                }
-                catch { }
-
                 if (ReorderComplete != null)
                 {
                     ReorderComplete.Invoke(draggedItems, targetItem);

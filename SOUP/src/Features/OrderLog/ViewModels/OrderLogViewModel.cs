@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,9 +7,12 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using System.Windows;
 using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.Constants;
 using SOUP.Features.OrderLog.Services;
+using SOUP.Infrastructure.Services;
+using SOUP.Features.OrderLog.Models;
 
 namespace SOUP.Features.OrderLog.ViewModels;
 
@@ -26,6 +30,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> ArchivedItems { get; } = new();
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
+    public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
 
     [ObservableProperty]
     private bool _showArchived = false;
@@ -78,6 +83,27 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger?.LogInformation("OrderLogViewModel initialized");
     }
 
+    private readonly SettingsService _settingsService = new SettingsService();
+
+    [ObservableProperty]
+    private double _cardFontSize = 13.0;
+
+    partial void OnCardFontSizeChanged(double value)
+    {
+        try
+        {
+            if (Application.Current != null)
+            {
+                Application.Current.Resources["CardFontSize"] = value;
+            }
+
+            // persist
+            var settings = new OrderLogWidgetSettings { CardFontSize = value };
+            _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
+        }
+        catch { }
+    }
+
     private void OnTimerTick(object? sender, EventArgs e)
     {
         foreach (var item in Items)
@@ -88,6 +114,15 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     public async Task InitializeAsync()
     {
+        // load persisted widget settings (card font size)
+        try
+        {
+            var s = await _settingsService.LoadSettingsAsync<OrderLogWidgetSettings>("OrderLogWidget");
+            CardFontSize = s.CardFontSize <= 0 ? 13.0 : s.CardFontSize;
+            if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
+        }
+        catch { }
+
         await LoadAsync();
     }
 
@@ -113,6 +148,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             
             StatusMessage = $"Loaded {Items.Count} orders ({ArchivedItems.Count} archived)";
             RefreshDisplayItems();
+            RefreshArchivedDisplayItems();
             _logger?.LogInformation("Loaded {Count} orders into view", items.Count);
         }
         catch (Exception ex)
@@ -145,6 +181,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             await _orderLogService.SaveAsync(allItems);
             StatusMessage = $"Saved {Items.Count} orders ({ArchivedItems.Count} archived)";
             RefreshDisplayItems();
+            RefreshArchivedDisplayItems();
             _logger?.LogInformation("Saved {Count} orders", allItems.Count);
         }
         catch (Exception ex)
@@ -386,16 +423,65 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public async Task SetStatusAsync(OrderItem item, OrderItem.OrderStatus status)
     {
         if (item == null) return;
-        
+
+        try {
+            var path = Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log");
+            File.AppendAllText(path, DateTime.Now.ToString("o") + $" SetStatusAsync called for Item={item.Id} Status={status} LinkedGroupId={item.LinkedGroupId}\n");
+        } catch { }
+
+        // If this item is part of a linked group, apply the status change to all members
+        if (item.LinkedGroupId != null)
+        {
+            var gid = item.LinkedGroupId.Value;
+            var members = Items.Concat(ArchivedItems).Where(i => i.LinkedGroupId == gid).ToList();
+
+            try {
+                var path = Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log");
+                File.AppendAllText(path, DateTime.Now.ToString("o") + $"  Group {gid} members: {string.Join(',', members.Select(m => m.Id))}\n");
+            } catch { }
+
+            // Record previous done-state per member and apply new status
+            var memberStates = members.Select(m => (itm: m, wasDoneBefore: m.Status == OrderItem.OrderStatus.Done)).ToList();
+            foreach (var m in members)
+            {
+                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log"), DateTime.Now.ToString("o") + $"   Setting member {m.Id} status from {m.Status} to {status}\n"); } catch {}
+                m.Status = status;
+            }
+
+            // Ensure collection membership matches each member's IsArchived flag (keep collections consistent)
+            foreach (var (m, wasDoneBefore) in memberStates)
+            {
+                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log"), DateTime.Now.ToString("o") + $"   Member {m.Id} pre-sync IsArchived={m.IsArchived} inItems={Items.Contains(m)} inArchived={ArchivedItems.Contains(m)}\n"); } catch {}
+
+                if (m.IsArchived)
+                {
+                    if (Items.Contains(m)) Items.Remove(m);
+                    if (!ArchivedItems.Contains(m)) ArchivedItems.Add(m);
+                }
+                else
+                {
+                    if (ArchivedItems.Contains(m)) ArchivedItems.Remove(m);
+                    if (!Items.Contains(m)) Items.Insert(0, m);
+                }
+
+                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log"), DateTime.Now.ToString("o") + $"   Member {m.Id} post-sync IsArchived={m.IsArchived} inItems={Items.Contains(m)} inArchived={ArchivedItems.Contains(m)}\n"); } catch {}
+            }
+
+            await SaveAsync();
+            return;
+        }
+
         var wasDone = item.Status == OrderItem.OrderStatus.Done;
         var willBeDone = status == OrderItem.OrderStatus.Done;
-        
+
         item.Status = status;
-        
+
         // Move between collections based on archive status
         if (willBeDone && !wasDone)
         {
             // Moving to Done - archive it
+            // mark archived flag so persistence and subsequent loads treat this item as archived
+            item.IsArchived = true;
             Items.Remove(item);
             ArchivedItems.Add(item);
         }
@@ -406,7 +492,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             ArchivedItems.Remove(item);
             Items.Insert(0, item);
         }
-        
+
         await SaveAsync();
     }
 
@@ -737,6 +823,47 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 else
                 {
                     // No renderable members in this group - mark item processed so it's skipped
+                    processed.Add(item.Id);
+                }
+            }
+        }
+    }
+
+    private void RefreshArchivedDisplayItems()
+    {
+        DisplayArchivedItems.Clear();
+
+        var processed = new HashSet<Guid>();
+
+        foreach (var item in ArchivedItems)
+        {
+            if (processed.Contains(item.Id))
+                continue;
+
+            if (!item.IsRenderable)
+            {
+                processed.Add(item.Id);
+                continue;
+            }
+
+            if (item.LinkedGroupId == null)
+            {
+                DisplayArchivedItems.Add(new OrderItemGroup(new[] { item }));
+                processed.Add(item.Id);
+            }
+            else
+            {
+                var gid = item.LinkedGroupId;
+                var members = ArchivedItems.Where(i => i.LinkedGroupId == gid && i.IsRenderable).ToList();
+                if (members.Count > 0)
+                {
+                    foreach (var m in members)
+                        processed.Add(m.Id);
+
+                    DisplayArchivedItems.Add(new OrderItemGroup(members));
+                }
+                else
+                {
                     processed.Add(item.Id);
                 }
             }
