@@ -19,51 +19,7 @@
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         
-        <!-- Shared card resources for consistent card appearance -->
-        <sys:Double x:Key="CardWidth">320</sys:Double>
-        <Thickness x:Key="CardMargin">0,0,0,14</Thickness>
-        <CornerRadius x:Key="CardCornerRadius">10</CornerRadius>
-        <sys:Double x:Key="CardColorBarHeight">8</sys:Double>
-        <Thickness x:Key="CardPadding">16,14,16,14</Thickness>
-
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="{StaticResource CardCornerRadius}" />
-            <Setter Property="Width" Value="{StaticResource CardWidth}" />
-            <Setter Property="Margin" Value="{StaticResource CardMargin}" />
-            <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToCardBrushConverter}}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                    <Setter Property="Background" Value="{DynamicResource OrderLogCardNoteBrush}"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="GroupCardBorderStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
-            <Setter Property="Background" Value="{Binding First.Status, Converter={StaticResource StatusToCardBrushConverter}}" />
-        </Style>
-
-        <Style x:Key="DragHandleButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="32" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Cursor" Value="SizeAll" />
-            <Setter Property="Panel.ZIndex" Value="250" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
-                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.9" IsHitTestVisible="False">
-                                <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
-                                <Rectangle Width="16" Height="2" Fill="{DynamicResource TextTertiaryBrush}" RadiusX="1" RadiusY="1" Margin="0,2"/>
-                            </StackPanel>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- Card styles centralized in Themes/ModernStyles.xaml -->
 
         <!-- Template for a single OrderItem card (copied from main view) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
@@ -261,7 +217,7 @@
                                         <!-- Editable VendorName -->
                                         <Grid>
                                             <TextBlock Text="Vendor name..."
-                                                       FontSize="15"
+                                                       FontSize="{DynamicResource CardFontSize}"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
@@ -284,7 +240,7 @@
                                             <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
-                                                     FontSize="15"
+                                                     FontSize="{DynamicResource CardFontSize}"
                                                      FontWeight="SemiBold"
                                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                                      Padding="0"
@@ -295,7 +251,7 @@
                                         <!-- Editable Transfer Numbers -->
                                         <Grid Margin="0,6,0,0">
                                             <TextBlock Text="Transfer #s..."
-                                                       FontSize="13"
+                                                       FontSize="{DynamicResource CardFontSize}"
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
                                                        IsHitTestVisible="False"
@@ -318,7 +274,7 @@
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
-                                                     FontSize="13"
+                                                     FontSize="{DynamicResource CardFontSize}"
                                                      Padding="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
@@ -327,7 +283,7 @@
                                         <!-- Editable WHS Shipment Numbers -->
                                         <Grid Margin="0,3,0,0">
                                             <TextBlock Text="WHS #s..."
-                                                       FontSize="13"
+                                                       FontSize="{DynamicResource CardFontSize}"
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
                                                        IsHitTestVisible="False"
@@ -350,7 +306,7 @@
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
-                                                     FontSize="13"
+                                                     FontSize="{DynamicResource CardFontSize}"
                                                      Padding="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
