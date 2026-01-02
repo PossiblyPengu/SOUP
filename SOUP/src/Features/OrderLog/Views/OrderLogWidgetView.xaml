@@ -11,6 +11,12 @@
              xmlns:commonBehaviors="clr-namespace:SOUP.Behaviors">
 
     <UserControl.Resources>
+        <ResourceDictionary>
+            <!-- Merge the modern widget theme -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/OrderLogWidgetTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
         <converters:StatusToCardBrushConverter x:Key="StatusToCardBrushConverter"/>
@@ -21,22 +27,22 @@
         
         <!-- Card styles centralized in Themes/ModernStyles.xaml -->
 
-        <!-- Template for a single OrderItem card (copied from main view) -->
+        <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
             <Border Style="{StaticResource CardBorderStyle}">
                 <Border.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Set Status" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Set Status">
                             <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
                             <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
                             <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
                             <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
                         </MenuItem>
-                        <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                        <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                        <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
-                        <MenuItem Header="Link with..." Click="LinkWith_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                        <MenuItem Header="Unlink" Click="Unlink_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                        <MenuItem Header="Move Up" Click="MoveUp_Click"/>
+                        <MenuItem Header="Move Down" Click="MoveDown_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Link with..." Click="LinkWith_Click"/>
+                        <MenuItem Header="Unlink" Click="Unlink_Click"/>
                         <Separator/>
                         <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
@@ -50,18 +56,8 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Cursor="Hand" MouseLeftButtonDown="ColorBar_Click" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                        <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Cursor="Hand" MouseLeftButtonDown="ColorBar_Click" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0"
+                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
 
                     <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
                         <Grid>
@@ -72,7 +68,7 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Orientation="Vertical">
-                                <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                                <Grid>
                                     <TextBlock Text="Vendor name..." FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
@@ -90,36 +86,347 @@
                                     </TextBlock>
                                     <TextBlock Text="{Binding VendorName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
-
                                 <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0"/>
                             </StackPanel>
 
-                            <Button Grid.Column="1" Style="{StaticResource DragHandleButtonStyle}" Tag="DragHandle" ToolTip="Drag to reorder"/>
+                            <!-- Quick Archive Button (shows on hover) -->
+                            <Button Grid.Column="1" Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand" Margin="4,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="📦" FontSize="14" Opacity="0.7"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button Grid.Column="2" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle"/>
                         </Grid>
                     </Border>
 
                     <StackPanel Grid.Row="2" Margin="14,10">
-                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Template for a single Sticky Note card (active) -->
+        <DataTemplate x:Key="StickyNoteTemplate" DataType="{x:Type models:OrderItem}">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Border.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}"/>
+                        <Separator/>
+                        <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
+                        <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Cursor="Hand" MouseLeftButtonDown="ColorBar_Click" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0"
+                            Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
+
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{Binding NoteTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding NoteTitle}" Value="">
+                                                <Setter Property="Text" Value="Sticky Note"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding NoteTitle}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="Sticky Note"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- Quick Archive Button (shows on hover) -->
+                            <Button Grid.Column="1" Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand" Margin="4,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="📦" FontSize="14" Opacity="0.7"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button Grid.Column="2" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Margin="14,10">
+                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="60" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Template for archived Order cards -->
+        <DataTemplate x:Key="ArchivedOrderItemTemplate" DataType="{x:Type models:OrderItem}">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Border.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0"
+                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="{Binding VendorName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0"/>
+                            </StackPanel>
+
+                            <!-- Restore Button (shows on hover) -->
+                            <Button Grid.Column="1" Click="QuickArchive_Click" ToolTip="Restore" Cursor="Hand" Margin="4,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="↩️" FontSize="14" Opacity="0.7"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Margin="14,10">
+                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Template for archived Sticky Note cards -->
+        <DataTemplate x:Key="ArchivedStickyNoteTemplate" DataType="{x:Type models:OrderItem}">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Border.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0"
+                            Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
+
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{Binding NoteTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding NoteTitle}" Value="">
+                                                <Setter Property="Text" Value="Sticky Note"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding NoteTitle}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="Sticky Note"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- Restore Button (shows on hover) -->
+                            <Button Grid.Column="1" Click="QuickArchive_Click" ToolTip="Restore" Cursor="Hand" Margin="4,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="↩️" FontSize="14" Opacity="0.7"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Margin="14,10">
+                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="60" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
         
-        
 
         <!-- Style for phantom placeholder text -->
-        <Style x:Key="PlaceholderText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
-            <Setter Property="FontStyle" Value="Italic"/>
-            <Setter Property="IsHitTestVisible" Value="False"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
+        <Style x:Key="PlaceholderText" TargetType="TextBlock" BasedOn="{StaticResource WidgetPlaceholderTextStyle}"/>
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{StaticResource GroupCardBorderStyle}">
+            <Border Style="{StaticResource WidgetElevatedCardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -211,7 +518,7 @@
                                                        Foreground="{DynamicResource TextTertiaryBrush}"/>
 
                                             <!-- Drag Handle (unified style) -->
-                                            <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" HorizontalAlignment="Right"/>
+                                            <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" HorizontalAlignment="Right"/>
                                         </Grid>
 
                                         <!-- Editable VendorName -->
@@ -340,6 +647,7 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid Background="{DynamicResource BackgroundBrush}">
@@ -347,6 +655,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -371,18 +680,16 @@
         <Border Grid.Row="1"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,0,0,1">
+                BorderThickness="0,0,0,1"
+                Padding="16,14,16,14">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <!-- Tabs -->
-                <Border Background="{DynamicResource BackgroundBrush}" 
-                        CornerRadius="8" 
-                        Margin="12,10,12,0"
-                        Padding="4">
+                <!-- Modern Segmented Tabs -->
+                <Border Style="{StaticResource WidgetTabContainerStyle}" Margin="0,0,0,14">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -392,81 +699,46 @@
                         <Button x:Name="ActiveTabButton"
                                 Content="Active"
                                 Click="ActiveTab_Click"
-                                Height="30"
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Background="{DynamicResource SurfaceBrush}"
-                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                BorderThickness="0"
-                                Margin="0,0,2,0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="TabBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="12,6">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                                Style="{StaticResource WidgetTabButtonActiveStyle}"/>
                         
                         <Button x:Name="ArchivedTabButton"
                                 Grid.Column="1"
                                 Content="📦 Archived"
                                 Click="ArchivedTab_Click"
-                                Height="30"
-                                FontSize="12"
-                                Background="Transparent"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                BorderThickness="0"
-                                Margin="2,0,0,0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="TabBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="12,6">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                                Style="{StaticResource WidgetTabButtonStyle}"/>
                     </Grid>
                 </Border>
                 
                 <!-- Add Buttons (only show on Active tab) -->
-                <Grid Grid.Row="1" Margin="12,10,12,12" x:Name="AddButtonsPanel">
+                <Grid Grid.Row="1" x:Name="AddButtonsPanel">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="12"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <Button Content="➕ Add Order"
-                            Click="AddBlankOrder_Click"
-                            Height="34"
-                            Padding="12,8"
-                            FontSize="12"
-                            Style="{DynamicResource SuccessButtonStyle}"/>
+                    <Button Click="AddBlankOrder_Click"
+                            Style="{StaticResource WidgetPrimaryActionButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0"/>
+                            <TextBlock Text="Add Order"/>
+                        </StackPanel>
+                    </Button>
                     
                     <Button Grid.Column="2"
-                            Content="📝 Add Note"
                             Click="AddBlankNote_Click"
-                            Height="34"
-                            Padding="12,8"
-                            FontSize="12"
-                            Style="{DynamicResource SecondaryButtonStyle}"/>
+                            Style="{StaticResource WidgetSecondaryActionButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📝" FontSize="13" Margin="0,0,6,0"/>
+                            <TextBlock Text="Add Note"/>
+                        </StackPanel>
+                    </Button>
                 </Grid>
             </Grid>
         </Border>
 
         <!-- Notes List -->
-        <ScrollViewer x:Name="MainScrollViewer" Grid.Row="2" Padding="12">
+        <ScrollViewer x:Name="MainScrollViewer" Grid.Row="2" Padding="16" Style="{StaticResource WidgetScrollViewerStyle}">
             <Grid>
                 <!-- Active Notes Panel -->
                 <StackPanel x:Name="ActiveItemsPanel">
@@ -514,13 +786,12 @@
                                                     <ContentControl Content="{Binding First}">
                                                         <ContentControl.ContentTemplate>
                                                                 <DataTemplate>
-                                                                <Border Style="{StaticResource CardBorderStyle}">
-                                <!-- Background for sticky notes handled by CardBorderStyle DataTrigger -->
+                                                                <Border Style="{StaticResource WidgetElevatedCardStyle}">
+                                <!-- Dynamic context menu based on NoteType -->
                                 <Border.ContextMenu>
-                                    <ContextMenu>
-                                        <!-- Set Status - only for orders -->
-                                        <MenuItem Header="Set Status"
-                                                  Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <!-- ORDER MENU ITEMS -->
+                                        <MenuItem Header="Set Status" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                             <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
                                             <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
                                             <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
@@ -528,12 +799,12 @@
                                         </MenuItem>
                                         <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                                        <!-- Change Color - only for sticky notes -->
-                                        <MenuItem Header="Change Color..." Click="ChangeColor_Click"
-                                                  CommandParameter="{Binding}"
-                                                  Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                                        <Separator Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Link with..." Click="LinkWith_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Unlink" Click="Unlink_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
+                                        <!-- NOTE MENU ITEMS -->
+                                        <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                                        <!-- COMMON MENU ITEMS -->
                                         <Separator/>
                                         <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
                                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
@@ -657,7 +928,7 @@
                                             </ComboBox>
 
                                             <!-- Drag handle for sticky notes (notes need a handle too) -->
-                                            <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
+                                            <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                                             <!-- Drag handle moved into the body for single-item cards to match merged/linked sections -->
                                         </Grid>
                                     </Border>
@@ -709,7 +980,7 @@
                                                          LostFocus="EditableField_LostFocus"/>
 
                                                 <!-- Drag handle (visible because this block is only shown for orders) -->
-                                                <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource DragHandleButtonStyle}" ToolTip="Drag to reorder" Margin="6,0,0,0" HorizontalAlignment="Right"/>
+                                                <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" Margin="6,0,0,0" HorizontalAlignment="Right"/>
                                             </Grid>
 
                                             <!-- Editable WHS Shipment Numbers -->
@@ -873,21 +1144,54 @@
             
                 <!-- Archived Notes Panel (separate tab) -->
                 <StackPanel x:Name="ArchivedItemsPanel" Visibility="Collapsed">
-                    <ItemsControl ItemsSource="{Binding DisplayArchivedItems}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+                    <ListBox x:Name="ArchivedListBox"
+                             ItemsSource="{Binding DisplayArchivedItems}"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             SelectionMode="Single"
+                             VirtualizingStackPanel.IsVirtualizing="False"
+                             VirtualizingStackPanel.VirtualizationMode="Standard"
+                             ScrollViewer.CanContentScroll="False"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,14"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <ContentControl Content="{Binding}">
                                     <ContentControl.Style>
                                         <Style TargetType="ContentControl">
+                                            <!-- Default: single order item -->
                                             <Setter Property="ContentTemplate">
                                                 <Setter.Value>
                                                     <DataTemplate>
-                                                        <ContentControl Content="{Binding First}" ContentTemplate="{StaticResource OrderItemTemplate}"/>
+                                                        <ContentControl Content="{Binding First}">
+                                                            <ContentControl.Style>
+                                                                <Style TargetType="ContentControl">
+                                                                    <!-- Default: Order template -->
+                                                                    <Setter Property="ContentTemplate" Value="{StaticResource ArchivedOrderItemTemplate}"/>
+                                                                    <Style.Triggers>
+                                                                        <!-- Switch to Note template for sticky notes -->
+                                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
+                                                                            <Setter Property="ContentTemplate" Value="{StaticResource ArchivedStickyNoteTemplate}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ContentControl.Style>
+                                                        </ContentControl>
                                                     </DataTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -900,8 +1204,8 @@
                                     </ContentControl.Style>
                                 </ContentControl>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                     
                     <!-- Empty state for archived -->
                     <TextBlock Text="No archived items"
@@ -1173,34 +1477,83 @@
             </StackPanel>
         </Border>
 
-        <!-- Status Bar -->
+        <!-- Undo Bar (shows when undo is available) -->
         <Border Grid.Row="4"
+                Background="{DynamicResource AccentBrush}"
+                Padding="12,8"
+                Visibility="{Binding UndoAvailable, Converter={StaticResource BoolToVis}}">
+            <Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding UndoMessage}"
+                               Foreground="White"
+                               FontSize="11"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+                    <Button Content="Undo"
+                            Command="{Binding UndoAsyncCommand}"
+                            Padding="12,4"
+                            FontSize="11"
+                            FontWeight="SemiBold"
+                            Background="White"
+                            Foreground="{DynamicResource AccentBrush}"
+                            BorderThickness="0"
+                            Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="4"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#F0F0F0"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+                
+                <!-- Countdown indicator -->
+                <TextBlock Text="(5s)"
+                           Foreground="#FFFFFF80"
+                           FontSize="10"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="5"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0,1,0,0"
-                Padding="14,10">
+                Padding="16,10">
             <Grid>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               FontSize="12"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource TextTertiaryBrush}"
+                           FontSize="11"
+                           VerticalAlignment="Center"/>
                 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Command="{Binding ExportToCsvCommand}"
-                            Style="{DynamicResource GhostButtonStyle}"
-                            Padding="10,4"
-                            FontSize="14"
+                            Style="{StaticResource WidgetIconButtonStyle}"
                             ToolTip="Export to CSV">
-                        <TextBlock Text="📤"/>
+                        <TextBlock Text="📤" FontSize="14"/>
                     </Button>
                     <Button Click="OpenFullView_Click"
-                            Style="{DynamicResource GhostButtonStyle}"
-                            Padding="10,4"
-                            FontSize="14"
-                            ToolTip="Open full view">
-                        <TextBlock Text="↗"/>
+                            Style="{StaticResource WidgetIconButtonStyle}"
+                            ToolTip="Open full view"
+                            Margin="4,0,0,0">
+                        <TextBlock Text="↗" FontSize="16" FontWeight="Bold"/>
                     </Button>
                 </StackPanel>
             </Grid>

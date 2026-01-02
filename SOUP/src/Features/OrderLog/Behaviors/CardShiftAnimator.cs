@@ -18,14 +18,47 @@ public class CardShiftAnimator
 {
     private readonly Panel _panel;
     private readonly Dictionary<FrameworkElement, TranslateTransform> _transforms = new();
+    private readonly Dictionary<FrameworkElement, ScaleTransform> _scaleTransforms = new();
     private readonly TimeSpan _animationDuration;
     private readonly IEasingFunction _easingFunction;
+    private readonly IEasingFunction _springEasing;
+    
+    // Insertion indicator
+    private Border? _insertionIndicator;
+    private int _lastIndicatorIndex = -1;
+    
+    // Scale effect for shifting cards
+    private const double SHIFT_SCALE = 0.98;
+    private const double SHIFT_SCALE_DURATION_RATIO = 0.5; // Scale animation is faster
 
     public CardShiftAnimator(Panel panel, TimeSpan animationDuration)
     {
         _panel = panel ?? throw new ArgumentNullException(nameof(panel));
         _animationDuration = animationDuration;
         _easingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+        // Spring-like easing for bouncier feel
+        _springEasing = new ElasticEase 
+        { 
+            EasingMode = EasingMode.EaseOut,
+            Oscillations = 1,
+            Springiness = 5
+        };
+        
+        CreateInsertionIndicator();
+    }
+    
+    private void CreateInsertionIndicator()
+    {
+        _insertionIndicator = new Border
+        {
+            Height = 4,
+            Background = new SolidColorBrush(Color.FromRgb(99, 102, 241)), // Indigo
+            CornerRadius = new CornerRadius(2),
+            Opacity = 0,
+            IsHitTestVisible = false,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(8, 2, 8, 2)
+        };
     }
 
     /// <summary>
@@ -300,7 +333,84 @@ public class CardShiftAnimator
         foreach (var (element, transform) in _transforms.ToList())
         {
             AnimateCardToOffset(element, 0, isVertical);
+            // Reset scale
+            AnimateCardScale(element, 1.0);
         }
+        
+        // Hide insertion indicator
+        HideInsertionIndicator();
+    }
+    
+    /// <summary>
+    /// Shows the insertion indicator at the specified index.
+    /// </summary>
+    public void ShowInsertionIndicator(int index, FrameworkElement? draggedElement)
+    {
+        if (_insertionIndicator == null || index == _lastIndicatorIndex) return;
+        _lastIndicatorIndex = index;
+        
+        var children = GetVisibleChildren(draggedElement);
+        if (children.Count == 0)
+        {
+            HideInsertionIndicator();
+            return;
+        }
+        
+        // Ensure indicator is in the panel
+        if (!_panel.Children.Contains(_insertionIndicator))
+        {
+            if (_panel is Canvas canvas)
+            {
+                canvas.Children.Add(_insertionIndicator);
+            }
+            else
+            {
+                // For other panels, we'll position it via transforms
+                return; // Skip for non-Canvas panels for now
+            }
+        }
+        
+        // Calculate position based on insertion index
+        double targetY = 0;
+        if (index < children.Count)
+        {
+            var targetChild = children[index];
+            var pos = targetChild.TransformToAncestor(_panel).Transform(new Point(0, 0));
+            targetY = pos.Y - 4; // Slightly above the target
+        }
+        else if (children.Count > 0)
+        {
+            var lastChild = children[children.Count - 1];
+            var pos = lastChild.TransformToAncestor(_panel).Transform(new Point(0, 0));
+            targetY = pos.Y + lastChild.ActualHeight + 4;
+        }
+        
+        Canvas.SetTop(_insertionIndicator, targetY);
+        Canvas.SetLeft(_insertionIndicator, 0);
+        _insertionIndicator.Width = _panel.ActualWidth - 16;
+        
+        // Fade in
+        var fadeIn = new DoubleAnimation(1, TimeSpan.FromMilliseconds(150));
+        _insertionIndicator.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+    }
+    
+    /// <summary>
+    /// Hides the insertion indicator.
+    /// </summary>
+    public void HideInsertionIndicator()
+    {
+        if (_insertionIndicator == null) return;
+        _lastIndicatorIndex = -1;
+        
+        var fadeOut = new DoubleAnimation(0, TimeSpan.FromMilliseconds(100));
+        fadeOut.Completed += (s, e) =>
+        {
+            if (_panel.Children.Contains(_insertionIndicator))
+            {
+                _panel.Children.Remove(_insertionIndicator);
+            }
+        };
+        _insertionIndicator.BeginAnimation(UIElement.OpacityProperty, fadeOut);
     }
 
     /// <summary>
@@ -313,6 +423,8 @@ public class CardShiftAnimator
             element.RenderTransform = null;
         }
         _transforms.Clear();
+        _scaleTransforms.Clear();
+        HideInsertionIndicator();
     }
 
     private List<FrameworkElement> GetVisibleChildren(FrameworkElement? excludeElement)
@@ -537,11 +649,21 @@ public class CardShiftAnimator
         {
             To = targetOffset,
             Duration = _animationDuration,
-            EasingFunction = _easingFunction
+            EasingFunction = _springEasing // Use spring easing for bouncier feel
         };
 
         var property = isVertical ? TranslateTransform.YProperty : TranslateTransform.XProperty;
         transform.BeginAnimation(property, animation);
+        
+        // Apply subtle scale effect when shifting (makes cards feel "pressed")
+        if (targetOffset != 0)
+        {
+            AnimateCardScale(element, SHIFT_SCALE);
+        }
+        else
+        {
+            AnimateCardScale(element, 1.0);
+        }
     }
 
     private void AnimateCardToOffsetXY(FrameworkElement element, double offsetX, double offsetY)
@@ -552,18 +674,74 @@ public class CardShiftAnimator
         {
             To = offsetX,
             Duration = _animationDuration,
-            EasingFunction = _easingFunction
+            EasingFunction = _springEasing // Use spring easing for bouncier feel
         };
 
         var animY = new DoubleAnimation
         {
             To = offsetY,
             Duration = _animationDuration,
-            EasingFunction = _easingFunction
+            EasingFunction = _springEasing
         };
 
         transform.BeginAnimation(TranslateTransform.XProperty, animX);
         transform.BeginAnimation(TranslateTransform.YProperty, animY);
+        
+        // Apply subtle scale effect when shifting
+        bool isMoving = Math.Abs(offsetX) > 0.1 || Math.Abs(offsetY) > 0.1;
+        AnimateCardScale(element, isMoving ? SHIFT_SCALE : 1.0);
+    }
+    
+    private void AnimateCardScale(FrameworkElement element, double targetScale)
+    {
+        var scaleTransform = GetOrCreateScaleTransform(element);
+        
+        var duration = TimeSpan.FromMilliseconds(_animationDuration.TotalMilliseconds * SHIFT_SCALE_DURATION_RATIO);
+        var scaleAnim = new DoubleAnimation
+        {
+            To = targetScale,
+            Duration = duration,
+            EasingFunction = _easingFunction
+        };
+        
+        scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
+        scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+    }
+    
+    private ScaleTransform GetOrCreateScaleTransform(FrameworkElement element)
+    {
+        if (_scaleTransforms.TryGetValue(element, out var existing))
+        {
+            return existing;
+        }
+        
+        var scaleTransform = new ScaleTransform(1, 1);
+        
+        // Set center point for scaling
+        scaleTransform.CenterX = element.ActualWidth / 2;
+        scaleTransform.CenterY = element.ActualHeight / 2;
+        
+        // Add to transform group
+        if (element.RenderTransform is TransformGroup group)
+        {
+            group.Children.Add(scaleTransform);
+        }
+        else if (element.RenderTransform != null && element.RenderTransform != Transform.Identity)
+        {
+            var newGroup = new TransformGroup();
+            newGroup.Children.Add(element.RenderTransform);
+            newGroup.Children.Add(scaleTransform);
+            element.RenderTransform = newGroup;
+        }
+        else
+        {
+            var newGroup = new TransformGroup();
+            newGroup.Children.Add(scaleTransform);
+            element.RenderTransform = newGroup;
+        }
+        
+        _scaleTransforms[element] = scaleTransform;
+        return scaleTransform;
     }
 
     private TranslateTransform GetOrCreateTransform(FrameworkElement element)

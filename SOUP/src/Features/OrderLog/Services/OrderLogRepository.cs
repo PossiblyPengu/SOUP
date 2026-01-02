@@ -95,13 +95,7 @@ public sealed class OrderLogRepository : IOrderLogService
         {
             // Do not persist practically-empty placeholder orders. Filter them out here
             // so they are never saved to disk.
-            static bool IsPracticallyEmpty(OrderItem it)
-                => string.IsNullOrWhiteSpace(it.VendorName)
-                   && string.IsNullOrWhiteSpace(it.TransferNumbers)
-                   && string.IsNullOrWhiteSpace(it.WhsShipmentNumbers)
-                   && string.IsNullOrWhiteSpace(it.NoteContent);
-
-            var toSave = items?.Where(i => !IsPracticallyEmpty(i)).ToList() ?? new List<OrderItem>();
+            var toSave = items?.Where(i => !i.IsPracticallyEmpty).ToList() ?? new List<OrderItem>();
 
             if (toSave.Count > 0)
             {

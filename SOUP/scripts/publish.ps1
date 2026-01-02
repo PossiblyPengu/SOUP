@@ -23,11 +23,8 @@ $projectFile = Join-Path $srcDir "SOUP.csproj"
 $publishFrameworkDir = Join-Path $rootDir "publish-framework"
 $publishPortableDir = Join-Path $rootDir "publish-portable"
 
-# Find dotnet
-$dotnetPath = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-if (-not (Test-Path $dotnetPath)) {
-    $dotnetPath = "dotnet"
-}
+# Find dotnet (check environment variable, then fallback to system dotnet)
+$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 # Default to both if neither specified
 if (-not $Framework -and -not $Portable -and -not $Installer) {

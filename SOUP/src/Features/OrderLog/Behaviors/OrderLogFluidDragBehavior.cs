@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Windows;
-using System.IO;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -16,13 +15,15 @@ namespace SOUP.Features.OrderLog.Behaviors;
 
 /// <summary>
 /// Fluid drag-and-drop behavior for OrderLog cards with smooth animations.
-///
+/// <para>
 /// Features:
 /// - iOS-like fluid card shifting during drag
 /// - Ctrl+Drag to link items instead of reorder
 /// - Multi-item drag support
 /// - Hardware accelerated: GPU-rendered transforms, no layout invalidation
-///
+/// </para>
+/// </summary>
+/// <remarks>
 /// Usage in XAML:
 /// <![CDATA[
 /// <StackPanel>
@@ -44,19 +45,6 @@ namespace SOUP.Features.OrderLog.Behaviors;
 /// </remarks>
 public class OrderLogFluidDragBehavior : Behavior<Panel>
 {
-        private static readonly string _debugLogPath = Path.Combine(Path.GetTempPath(), "OrderLogDebug.log");
-
-        private static void AppendDebug(string msg)
-        {
-            try
-            {
-                File.AppendAllText(_debugLogPath, DateTime.Now.ToString("o") + " " + msg + Environment.NewLine);
-            }
-            catch
-            {
-                // swallow logging errors to avoid interfering with app
-            }
-        }
     private Point _dragStartPoint;
     private Point _elementClickOffset; // Where on the element we clicked
     private Point _elementOriginalPosition; // Element's layout position before drag
@@ -76,17 +64,27 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private DateTime _lastShiftCalculation = DateTime.MinValue;
     private Brush? _originalBorderBrush;
     private Thickness _originalBorderThickness;
+    private System.Windows.Threading.DispatcherTimer? _cleanupTimer;
 
     private const int SHIFT_THROTTLE_MS = 16; // ~60fps
-    private const double DRAG_SCALE = 1.02;
+    private const double DRAG_SCALE = 1.05; // Slightly larger for better visibility
     private const int DRAG_Z_INDEX = 100;
+    private const double DRAG_SHADOW_BLUR = 30;
+    private const double DRAG_SHADOW_OPACITY = 0.5;
 
     public static readonly DependencyProperty AnimationDurationProperty =
         DependencyProperty.Register(
             nameof(AnimationDuration),
             typeof(double),
             typeof(OrderLogFluidDragBehavior),
-            new PropertyMetadata(300.0));
+            new PropertyMetadata(200.0)); // Faster, snappier animations
+
+    public static readonly DependencyProperty RequireDragHandleProperty =
+        DependencyProperty.Register(
+            nameof(RequireDragHandle),
+            typeof(bool),
+            typeof(OrderLogFluidDragBehavior),
+            new PropertyMetadata(false));
 
     /// <summary>
     /// Animation duration in milliseconds (default: 300ms)
@@ -95,6 +93,16 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     {
         get => (double)GetValue(AnimationDurationProperty);
         set => SetValue(AnimationDurationProperty, value);
+    }
+
+    /// <summary>
+    /// When true, drag can only be initiated from elements with Tag="DragHandle".
+    /// When false (default), drag can be initiated from anywhere on the card.
+    /// </summary>
+    public bool RequireDragHandle
+    {
+        get => (bool)GetValue(RequireDragHandleProperty);
+        set => SetValue(RequireDragHandleProperty, value);
     }
 
     /// <summary>
@@ -146,6 +154,12 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Check if the click is on a section drag handle - if so, ignore it
         // This allows the old DragDrop system to handle individual order drags from merged cards
         if (IsClickOnSectionDragHandle(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        // If RequireDragHandle is true, only allow drag from elements with Tag="DragHandle"
+        if (RequireDragHandle && !IsClickOnDragHandle(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -373,19 +387,19 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             desiredY = Math.Max(margin, desiredY);
 
             var center = new Point(desiredX + sizeTarget.ActualWidth / 2.0, desiredY + sizeTarget.ActualHeight / 2.0);
-            newInsertionIndex = _animator.CalculateInsertionIndex(center, _draggedElement, out _);
+            newInsertionIndex = _animator!.CalculateInsertionIndex(center, _draggedElement, out _);
         }
         else
         {
             // Use animator calculation for non-wrap panels as well
-            newInsertionIndex = _animator.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
+            newInsertionIndex = _animator!.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
         }
 
         // If insertion index changed, animate card shift
         if (newInsertionIndex != _currentInsertionIndex)
         {
             _currentInsertionIndex = newInsertionIndex;
-            _animator.AnimateCardShift(_currentInsertionIndex, _draggedIndex, _draggedElement, _lockedPanelWidth);
+            _animator!.AnimateCardShift(_currentInsertionIndex, _draggedIndex, _draggedElement, _lockedPanelWidth);
         }
     }
 
@@ -426,86 +440,67 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
                 linkTarget ??= targetItem ?? FindNearestLinkTarget();
 
-                var finishMsg = $"[OrderLogFluidDrag] FinishDrag: isLinkMode=TRUE draggedCount={draggedItems.Count} draggedIds={string.Join(',', draggedItems.Select(i => i.Id))} targetId={(linkTarget == null ? "null" : linkTarget.Id.ToString())} targetVendor={(linkTarget == null ? string.Empty : linkTarget.VendorName)}";
-                Debug.WriteLine(finishMsg);
-                AppendDebug(finishMsg);
+                Debug.WriteLine($"[OrderLogFluidDrag] FinishDrag: isLinkMode=TRUE draggedCount={draggedItems.Count} draggedIds={string.Join(',', draggedItems.Select(i => i.Id))} targetId={(linkTarget == null ? "null" : linkTarget.Id.ToString())} targetVendor={(linkTarget == null ? string.Empty : linkTarget.VendorName)}");
 
                 // If the resolved link target appears to be a practically-empty placeholder,
                 // try to find a nearby non-blank card to use instead (defensive).
-                static bool IsBlankCandidate(OrderItem it)
-                    => string.IsNullOrWhiteSpace(it.VendorName)
-                       && string.IsNullOrWhiteSpace(it.TransferNumbers)
-                       && string.IsNullOrWhiteSpace(it.WhsShipmentNumbers)
-                       && string.IsNullOrWhiteSpace(it.NoteContent);
-
-                if (linkTarget != null && IsBlankCandidate(linkTarget))
+                if (linkTarget != null && linkTarget.IsPracticallyEmpty)
                 {
-                    try
+                    Debug.WriteLine("[OrderLogFluidDrag] Detected blank link target; searching for nearest non-blank replacement");
+
+                    OrderItem? replacement = null;
+                    Point mousePos = Mouse.GetPosition(AssociatedObject);
+                    double bestDist = double.MaxValue;
+
+                    foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
                     {
-                        AppendDebug("[OrderLogFluidDrag] Detected blank link target; searching for nearest non-blank replacement");
+                        if (panelChild.Visibility != Visibility.Visible)
+                            continue;
 
-                        OrderItem? replacement = null;
-                        Point mousePos = Mouse.GetPosition(AssociatedObject);
-                        double bestDist = double.MaxValue;
+                        var border = FindVisualChildOfType<Border>(panelChild);
+                        if (border == null || border == _draggedElement)
+                            continue;
 
-                        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+                        OrderItem? candidate = null;
+                        if (border.DataContext is OrderItem oi) candidate = oi;
+                        else if (border.DataContext is OrderItemGroup og) candidate = og.First;
+                        if (candidate == null) continue;
+                        if (candidate.IsPracticallyEmpty) continue;
+
+                        var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
+                        var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+                        var dist = (center - mousePos).Length;
+                        if (dist < bestDist)
                         {
-                            if (panelChild.Visibility != Visibility.Visible)
-                                continue;
-
-                            var border = FindVisualChildOfType<Border>(panelChild);
-                            if (border == null || border == _draggedElement)
-                                continue;
-
-                            OrderItem? candidate = null;
-                            if (border.DataContext is OrderItem oi) candidate = oi;
-                            else if (border.DataContext is OrderItemGroup og) candidate = og.First;
-                            if (candidate == null) continue;
-                            if (IsBlankCandidate(candidate)) continue;
-
-                            var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
-                            var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
-                            var dist = (center - mousePos).Length;
-                            if (dist < bestDist)
-                            {
-                                bestDist = dist;
-                                replacement = candidate;
-                            }
-                        }
-
-                        if (replacement != null)
-                        {
-                            AppendDebug($"[OrderLogFluidDrag] Using replacement target {replacement.Id} (vendor='{replacement.VendorName}')");
-                            Debug.WriteLine($"[OrderLogFluidDrag] Using replacement target {replacement.Id}");
-                            linkTarget = replacement;
-                        }
-                        else
-                        {
-                            AppendDebug("[OrderLogFluidDrag] No non-blank replacement found; proceeding with original target");
+                            bestDist = dist;
+                            replacement = candidate;
                         }
                     }
-                    catch (Exception ex)
+
+                    if (replacement != null)
                     {
-                        AppendDebug("[OrderLogFluidDrag] Error searching for replacement: " + ex.Message);
+                        Debug.WriteLine($"[OrderLogFluidDrag] Using replacement target {replacement.Id}");
+                        linkTarget = replacement;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[OrderLogFluidDrag] No non-blank replacement found; proceeding with original target");
                     }
                 }
 
                 if (LinkComplete != null)
                 {
                     Debug.WriteLine("[OrderLogFluidDrag] Raising LinkComplete event");
-                    AppendDebug("[OrderLogFluidDrag] Raising LinkComplete event");
                     LinkComplete.Invoke(draggedItems, linkTarget);
                 }
                 else if (viewModel != null && linkTarget != null)
                 {
                     Debug.WriteLine("[OrderLogFluidDrag] Calling ViewModel.LinkItemsAsync...");
-                    AppendDebug("[OrderLogFluidDrag] Calling ViewModel.LinkItemsAsync...");
                     await viewModel.LinkItemsAsync(draggedItems, linkTarget);
                 }
                 else if (viewModel != null)
                 {
                     Debug.WriteLine("[OrderLogFluidDrag] No link target found, falling back to MoveOrdersAsync");
-                    AppendDebug("[OrderLogFluidDrag] No link target found, falling back to MoveOrdersAsync");
                     await viewModel.MoveOrdersAsync(draggedItems, targetItem);
                 }
             }
@@ -530,17 +525,17 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         // Delay cleanup to allow ItemsControl to regenerate with new DisplayItems
         // ItemsControl needs time to rebuild its visual tree after ObservableCollection changes
-        var timer = new System.Windows.Threading.DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(500)
-        };
-        timer.Tick += (s, e) =>
-        {
-            timer.Stop();
-            CleanupDragState();
-            _isFinishingDrag = false;
-        };
-        timer.Start();
+        _cleanupTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _cleanupTimer.Tick -= OnCleanupTimerTick;
+        _cleanupTimer.Tick += OnCleanupTimerTick;
+        _cleanupTimer.Start();
+    }
+
+    private void OnCleanupTimerTick(object? sender, EventArgs e)
+    {
+        _cleanupTimer?.Stop();
+        CleanupDragState();
+        _isFinishingDrag = false;
     }
 
     private ViewModels.OrderLogViewModel? FindViewModel()
@@ -580,17 +575,18 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         _animator?.ResetAllCardPositions();
 
-        // Delay cleanup to allow animation to complete
-        var timer = new System.Windows.Threading.DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(AnimationDuration + 50)
-        };
-        timer.Tick += (s, e) =>
-        {
-            timer.Stop();
-            CleanupDragState();
-        };
-        timer.Start();
+        // Delay cleanup to allow animation to complete - reuse timer
+        _cleanupTimer ??= new System.Windows.Threading.DispatcherTimer();
+        _cleanupTimer.Interval = TimeSpan.FromMilliseconds(AnimationDuration + 50);
+        _cleanupTimer.Tick -= OnCancelCleanupTick;
+        _cleanupTimer.Tick += OnCancelCleanupTick;
+        _cleanupTimer.Start();
+    }
+
+    private void OnCancelCleanupTick(object? sender, EventArgs e)
+    {
+        _cleanupTimer?.Stop();
+        CleanupDragState();
     }
 
     /// <summary>
@@ -706,7 +702,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             ? Color.FromRgb(138, 43, 226) // Purple for link mode
             : Color.FromRgb(34, 197, 94); // Green for reorder (from SuccessBrush)
 
-        var targetThickness = new Thickness(4); // Slightly thicker for more visibility
+        var targetThickness = new Thickness(3);
 
         // Create a new mutable brush for animation (frozen brushes can't be animated)
         var newBrush = new SolidColorBrush(border.BorderBrush is SolidColorBrush currentBrush
@@ -716,23 +712,20 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         border.BorderBrush = newBrush;
         border.BorderThickness = targetThickness;
 
-        // Add glow effect for link mode
-        if (isLinkMode)
+        // Add drop shadow effect for all drag modes (better depth perception)
+        var shadowColor = isLinkMode
+            ? Color.FromRgb(138, 43, 226) // Purple glow for link
+            : Color.FromRgb(0, 0, 0);      // Black shadow for reorder
+        
+        var dropShadow = new System.Windows.Media.Effects.DropShadowEffect
         {
-            var dropShadow = new System.Windows.Media.Effects.DropShadowEffect
-            {
-                Color = Color.FromRgb(138, 43, 226), // Purple glow
-                BlurRadius = 20,
-                ShadowDepth = 0,
-                Opacity = 0.8
-            };
-            border.Effect = dropShadow;
-        }
-        else
-        {
-            // Remove glow effect for reorder mode
-            border.Effect = null;
-        }
+            Color = shadowColor,
+            BlurRadius = isLinkMode ? 25 : DRAG_SHADOW_BLUR,
+            ShadowDepth = isLinkMode ? 0 : 8, // Elevated shadow for reorder, glow for link
+            Direction = 270, // Shadow below
+            Opacity = isLinkMode ? 0.7 : DRAG_SHADOW_OPACITY
+        };
+        border.Effect = dropShadow;
 
         // Animate to target color
         var colorAnimation = new ColorAnimation
@@ -890,6 +883,30 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 {
                     return true;
                 }
+            }
+
+            // Stop if we've reached the panel
+            if (current == AssociatedObject)
+                break;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the click originated from a drag handle element (Tag="DragHandle").
+    /// </summary>
+    private bool IsClickOnDragHandle(DependencyObject? source)
+    {
+        var current = source;
+        while (current != null)
+        {
+            // Check if this element has Tag="DragHandle"
+            if (current is FrameworkElement fe && fe.Tag is string tag && tag == "DragHandle")
+            {
+                return true;
             }
 
             // Stop if we've reached the panel

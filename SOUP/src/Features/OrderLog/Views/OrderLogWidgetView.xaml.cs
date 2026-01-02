@@ -26,6 +26,8 @@ public partial class OrderLogWidgetView : UserControl
     private SpotifyService? _spotifyService;
     private System.Windows.Threading.DispatcherTimer? _equalizerTimer;
     private Random _random = new Random();
+    private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
+    private Behaviors.GridDragBehavior? _gridDrag;
 
     public OrderLogWidgetView()
     {
@@ -49,15 +51,13 @@ public partial class OrderLogWidgetView : UserControl
 
     private void UpdateTabState()
     {
-        // Update tab button styles - using pill-style tabs
+        // Update tab button styles - using modern segmented control style
         if (_showingArchivedTab)
         {
-            ActiveTabButton.Background = System.Windows.Media.Brushes.Transparent;
-            ActiveTabButton.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
-            ActiveTabButton.FontWeight = FontWeights.Normal;
-            ArchivedTabButton.Background = (System.Windows.Media.Brush)FindResource("SurfaceBrush");
-            ArchivedTabButton.Foreground = (System.Windows.Media.Brush)FindResource("TextPrimaryBrush");
-            ArchivedTabButton.FontWeight = FontWeights.SemiBold;
+            // Apply inactive style to Active tab
+            ActiveTabButton.Style = FindResource("WidgetTabButtonStyle") as Style;
+            // Apply active style to Archived tab
+            ArchivedTabButton.Style = FindResource("WidgetTabButtonActiveStyle") as Style;
             
             ActiveItemsPanel.Visibility = Visibility.Collapsed;
             ArchivedItemsPanel.Visibility = Visibility.Visible;
@@ -65,12 +65,10 @@ public partial class OrderLogWidgetView : UserControl
         }
         else
         {
-            ActiveTabButton.Background = (System.Windows.Media.Brush)FindResource("SurfaceBrush");
-            ActiveTabButton.Foreground = (System.Windows.Media.Brush)FindResource("TextPrimaryBrush");
-            ActiveTabButton.FontWeight = FontWeights.SemiBold;
-            ArchivedTabButton.Background = System.Windows.Media.Brushes.Transparent;
-            ArchivedTabButton.Foreground = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
-            ArchivedTabButton.FontWeight = FontWeights.Normal;
+            // Apply active style to Active tab
+            ActiveTabButton.Style = FindResource("WidgetTabButtonActiveStyle") as Style;
+            // Apply inactive style to Archived tab
+            ArchivedTabButton.Style = FindResource("WidgetTabButtonStyle") as Style;
             
             ActiveItemsPanel.Visibility = Visibility.Visible;
             ArchivedItemsPanel.Visibility = Visibility.Collapsed;
@@ -153,7 +151,7 @@ public partial class OrderLogWidgetView : UserControl
                         MainScrollViewer.ScrollToVerticalOffset(newOffset);
                         ev.Handled = true;
                     }
-                    catch { }
+                    catch { /* Intentionally ignored: scroll handling fallback */ }
                 };
 
                 // Attach both preview and bubbling with handledEventsToo
@@ -161,7 +159,7 @@ public partial class OrderLogWidgetView : UserControl
                 MainScrollViewer.AddHandler(UIElement.MouseWheelEvent, handler, true);
             }
         }
-        catch { }
+        catch { /* Intentionally ignored: optional scroll enhancement */ }
     }
 
     private void WireUpFluidDragBehavior()
@@ -184,18 +182,18 @@ public partial class OrderLogWidgetView : UserControl
 
             // Find attached behaviors (support legacy fluid drag and new GridDragBehavior)
             var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
-            var fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
-            var gridDrag = behaviors.OfType<Behaviors.GridDragBehavior>().FirstOrDefault();
+            _fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+            _gridDrag = behaviors.OfType<Behaviors.GridDragBehavior>().FirstOrDefault();
 
-            if (fluidDragBehavior != null)
+            if (_fluidDragBehavior != null)
             {
-                fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
-                fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
+                _fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
+                _fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
             }
 
-            if (gridDrag != null)
+            if (_gridDrag != null)
             {
-                gridDrag.ReorderComplete += OnFluidDragReorderComplete;
+                _gridDrag.ReorderComplete += OnFluidDragReorderComplete;
             }
         };
     }
@@ -218,6 +216,29 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    /// <summary>
+    /// Resolves an OrderItem from a context menu sender, handling WPF's ContextMenu DataContext inheritance issues.
+    /// </summary>
+    private static OrderItem? GetOrderItemFromContextMenu(object sender)
+    {
+        if (sender is not MenuItem menuItem) return null;
+
+        // Try direct DataContext first
+        if (menuItem.DataContext is OrderItem order)
+            return order;
+
+        // For nested menu items, walk up to the ContextMenu and get PlacementTarget's DataContext
+        DependencyObject? current = menuItem;
+        while (current != null)
+        {
+            if (current is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
+                return pt.DataContext as OrderItem;
+            current = LogicalTreeHelper.GetParent(current);
+        }
+
+        return null;
+    }
+
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
     {
         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
@@ -235,11 +256,26 @@ public partial class OrderLogWidgetView : UserControl
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        // Clean up
+        // Clean up event subscriptions
+        Loaded -= OnLoaded;
+        Unloaded -= OnUnloaded;
+        
         _equalizerTimer?.Stop();
         if (_spotifyService != null)
         {
             _spotifyService.PropertyChanged -= SpotifyService_PropertyChanged;
+        }
+        
+        // Clean up drag behavior subscriptions
+        if (_fluidDragBehavior != null)
+        {
+            _fluidDragBehavior.ReorderComplete -= OnFluidDragReorderComplete;
+            _fluidDragBehavior.LinkComplete -= OnFluidDragLinkComplete;
+        }
+        
+        if (_gridDrag != null)
+        {
+            _gridDrag.ReorderComplete -= OnFluidDragReorderComplete;
         }
     }
 
@@ -414,7 +450,7 @@ public partial class OrderLogWidgetView : UserControl
         if (sender is Border b)
         {
             if (b.Tag == null) b.Tag = b.BorderBrush;
-            b.BorderBrush = (System.Windows.Media.Brush)Application.Current?.Resources["SuccessBrush"] ?? System.Windows.Media.Brushes.LightGreen;
+            b.BorderBrush = Application.Current?.Resources["SuccessBrush"] as Brush ?? System.Windows.Media.Brushes.LightGreen;
         }
         e.Handled = true;
     }
@@ -444,8 +480,6 @@ public partial class OrderLogWidgetView : UserControl
                 droppedIds.Add((Guid)e.Data.GetData("OrderItemId"));
             }
 
-            OrderItem? dropped = null;
-
             if (DataContext is OrderLogViewModel vm)
             {
                 var droppedItems = vm.Items.Concat(vm.ArchivedItems).Where(i => droppedIds.Contains(i.Id)).ToList();
@@ -466,14 +500,8 @@ public partial class OrderLogWidgetView : UserControl
                     // Only link when Ctrl is held; otherwise move the items.
                     if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
                     {
-                        static bool IsPracticallyEmpty(OrderItem it)
-                            => string.IsNullOrWhiteSpace(it.VendorName)
-                               && string.IsNullOrWhiteSpace(it.TransferNumbers)
-                               && string.IsNullOrWhiteSpace(it.WhsShipmentNumbers)
-                               && string.IsNullOrWhiteSpace(it.NoteContent);
-
                         // If the drop target is a practically-empty placeholder, attempt to find a nearby non-empty replacement.
-                        if (target == null || IsPracticallyEmpty(target))
+                        if (target == null || target.IsPracticallyEmpty)
                         {
                             try
                             {
@@ -496,7 +524,7 @@ public partial class OrderLogWidgetView : UserControl
                                             else continue;
                                         }
 
-                                        if (IsPracticallyEmpty(oi)) continue;
+                                        if (oi.IsPracticallyEmpty) continue;
 
                                         var bounds = new Rect(border.TransformToAncestor(panel).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
                                         var center = new Point(bounds.Left + bounds.Width/2, bounds.Top + bounds.Height/2);
@@ -514,22 +542,22 @@ public partial class OrderLogWidgetView : UserControl
                                     }
                                 }
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, "Error finding nearest non-empty target");
+                            }
 
-                            if (target == null || IsPracticallyEmpty(target))
+                            if (target == null || target.IsPracticallyEmpty)
                             {
                                 vm.StatusMessage = "Cannot link to an empty placeholder";
                                 return;
                             }
                         }
 
-                        try
-                        {
-                            var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "OrderLogDebug.log");
-                            var tinfo = target == null ? "null" : $"{target.Id}:{(string.IsNullOrWhiteSpace(target.VendorName)?"<no-vendor>":target.VendorName)}";
-                            System.IO.File.AppendAllText(path, DateTime.Now.ToString("o") + " Widget.Item_Drop: dropped=" + string.Join(',', droppedItems.Select(i => i.Id)) + " target=" + tinfo + "\n");
-                        }
-                        catch { }
+                        Log.Debug("Widget.Item_Drop: dropped={DroppedIds} target={TargetId}:{TargetVendor}",
+                            string.Join(',', droppedItems.Select(i => i.Id)),
+                            target?.Id,
+                            target?.VendorName ?? "<no-vendor>");
 
                         await vm.LinkItemsAsync(droppedItems, target);
                         vm.StatusMessage = "Linked items";
@@ -562,8 +590,8 @@ public partial class OrderLogWidgetView : UserControl
                 var hWnd = processes[0].MainWindowHandle;
                 if (hWnd != IntPtr.Zero)
                 {
-                    SetForegroundWindow(hWnd);
-                    ShowWindow(hWnd, 9); // SW_RESTORE
+                    SOUP.Helpers.NativeMethods.SetForegroundWindow(hWnd);
+                    SOUP.Helpers.NativeMethods.ShowWindow(hWnd, SOUP.Helpers.NativeMethods.ShowWindowCommands.SW_RESTORE);
                 }
             }
             else
@@ -581,12 +609,6 @@ public partial class OrderLogWidgetView : UserControl
             Log.Warning(ex, "Failed to open Spotify");
         }
     }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     private async void PlayPause_Click(object sender, RoutedEventArgs e)
     {
@@ -614,12 +636,7 @@ public partial class OrderLogWidgetView : UserControl
 
     private void AddBlankOrder_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "OrderLogDebug.log");
-            System.IO.File.AppendAllText(path, DateTime.Now.ToString("o") + " AddBlankOrder_Click fired\n");
-        }
-        catch { }
+        Log.Debug("AddBlankOrder_Click fired");
 
         if (DataContext is OrderLogViewModel vm)
         {
@@ -665,6 +682,29 @@ public partial class OrderLogWidgetView : UserControl
         {
             order.ColorHex = picker.SelectedColor;
             _ = vm.SaveAsync();
+        }
+    }
+
+    private void QuickArchive_Click(object sender, RoutedEventArgs e)
+    {
+        // Get the OrderItem from the button's DataContext (inherited from card template)
+        OrderItem? order = null;
+        if (sender is Button btn)
+        {
+            order = btn.DataContext as OrderItem;
+        }
+
+        if (order == null) return;
+        if (DataContext is not OrderLogViewModel vm) return;
+
+        // Toggle archive state based on current state
+        if (order.IsArchived)
+        {
+            _ = vm.UnarchiveOrderAsync(order);
+        }
+        else
+        {
+            _ = vm.ArchiveOrderAsync(order);
         }
     }
 
@@ -737,10 +777,12 @@ public partial class OrderLogWidgetView : UserControl
 
     private void SetStatus_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { DataContext: OrderItem order, Tag: OrderItem.OrderStatus status } &&
+        if (sender is MenuItem { Tag: OrderItem.OrderStatus status } menuItem &&
             DataContext is OrderLogViewModel vm)
         {
-            _ = vm.SetStatusAsync(order, status);
+            var order = GetOrderItemFromContextMenu(menuItem);
+            if (order != null)
+                _ = vm.SetStatusAsync(order, status);
         }
     }
 
@@ -748,19 +790,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            // Resolve OrderItem robustly (ContextMenu items may not inherit DataContext)
-            OrderItem? order = null;
-            if (sender is MenuItem menuItem)
-            {
-                if (menuItem.CommandParameter is OrderItem cp)
-                    order = cp;
-                else
-                    order = menuItem.DataContext as OrderItem;
-
-                if (order == null && menuItem.Parent is ContextMenu cm && cm.PlacementTarget is FrameworkElement pt)
-                    order = pt.DataContext as OrderItem;
-            }
-
+            var order = GetOrderItemFromContextMenu(sender);
             if (order == null) return;
 
             if (DataContext is OrderLogViewModel vm)
@@ -832,12 +862,10 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
             {
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    await vm.MoveUpCommand.ExecuteAsync(order);
-                }
+                await vm.MoveUpCommand.ExecuteAsync(order);
             }
         }
         catch (Exception ex)
@@ -850,12 +878,10 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
             {
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    await vm.MoveDownCommand.ExecuteAsync(order);
-                }
+                await vm.MoveDownCommand.ExecuteAsync(order);
             }
         }
         catch (Exception ex)
@@ -868,14 +894,11 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    order.IsArchived = true;
-                    vm.Items.Remove(order);
-                    vm.ArchivedItems.Add(order);
-                    await vm.SaveAsync();
-                }
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                await vm.ArchiveOrderCommand.ExecuteAsync(order);
+            }
         }
         catch (Exception ex)
         {
@@ -887,12 +910,11 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    vm.Items.Remove(order);
-                    await vm.SaveAsync();
-                }
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                await vm.DeleteCommand.ExecuteAsync(order);
+            }
         }
         catch (Exception ex)
         {
@@ -904,12 +926,11 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    vm.ArchivedItems.Remove(order);
-                    await vm.SaveAsync();
-                }
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                await vm.DeleteCommand.ExecuteAsync(order);
+            }
         }
         catch (Exception ex)
         {
@@ -921,11 +942,11 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (sender is MenuItem menuItem && menuItem.DataContext is OrderItem order)
-                if (DataContext is OrderLogViewModel vm)
-                {
-                    await vm.UnarchiveOrderCommand.ExecuteAsync(order);
-                }
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                await vm.UnarchiveOrderCommand.ExecuteAsync(order);
+            }
         }
         catch (Exception ex)
         {
@@ -1054,7 +1075,7 @@ public partial class OrderLogWidgetView : UserControl
             if (sender is Border b)
             {
                 if (b.Tag == null) b.Tag = b.BorderBrush;
-                b.BorderBrush = (System.Windows.Media.Brush)Application.Current?.Resources["AccentBrush"] ?? System.Windows.Media.Brushes.LightBlue;
+                b.BorderBrush = Application.Current?.Resources["AccentBrush"] as Brush ?? System.Windows.Media.Brushes.LightBlue;
                 b.BorderThickness = new Thickness(3);
             }
         }

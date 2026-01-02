@@ -8,9 +8,8 @@ $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $srcDir = Join-Path $rootDir "src"
 $projectFile = Join-Path $srcDir "SOUP.csproj"
 
-# dotnet path (use local SDK path if present)
-$dotnetPath = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-if (-not (Test-Path $dotnetPath)) { $dotnetPath = "dotnet" }
+# Find dotnet (check environment variable, then fallback to system dotnet)
+$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host "Running SOUP widget window..." -ForegroundColor Cyan
 if ($NoBuild) {

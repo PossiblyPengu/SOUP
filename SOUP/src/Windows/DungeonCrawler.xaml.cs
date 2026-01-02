@@ -38,8 +38,10 @@ public partial class DungeonCrawler : Window
     private (int X, int Y)? _elevatorPosition;
     private List<(int X, int Y)> _teleporters = new();
     private (int X, int Y)? _lockedDoorPosition;
+#pragma warning disable CS0414 // Field is assigned but never used - reserved for future use
     private (int X, int Y)? _keyPosition;
     private (int X, int Y)? _safeRoomCenter;
+#pragma warning restore CS0414
     private bool _hasKey;
     private int _currentFloor = 1;
     private bool _gameOver;
@@ -54,7 +56,9 @@ public partial class DungeonCrawler : Window
     private int _comboCounter = 0;
     private DateTime _lastAttackTime = DateTime.MinValue;
     private Dictionary<int, Enemy> _bossEnemies = new(); // Floor -> Boss
+#pragma warning disable CS0169 // Field is never used - reserved for future audio implementation
     private System.Windows.Media.MediaPlayer? _musicPlayer;
+#pragma warning restore CS0169
     private Dictionary<string, System.Windows.Media.MediaPlayer> _soundEffects = new();
 
     // Combat mode

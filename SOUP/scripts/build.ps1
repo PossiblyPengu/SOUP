@@ -23,11 +23,8 @@ $srcDir = Join-Path $rootDir "src"
 $projectFile = Join-Path $srcDir "SOUP.csproj"
 $configuration = if ($Release) { "Release" } else { "Debug" }
 
-# Find dotnet
-$dotnetPath = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-if (-not (Test-Path $dotnetPath)) {
-    $dotnetPath = "dotnet"
-}
+# Find dotnet (check environment variable, then fallback to system dotnet)
+$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan

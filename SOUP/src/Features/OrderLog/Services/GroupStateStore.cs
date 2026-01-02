@@ -76,8 +76,15 @@ public sealed class GroupStateStore : IDisposable
             _states[name] = value;
 
             // Debounce: save after 500ms of no changes
-            _saveTimer?.Dispose();
-            _saveTimer = new Timer(_ => Save(), null, 500, Timeout.Infinite);
+            // Reuse timer instead of creating new one each time
+            if (_saveTimer == null)
+            {
+                _saveTimer = new Timer(_ => Save(), null, 500, Timeout.Infinite);
+            }
+            else
+            {
+                _saveTimer.Change(500, Timeout.Infinite);
+            }
         }
     }
 

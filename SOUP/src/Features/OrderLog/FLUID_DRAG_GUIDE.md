@@ -148,11 +148,9 @@ The OrderLog now features a fluid chess-like drag and drop system with real-time
 ## Future Enhancements
 
 Potential improvements for future versions:
-- [ ] Touch screen support
 - [ ] Multi-select drag (drag multiple selected cards)
 - [ ] Drag preview with card count badge
 - [ ] Custom insertion line indicator
 - [ ] Configurable animation speeds
 - [ ] Sound effects on drop
-- [ ] Haptic feedback (if supported)
 - [ ] Undo/redo for drag operations

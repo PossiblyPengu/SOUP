@@ -31,7 +31,7 @@ if (Test-Path $objDir) {
 }
 
 # Clean tools
-$toolProjects = @("ImportDictionary", "InspectExcel")
+$toolProjects = @("ImportDictionary", "InspectExcel", "InspectOrderDb")
 foreach ($tool in $toolProjects) {
     $binDir = Join-Path $rootDir "tools\$tool\bin"
     $objDir = Join-Path $rootDir "tools\$tool\obj"

@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$csprojFile = Join-Path $rootDir "src\SOUP\SOUP.csproj"
+$csprojFile = Join-Path $rootDir "src\SOUP.csproj"
 $issFile = Join-Path $rootDir "installer\SOUP.iss"
 
 Write-Host ""

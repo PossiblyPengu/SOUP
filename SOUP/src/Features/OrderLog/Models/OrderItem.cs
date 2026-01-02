@@ -89,13 +89,22 @@ public partial class OrderItem : ObservableObject
         }
     }
 
+    // Cache for optimized refresh - only notify when display actually changes
+    private string _lastTimeDisplay = string.Empty;
+
     /// <summary>
-    /// Called by a UI timer to raise PropertyChanged for computed properties
+    /// Called by a UI timer to raise PropertyChanged for computed properties.
+    /// Only raises notifications if the displayed value actually changed.
     /// </summary>
     public void RefreshTimeInProgress()
     {
-        OnPropertyChanged(nameof(TimeInProgress));
-        OnPropertyChanged(nameof(TimeInProgressDisplay));
+        var currentDisplay = TimeInProgressDisplay;
+        if (currentDisplay != _lastTimeDisplay)
+        {
+            _lastTimeDisplay = currentDisplay;
+            OnPropertyChanged(nameof(TimeInProgress));
+            OnPropertyChanged(nameof(TimeInProgressDisplay));
+        }
     }
 
     partial void OnStatusChanged(OrderStatus value)
@@ -176,6 +185,17 @@ public partial class OrderItem : ObservableObject
     public string DisplayTitle => NoteType == NoteType.StickyNote
         ? (string.IsNullOrWhiteSpace(NoteContent) ? "Quick Note" : NoteContent.Split('\n')[0].Trim())
         : VendorName;
+
+    /// <summary>
+    /// Checks if this item is practically empty (no meaningful content).
+    /// Used to filter out blank placeholders during persistence and linking operations.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsPracticallyEmpty =>
+        string.IsNullOrWhiteSpace(VendorName)
+        && string.IsNullOrWhiteSpace(TransferNumbers)
+        && string.IsNullOrWhiteSpace(WhsShipmentNumbers)
+        && string.IsNullOrWhiteSpace(NoteContent);
 
     /// <summary>
     /// Factory helper to create a new blank Order (non-sticky note) with sensible defaults.

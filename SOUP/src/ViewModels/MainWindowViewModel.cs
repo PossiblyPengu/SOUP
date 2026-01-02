@@ -275,6 +275,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 // Unsubscribe from events to prevent memory leaks
                 NavigationService.ModuleChanged -= OnModuleChanged;
                 _themeService.ThemeChanged -= OnThemeChanged;
+                
+                // Unsubscribe from nav item property changes
+                foreach (var item in NavItems)
+                {
+                    item.PropertyChanged -= OnNavItemPropertyChanged;
+                }
             }
             _disposed = true;
         }

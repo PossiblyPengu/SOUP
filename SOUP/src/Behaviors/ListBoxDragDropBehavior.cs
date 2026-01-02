@@ -49,7 +49,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             var p = _dragLogPath;
             File.AppendAllText(p, DateTime.Now.ToString("o") + " " + message + Environment.NewLine);
         }
-        catch { }
+        catch { /* Intentionally ignored: debug logging only */ }
     }
 
     public static readonly DependencyProperty OnReorderProperty =
@@ -226,10 +226,10 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             var srcType = e.OriginalSource?.GetType().Name ?? "(null)";
             DebugLog($"[DragDebug] MouseDown src={srcType} start={_startPoint}");
         }
-        catch { }
+        catch { /* Intentionally ignored: debug logging only */ }
         
         // Find the item being clicked
-        var item = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+        var item = FindAncestor<ListBoxItem>((DependencyObject?)e.OriginalSource);
         if (item != null)
         {
             _draggedItem = item.DataContext;
@@ -321,7 +321,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                             try
                             {
                                 // Special-case rendering for grouped items: instantiate the merged template into an off-screen presenter
-                                ImageSource bitmapSource = null;
+                                ImageSource? bitmapSource = null;
                                 bool usedTemplate = false;
 
                                 try
@@ -493,8 +493,8 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                         string content = string.Empty;
                                         if (_draggedItem != null)
                                         {
-                                            try { var tprop = _draggedItem.GetType().GetProperty("NoteTitle"); if (tprop != null) title = (tprop.GetValue(_draggedItem) ?? string.Empty).ToString(); } catch { }
-                                            try { var cprop = _draggedItem.GetType().GetProperty("NoteContent"); if (cprop != null) content = (cprop.GetValue(_draggedItem) ?? string.Empty).ToString(); } catch { }
+                                            try { var tprop = _draggedItem.GetType().GetProperty("NoteTitle"); if (tprop != null) title = (tprop.GetValue(_draggedItem) ?? string.Empty).ToString() ?? string.Empty; } catch { /* Intentionally ignored: reflection fallback */ }
+                                            try { var cprop = _draggedItem.GetType().GetProperty("NoteContent"); if (cprop != null) content = (cprop.GetValue(_draggedItem) ?? string.Empty).ToString() ?? string.Empty; } catch { /* Intentionally ignored: reflection fallback */ }
                                         }
 
                                         // Compose a simple visual containing title and content

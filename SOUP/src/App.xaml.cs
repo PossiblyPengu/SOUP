@@ -173,6 +173,7 @@ public partial class App : Application
         services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService>(sp =>
             SOUP.Features.OrderLog.Services.OrderLogRepository.GetInstance(
                 sp.GetService<ILogger<SOUP.Features.OrderLog.Services.OrderLogRepository>>()));
+        services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>(); // Settings service for OrderLog widget
         services.AddSingleton<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
         services.AddSingleton<SOUP.Features.OrderLog.Services.GroupStateStore>();
 

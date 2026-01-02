@@ -18,13 +18,16 @@ namespace SOUP.Features.OrderLog.Converters
                     var color = (Color)ColorConverter.ConvertFromString(hex);
                     return new SolidColorBrush(color);
                 }
-                catch { }
+                catch
+                {
+                    // Invalid color format, fall through to default
+                }
             }
             // Fallback: Transparent
             return Brushes.Transparent;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is SolidColorBrush brush)
                 return brush.Color.ToString();

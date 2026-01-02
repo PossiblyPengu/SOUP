@@ -2,7 +2,7 @@
 
 A suite of inventory management tools built with WPF and .NET 8.
 
-## ðŸ“¦ Modules
+## 📦 Modules
 
 ### AllocationBuddy
 
@@ -20,99 +20,112 @@ Track product expiration dates with visual status indicators.
 
 Quick store label generation utility.
 
-## ðŸš€ Quick Start
+### OrderLog
+
+Track and manage orders with drag-and-drop organization.
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- .NET 8 SDK (or use the local SDK in `important files` folder)
+- .NET 8 SDK
 - Windows 10/11
 
 ### Running the Application
 
 ```powershell
-# Run the full suite
-.\run-suite.ps1
+# Run the application (Debug mode)
+.\scripts\run.ps1
 
-# Or use the scripts folder for more options
-.\scripts\run-suite.ps1 -Release  # Build in Release mode
-.\scripts\run-suite.ps1 -NoBuild  # Skip build step
+# Run in Release mode
+.\scripts\run.ps1 -Release
+
+# Run without building (uses last build)
+.\scripts\run.ps1 -NoBuild
+
+# Run only the OrderLog widget
+.\scripts\run-widget.ps1
 ```
-
-### Individual Modules
-
-```powershell
-.\scripts\run-allocationbuddy.ps1
-.\scripts\run-essentialsbuddy.ps1
-.\scripts\run-expirewise.ps1
-```
-
-## ðŸ“ Project Structure
-
-```text
-SOUP/
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ SOUP/                    # Main application
-â”‚   â”‚   â”œâ”€â”€ Behaviors/          # WPF attached behaviors
-â”‚   â”‚   â”œâ”€â”€ Converters/         # Value converters
-â”‚   â”‚   â”œâ”€â”€ Core/               # Domain entities and interfaces
-â”‚   â”‚   â”‚   â”œâ”€â”€ Common/         # Base classes
-â”‚   â”‚   â”‚   â”œâ”€â”€ Entities/       # Domain models
-â”‚   â”‚   â”‚   â””â”€â”€ Interfaces/     # Repository interfaces
-â”‚   â”‚   â”œâ”€â”€ Data/               # Data access layer
-â”‚   â”‚   â”œâ”€â”€ Helpers/            # Utility classes
-â”‚   â”‚   â”œâ”€â”€ Infrastructure/     # Implementation details
-â”‚   â”‚   â”‚   â”œâ”€â”€ Data/           # Database context
-â”‚   â”‚   â”‚   â”œâ”€â”€ Repositories/   # Repository implementations
-â”‚   â”‚   â”‚   â””â”€â”€ Services/       # Service implementations
-â”‚   â”‚   â”œâ”€â”€ Models/             # UI models
-â”‚   â”‚   â”œâ”€â”€ Services/           # Application services
-â”‚   â”‚   â”œâ”€â”€ Themes/             # Light/Dark theme resources
-â”‚   â”‚   â”œâ”€â”€ ViewModels/         # MVVM ViewModels
-â”‚   â”‚   â”œâ”€â”€ Views/              # XAML views
-â”‚   â”‚   â””â”€â”€ Windows/            # Application windows
-â”‚   â”œâ”€â”€ AllocationBuddy.Standalone/
-â”‚   â”œâ”€â”€ EssentialsBuddy.Standalone/
-â”‚   â””â”€â”€ ExpireWise.Standalone/
-â”œâ”€â”€ installer/                  # Inno Setup installer
-â”œâ”€â”€ publish/                    # Published releases
-â””â”€â”€ tools/                      # Development utilities
-scripts/                        # Build and run scripts
-```
-
-## ðŸ› ï¸ Development
 
 ### Building
 
 ```powershell
-# Using local SDK
-$dotnet = "D:\CODE\important files\dotnet-sdk-8.0.404-win-x64\dotnet.exe"
-& $dotnet build SAP\src\SAP\SAP.csproj
+# Debug build
+.\scripts\build.ps1
+
+# Release build with clean
+.\scripts\build.ps1 -Release -Clean
+```
+
+## 📁 Project Structure
+
+```text
+SOUP/
+├── src/                        # Main application source
+│   ├── Behaviors/              # WPF attached behaviors
+│   ├── Converters/             # Value converters
+│   ├── Core/                   # Domain entities and interfaces
+│   │   ├── Common/             # Base classes
+│   │   ├── Entities/           # Domain models
+│   │   └── Interfaces/         # Repository interfaces
+│   ├── Data/                   # Data access layer
+│   ├── Features/               # Feature modules (OrderLog, etc.)
+│   ├── Helpers/                # Utility classes
+│   ├── Infrastructure/         # Implementation details
+│   │   ├── Data/               # Database context
+│   │   ├── Repositories/       # Repository implementations
+│   │   └── Services/           # Service implementations
+│   ├── Models/                 # UI models
+│   ├── Services/               # Application services
+│   ├── Themes/                 # Light/Dark theme resources
+│   ├── ViewModels/             # MVVM ViewModels
+│   ├── Views/                  # XAML views
+│   └── Windows/                # Application windows
+├── installer/                  # Inno Setup installer
+├── scripts/                    # Build and run scripts
+└── tools/                      # Development utilities
+```
+
+## 🛠️ Development
+
+### Building
+
+```powershell
+# Using scripts (recommended)
+.\scripts\build.ps1 -Release -Clean -Restore
+
+# Or directly with dotnet
+dotnet build src/SOUP.csproj -c Release
 ```
 
 ### Publishing
 
 ```powershell
-& $dotnet publish SAP\src\SAP\SAP.csproj -c Release -o SAP\publish
+# Publish both framework-dependent and self-contained
+.\scripts\publish.ps1
+
+# Or directly
+dotnet publish src/SOUP.csproj -c Release -o publish-framework
 ```
 
 ### Creating Installer
 
-See `SOUP/installer/README.md` for Inno Setup instructions.
+See `installer/README.md` for Inno Setup instructions.
 
-## ðŸ“ Features
+## 📝 Features
 
 - **Dark/Light Theme** - Toggle between themes with automatic persistence
-- **Data Persistence** - Session data saved to `%APPDATA%\SAP\`
+- **Data Persistence** - Session data saved to `%APPDATA%\SOUP\`
 - **Auto-Archive** - Automatic archiving when importing new data
 - **Dictionary Matching** - Match items against a central dictionary database
 - **Import/Export** - Support for Excel and CSV file formats
 - **Copy to Clipboard** - Quick copy functionality for allocation data
 
-## ðŸ“„ License
+## 📄 License
 
-Copyright Â© 2024-2025 PossiblyPengu
+Copyright © 2024-2025 PossiblyPengu
 
-## ðŸ¤ Contributing
+## 🤝 Contributing
 
 This is a private project. Please contact the author for contribution guidelines.
 

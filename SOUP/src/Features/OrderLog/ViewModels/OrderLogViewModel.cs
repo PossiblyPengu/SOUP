@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,25 +12,38 @@ using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.Constants;
 using SOUP.Features.OrderLog.Services;
 using SOUP.Infrastructure.Services;
-using SOUP.Features.OrderLog.Models;
 
 namespace SOUP.Features.OrderLog.ViewModels;
 
 public partial class OrderLogViewModel : ObservableObject, IDisposable
 {
+    // Constants for configurable timeouts
+    private const int TimerIntervalSeconds = 1;
+    private const int UndoTimeoutSeconds = 5;
+    private const double DefaultCardFontSize = 13.0;
+
     private readonly IOrderLogService _orderLogService;
     private readonly GroupStateStore _groupStateStore;
+    private readonly SettingsService _settingsService;
     private readonly ILogger<OrderLogViewModel>? _logger;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
     private DispatcherTimer? _undoTimer;
     private List<(Guid id, OrderItem.OrderStatus previous)> _lastStatusChanges = new();
+    private List<(Guid id, bool wasArchived)> _lastArchiveChanges = new();
+
+    // HashSets for O(1) membership checks instead of O(n) Contains on ObservableCollection
+    private readonly HashSet<Guid> _itemIds = new();
+    private readonly HashSet<Guid> _archivedItemIds = new();
 
     public ObservableCollection<OrderItem> Items { get; } = new();
     public ObservableCollection<OrderItem> ArchivedItems { get; } = new();
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
+
+    /// <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
+    private IEnumerable<OrderItem> AllItems => Items.Concat(ArchivedItems);
 
     [ObservableProperty]
     private bool _showArchived = false;
@@ -70,23 +83,23 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public OrderLogViewModel(
         IOrderLogService orderLogService,
         GroupStateStore groupStateStore,
+        SettingsService settingsService,
         ILogger<OrderLogViewModel>? logger = null)
     {
         _orderLogService = orderLogService;
         _groupStateStore = groupStateStore;
+        _settingsService = settingsService;
         _logger = logger;
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
 
         _logger?.LogInformation("OrderLogViewModel initialized");
     }
 
-    private readonly SettingsService _settingsService = new SettingsService();
-
     [ObservableProperty]
-    private double _cardFontSize = 13.0;
+    private double _cardFontSize = DefaultCardFontSize;
 
     partial void OnCardFontSizeChanged(double value)
     {
@@ -101,7 +114,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             var settings = new OrderLogWidgetSettings { CardFontSize = value };
             _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to update card font size");
+        }
     }
 
     private void OnTimerTick(object? sender, EventArgs e)
@@ -118,10 +134,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         try
         {
             var s = await _settingsService.LoadSettingsAsync<OrderLogWidgetSettings>("OrderLogWidget");
-            CardFontSize = s.CardFontSize <= 0 ? 13.0 : s.CardFontSize;
+            CardFontSize = s.CardFontSize <= 0 ? DefaultCardFontSize : s.CardFontSize;
             if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to load widget settings, using defaults");
+        }
 
         await LoadAsync();
     }
@@ -137,13 +156,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             var items = await _orderLogService.LoadAsync();
             Items.Clear();
             ArchivedItems.Clear();
+            _itemIds.Clear();
+            _archivedItemIds.Clear();
             
             foreach (var item in items)
             {
                 if (item.IsArchived)
+                {
                     ArchivedItems.Add(item);
+                    _archivedItemIds.Add(item.Id);
+                }
                 else
+                {
                     Items.Add(item);
+                    _itemIds.Add(item.Id);
+                }
             }
             
             StatusMessage = $"Loaded {Items.Count} orders ({ArchivedItems.Count} archived)";
@@ -177,7 +204,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 ArchivedItems[i].Order = Items.Count + i;
             }
             
-            var allItems = Items.Concat(ArchivedItems).ToList();
+            var allItems = AllItems.ToList();
             await _orderLogService.SaveAsync(allItems);
             StatusMessage = $"Saved {Items.Count} orders ({ArchivedItems.Count} archived)";
             RefreshDisplayItems();
@@ -192,30 +219,123 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task ArchiveOrderAsync(OrderItem? item)
+    public async Task ArchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
         
         item.IsArchived = true;
-        Items.Remove(item);
-        ArchivedItems.Add(item);
+        RemoveFromItems(item);
+        AddToArchived(item);
         await SaveAsync();
-        StatusMessage = "Order archived";
+        
+        // Setup undo for archive
+        SetupArchiveUndo(new List<(Guid, bool)> { (item.Id, false) }, "Archived 1 item");
+        StatusMessage = "Order archived - tap Undo to restore";
+    }
+
+    /// <summary>
+    /// Archive multiple items at once with undo support
+    /// </summary>
+    public async Task ArchiveItemsAsync(IEnumerable<OrderItem> items)
+    {
+        var itemList = items.ToList();
+        if (itemList.Count == 0) return;
+        
+        var changes = new List<(Guid id, bool wasArchived)>();
+        foreach (var item in itemList)
+        {
+            changes.Add((item.Id, item.IsArchived));
+            item.IsArchived = true;
+            RemoveFromItems(item);
+            AddToArchived(item);
+        }
+        
+        await SaveAsync();
+        SetupArchiveUndo(changes, $"Archived {itemList.Count} item(s)");
+        StatusMessage = $"Archived {itemList.Count} item(s) - tap Undo to restore";
     }
 
     [RelayCommand]
-    private async Task UnarchiveOrderAsync(OrderItem? item)
+    public async Task UnarchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
         
-        // Prevent duplication if already in Items
-        if (Items.Contains(item)) return;
+        // Prevent duplication if already in Items (O(1) check)
+        if (_itemIds.Contains(item.Id)) return;
         
         item.IsArchived = false;
-        ArchivedItems.Remove(item);
-        Items.Insert(0, item);
+        RemoveFromArchived(item);
+        AddToItems(item, insertAtTop: true);
         await SaveAsync();
-        StatusMessage = "Order restored";
+        
+        // Setup undo for unarchive  
+        SetupArchiveUndo(new List<(Guid, bool)> { (item.Id, true) }, "Restored 1 item");
+        StatusMessage = "Order restored - tap Undo to re-archive";
+    }
+
+    /// <summary>
+    /// Restore multiple items from archive with undo support
+    /// </summary>
+    public async Task UnarchiveItemsAsync(IEnumerable<OrderItem> items)
+    {
+        var itemList = items.ToList();
+        if (itemList.Count == 0) return;
+        
+        var changes = new List<(Guid id, bool wasArchived)>();
+        foreach (var item in itemList)
+        {
+            // O(1) membership check
+            if (_itemIds.Contains(item.Id)) continue;
+            
+            changes.Add((item.Id, item.IsArchived));
+            item.IsArchived = false;
+            RemoveFromArchived(item);
+            AddToItems(item, insertAtTop: true);
+        }
+        
+        await SaveAsync();
+        SetupArchiveUndo(changes, $"Restored {changes.Count} item(s)");
+        StatusMessage = $"Restored {changes.Count} item(s) - tap Undo to re-archive";
+    }
+
+    private void SetupArchiveUndo(List<(Guid id, bool wasArchived)> changes, string message)
+    {
+        _lastArchiveChanges = changes;
+        _lastStatusChanges.Clear(); // Clear status changes when setting archive undo
+        StartUndoTimer(message);
+    }
+
+    [RelayCommand]
+    private async Task UndoArchiveAsync()
+    {
+        if (_lastArchiveChanges == null || _lastArchiveChanges.Count == 0) return;
+
+        foreach (var (id, wasArchived) in _lastArchiveChanges)
+        {
+            var item = AllItems.FirstOrDefault(i => i.Id == id);
+            if (item == null) continue;
+            
+            if (wasArchived)
+            {
+                // Was archived before, re-archive it
+                item.IsArchived = true;
+                RemoveFromItems(item);
+                AddToArchived(item);
+            }
+            else
+            {
+                // Was not archived before, unarchive it
+                item.IsArchived = false;
+                RemoveFromArchived(item);
+                AddToItems(item, insertAtTop: true);
+            }
+        }
+
+        await SaveAsync();
+        _lastArchiveChanges.Clear();
+        UndoAvailable = false;
+        _undoTimer?.Stop();
+        StatusMessage = "Undo applied";
     }
 
     [RelayCommand]
@@ -227,8 +347,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var toRemove = SelectedItems.ToList();
         foreach (var item in toRemove)
         {
-            Items.Remove(item);
-            ArchivedItems.Remove(item);
+            RemoveFromItems(item);
+            RemoveFromArchived(item);
         }
         SelectedItems.Clear();
 
@@ -297,52 +417,58 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         StatusMessage = "Deleted item";
     }
 
-    [RelayCommand]
-    private async Task BulkSetColorAsync(string? colorHex)
-    {
-        if (SelectedItems.Count == 0 || string.IsNullOrEmpty(colorHex)) return;
-
-        foreach (var item in SelectedItems)
-        {
-            item.ColorHex = colorHex;
-        }
-        await SaveAsync();
-    }
-
-    [RelayCommand]
-    private async Task BulkSetStatusAsync(OrderItem.OrderStatus status)
-    {
-        if (SelectedItems.Count == 0) return;
-
-        var changes = new List<(Guid id, OrderItem.OrderStatus previous)>();
-        foreach (var item in SelectedItems)
-        {
-            changes.Add((item.Id, item.Status));
-            item.Status = status;
-        }
-
-        await SaveAsync();
-
-        SetupUndo(changes, $"Set {SelectedItems.Count} item(s) to {status}");
-    }
-
-    
-
     private void SetupUndo(List<(Guid id, OrderItem.OrderStatus previous)> changes, string message)
     {
         _lastStatusChanges = changes;
+        _lastArchiveChanges.Clear(); // Clear archive changes when setting status undo
+        StartUndoTimer(message);
+    }
+
+    private void StartUndoTimer(string message)
+    {
         UndoMessage = message;
         UndoAvailable = true;
 
-        _undoTimer?.Stop();
-        _undoTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-        _undoTimer.Tick += (s, e) =>
+        // Reuse existing timer instead of creating new one each time
+        if (_undoTimer == null)
         {
-            UndoAvailable = false;
-            _lastStatusChanges.Clear();
-            _undoTimer?.Stop();
-        };
+            _undoTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(UndoTimeoutSeconds) };
+            _undoTimer.Tick += OnUndoTimerTick;
+        }
+        else
+        {
+            _undoTimer.Stop();
+        }
         _undoTimer.Start();
+    }
+
+    private void OnUndoTimerTick(object? sender, EventArgs e)
+    {
+        UndoAvailable = false;
+        _lastStatusChanges.Clear();
+        _lastArchiveChanges.Clear();
+        _undoTimer?.Stop();
+    }
+
+    /// <summary>
+    /// Unified undo command that handles both status and archive changes
+    /// </summary>
+    [RelayCommand]
+    private async Task UndoAsync()
+    {
+        // Handle archive undo first (takes priority if both are set)
+        if (_lastArchiveChanges != null && _lastArchiveChanges.Count > 0)
+        {
+            await UndoArchiveAsync();
+            return;
+        }
+        
+        // Handle status undo
+        if (_lastStatusChanges != null && _lastStatusChanges.Count > 0)
+        {
+            await UndoStatusChangeAsync();
+            return;
+        }
     }
 
     [RelayCommand]
@@ -352,7 +478,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         foreach (var (id, prev) in _lastStatusChanges)
         {
-            var item = Items.FirstOrDefault(i => i.Id == id);
+            var item = AllItems.FirstOrDefault(i => i.Id == id);
             if (item != null)
             {
                 item.Status = prev;
@@ -364,30 +490,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         UndoAvailable = false;
         _undoTimer?.Stop();
         StatusMessage = "Undo applied";
-    }
-
-    [RelayCommand]
-    private async Task BulkStartAsync()
-    {
-        if (SelectedItems.Count == 0) return;
-        foreach (var item in SelectedItems)
-        {
-            item.Status = OrderItem.OrderStatus.InProgress;
-        }
-        await SaveAsync();
-        StatusMessage = $"Started {SelectedItems.Count} order(s)";
-    }
-
-    [RelayCommand]
-    private async Task BulkStopAsync()
-    {
-        if (SelectedItems.Count == 0) return;
-        foreach (var item in SelectedItems)
-        {
-            item.Status = OrderItem.OrderStatus.Done;
-        }
-        await SaveAsync();
-        StatusMessage = $"Stopped {SelectedItems.Count} order(s)";
     }
 
     [RelayCommand]
@@ -424,47 +526,44 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         if (item == null) return;
 
-        try {
-            var path = Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log");
-            File.AppendAllText(path, DateTime.Now.ToString("o") + $" SetStatusAsync called for Item={item.Id} Status={status} LinkedGroupId={item.LinkedGroupId}\n");
-        } catch { }
+        _logger?.LogDebug("SetStatusAsync called for Item={ItemId} Status={Status} LinkedGroupId={LinkedGroupId}",
+            item.Id, status, item.LinkedGroupId);
 
         // If this item is part of a linked group, apply the status change to all members
         if (item.LinkedGroupId != null)
         {
             var gid = item.LinkedGroupId.Value;
-            var members = Items.Concat(ArchivedItems).Where(i => i.LinkedGroupId == gid).ToList();
+            var members = AllItems.Where(i => i.LinkedGroupId == gid).ToList();
 
-            try {
-                var path = Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log");
-                File.AppendAllText(path, DateTime.Now.ToString("o") + $"  Group {gid} members: {string.Join(',', members.Select(m => m.Id))}\n");
-            } catch { }
+            _logger?.LogDebug("Group {GroupId} members: {MemberIds}", gid, string.Join(',', members.Select(m => m.Id)));
 
             // Record previous done-state per member and apply new status
             var memberStates = members.Select(m => (itm: m, wasDoneBefore: m.Status == OrderItem.OrderStatus.Done)).ToList();
             foreach (var m in members)
             {
-                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log"), DateTime.Now.ToString("o") + $"   Setting member {m.Id} status from {m.Status} to {status}\n"); } catch {}
+                _logger?.LogDebug("Setting member {MemberId} status from {OldStatus} to {NewStatus}", m.Id, m.Status, status);
                 m.Status = status;
             }
 
             // Ensure collection membership matches each member's IsArchived flag (keep collections consistent)
             foreach (var (m, wasDoneBefore) in memberStates)
             {
-                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log"), DateTime.Now.ToString("o") + $"   Member {m.Id} pre-sync IsArchived={m.IsArchived} inItems={Items.Contains(m)} inArchived={ArchivedItems.Contains(m)}\n"); } catch {}
+                _logger?.LogDebug("Member {MemberId} pre-sync IsArchived={IsArchived} inItems={InItems} inArchived={InArchived}",
+                    m.Id, m.IsArchived, _itemIds.Contains(m.Id), _archivedItemIds.Contains(m.Id));
 
                 if (m.IsArchived)
                 {
-                    if (Items.Contains(m)) Items.Remove(m);
-                    if (!ArchivedItems.Contains(m)) ArchivedItems.Add(m);
+                    RemoveFromItems(m);
+                    AddToArchived(m);
                 }
                 else
                 {
-                    if (ArchivedItems.Contains(m)) ArchivedItems.Remove(m);
-                    if (!Items.Contains(m)) Items.Insert(0, m);
+                    RemoveFromArchived(m);
+                    AddToItems(m, insertAtTop: true);
                 }
 
-                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "OrderLog_SetStatus.log"), DateTime.Now.ToString("o") + $"   Member {m.Id} post-sync IsArchived={m.IsArchived} inItems={Items.Contains(m)} inArchived={ArchivedItems.Contains(m)}\n"); } catch {}
+                _logger?.LogDebug("Member {MemberId} post-sync IsArchived={IsArchived} inItems={InItems} inArchived={InArchived}",
+                    m.Id, m.IsArchived, _itemIds.Contains(m.Id), _archivedItemIds.Contains(m.Id));
             }
 
             await SaveAsync();
@@ -637,7 +736,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         if (target == null)
         {
-            if (Items.Contains(dropped))
+            if (_itemIds.Contains(dropped.Id))
             {
                 Items.Remove(dropped);
                 Items.Add(dropped);
@@ -670,18 +769,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (droppedItems.Count == 1 && droppedItems[0].LinkedGroupId != null)
         {
             var gid = droppedItems[0].LinkedGroupId;
-            var groupMembers = Items.Concat(ArchivedItems).Where(i => i.LinkedGroupId == gid).ToList();
+            var groupMembers = AllItems.Where(i => i.LinkedGroupId == gid).ToList();
             if (groupMembers.Count > 1)
             {
                 droppedItems = groupMembers;
             }
         }
 
-        // Determine target collection based on where items/target are located
-        bool operateOnItems = droppedItems.Any(d => Items.Contains(d));
+        // Determine target collection based on where items/target are located (O(1) checks)
+        bool operateOnItems = droppedItems.Any(d => _itemIds.Contains(d.Id));
         if (target != null)
         {
-            operateOnItems = Items.Contains(target);
+            operateOnItems = _itemIds.Contains(target.Id);
         }
 
         // Perform the move operation on the appropriate collection
@@ -734,13 +833,23 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (target == null) return;
         if (!target.IsRenderable) return;
 
-        // Resolve items that actually exist in our collections and are renderable
-        var known = Items.Concat(ArchivedItems).ToDictionary(i => i.Id);
+        // Only link active (non-archived) items - resolve by ID to get the actual instances from Items
+        var activeItemsById = Items.ToDictionary(i => i.Id);
+        
+        // Resolve target from Items collection
+        if (!activeItemsById.TryGetValue(target.Id, out var actualTarget))
+        {
+            // Target is not in active items - don't link to archived items
+            return;
+        }
+        target = actualTarget;
+        
+        // Resolve candidates from Items collection only
         var candidates = new List<OrderItem>();
         foreach (var it in itemsToLink)
         {
             if (it == null) continue;
-            if (!known.TryGetValue(it.Id, out var knownItem)) continue;
+            if (!activeItemsById.TryGetValue(it.Id, out var knownItem)) continue;
             if (!knownItem.IsRenderable) continue;
             candidates.Add(knownItem);
         }
@@ -762,19 +871,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Assign group id to target
         target.LinkedGroupId = groupId;
 
-        // Assign group id to candidates and unify any existing groups by reassigning their members
+        // Assign group id to candidates
         foreach (var c in candidates)
             c.LinkedGroupId = groupId;
 
-        // Also pull in any items that already belonged to these groups (to unify groups)
+        // Also pull in any other active items that already belonged to these groups (to unify groups)
         var groupsToUnify = new HashSet<Guid>(candidates.Select(c => c.LinkedGroupId ?? Guid.Empty).Where(g => g != Guid.Empty));
         if (target.LinkedGroupId != null) groupsToUnify.Add(target.LinkedGroupId.Value);
 
-        foreach (var it in Items.Concat(ArchivedItems))
+        foreach (var it in Items)
         {
             if (it.LinkedGroupId != null && groupsToUnify.Contains(it.LinkedGroupId.Value))
             {
-                // Only include renderable items
                 if (it.IsRenderable)
                     it.LinkedGroupId = groupId;
             }
@@ -784,20 +892,24 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
     }
 
-    private void RefreshDisplayItems()
-    {
-        DisplayItems.Clear();
+    private void RefreshDisplayItems() => RefreshDisplayCollection(Items, DisplayItems);
 
-        // Build DisplayItems by iterating Items in their current order and
-        // grouping linked members when first encountered. This preserves the
-        // overall ordering of Items so reorders are reflected in the UI.
+    private void RefreshArchivedDisplayItems() => RefreshDisplayCollection(ArchivedItems, DisplayArchivedItems);
+
+    /// <summary>
+    /// Shared helper to build grouped display items from a source collection.
+    /// Groups linked items together while preserving order.
+    /// </summary>
+    private static void RefreshDisplayCollection(
+        ObservableCollection<OrderItem> source,
+        ObservableCollection<OrderItemGroup> display)
+    {
+        display.Clear();
         var processed = new HashSet<Guid>();
 
-        foreach (var item in Items)
+        foreach (var item in source)
         {
-            if (processed.Contains(item.Id))
-                continue;
-            // Skip non-renderable items (orders with empty vendor name)
+            if (processed.Contains(item.Id)) continue;
             if (!item.IsRenderable)
             {
                 processed.Add(item.Id);
@@ -806,61 +918,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
             if (item.LinkedGroupId == null)
             {
-                DisplayItems.Add(new OrderItemGroup(new[] { item }));
+                display.Add(new OrderItemGroup(new[] { item }));
                 processed.Add(item.Id);
             }
             else
             {
                 var gid = item.LinkedGroupId;
-                var members = Items.Where(i => i.LinkedGroupId == gid && i.IsRenderable).ToList();
+                var members = source.Where(i => i.LinkedGroupId == gid && i.IsRenderable).ToList();
                 if (members.Count > 0)
                 {
                     foreach (var m in members)
                         processed.Add(m.Id);
-
-                    DisplayItems.Add(new OrderItemGroup(members));
-                }
-                else
-                {
-                    // No renderable members in this group - mark item processed so it's skipped
-                    processed.Add(item.Id);
-                }
-            }
-        }
-    }
-
-    private void RefreshArchivedDisplayItems()
-    {
-        DisplayArchivedItems.Clear();
-
-        var processed = new HashSet<Guid>();
-
-        foreach (var item in ArchivedItems)
-        {
-            if (processed.Contains(item.Id))
-                continue;
-
-            if (!item.IsRenderable)
-            {
-                processed.Add(item.Id);
-                continue;
-            }
-
-            if (item.LinkedGroupId == null)
-            {
-                DisplayArchivedItems.Add(new OrderItemGroup(new[] { item }));
-                processed.Add(item.Id);
-            }
-            else
-            {
-                var gid = item.LinkedGroupId;
-                var members = ArchivedItems.Where(i => i.LinkedGroupId == gid && i.IsRenderable).ToList();
-                if (members.Count > 0)
-                {
-                    foreach (var m in members)
-                        processed.Add(m.Id);
-
-                    DisplayArchivedItems.Add(new OrderItemGroup(members));
+                    display.Add(new OrderItemGroup(members));
                 }
                 else
                 {
@@ -876,6 +945,57 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public void SetGroupState(string? name, bool value)
         => _groupStateStore.Set(name, value);
 
+    #region Collection Helper Methods (O(1) membership with HashSet tracking)
+
+    /// <summary>
+    /// Adds an item to the Items collection with O(1) membership tracking.
+    /// </summary>
+    private void AddToItems(OrderItem item, bool insertAtTop = false)
+    {
+        if (_itemIds.Contains(item.Id)) return;
+        
+        if (insertAtTop)
+            Items.Insert(0, item);
+        else
+            Items.Add(item);
+        _itemIds.Add(item.Id);
+    }
+
+    /// <summary>
+    /// Removes an item from the Items collection with O(1) membership tracking.
+    /// </summary>
+    private void RemoveFromItems(OrderItem item)
+    {
+        if (!_itemIds.Contains(item.Id)) return;
+        
+        Items.Remove(item);
+        _itemIds.Remove(item.Id);
+    }
+
+    /// <summary>
+    /// Adds an item to the ArchivedItems collection with O(1) membership tracking.
+    /// </summary>
+    private void AddToArchived(OrderItem item)
+    {
+        if (_archivedItemIds.Contains(item.Id)) return;
+        
+        ArchivedItems.Add(item);
+        _archivedItemIds.Add(item.Id);
+    }
+
+    /// <summary>
+    /// Removes an item from the ArchivedItems collection with O(1) membership tracking.
+    /// </summary>
+    private void RemoveFromArchived(OrderItem item)
+    {
+        if (!_archivedItemIds.Contains(item.Id)) return;
+        
+        ArchivedItems.Remove(item);
+        _archivedItemIds.Remove(item.Id);
+    }
+
+    #endregion
+
     public void Dispose()
     {
         Dispose(true);
@@ -890,6 +1010,16 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             _timer.Stop();
             _timer.Tick -= OnTimerTick;
+            
+            if (_undoTimer != null)
+            {
+                _undoTimer.Stop();
+                _undoTimer.Tick -= OnUndoTimerTick;
+            }
+            
+            _itemIds.Clear();
+            _archivedItemIds.Clear();
+            
             _logger?.LogInformation("OrderLogViewModel disposed");
         }
 
