@@ -25,6 +25,39 @@
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         
+        <!-- Small Copy Button Style -->
+        <Style x:Key="FieldCopyButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="Copy to clipboard"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{DynamicResource SurfaceBrush}" 
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="4" Padding="3">
+                            <Path x:Name="Icon" Data="M16,1H4C2.9,1,2,1.9,2,3v14h2V3h12V1z M19,5H8C6.9,5,6,5.9,6,7v14c0,1.1,0.9,2,2,2h11c1.1,0,2-0.9,2-2V7C21,5.9,20.1,5,19,5z M19,21H8V7h11V21z" 
+                                  Fill="{DynamicResource TextSecondaryBrush}" 
+                                  Stretch="Uniform" Width="12" Height="12"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Icon" Property="Fill" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <!-- Card styles centralized in Themes/ModernStyles.xaml -->
 
         <!-- Template for a single Order card (active) -->
@@ -285,7 +318,7 @@
 
         <!-- Template for archived Order cards -->
         <DataTemplate x:Key="ArchivedOrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource WidgetElevatedCardStyle}">
+            <Border Style="{DynamicResource WidgetElevatedCardStyle}">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
@@ -454,7 +487,7 @@
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{StaticResource WidgetElevatedCardStyle}">
+            <Border Style="{DynamicResource WidgetElevatedCardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -585,7 +618,13 @@
 
                                         <!-- Editable Transfer Numbers -->
                                         <Grid Margin="0,6,0,0">
-                                            <TextBlock Text="Transfer #s..."
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}" 
+                                                    Click="CopyTransferNumbers_Click" Tag="{Binding TransferNumbers}"/>
+                                            <TextBlock Grid.Column="1" Text="Transfer #s..."
                                                        FontSize="{DynamicResource CardFontSize}"
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
@@ -605,7 +644,7 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
-                                            <TextBox Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                            <TextBox Grid.Column="1" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
@@ -617,7 +656,13 @@
 
                                         <!-- Editable WHS Shipment Numbers -->
                                         <Grid Margin="0,3,0,0">
-                                            <TextBlock Text="WHS #s..."
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}" 
+                                                    Click="CopyWhsNumbers_Click" Tag="{Binding WhsShipmentNumbers}"/>
+                                            <TextBlock Grid.Column="1" Text="WHS #s..."
                                                        FontSize="{DynamicResource CardFontSize}"
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
@@ -637,7 +682,7 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
-                                            <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                            <TextBox Grid.Column="1" Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
@@ -678,7 +723,7 @@
 
         <!-- Template for ARCHIVED merged order cards (no status dropdown, has restore button) -->
         <DataTemplate x:Key="ArchivedOrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{StaticResource WidgetElevatedCardStyle}">
+            <Border Style="{DynamicResource WidgetElevatedCardStyle}">
                 <Border.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Restore All" Click="UnarchiveGroup_Click"/>
@@ -897,12 +942,13 @@
             </Grid>
         </Border>
 
-        <!-- Notes List -->
-        <ScrollViewer x:Name="MainScrollViewer" Grid.Row="2" Padding="16" Style="{StaticResource WidgetScrollViewerStyle}">
-            <Grid>
-                <!-- Active Notes Panel -->
-                <StackPanel x:Name="ActiveItemsPanel">
-                    <ListBox ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent" SelectionMode="Single"
+        <!-- Notes List with bottom fade overlay -->
+        <Grid Grid.Row="2">
+            <ScrollViewer x:Name="MainScrollViewer" Padding="16,16,16,32" Style="{StaticResource WidgetScrollViewerStyle}">
+                <Grid>
+                    <!-- Active Notes Panel -->
+                    <StackPanel x:Name="ActiveItemsPanel">
+                    <ListBox x:Name="ActiveItemsListBox" ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent" SelectionMode="Single"
                              VirtualizingStackPanel.IsVirtualizing="False"
                              VirtualizingStackPanel.VirtualizationMode="Standard"
                              ScrollViewer.CanContentScroll="False">
@@ -943,7 +989,7 @@
                                                     <ContentControl Content="{Binding First}">
                                                         <ContentControl.ContentTemplate>
                                                                 <DataTemplate>
-                                                                <Border Style="{StaticResource WidgetElevatedCardStyle}">
+                                                                <Border Style="{DynamicResource WidgetElevatedCardStyle}">
                                 <!-- Dynamic context menu based on NoteType -->
                                 <Border.ContextMenu>
                                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -1101,11 +1147,15 @@
                                             <!-- Editable Transfer Numbers with inline drag handle (moved here for single-item cards) -->
                                             <Grid Margin="0,6,0,0">
                                                 <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <TextBlock Grid.Column="0" Text="Transfer #s..." 
+                                                <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}" 
+                                                        Click="CopyTransferNumbers_Click" Tag="{Binding TransferNumbers}"/>
+
+                                                <TextBlock Grid.Column="1" Text="Transfer #s..." 
                                                            FontSize="{DynamicResource CardFontSize}"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
                                                            FontStyle="Italic"
@@ -1126,7 +1176,7 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
 
-                                                <TextBox Grid.Column="0" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                                <TextBox Grid.Column="1" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
                                                          Background="Transparent"
                                                          BorderThickness="0"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
@@ -1136,12 +1186,18 @@
                                                          LostFocus="EditableField_LostFocus"/>
 
                                                 <!-- Drag handle (visible because this block is only shown for orders) -->
-                                                <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" Margin="6,0,0,0" HorizontalAlignment="Right"/>
+                                                <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" Margin="6,0,0,0" HorizontalAlignment="Right"/>
                                             </Grid>
 
                                             <!-- Editable WHS Shipment Numbers -->
                                             <Grid Margin="0,3,0,0">
-                                                <TextBlock Text="WHS #s..." 
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}" 
+                                                        Click="CopyWhsNumbers_Click" Tag="{Binding WhsShipmentNumbers}"/>
+                                                <TextBlock Grid.Column="1" Text="WHS #s..." 
                                                            FontSize="{DynamicResource CardFontSize}"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
                                                            FontStyle="Italic"
@@ -1161,7 +1217,7 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                                <TextBox Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                                <TextBox Grid.Column="1" Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
                                                          Background="Transparent"
                                                          BorderThickness="0"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
@@ -1392,6 +1448,17 @@
                 </StackPanel>
             </Grid>
         </ScrollViewer>
+            
+            <!-- Bottom fade/shadow overlay -->
+            <Border VerticalAlignment="Bottom" Height="48" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#00000000" Offset="0"/>
+                        <GradientStop Color="#AA000000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Grid>
 
         <!-- Now Playing Mini-Player (Collapsible - rises from bottom) -->
         <Border x:Name="NowPlayingSection" Grid.Row="3"

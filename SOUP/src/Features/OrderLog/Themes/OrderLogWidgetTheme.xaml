@@ -55,13 +55,8 @@
     
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
     <!-- WIDGET-SPECIFIC COLORS                                                       -->
-    <!-- Softer, more accessible color palette                                       -->
+    <!-- Now references main theme colors via DynamicResource for theme switching    -->
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
-    
-    <!-- Card Surface Colors -->
-    <Color x:Key="WidgetCardSurfaceColor">#1C1C1E</Color>
-    <Color x:Key="WidgetCardHoverColor">#2C2C2E</Color>
-    <Color x:Key="WidgetCardElevatedColor">#242426</Color>
     
     <!-- Status Colors (Softer variants for accessibility) -->
     <Color x:Key="WidgetStatusNotReadyColor">#FF6B6B</Color>
@@ -82,11 +77,7 @@
     <Color x:Key="WidgetNoteGreenColor">#A7FFD0</Color>
     <Color x:Key="WidgetNotePurpleColor">#D0A7FF</Color>
     
-    <!-- Brushes -->
-    <SolidColorBrush x:Key="WidgetCardSurfaceBrush" Color="{StaticResource WidgetCardSurfaceColor}"/>
-    <SolidColorBrush x:Key="WidgetCardHoverBrush" Color="{StaticResource WidgetCardHoverColor}"/>
-    <SolidColorBrush x:Key="WidgetCardElevatedBrush" Color="{StaticResource WidgetCardElevatedColor}"/>
-    
+    <!-- Status Brushes -->
     <SolidColorBrush x:Key="WidgetStatusNotReadyBrush" Color="{StaticResource WidgetStatusNotReadyColor}"/>
     <SolidColorBrush x:Key="WidgetStatusOnDeckBrush" Color="{StaticResource WidgetStatusOnDeckColor}"/>
     <SolidColorBrush x:Key="WidgetStatusInProgressBrush" Color="{StaticResource WidgetStatusInProgressColor}"/>
@@ -123,9 +114,9 @@
     <!-- Material Design 3 inspired elevated card design                             -->
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
     
-    <!-- Elevated Card Style (Primary card type) -->
+    <!-- Elevated Card Style (Primary card type) - uses main theme colors -->
     <Style x:Key="WidgetElevatedCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource WidgetCardSurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="CornerRadius" Value="{StaticResource WidgetCardCornerRadius}"/>

@@ -541,14 +541,11 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                     _floatingFixedLeft = left;
                                     _floatingAdorner.UpdatePosition(left, top);
 
-                                    // If this is a grouped (double) card, hide the original item to avoid a visible duplicate
+                                    // Hide the original item to avoid a visible duplicate during drag
                                     try
                                     {
-                                        if (_draggedItem != null && _draggedItem.GetType().Name == "OrderItemGroup")
-                                        {
-                                            if (_draggedListBoxItem != null)
-                                                _draggedListBoxItem.Opacity = 0.0;
-                                        }
+                                        if (_draggedListBoxItem != null)
+                                            _draggedListBoxItem.Opacity = 0.0;
                                     }
                                     catch { }
                                 }

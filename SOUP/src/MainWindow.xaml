@@ -192,6 +192,9 @@
                                  BorderThickness="0"
                                  Padding="0"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <i:Interaction.Behaviors>
+                                <behaviors:ListBoxDragDropBehavior OnReorder="{Binding SaveNavOrderAction}"/>
+                            </i:Interaction.Behaviors>
                         
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
@@ -226,7 +229,9 @@
                                                     VerticalAlignment="Center"
                                                     Margin="0,0,16,0"
                                                     Opacity="0.35"
-                                                    IsHitTestVisible="False">
+                                                    Tag="DragHandle"
+                                                    Cursor="SizeAll"
+                                                    Background="Transparent">
                                             <Border Width="4" Height="4" CornerRadius="2" Background="{DynamicResource TextTertiaryBrush}" Margin="0,1"/>
                                             <Border Width="4" Height="4" CornerRadius="2" Background="{DynamicResource TextTertiaryBrush}" Margin="0,1"/>
                                             <Border Width="4" Height="4" CornerRadius="2" Background="{DynamicResource TextTertiaryBrush}" Margin="0,1"/>

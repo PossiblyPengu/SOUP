@@ -134,7 +134,7 @@
     <Grid Background="{DynamicResource BackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="360"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" MaxWidth="420"/>
         </Grid.ColumnDefinitions>
         
         <!-- Settings Panel -->

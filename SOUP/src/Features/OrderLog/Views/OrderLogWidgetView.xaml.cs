@@ -136,8 +136,10 @@ public partial class OrderLogWidgetView : UserControl
         // Wire up fluid drag behavior events
         WireUpFluidDragBehavior();
 
-        // Initialize theme toggle icon and subscribe to changes
-        UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
+        // Initialize theme and subscribe to changes
+        var isDarkMode = ThemeService.Instance.IsDarkMode;
+        UpdateThemeIcon(isDarkMode);
+        ApplyThemeToUserControl(isDarkMode);
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
     }
 
@@ -310,7 +312,47 @@ public partial class OrderLogWidgetView : UserControl
 
     private void OnThemeChanged(object? sender, bool isDarkMode)
     {
-        UpdateThemeIcon(isDarkMode);
+        Dispatcher.Invoke(() =>
+        {
+            UpdateThemeIcon(isDarkMode);
+            ApplyThemeToUserControl(isDarkMode);
+        });
+    }
+
+    private void ApplyThemeToUserControl(bool isDarkMode)
+    {
+        try
+        {
+            var themePath = isDarkMode
+                ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
+                : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
+
+            // Find and remove old theme dictionaries, keep widget theme
+            var widgetTheme = Resources.MergedDictionaries
+                .FirstOrDefault(d => d.Source?.ToString().Contains("OrderLogWidgetTheme") == true);
+
+            Resources.MergedDictionaries.Clear();
+            
+            // Add theme colors first
+            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+            
+            // Re-add widget theme (which references theme colors via DynamicResource)
+            if (widgetTheme != null)
+            {
+                Resources.MergedDictionaries.Add(widgetTheme);
+            }
+            else
+            {
+                Resources.MergedDictionaries.Add(new ResourceDictionary 
+                { 
+                    Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml") 
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to apply theme to widget view");
+        }
     }
 
     private void UpdateThemeIcon(bool isDarkMode)
@@ -699,12 +741,53 @@ public partial class OrderLogWidgetView : UserControl
     {
         var order = OrderItem.CreateBlankOrder(vendorName: string.Empty, isPlaceholder: true);
         await vm.AddOrderAsync(order);
+        
+        // Scroll to and focus the new item
+        await ScrollToAndFocusNewItemAsync(order);
     }
 
     private async Task AddBlankNoteAsync(OrderLogViewModel vm)
     {
         var note = OrderItem.CreateBlankNote();
         await vm.AddOrderAsync(note);
+        
+        // Scroll to and focus the new item
+        await ScrollToAndFocusNewItemAsync(note);
+    }
+
+    private async Task ScrollToAndFocusNewItemAsync(OrderItem item)
+    {
+        // Wait for UI to update
+        await Task.Delay(50);
+        
+        // Scroll to top where new items appear
+        MainScrollViewer.ScrollToTop();
+        
+        // Wait for scroll and render
+        await Task.Delay(100);
+        
+        await Dispatcher.InvokeAsync(() =>
+        {
+            try
+            {
+                // Find the ListBoxItem for the new item (should be at index 0)
+                var container = ActiveItemsListBox.ItemContainerGenerator.ContainerFromIndex(0) as FrameworkElement;
+                if (container != null)
+                {
+                    // Find the first TextBox within the card
+                    var textBox = FindVisualChild<TextBox>(container);
+                    if (textBox != null)
+                    {
+                        textBox.Focus();
+                        textBox.SelectAll();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to focus new item");
+            }
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
     private void ColorBar_Click(object sender, MouseButtonEventArgs e)
@@ -724,6 +807,58 @@ public partial class OrderLogWidgetView : UserControl
         {
             order.ColorHex = picker.SelectedColor;
             _ = vm.SaveAsync();
+        }
+    }
+
+    private void CopyVendorName_Click(object sender, RoutedEventArgs e)
+    {
+        CopyFieldToClipboard(sender, "Vendor name");
+    }
+
+    private void CopyTransferNumbers_Click(object sender, RoutedEventArgs e)
+    {
+        CopyFieldToClipboard(sender, "Transfer numbers");
+    }
+
+    private void CopyWhsNumbers_Click(object sender, RoutedEventArgs e)
+    {
+        CopyFieldToClipboard(sender, "WHS numbers");
+    }
+
+    private async void CopyFieldToClipboard(object sender, string fieldName)
+    {
+        if (sender is Button btn && btn.Tag is string value && !string.IsNullOrWhiteSpace(value))
+        {
+            try
+            {
+                System.Windows.Clipboard.SetText(value);
+                
+                // Show visual feedback - find the Path icon and Border in the button
+                if (btn.Template.FindName("Icon", btn) is System.Windows.Shapes.Path icon &&
+                    btn.Template.FindName("Bd", btn) is Border border)
+                {
+                    // Store original values
+                    var originalData = icon.Data;
+                    var originalFill = icon.Fill;
+                    var originalBackground = border.Background;
+                    
+                    // Show checkmark icon and success color
+                    icon.Data = System.Windows.Media.Geometry.Parse("M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41-1.41z");
+                    icon.Fill = System.Windows.Media.Brushes.White;
+                    border.Background = (System.Windows.Media.Brush)FindResource("SuccessBrush");
+                    
+                    // Wait briefly then restore
+                    await Task.Delay(800);
+                    
+                    icon.Data = originalData;
+                    icon.Fill = originalFill;
+                    border.Background = originalBackground;
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Failed to copy {FieldName} to clipboard", fieldName);
+            }
         }
     }
 

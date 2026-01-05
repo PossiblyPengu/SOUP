@@ -355,13 +355,7 @@ public partial class OrderLogWidgetWindow : Window
             var themeService = _serviceProvider.GetService<ThemeService>();
             if (themeService != null)
             {
-                var themePath = themeService.IsDarkMode
-                    ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
-                    : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
-
-                Resources.MergedDictionaries.Clear();
-                Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
-                
+                ApplyThemeResources(themeService.IsDarkMode);
                 themeService.ThemeChanged += OnThemeChanged;
             }
         }
@@ -371,22 +365,35 @@ public partial class OrderLogWidgetWindow : Window
         }
     }
 
+    private void ApplyThemeResources(bool isDarkMode)
+    {
+        var themePath = isDarkMode
+            ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
+            : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
+
+        Resources.MergedDictionaries.Clear();
+        
+        // Add ModernStyles first (base styles)
+        Resources.MergedDictionaries.Add(new ResourceDictionary 
+        { 
+            Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml") 
+        });
+        
+        // Then add color theme
+        Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+    }
+
     private void OnThemeChanged(object? sender, bool isDarkMode)
     {
         Dispatcher.Invoke(() =>
         {
             try
             {
-                var themePath = isDarkMode
-                    ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
-                    : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
-
-                Resources.MergedDictionaries.Clear();
-                Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+                ApplyThemeResources(isDarkMode);
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to apply theme");
+                Log.Warning(ex, "Failed to apply theme change");
             }
         });
     }

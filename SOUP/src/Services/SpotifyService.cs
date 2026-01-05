@@ -37,6 +37,7 @@ public class SpotifyService : INotifyPropertyChanged
     private bool _isPlaying;
     private bool _hasMedia;
     private BitmapImage? _albumArt;
+    private string? _lastTrackKey; // Track title+artist to detect song changes
     private readonly System.Timers.Timer _pollTimer;
     private DateTime _lastUserAction = DateTime.MinValue;
     private const int UserActionCooldownMs = 3000;
@@ -225,6 +226,11 @@ public class SpotifyService : INotifyPropertyChanged
             string? artist = mediaProperties?.Artist;
             bool isPlaying = playbackInfo?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
+            // Detect if track changed by comparing title+artist
+            string currentTrackKey = $"{title ?? ""}|{artist ?? ""}";
+            bool trackChanged = _lastTrackKey != currentTrackKey;
+            _lastTrackKey = currentTrackKey;
+
             // Get album art
             BitmapImage? albumArt = null;
             if (mediaProperties?.Thumbnail != null)
@@ -248,9 +254,11 @@ public class SpotifyService : INotifyPropertyChanged
                     TrackTitle = title;
                     ArtistName = artist ?? "";
                     IsPlaying = isPlaying;
-                    if (albumArt != null)
+                    
+                    // Always update album art when track changes, or when we have new art
+                    if (trackChanged || albumArt != null)
                     {
-                        AlbumArt = albumArt;
+                        AlbumArt = albumArt; // Will be null if fetch failed, clearing stale art
                     }
                 }
                 else
@@ -259,6 +267,7 @@ public class SpotifyService : INotifyPropertyChanged
                     TrackTitle = "No media playing";
                     ArtistName = "";
                     IsPlaying = false;
+                    AlbumArt = null;
                 }
             });
         }
