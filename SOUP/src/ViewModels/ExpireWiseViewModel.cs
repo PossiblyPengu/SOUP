@@ -172,6 +172,17 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private int _selectedTabIndex;
 
     /// <summary>
+    /// Gets or sets whether items should be grouped by store location.
+    /// </summary>
+    [ObservableProperty]
+    private bool _groupByStore = true;
+
+    /// <summary>
+    /// Event raised when the GroupByStore property changes.
+    /// </summary>
+    public event Action<bool>? GroupByStoreChanged;
+
+    /// <summary>
     /// Gets or sets the analytics ViewModel for the analytics dashboard.
     /// </summary>
     [ObservableProperty]
@@ -730,6 +741,11 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         {
             IsLoading = false;
         }
+    }
+
+    partial void OnGroupByStoreChanged(bool value)
+    {
+        GroupByStoreChanged?.Invoke(value);
     }
 
     partial void OnSearchTextChanged(string value)
