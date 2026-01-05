@@ -5037,6 +5037,16 @@
             Gets or sets the index of the selected tab.
             </summary>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._groupByStore">
+            <summary>
+            Gets or sets whether items should be grouped by store location.
+            </summary>
+        </member>
+        <member name="E:SOUP.ViewModels.ExpireWiseViewModel.GroupByStoreChanged">
+            <summary>
+            Event raised when the GroupByStore property changes.
+            </summary>
+        </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._analytics">
             <summary>
             Gets or sets the analytics ViewModel for the analytics dashboard.
@@ -5145,6 +5155,9 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedTabIndex">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._selectedTabIndex"/>
         </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._groupByStore"/>
+        </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Analytics">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._analytics"/>
         </member>
@@ -5157,6 +5170,11 @@
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.CurrentMonth"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.CurrentMonth"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnGroupByStoreChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.focusSearchCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.FocusSearchCommand"/>.</summary>
@@ -6519,6 +6537,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LastSavedDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LastSavedDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.GroupByStore">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Analytics">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Analytics" generated properties.</summary>
         </member>
@@ -7067,6 +7088,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LastSavedDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LastSavedDisplay" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.GroupByStore">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Analytics">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Analytics" generated properties.</summary>
