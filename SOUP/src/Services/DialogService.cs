@@ -133,7 +133,10 @@ public class DialogService
     /// <returns>The dialog result.</returns>
     public Task<bool?> ShowDialogAsync(Window dialog)
     {
-        dialog.Owner = Application.Current.MainWindow;
+        if (Application.Current?.MainWindow != null)
+        {
+            dialog.Owner = Application.Current.MainWindow;
+        }
         dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         return Task.FromResult(dialog.ShowDialog());
     }
@@ -160,7 +163,6 @@ public class DialogService
         var dialog = new Window
         {
             Content = content,
-            Owner = Application.Current.MainWindow,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             SizeToContent = SizeToContent.WidthAndHeight,
             WindowStyle = WindowStyle.SingleBorderWindow,
@@ -172,6 +174,12 @@ public class DialogService
             ShowInTaskbar = false,
             Background = new System.Windows.Media.SolidColorBrush(backgroundColor)
         };
+        
+        // Set owner with null check
+        if (Application.Current?.MainWindow != null)
+        {
+            dialog.Owner = Application.Current.MainWindow;
+        }
 
         // Apply dark title bar when in dark mode
         dialog.SourceInitialized += (s, e) => ApplyDarkTitleBar(dialog);

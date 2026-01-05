@@ -1,8 +1,9 @@
+using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
-using SOUP.Features.OrderLog.Models;
-using SOUP.Windows;
 
 namespace SOUP.Features.OrderLog.Views;
 
@@ -13,28 +14,39 @@ public partial class OrderLogSettingsView : UserControl
         InitializeComponent();
     }
 
-    private async void AddBlankOrder_Click(object sender, RoutedEventArgs e)
+    private void ClearArchived_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is OrderLogViewModel vm)
+        if (DataContext is not OrderLogViewModel vm) return;
+        
+        if (vm.ArchivedItems.Count == 0)
         {
-            var order = OrderItem.CreateBlankOrder();
-            await vm.AddOrderAsync(order);
+            vm.StatusMessage = "No archived items to clear";
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"Are you sure you want to permanently delete all {vm.ArchivedItems.Count} archived items?\n\nThis action cannot be undone.",
+            "Clear All Archived",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            ClearArchivedAsync(vm);
         }
     }
 
-    private async void AddBlankNote_Click(object sender, RoutedEventArgs e)
+    private async void ClearArchivedAsync(OrderLogViewModel vm)
     {
-        if (DataContext is OrderLogViewModel vm)
+        try
         {
-            var note = OrderItem.CreateBlankNote();
-            await vm.AddOrderAsync(note);
+            var count = vm.ArchivedItems.Count;
+            await vm.ClearAllArchivedAsync();
+            vm.StatusMessage = $"Cleared {count} archived items";
         }
-    }
-
-    private void OpenWidgetWindow_Click(object sender, RoutedEventArgs e)
-    {
-        // Use the application's DI container to obtain the widget window (it is registered as a singleton)
-        var widget = App.GetService<Windows.OrderLogWidgetWindow>();
-        widget.ShowWidget();
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to clear archived items");
+        }
     }
 }

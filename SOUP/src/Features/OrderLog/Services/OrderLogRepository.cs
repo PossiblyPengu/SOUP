@@ -114,7 +114,7 @@ public sealed class OrderLogRepository : IOrderLogService
 
             foreach (var id in idsToDelete)
             {
-                _collection.Delete(id);
+                _collection.Delete(new BsonValue(id));
             }
 
             _logger?.LogInformation("Saved {Count} orders, deleted {DeletedCount} obsolete records",

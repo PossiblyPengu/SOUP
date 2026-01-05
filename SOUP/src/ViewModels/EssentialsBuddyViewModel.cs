@@ -267,7 +267,10 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
         // Show dialog for user to edit items before adding
         var dialog = new Views.EssentialsBuddy.AddToDictionaryDialog(unmatchedItems);
-        dialog.Owner = System.Windows.Application.Current.MainWindow;
+        if (System.Windows.Application.Current?.MainWindow != null)
+        {
+            dialog.Owner = System.Windows.Application.Current.MainWindow;
+        }
         
         var result = dialog.ShowDialog();
         

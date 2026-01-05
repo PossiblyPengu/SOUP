@@ -55,7 +55,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private FrameworkElement? _visualFeedbackBorder; // The border element that gets visual feedback (highlight)
     private List<OrderItem> _draggedItems = new();
     private int _draggedIndex = -1;
-    private int _currentInsertionIndex = -1;
+    private int _currentLogicalIndex = -1; // Track where the dragged card logically is after swaps
     private CardShiftAnimator? _animator;
     private double? _lockedPanelWidth;
     private bool _isLinkMode;
@@ -183,6 +183,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
             _draggedItems = ExtractOrderItems(_draggedElement);
             _draggedIndex = GetElementIndex(_draggedElement);
+            _currentLogicalIndex = _draggedIndex; // Track logical position for swap-based reordering
         }
     }
 
@@ -289,7 +290,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         if (_draggedElement == null || AssociatedObject == null) return;
 
         _isDragging = true;
-        _currentInsertionIndex = _draggedIndex;
+        _currentLogicalIndex = _draggedIndex;
         _isLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
 
         // Ensure we have the panel child reference
@@ -324,10 +325,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
     private void UpdateDrag(Point currentPosition)
     {
-        if (_draggedElement == null || _animator == null || AssociatedObject == null || _isFinishingDrag) return;
-
-        // Always update dragged element position (no throttle for responsiveness)
-        UpdateDraggedElementPosition(currentPosition);
+        if (_draggedElement == null || AssociatedObject == null || _isFinishingDrag) return;
 
         // Check for mode change (Ctrl key pressed/released)
         bool currentLinkMode = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
@@ -338,17 +336,13 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             {
                 ApplyModeVisualFeedback(_visualFeedbackBorder, _isLinkMode);
             }
-
-            // When switching to link mode, clear any existing card shifts
-            if (_isLinkMode)
-            {
-                _animator?.ClearTransforms();
-            }
         }
 
-        // Link mode: highlight target under cursor and skip shifting
+        // Link mode: move card with mouse and highlight target
         if (_isLinkMode)
         {
+            UpdateDraggedElementPosition(currentPosition);
+            
             var targetBorder = FindBorderUnderCursor();
             if (!ReferenceEquals(targetBorder, _currentLinkTargetBorder))
             {
@@ -359,48 +353,195 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 }
                 _currentLinkTargetBorder = targetBorder;
             }
-
-            // For link mode, don't use insertion index - just track mouse position
-            // We'll find the card directly under cursor when finishing drag
             return;
         }
 
-        // Throttle expensive shift calculations to 60fps
+        // Reorder mode: move card with mouse and swap positions when crossing midpoints
+        UpdateDraggedElementPosition(currentPosition);
+
+        // Throttle swap calculations
         if ((DateTime.Now - _lastShiftCalculation).TotalMilliseconds < SHIFT_THROTTLE_MS)
             return;
 
         _lastShiftCalculation = DateTime.Now;
 
-        // Calculate new insertion index. For WrapPanel we prefer a grid-based
-        // 2-column placement helper that understands single- and double-wide cards.
-        int newInsertionIndex;
-        if (AssociatedObject is System.Windows.Controls.WrapPanel)
-        {
-            // Compute the dragged element's center point (based on mouse position and click offset)
-            // and use the animator's insertion calculation to keep insertion logic consistent
-            var sizeTarget = _draggedPanelChild ?? _draggedElement!;
-            const double margin = 10;
+        PerformSwapBasedReorder(currentPosition);
+    }
 
-            double desiredX = currentPosition.X - _elementClickOffset.X;
-            double desiredY = currentPosition.Y - _elementClickOffset.Y;
-            desiredX = Math.Max(margin, Math.Min(desiredX, Math.Max(0, AssociatedObject.ActualWidth - sizeTarget.ActualWidth - margin)));
-            desiredY = Math.Max(margin, desiredY);
+    /// <summary>
+    /// Tracks which cards have been shifted during drag.
+    /// </summary>
+    private HashSet<int> _shiftedCards = new();
 
-            var center = new Point(desiredX + sizeTarget.ActualWidth / 2.0, desiredY + sizeTarget.ActualHeight / 2.0);
-            newInsertionIndex = _animator!.CalculateInsertionIndex(center, _draggedElement, out _);
-        }
-        else
+    /// <summary>
+    /// Swap-based reordering: move items in the collection as the user drags.
+    /// After moving, we re-acquire references to the new visual elements.
+    /// </summary>
+    private void PerformSwapBasedReorder(Point mousePosition)
+    {
+        if (_draggedElement == null || AssociatedObject == null) return;
+        
+        var viewModel = FindViewModel();
+        if (viewModel == null) return;
+
+        var draggedItem = _draggedItems.FirstOrDefault();
+        if (draggedItem == null) return;
+
+        // Get current mouse position relative to panel
+        var mouseY = mousePosition.Y - _dragStartPoint.Y + _elementOriginalPosition.Y + (_draggedElement.ActualHeight / 2);
+
+        var children = GetAllCardBorders();
+        if (children.Count == 0) return;
+
+        // Find the target index based on mouse Y position
+        int targetIndex = _currentLogicalIndex;
+        
+        for (int i = 0; i < children.Count; i++)
         {
-            // Use animator calculation for non-wrap panels as well
-            newInsertionIndex = _animator!.CalculateInsertionIndex(currentPosition, _draggedElement, out _);
+            var card = children[i];
+            
+            // Skip our own card
+            var cardItem = GetOrderItemFromElement(card);
+            if (cardItem != null && cardItem.Id == draggedItem.Id) continue;
+
+            var pos = card.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
+            double cardMidpoint = pos.Y + card.ActualHeight / 2;
+
+            if (mouseY < cardMidpoint)
+            {
+                targetIndex = i;
+                break;
+            }
+            else
+            {
+                targetIndex = i + 1;
+            }
         }
 
-        // If insertion index changed, animate card shift
-        if (newInsertionIndex != _currentInsertionIndex)
+        // Clamp to valid range
+        targetIndex = Math.Max(0, Math.Min(targetIndex, children.Count - 1));
+
+        // If target differs from current position, move the item
+        if (targetIndex != _currentLogicalIndex)
         {
-            _currentInsertionIndex = newInsertionIndex;
-            _animator!.AnimateCardShift(_currentInsertionIndex, _draggedIndex, _draggedElement, _lockedPanelWidth);
+            // Store current transform offset before move
+            var currentTransform = GetTranslateTransform();
+            double currentOffsetY = currentTransform?.Y ?? 0;
+            double currentOffsetX = currentTransform?.X ?? 0;
+            
+            // Move item in collection
+            viewModel.MoveItemToIndex(draggedItem, targetIndex);
+            _currentLogicalIndex = targetIndex;
+            _draggedIndex = targetIndex;
+            
+            // Force layout update
+            AssociatedObject.UpdateLayout();
+            
+            // Re-acquire the visual element for the dragged item
+            ReacquireDraggedElement(draggedItem, currentOffsetX, currentOffsetY);
         }
+    }
+
+    private void ReacquireDraggedElement(OrderItem draggedItem, double offsetX, double offsetY)
+    {
+        if (AssociatedObject == null) return;
+
+        // Find the new visual element for our item
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible) continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border == null) continue;
+
+            var item = GetOrderItemFromElement(border);
+            if (item != null && item.Id == draggedItem.Id)
+            {
+                // Found it - update our references
+                _draggedElement = border;
+                _draggedPanelChild = panelChild;
+                
+                // Update original position to new location
+                _elementOriginalPosition = panelChild.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
+                
+                // Re-apply transform with adjusted offset
+                ApplyDragTransform(panelChild);
+                var newTransform = GetTranslateTransform();
+                if (newTransform != null)
+                {
+                    newTransform.X = offsetX;
+                    newTransform.Y = offsetY;
+                }
+                
+                // Re-apply Z-index and visual feedback
+                Panel.SetZIndex(panelChild, DRAG_Z_INDEX);
+                
+                _visualFeedbackBorder = border;
+                ApplyModeVisualFeedback(border, _isLinkMode);
+                
+                return;
+            }
+        }
+    }
+
+    private OrderItem? GetOrderItemFromElement(FrameworkElement element)
+    {
+        if (element.DataContext is OrderItem item) return item;
+        if (element.DataContext is OrderItemGroup group) return group.First;
+        return null;
+    }
+
+    private Point GetCardOriginalPosition(FrameworkElement card, int visualIndex)
+    {
+        if (AssociatedObject == null) return new Point(0, 0);
+        
+        // Get current position and subtract any transform offset
+        var pos = card.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
+        
+        // Remove any animator transform to get original position
+        var transform = card.RenderTransform as TranslateTransform;
+        if (transform != null)
+        {
+            pos.Y -= transform.Y;
+        }
+        else if (card.RenderTransform is TransformGroup group)
+        {
+            var tt = group.Children.OfType<TranslateTransform>().FirstOrDefault();
+            if (tt != null) pos.Y -= tt.Y;
+        }
+        
+        return pos;
+    }
+
+    private Point GetDraggedCardCenter()
+    {
+        if (_draggedElement == null || AssociatedObject == null) 
+            return new Point(0, 0);
+
+        var pos = _draggedElement.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
+        return new Point(
+            pos.X + _draggedElement.ActualWidth / 2,
+            pos.Y + _draggedElement.ActualHeight / 2
+        );
+    }
+
+    private List<FrameworkElement> GetAllCardBorders()
+    {
+        var result = new List<FrameworkElement>();
+        if (AssociatedObject == null) return result;
+
+        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
+        {
+            if (panelChild.Visibility != Visibility.Visible)
+                continue;
+
+            var border = FindVisualChildOfType<Border>(panelChild);
+            if (border != null && IsRenderableDataContext(border.DataContext))
+            {
+                result.Add(border);
+            }
+        }
+        return result;
     }
 
     private async void FinishDrag()
@@ -417,19 +558,15 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         // Release mouse capture
         Mouse.Capture(null);
 
-        // Get target item before invoking events
-        var targetItem = GetTargetItem();
         var draggedItems = new List<OrderItem>(_draggedItems);
-        var isLinkMode = _isLinkMode; // Track if we are in link mode
-
-        // Prefer to raise events so host views (widget, main view code-behind) can handle the
-        // reorder/link logic. If no handlers are attached, fall back to calling the ViewModel directly.
+        var isLinkMode = _isLinkMode;
         var viewModel = FindViewModel();
+
         try
         {
             if (isLinkMode)
             {
-                // Prefer the currently highlighted border (visual feedback) as the link target
+                // Link mode: find target and link items together
                 OrderItem? linkTarget = null;
                 if (_currentLinkTargetBorder != null)
                 {
@@ -438,36 +575,28 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                     else if (dc is OrderItemGroup highlightedGroup) linkTarget = highlightedGroup.First;
                 }
 
-                linkTarget ??= targetItem ?? FindNearestLinkTarget();
+                linkTarget ??= FindNearestLinkTarget();
 
-                Debug.WriteLine($"[OrderLogFluidDrag] FinishDrag: isLinkMode=TRUE draggedCount={draggedItems.Count} draggedIds={string.Join(',', draggedItems.Select(i => i.Id))} targetId={(linkTarget == null ? "null" : linkTarget.Id.ToString())} targetVendor={(linkTarget == null ? string.Empty : linkTarget.VendorName)}");
-
-                // If the resolved link target appears to be a practically-empty placeholder,
-                // try to find a nearby non-blank card to use instead (defensive).
                 if (linkTarget != null && linkTarget.IsPracticallyEmpty)
                 {
-                    Debug.WriteLine("[OrderLogFluidDrag] Detected blank link target; searching for nearest non-blank replacement");
-
-                    OrderItem? replacement = null;
+                    // Find nearest non-blank card
                     Point mousePos = Mouse.GetPosition(AssociatedObject);
                     double bestDist = double.MaxValue;
+                    OrderItem? replacement = null;
 
                     foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
                     {
-                        if (panelChild.Visibility != Visibility.Visible)
-                            continue;
-
+                        if (panelChild.Visibility != Visibility.Visible) continue;
                         var border = FindVisualChildOfType<Border>(panelChild);
-                        if (border == null || border == _draggedElement)
-                            continue;
+                        if (border == null || border == _draggedElement) continue;
 
                         OrderItem? candidate = null;
                         if (border.DataContext is OrderItem oi) candidate = oi;
                         else if (border.DataContext is OrderItemGroup og) candidate = og.First;
-                        if (candidate == null) continue;
-                        if (candidate.IsPracticallyEmpty) continue;
+                        if (candidate == null || candidate.IsPracticallyEmpty) continue;
 
-                        var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
+                        var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), 
+                            new Size(border.ActualWidth, border.ActualHeight));
                         var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
                         var dist = (center - mousePos).Length;
                         if (dist < bestDist)
@@ -476,44 +605,29 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                             replacement = candidate;
                         }
                     }
-
-                    if (replacement != null)
-                    {
-                        Debug.WriteLine($"[OrderLogFluidDrag] Using replacement target {replacement.Id}");
-                        linkTarget = replacement;
-                    }
-                    else
-                    {
-                        Debug.WriteLine("[OrderLogFluidDrag] No non-blank replacement found; proceeding with original target");
-                    }
+                    if (replacement != null) linkTarget = replacement;
                 }
 
                 if (LinkComplete != null)
                 {
-                    Debug.WriteLine("[OrderLogFluidDrag] Raising LinkComplete event");
                     LinkComplete.Invoke(draggedItems, linkTarget);
                 }
                 else if (viewModel != null && linkTarget != null)
                 {
-                    Debug.WriteLine("[OrderLogFluidDrag] Calling ViewModel.LinkItemsAsync...");
                     await viewModel.LinkItemsAsync(draggedItems, linkTarget);
-                }
-                else if (viewModel != null)
-                {
-                    Debug.WriteLine("[OrderLogFluidDrag] No link target found, falling back to MoveOrdersAsync");
-                    await viewModel.MoveOrdersAsync(draggedItems, targetItem);
                 }
             }
             else
             {
-                if (ReorderComplete != null)
+                // Reorder mode: item is already in correct position (moved during drag)
+                // Just save and notify
+                if (viewModel != null)
                 {
-                    ReorderComplete.Invoke(draggedItems, targetItem);
+                    await viewModel.SaveAsync();
                 }
-                else if (viewModel != null)
-                {
-                    await viewModel.MoveOrdersAsync(draggedItems, targetItem);
-                }
+                
+                // Raise event for any listeners
+                ReorderComplete?.Invoke(draggedItems, null);
             }
         }
         catch (Exception ex)
@@ -523,9 +637,8 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 "Drag Error");
         }
 
-        // Delay cleanup to allow ItemsControl to regenerate with new DisplayItems
-        // ItemsControl needs time to rebuild its visual tree after ObservableCollection changes
-        _cleanupTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        // Cleanup after a short delay to allow UI to settle
+        _cleanupTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
         _cleanupTimer.Tick -= OnCleanupTimerTick;
         _cleanupTimer.Tick += OnCleanupTimerTick;
         _cleanupTimer.Start();
@@ -633,8 +746,9 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         _draggedPanelChild = null;
         _visualFeedbackBorder = null;
         _draggedItems.Clear();
+        _shiftedCards.Clear();
         _draggedIndex = -1;
-        _currentInsertionIndex = -1;
+        _currentLogicalIndex = -1;
         _draggedTransform = null;
         _originalBorderBrush = null;
         _lockedPanelWidth = null;
@@ -1020,49 +1134,8 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             return FindCardUnderCursor();
         }
 
-        // In reorder mode, use insertion index
-        if (_currentInsertionIndex < 0 || _animator == null)
-            return null;
-
-        // Get all Border elements EXCEPT the dragged one
-        var children = new List<FrameworkElement>();
-        foreach (var panelChild in AssociatedObject.Children.OfType<FrameworkElement>())
-        {
-            if (panelChild.Visibility != Visibility.Visible)
-                continue;
-
-            var border = FindVisualChildOfType<Border>(panelChild);
-            if (border != null &&
-                border != _draggedElement &&  // Exclude dragged element
-                IsRenderableDataContext(border.DataContext))
-            {
-                children.Add(border);
-            }
-        }
-
-        // Adjust insertion index since we excluded the dragged element
-        // If dragging forward (insertion index > dragged index), subtract 1
-        int adjustedIndex = _currentInsertionIndex;
-        if (_currentInsertionIndex > _draggedIndex)
-        {
-            adjustedIndex = _currentInsertionIndex - 1;
-        }
-
-        // Target is the item at the adjusted position
-        if (adjustedIndex >= children.Count)
-        {
-            // Inserting at the end - target is null (append)
-            return null;
-        }
-
-        var targetElement = children[adjustedIndex];
-
-        if (targetElement.DataContext is OrderItem item)
-            return item;
-
-        if (targetElement.DataContext is OrderItemGroup group)
-            return group.First;
-
+        // In swap-based reorder mode, items are swapped during drag
+        // No target needed at finish time
         return null;
     }
 

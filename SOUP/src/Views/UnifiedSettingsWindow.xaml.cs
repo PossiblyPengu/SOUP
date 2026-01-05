@@ -17,11 +17,11 @@ public partial class UnifiedSettingsWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
         
-        // Fire-and-forget initialization to avoid blocking window opening
-        Loaded += (s, e) => _ = InitializeViewModelAsync();
+        // Initialize asynchronously on window load
+        Loaded += OnWindowLoaded;
     }
 
-    private async System.Threading.Tasks.Task InitializeViewModelAsync()
+    private async void OnWindowLoaded(object sender, RoutedEventArgs e)
     {
         try
         {

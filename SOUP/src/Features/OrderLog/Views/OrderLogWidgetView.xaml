@@ -36,7 +36,6 @@
                             <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
                             <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
                             <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
-                            <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
                         </MenuItem>
                         <MenuItem Header="Move Up" Click="MoveUp_Click"/>
                         <MenuItem Header="Move Down" Click="MoveDown_Click"/>
@@ -44,7 +43,7 @@
                         <MenuItem Header="Link with..." Click="LinkWith_Click"/>
                         <MenuItem Header="Unlink" Click="Unlink_Click"/>
                         <Separator/>
-                        <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
+                        <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold"/>
                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
                     </ContextMenu>
                 </Border.ContextMenu>
@@ -84,9 +83,9 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="{Binding VendorName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding VendorName}" FontSize="{DynamicResource CardFontSize}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
-                                <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0"/>
+                                <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas" Margin="0,6,0,0"/>
                             </StackPanel>
 
                             <!-- Quick Archive Button (shows on hover) -->
@@ -101,7 +100,7 @@
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="📦" FontSize="14" Opacity="0.7"/>
+                                                        <TextBlock Text="📦" FontSize="{DynamicResource CardFontSize}" Opacity="0.7"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
@@ -136,8 +135,8 @@
                     </Border>
 
                     <StackPanel Grid.Row="2" Margin="14,10">
-                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -173,7 +172,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="{Binding NoteTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding NoteTitle}" FontSize="{DynamicResource CardFontSize}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Style.Triggers>
@@ -200,7 +199,7 @@
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="📦" FontSize="14" Opacity="0.7"/>
+                                                        <TextBlock Text="📦" FontSize="{DynamicResource CardFontSize}" Opacity="0.7"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
@@ -234,8 +233,51 @@
                         </Grid>
                     </Border>
 
-                    <StackPanel Grid.Row="2" Margin="14,10">
-                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="60" TextTrimming="CharacterEllipsis"/>
+                    <StackPanel Grid.Row="2" Margin="14,10" MaxWidth="280">
+                        <!-- Note content with RichTextBox for editing -->
+                        <Grid MinHeight="80">
+                            <TextBlock Text="Write your note here..."
+                                       FontSize="{DynamicResource CardFontSize}"
+                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                       FontStyle="Italic"
+                                       IsHitTestVisible="False"
+                                       VerticalAlignment="Top"
+                                       Margin="0,4,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding NoteContent}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding NoteContent}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <RichTextBox Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="{DynamicResource TextSecondaryBrush}"
+                                         CaretBrush="{DynamicResource AccentBrush}"
+                                         FontSize="{DynamicResource CardFontSize}"
+                                         Padding="4"
+                                         Margin="0,4,0,0"
+                                         MaxWidth="280"
+                                         MinHeight="60"
+                                         AcceptsReturn="True"
+                                         IsReadOnly="False"
+                                         Focusable="True"
+                                         IsDocumentEnabled="True"
+                                         IsHitTestVisible="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         PreviewKeyDown="NoteContent_PreviewKeyDown"
+                                         Loaded="NoteContent_Loaded"
+                                         LostFocus="NoteContent_LostFocus"
+                                         GotFocus="EditableField_GotFocus"
+                                         Cursor="IBeam"/>
+                        </Grid>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -243,7 +285,7 @@
 
         <!-- Template for archived Order cards -->
         <DataTemplate x:Key="ArchivedOrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource CardBorderStyle}">
+            <Border Style="{StaticResource WidgetElevatedCardStyle}">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
@@ -259,57 +301,41 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0"
-                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                    <!-- Color Bar (Done status = muted gray) -->
+                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Height="{StaticResource CardColorBarHeight}"
+                            Background="{DynamicResource TextTertiaryBrush}"/>
 
-                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
+                    <!-- Header -->
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="0" MinHeight="36" Panel.ZIndex="50">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Text="{Binding VendorName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0"/>
+                            <StackPanel Orientation="Vertical" Grid.Column="0">
+                                <TextBlock Text="{Binding VendorName}" FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
 
-                            <!-- Restore Button (shows on hover) -->
+                            <!-- Restore Button -->
                             <Button Grid.Column="1" Click="QuickArchive_Click" ToolTip="Restore" Cursor="Hand" Margin="4,0">
                                 <Button.Style>
                                     <Style TargetType="Button">
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6"/>
-                                        <Setter Property="Opacity" Value="0"/>
+                                        <Setter Property="Padding" Value="8,4"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="↩️" FontSize="14" Opacity="0.7"/>
+                                                        <TextBlock Text="↩️ Restore" FontSize="{DynamicResource CardFontSize}" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
                                         </Setter>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -318,9 +344,11 @@
                         </Grid>
                     </Border>
 
-                    <StackPanel Grid.Row="2" Margin="14,10">
-                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                    <!-- Content -->
+                    <StackPanel Grid.Row="2" Margin="16,14">
+                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -354,7 +382,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="{Binding NoteTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding NoteTitle}" FontSize="{DynamicResource CardFontSize}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Style.Triggers>
@@ -381,7 +409,7 @@
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="↩️" FontSize="14" Opacity="0.7"/>
+                                                        <TextBlock Text="↩️" FontSize="{DynamicResource CardFontSize}" Opacity="0.7"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
@@ -413,8 +441,8 @@
                         </Grid>
                     </Border>
 
-                    <StackPanel Grid.Row="2" Margin="14,10">
-                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="60" TextTrimming="CharacterEllipsis"/>
+                    <StackPanel Grid.Row="2" Margin="14,10" MaxWidth="280">
+                        <TextBlock Text="{Binding NoteContent}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="60"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -444,7 +472,7 @@
                             Padding="14,10" Margin="0">
                         <Grid>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🔗" FontSize="12" Margin="0,0,6,0"/>
+                                <TextBlock Text="🔗" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
                                 <TextBlock Text="Merged"
                                            FontSize="11"
                                            FontWeight="SemiBold"
@@ -622,7 +650,139 @@
                                         <!-- TimeInProgress Display -->
                                         <TextBlock Text="{Binding TimeInProgressDisplay}"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   FontSize="12"
+                                                   FontSize="{DynamicResource CardFontSize}"
+                                                   FontFamily="Consolas"
+                                                   Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Actions Footer -->
+                    <Border Grid.Row="3"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <Button Content="Unlink"
+                                Click="Unlink_Click"
+                                Style="{DynamicResource GhostButtonStyle}"
+                                Padding="8,4"
+                                FontSize="11"
+                                HorizontalAlignment="Right"
+                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Template for ARCHIVED merged order cards (no status dropdown, has restore button) -->
+        <DataTemplate x:Key="ArchivedOrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
+            <Border Style="{StaticResource WidgetElevatedCardStyle}">
+                <Border.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Restore All" Click="UnarchiveGroup_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Delete All" Click="DeleteArchivedGroup_Click" Foreground="{DynamicResource DangerBrush}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Unified Color Bar (Done status color) -->
+                    <Border Grid.Row="0" Height="{StaticResource CardColorBarHeight}" CornerRadius="8,8,0,0"
+                            Background="{DynamicResource TextTertiaryBrush}"/>
+
+                    <!-- Unified Header Section -->
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}"
+                            Padding="14,10" Margin="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🔗" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
+                                <TextBlock Text="Merged"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                                <Border Background="{DynamicResource AccentBrush}"
+                                        CornerRadius="10"
+                                        Padding="5,2"
+                                        Margin="6,0,0,0">
+                                    <TextBlock Text="{Binding Count, StringFormat='{}{0} orders'}"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"/>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Restore Button instead of Status -->
+                            <Button Grid.Column="1" Click="RestoreGroup_Click" ToolTip="Restore All" Cursor="Hand">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="↩️ Restore" FontSize="{DynamicResource CardFontSize}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Order Sections (Vertical Stack) -->
+                    <ItemsControl Grid.Row="2" ItemsSource="{Binding Members}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource BorderBrush}" Padding="16,12">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding VendorName, TargetNullValue='Order'}"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Margin="0,0,0,8"/>
+                                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}"/>
+                                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding TimeInProgressDisplay}"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   FontSize="{DynamicResource CardFontSize}"
                                                    FontFamily="Consolas"
                                                    Margin="0,6,0,0"/>
                                     </StackPanel>
@@ -729,7 +889,7 @@
                             Click="AddBlankNote_Click"
                             Style="{StaticResource WidgetSecondaryActionButtonStyle}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📝" FontSize="13" Margin="0,0,6,0"/>
+                            <TextBlock Text="📝" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
                             <TextBlock Text="Add Note"/>
                         </StackPanel>
                     </Button>
@@ -746,9 +906,6 @@
                              VirtualizingStackPanel.IsVirtualizing="False"
                              VirtualizingStackPanel.VirtualizationMode="Standard"
                              ScrollViewer.CanContentScroll="False">
-                        <i:Interaction.Behaviors>
-                            <commonBehaviors:ListBoxDragDropBehavior />
-                        </i:Interaction.Behaviors>
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -769,7 +926,7 @@
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Vertical" Background="Transparent">
                                     <i:Interaction.Behaviors>
-                                        <behaviors:OrderLogFluidDragBehavior AnimationDuration="300" />
+                                        <behaviors:SimpleReorderBehavior />
                                     </i:Interaction.Behaviors>
                                 </StackPanel>
                             </ItemsPanelTemplate>
@@ -795,7 +952,6 @@
                                             <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
                                             <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
                                             <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
-                                            <MenuItem Header="Done" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.Done}"/>
                                         </MenuItem>
                                         <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
@@ -806,7 +962,7 @@
                                         <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
                                         <!-- COMMON MENU ITEMS -->
                                         <Separator/>
-                                        <MenuItem Header="Archive" Click="ArchiveNote_Click"/>
+                                        <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold"/>
                                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
                                     </ContextMenu>
                                 </Border.ContextMenu>
@@ -847,7 +1003,7 @@
                                             <StackPanel Orientation="Vertical">
                                                 <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
                                                     <TextBlock Text="Vendor name..."
-                                                               FontSize="13"
+                                                               FontSize="{DynamicResource CardFontSize}"
                                                                FontWeight="SemiBold"
                                                                Foreground="{DynamicResource TextDisabledBrush}"
                                                                FontStyle="Italic"
@@ -870,7 +1026,7 @@
                                                     <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
                                                              Background="Transparent"
                                                              BorderThickness="0"
-                                                             FontSize="13"
+                                                             FontSize="{DynamicResource CardFontSize}"
                                                              FontWeight="SemiBold"
                                                              Foreground="{DynamicResource TextPrimaryBrush}"
                                                              Padding="0"/>
@@ -878,7 +1034,7 @@
 
                                                 <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
                                                     <TextBlock Text="Note title..."
-                                                               FontSize="13"
+                                                               FontSize="{DynamicResource CardFontSize}"
                                                                FontWeight="SemiBold"
                                                                Foreground="{DynamicResource TextDisabledBrush}"
                                                                FontStyle="Italic"
@@ -901,7 +1057,7 @@
                                                     <TextBox x:Name="NoteTitleBoxHeader" Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
                                                              Background="Transparent"
                                                              BorderThickness="0"
-                                                             FontSize="13"
+                                                             FontSize="{DynamicResource CardFontSize}"
                                                              FontWeight="SemiBold"
                                                              Foreground="{DynamicResource TextPrimaryBrush}"
                                                              Padding="0"/>
@@ -950,7 +1106,7 @@
                                                 </Grid.ColumnDefinitions>
 
                                                 <TextBlock Grid.Column="0" Text="Transfer #s..." 
-                                                           FontSize="13"
+                                                           FontSize="{DynamicResource CardFontSize}"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
                                                            FontStyle="Italic"
                                                            IsHitTestVisible="False"
@@ -974,7 +1130,7 @@
                                                          Background="Transparent"
                                                          BorderThickness="0"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
-                                                         FontSize="13"
+                                                         FontSize="{DynamicResource CardFontSize}"
                                                          Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
@@ -986,7 +1142,7 @@
                                             <!-- Editable WHS Shipment Numbers -->
                                             <Grid Margin="0,3,0,0">
                                                 <TextBlock Text="WHS #s..." 
-                                                           FontSize="13"
+                                                           FontSize="{DynamicResource CardFontSize}"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
                                                            FontStyle="Italic"
                                                            IsHitTestVisible="False"
@@ -1009,7 +1165,7 @@
                                                          Background="Transparent"
                                                          BorderThickness="0"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
-                                                         FontSize="13"
+                                                         FontSize="{DynamicResource CardFontSize}"
                                                          Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
@@ -1017,13 +1173,13 @@
 
                                             <TextBlock Text="{Binding TimeInProgressDisplay}"
                                                        Foreground="{DynamicResource TextTertiaryBrush}"
-                                                       FontSize="12"
+                                                       FontSize="{DynamicResource CardFontSize}"
                                                        FontFamily="Consolas"
                                                        Margin="0,6,0,0"/>
                                         </StackPanel>
                                         
                                         <!-- STICKY NOTE CONTENT (visible only for sticky notes, with placeholder) -->
-                                        <StackPanel Margin="0,6,0,0">
+                                        <StackPanel Margin="0,6,0,0" MaxWidth="280">
                                             <StackPanel.Style>
                                                 <Style TargetType="StackPanel">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -1036,9 +1192,9 @@
                                             </StackPanel.Style>
 
                                             <!-- Note content -->
-                                            <Grid>
+                                            <Grid MinHeight="120">
                                                 <TextBlock Text="Write your note here..."
-                                                           FontSize="13"
+                                                           FontSize="{DynamicResource CardFontSize}"
                                                            Foreground="{DynamicResource TextDisabledBrush}"
                                                            FontStyle="Italic"
                                                            IsHitTestVisible="False"
@@ -1060,14 +1216,23 @@
                                                 <RichTextBox Background="Transparent"
                                                              BorderThickness="0"
                                                              Foreground="{DynamicResource TextPrimaryBrush}"
-                                                             FontSize="13"
-                                                             Padding="0"
+                                                             CaretBrush="{DynamicResource AccentBrush}"
+                                                             FontSize="{DynamicResource CardFontSize}"
+                                                             Padding="4"
+                                                             MaxWidth="280"
+                                                             MinHeight="80"
+                                                             MaxHeight="120"
                                                              AcceptsReturn="True"
+                                                             IsReadOnly="False"
+                                                             Focusable="True"
+                                                             IsDocumentEnabled="True"
+                                                             IsHitTestVisible="True"
                                                              VerticalScrollBarVisibility="Auto"
                                                              PreviewKeyDown="NoteContent_PreviewKeyDown"
                                                              Loaded="NoteContent_Loaded"
                                                              LostFocus="NoteContent_LostFocus"
-                                                             GotFocus="EditableField_GotFocus"/>
+                                                             GotFocus="EditableField_GotFocus"
+                                                             Cursor="IBeam"/>
                                             </Grid>
 
                                             <!-- Text Formatting Toolbar -->
@@ -1102,11 +1267,11 @@
                                                     <!-- Insert buttons -->
                                                     <Button Content="•" ToolTip="Insert bullet point"
                                                             Click="InsertBullet_Click" Tag="{Binding}"
-                                                            FontSize="14" Padding="6,2" Margin="1"
+                                                            FontSize="{DynamicResource CardFontSize}" Padding="6,2" Margin="1"
                                                             Style="{DynamicResource GhostButtonStyle}"/>
                                                     <Button Content="☐" ToolTip="Insert checkbox"
                                                             Click="InsertCheckbox_Click" Tag="{Binding}"
-                                                            FontSize="12" Padding="6,2" Margin="1"
+                                                            FontSize="{DynamicResource CardFontSize}" Padding="6,2" Margin="1"
                                                             Style="{DynamicResource GhostButtonStyle}"/>
                                                     <Button Content="🕐" ToolTip="Insert timestamp"
                                                             Click="InsertTimestamp_Click" Tag="{Binding}"
@@ -1197,7 +1362,7 @@
                                             </Setter>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsGroup}" Value="True">
-                                                    <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource ArchivedOrderItemGroupMergedTemplate}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -1209,7 +1374,7 @@
                     
                     <!-- Empty state for archived -->
                     <TextBlock Text="No archived items"
-                               FontSize="13"
+                               FontSize="{DynamicResource CardFontSize}"
                                Foreground="{DynamicResource TextTertiaryBrush}"
                                HorizontalAlignment="Center"
                                Margin="0,20,0,0">
@@ -1282,7 +1447,7 @@
                                     <!-- Track Title -->
                                     <TextBlock x:Name="TrackTitleText"
                                                Text="Not Playing"
-                                               FontSize="14"
+                                               FontSize="{DynamicResource CardFontSize}"
                                                FontWeight="Bold"
                                                Foreground="White"
                                                TextTrimming="CharacterEllipsis"
@@ -1295,7 +1460,7 @@
                                     <!-- Artist Name -->
                                     <TextBlock x:Name="ArtistNameText"
                                                Text=""
-                                               FontSize="12"
+                                               FontSize="{DynamicResource CardFontSize}"
                                                Foreground="#CCFFFFFF"
                                                TextTrimming="CharacterEllipsis"
                                                Margin="0,2,0,0">
@@ -1459,10 +1624,10 @@
                                 </Rectangle>
                             </Canvas>
                             <!-- Static music icon when not playing -->
-                            <TextBlock x:Name="MusicIcon" Text="🎵" FontSize="12" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="MusicIcon" Text="🎵" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
                             <TextBlock x:Name="NowPlayingHeaderText" 
                                        Text="Now Playing" 
-                                       FontSize="12" 
+                                       FontSize="{DynamicResource CardFontSize}" 
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
@@ -1544,16 +1709,17 @@
                            VerticalAlignment="Center"/>
                 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="ThemeToggleButton"
+                            Click="ThemeToggle_Click"
+                            Style="{StaticResource WidgetIconButtonStyle}"
+                            ToolTip="Toggle Light/Dark Mode"
+                            Margin="0,0,4,0">
+                        <TextBlock x:Name="ThemeToggleIcon" Text="🌙" FontSize="{DynamicResource CardFontSize}"/>
+                    </Button>
                     <Button Command="{Binding ExportToCsvCommand}"
                             Style="{StaticResource WidgetIconButtonStyle}"
                             ToolTip="Export to CSV">
-                        <TextBlock Text="📤" FontSize="14"/>
-                    </Button>
-                    <Button Click="OpenFullView_Click"
-                            Style="{StaticResource WidgetIconButtonStyle}"
-                            ToolTip="Open full view"
-                            Margin="4,0,0,0">
-                        <TextBlock Text="↗" FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Text="📤" FontSize="{DynamicResource CardFontSize}"/>
                     </Button>
                 </StackPanel>
             </Grid>

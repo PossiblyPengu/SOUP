@@ -48,6 +48,13 @@ public partial class OrderItem : ObservableObject
 
     [ObservableProperty]
     private OrderStatus _status = OrderStatus.NotReady;
+    
+    /// <summary>
+    /// Stores the status before archiving, so it can be restored when unarchiving.
+    /// </summary>
+    [ObservableProperty]
+    private OrderStatus? _previousStatus;
+    
     [ObservableProperty]
     private string _colorHex = Constants.OrderLogColors.DefaultOrder;
     [ObservableProperty]
@@ -83,9 +90,28 @@ public partial class OrderItem : ObservableObject
         get
         {
             var ts = TimeInProgress;
-            return ts.TotalHours >= 1
-                ? $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}"
-                : $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+            
+            // Format based on duration
+            if (ts.TotalDays >= 7)
+            {
+                int weeks = (int)(ts.TotalDays / 7);
+                int days = (int)(ts.TotalDays % 7);
+                return days > 0 ? $"{weeks}w {days}d" : $"{weeks}w";
+            }
+            else if (ts.TotalDays >= 1)
+            {
+                int days = (int)ts.TotalDays;
+                int hours = ts.Hours;
+                return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
+            }
+            else if (ts.TotalHours >= 1)
+            {
+                return $"{(int)ts.TotalHours}h {ts.Minutes:D2}m";
+            }
+            else
+            {
+                return $"{ts.Minutes}m {ts.Seconds:D2}s";
+            }
         }
     }
 
@@ -130,11 +156,8 @@ public partial class OrderItem : ObservableObject
 
     private void UpdateArchiveState(OrderStatus status)
     {
-        // Auto-archive when marked as Done (only for orders, not sticky notes)
-        if (status == OrderStatus.Done && NoteType == NoteType.Order)
-        {
-            IsArchived = true;
-        }
+        // Note: Archiving is now handled by the ViewModel (SetStatusAsync) to ensure proper
+        // collection management and undo support. This method is kept for potential future use.
     }
 
     private void UpdateTimestamps(OrderStatus status)

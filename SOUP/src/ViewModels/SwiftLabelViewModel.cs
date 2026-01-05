@@ -168,7 +168,12 @@ public partial class SwiftLabelViewModel : ObservableObject
                 var defaultPrinter = new PrinterSettings().PrinterName;
                 SelectedPrinter = AvailablePrinters.Contains(defaultPrinter) 
                     ? defaultPrinter 
-                    : AvailablePrinters.First();
+                    : AvailablePrinters.FirstOrDefault();
+            }
+            else
+            {
+                StatusMessage = "⚠ No printers found. Please install a printer to use SwiftLabel.";
+                _logger?.LogWarning("No printers available on system");
             }
 
             _logger?.LogInformation("Loaded {Count} printers, selected: {Printer}", 

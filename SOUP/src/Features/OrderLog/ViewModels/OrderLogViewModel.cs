@@ -32,6 +32,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private List<(Guid id, OrderItem.OrderStatus previous)> _lastStatusChanges = new();
     private List<(Guid id, bool wasArchived)> _lastArchiveChanges = new();
 
+    // Lock for thread-safe access to HashSets
+    private readonly object _collectionLock = new();
+
     // HashSets for O(1) membership checks instead of O(n) Contains on ObservableCollection
     private readonly HashSet<Guid> _itemIds = new();
     private readonly HashSet<Guid> _archivedItemIds = new();
@@ -194,17 +197,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         try
         {
-            for (int i = 0; i < Items.Count; i++)
+            // Snapshot collections to avoid race conditions
+            var itemsSnapshot = Items.ToList();
+            var archivedSnapshot = ArchivedItems.ToList();
+
+            for (int i = 0; i < itemsSnapshot.Count; i++)
             {
-                Items[i].Order = i;
+                itemsSnapshot[i].Order = i;
             }
             
-            for (int i = 0; i < ArchivedItems.Count; i++)
+            for (int i = 0; i < archivedSnapshot.Count; i++)
             {
-                ArchivedItems[i].Order = Items.Count + i;
+                archivedSnapshot[i].Order = itemsSnapshot.Count + i;
             }
             
-            var allItems = AllItems.ToList();
+            var allItems = itemsSnapshot.Concat(archivedSnapshot).ToList();
             await _orderLogService.SaveAsync(allItems);
             StatusMessage = $"Saved {Items.Count} orders ({ArchivedItems.Count} archived)";
             RefreshDisplayItems();
@@ -264,8 +271,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (_itemIds.Contains(item.Id)) return;
         
         item.IsArchived = false;
+        // Restore to previous status if available, otherwise default to InProgress
+        item.Status = item.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+        item.PreviousStatus = null;
+        
         RemoveFromArchived(item);
         AddToItems(item, insertAtTop: true);
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
         
         // Setup undo for unarchive  
@@ -289,13 +302,38 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             
             changes.Add((item.Id, item.IsArchived));
             item.IsArchived = false;
+            // Restore to previous status if available, otherwise default to InProgress
+            item.Status = item.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+            item.PreviousStatus = null;
+            
             RemoveFromArchived(item);
             AddToItems(item, insertAtTop: true);
         }
         
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
         SetupArchiveUndo(changes, $"Restored {changes.Count} item(s)");
         StatusMessage = $"Restored {changes.Count} item(s) - tap Undo to re-archive";
+    }
+
+    /// <summary>
+    /// Permanently delete all archived items
+    /// </summary>
+    public async Task ClearAllArchivedAsync()
+    {
+        if (ArchivedItems.Count == 0) return;
+        
+        var toRemove = ArchivedItems.ToList();
+        foreach (var item in toRemove)
+        {
+            RemoveFromArchived(item);
+        }
+        
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+        
+        _logger?.LogInformation("Cleared {Count} archived items", toRemove.Count);
     }
 
     private void SetupArchiveUndo(List<(Guid id, bool wasArchived)> changes, string message)
@@ -319,18 +357,23 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             {
                 // Was archived before, re-archive it
                 item.IsArchived = true;
+                item.Status = OrderItem.OrderStatus.Done;
                 RemoveFromItems(item);
                 AddToArchived(item);
             }
             else
             {
-                // Was not archived before, unarchive it
+                // Was not archived before, unarchive it and restore previous status
                 item.IsArchived = false;
+                item.Status = item.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+                item.PreviousStatus = null;
                 RemoveFromArchived(item);
                 AddToItems(item, insertAtTop: true);
             }
         }
 
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
         _lastArchiveChanges.Clear();
         UndoAvailable = false;
@@ -411,8 +454,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         if (item == null) return;
 
-        Items.Remove(item);
-        ArchivedItems.Remove(item);
+        RemoveFromItems(item);
+        RemoveFromArchived(item);
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
         StatusMessage = "Deleted item";
     }
@@ -504,8 +549,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public async Task StopAsync(OrderItem? item)
     {
         if (item == null) return;
-        item.Status = OrderItem.OrderStatus.Done;
-        await SaveAsync();
+        await SetStatusAsync(item, OrderItem.OrderStatus.Done);
     }
 
     [RelayCommand]
@@ -522,12 +566,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         await SaveAsync();
     }
 
-    public async Task SetStatusAsync(OrderItem item, OrderItem.OrderStatus status)
+    public async Task SetStatusAsync(OrderItem item, OrderItem.OrderStatus status, OrderItem.OrderStatus? previousStatus = null)
     {
         if (item == null) return;
 
-        _logger?.LogDebug("SetStatusAsync called for Item={ItemId} Status={Status} LinkedGroupId={LinkedGroupId}",
-            item.Id, status, item.LinkedGroupId);
+        _logger?.LogDebug("SetStatusAsync called for Item={ItemId} Status={Status} PreviousStatus={PreviousStatus} LinkedGroupId={LinkedGroupId}",
+            item.Id, status, previousStatus, item.LinkedGroupId);
 
         // If this item is part of a linked group, apply the status change to all members
         if (item.LinkedGroupId != null)
@@ -537,16 +581,28 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
             _logger?.LogDebug("Group {GroupId} members: {MemberIds}", gid, string.Join(',', members.Select(m => m.Id)));
 
-            // Record previous done-state per member and apply new status
-            var memberStates = members.Select(m => (itm: m, wasDoneBefore: m.Status == OrderItem.OrderStatus.Done)).ToList();
+            var shouldBeArchived = status == OrderItem.OrderStatus.Done;
+            var archiveChanges = new List<(Guid id, bool wasArchived)>();
+            
             foreach (var m in members)
             {
                 _logger?.LogDebug("Setting member {MemberId} status from {OldStatus} to {NewStatus}", m.Id, m.Status, status);
+                
+                // Track for undo
+                archiveChanges.Add((m.Id, m.IsArchived));
+                
+                // Store previous status before archiving
+                if (shouldBeArchived && !m.IsArchived)
+                {
+                    m.PreviousStatus = m.Status;
+                }
+                
                 m.Status = status;
+                m.IsArchived = shouldBeArchived;
             }
 
-            // Ensure collection membership matches each member's IsArchived flag (keep collections consistent)
-            foreach (var (m, wasDoneBefore) in memberStates)
+            // Move members between collections based on IsArchived flag
+            foreach (var m in members)
             {
                 _logger?.LogDebug("Member {MemberId} pre-sync IsArchived={IsArchived} inItems={InItems} inArchived={InArchived}",
                     m.Id, m.IsArchived, _itemIds.Contains(m.Id), _archivedItemIds.Contains(m.Id));
@@ -566,38 +622,57 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                     m.Id, m.IsArchived, _itemIds.Contains(m.Id), _archivedItemIds.Contains(m.Id));
             }
 
+            RefreshDisplayItems();
+            RefreshArchivedDisplayItems();
             await SaveAsync();
+            
+            // Set up undo for group archive
+            if (shouldBeArchived && archiveChanges.Any(c => !c.wasArchived))
+            {
+                SetupArchiveUndo(archiveChanges, $"Archived {members.Count} item(s)");
+                StatusMessage = $"Archived {members.Count} item(s) - tap Undo to restore";
+            }
             return;
         }
 
-        var wasDone = item.Status == OrderItem.OrderStatus.Done;
-        var willBeDone = status == OrderItem.OrderStatus.Done;
+        // Note: item.Status may already be updated by TwoWay binding, so we need to 
+        // determine archival based on whether status IS Done, not was/will-be.
+        var willBeArchived = status == OrderItem.OrderStatus.Done;
+        var isCurrentlyInItems = _itemIds.Contains(item.Id);
+        var isCurrentlyInArchived = _archivedItemIds.Contains(item.Id);
+
+        // Store previous status before archiving
+        if (willBeArchived && isCurrentlyInItems)
+        {
+            item.PreviousStatus = item.Status;
+        }
 
         item.Status = status;
+        item.IsArchived = willBeArchived;
 
-        // Move between collections based on archive status
-        if (willBeDone && !wasDone)
+        // Move between collections based on where it should be vs where it is
+        if (willBeArchived && isCurrentlyInItems)
         {
             // Moving to Done - archive it
-            // mark archived flag so persistence and subsequent loads treat this item as archived
-            item.IsArchived = true;
-            Items.Remove(item);
-            ArchivedItems.Add(item);
+            RemoveFromItems(item);
+            AddToArchived(item);
         }
-        else if (!willBeDone && wasDone)
+        else if (!willBeArchived && isCurrentlyInArchived)
         {
             // Moving away from Done - unarchive it
-            item.IsArchived = false;
-            ArchivedItems.Remove(item);
-            Items.Insert(0, item);
+            RemoveFromArchived(item);
+            AddToItems(item, insertAtTop: true);
         }
 
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
     }
 
     public async Task AddOrderAsync(OrderItem order)
     {
-        Items.Insert(0, order);
+        AddToItems(order, insertAtTop: true);
+        RefreshDisplayItems();
         await SaveAsync();
         StatusMessage = "Order added";
     }
@@ -619,7 +694,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             CreatedAt = DateTime.UtcNow
         };
 
-        Items.Insert(0, order);
+        AddToItems(order, insertAtTop: true);
+        RefreshDisplayItems();
         await SaveAsync();
 
         // Clear the form
@@ -653,7 +729,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             Status = OrderItem.OrderStatus.OnDeck // Sticky notes start as "On Deck" (yellow)
         };
 
-        Items.Insert(0, note);
+        AddToItems(note, insertAtTop: true);
+        RefreshDisplayItems();
         await SaveAsync();
 
         // Clear the form
@@ -679,7 +756,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             Status = OrderItem.OrderStatus.OnDeck
         };
 
-        Items.Insert(0, note);
+        AddToItems(note, insertAtTop: true);
+        RefreshDisplayItems();
         await SaveAsync();
         StatusMessage = "Quick note added";
     }
@@ -754,6 +832,45 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         await SaveAsync();
+    }
+
+    /// <summary>
+    /// Swap two orders' positions in the collection. Used for iOS-style slide-past reordering.
+    /// </summary>
+    public void SwapOrders(OrderItem item1, OrderItem item2)
+    {
+        if (item1 == null || item2 == null || item1.Id == item2.Id) return;
+
+        // Find which collection contains the items
+        var collection = _itemIds.Contains(item1.Id) ? Items : ArchivedItems;
+        
+        var idx1 = collection.IndexOf(item1);
+        var idx2 = collection.IndexOf(item2);
+        
+        if (idx1 < 0 || idx2 < 0) return;
+        
+        // Swap by moving
+        collection.Move(idx1, idx2);
+        
+        // Don't save yet - we'll save when drag finishes to avoid excessive I/O
+        RefreshDisplayItems();
+    }
+
+    /// <summary>
+    /// Move an item to a specific index in its collection. Used after drag-based reordering.
+    /// </summary>
+    public void MoveItemToIndex(OrderItem item, int newIndex)
+    {
+        if (item == null) return;
+
+        var collection = _itemIds.Contains(item.Id) ? Items : ArchivedItems;
+        var currentIndex = collection.IndexOf(item);
+        
+        if (currentIndex < 0 || currentIndex == newIndex) return;
+        if (newIndex < 0 || newIndex >= collection.Count) return;
+
+        collection.Move(currentIndex, newIndex);
+        RefreshDisplayItems();
     }
 
     /// <summary>
@@ -892,9 +1009,16 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
     }
 
-    private void RefreshDisplayItems() => RefreshDisplayCollection(Items, DisplayItems);
+    /// <summary>
+    /// Refresh the display items from the Items collection.
+    /// Call this after modifying Items externally (e.g., linking orders).
+    /// </summary>
+    public void RefreshDisplayItems() => RefreshDisplayCollection(Items, DisplayItems);
 
-    private void RefreshArchivedDisplayItems() => RefreshDisplayCollection(ArchivedItems, DisplayArchivedItems);
+    /// <summary>
+    /// Refresh the archived display items from the ArchivedItems collection.
+    /// </summary>
+    public void RefreshArchivedDisplayItems() => RefreshDisplayCollection(ArchivedItems, DisplayArchivedItems);
 
     /// <summary>
     /// Shared helper to build grouped display items from a source collection.
@@ -952,13 +1076,16 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void AddToItems(OrderItem item, bool insertAtTop = false)
     {
-        if (_itemIds.Contains(item.Id)) return;
-        
-        if (insertAtTop)
-            Items.Insert(0, item);
-        else
-            Items.Add(item);
-        _itemIds.Add(item.Id);
+        lock (_collectionLock)
+        {
+            if (_itemIds.Contains(item.Id)) return;
+            
+            if (insertAtTop)
+                Items.Insert(0, item);
+            else
+                Items.Add(item);
+            _itemIds.Add(item.Id);
+        }
     }
 
     /// <summary>
@@ -966,10 +1093,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RemoveFromItems(OrderItem item)
     {
-        if (!_itemIds.Contains(item.Id)) return;
-        
-        Items.Remove(item);
-        _itemIds.Remove(item.Id);
+        lock (_collectionLock)
+        {
+            if (!_itemIds.Contains(item.Id)) return;
+            
+            Items.Remove(item);
+            _itemIds.Remove(item.Id);
+        }
     }
 
     /// <summary>
@@ -977,10 +1107,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void AddToArchived(OrderItem item)
     {
-        if (_archivedItemIds.Contains(item.Id)) return;
-        
-        ArchivedItems.Add(item);
-        _archivedItemIds.Add(item.Id);
+        lock (_collectionLock)
+        {
+            if (_archivedItemIds.Contains(item.Id)) return;
+            
+            ArchivedItems.Add(item);
+            _archivedItemIds.Add(item.Id);
+        }
     }
 
     /// <summary>
@@ -988,10 +1121,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RemoveFromArchived(OrderItem item)
     {
-        if (!_archivedItemIds.Contains(item.Id)) return;
-        
-        ArchivedItems.Remove(item);
-        _archivedItemIds.Remove(item.Id);
+        lock (_collectionLock)
+        {
+            if (!_archivedItemIds.Contains(item.Id)) return;
+            
+            ArchivedItems.Remove(item);
+            _archivedItemIds.Remove(item.Id);
+        }
     }
 
     #endregion

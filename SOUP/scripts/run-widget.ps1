@@ -4,6 +4,14 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+# Setup local .NET SDK environment
+$localSDKPath = "D:\CODE\important files\DEPENDANCIES\dotnet-sdk-8.0.404-win-x64"
+if (Test-Path $localSDKPath) {
+    $env:DOTNET_ROOT = $localSDKPath
+    $env:PATH = "$localSDKPath;$env:PATH"
+}
+
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $srcDir = Join-Path $rootDir "src"
 $projectFile = Join-Path $srcDir "SOUP.csproj"

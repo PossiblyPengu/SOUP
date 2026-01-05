@@ -31,7 +31,7 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
     {
         try
         {
-            var result = Collection.FindById(new BsonValue(id));
+            var result = Collection.FindById(id);
             return Task.FromResult<T?>(result);
         }
         catch (Exception ex)

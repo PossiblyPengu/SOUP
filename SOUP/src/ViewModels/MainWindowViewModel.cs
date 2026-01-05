@@ -231,10 +231,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            var aboutWindow = new AboutWindow
+            var aboutWindow = new AboutWindow();
+            if (System.Windows.Application.Current?.MainWindow != null)
             {
-                Owner = System.Windows.Application.Current.MainWindow
-            };
+                aboutWindow.Owner = System.Windows.Application.Current.MainWindow;
+            }
             aboutWindow.ShowDialog();
             _logger?.LogInformation("Opened About dialog");
         }

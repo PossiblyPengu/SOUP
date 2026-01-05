@@ -15,7 +15,12 @@ public partial class ExternalDataSettingsView : UserControl
     public ExternalDataSettingsView()
     {
         InitializeComponent();
-        DataContext = App.GetService<ExternalDataViewModel>();
+        var viewModel = App.GetService<ExternalDataViewModel>();
+        if (viewModel == null)
+        {
+            throw new InvalidOperationException("ExternalDataViewModel not registered in dependency injection");
+        }
+        DataContext = viewModel;
         
         // Check if already running as admin - auto-unlock
         CheckInitialAdminState();
@@ -39,9 +44,14 @@ public partial class ExternalDataSettingsView : UserControl
         }
     }
 
-    private async void UnlockButton_Click(object sender, RoutedEventArgs e)
+    private void UnlockButton_Click(object sender, RoutedEventArgs e)
     {
         UnlockButton.IsEnabled = false;
+        HandleUnlockAsync();
+    }
+
+    private async void HandleUnlockAsync()
+    {
         try
         {
             var authenticated = await PromptForAdminCredentialsAsync();
@@ -49,6 +59,10 @@ public partial class ExternalDataSettingsView : UserControl
             {
                 Unlock();
             }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Warning(ex, "Error during admin unlock");
         }
         finally
         {

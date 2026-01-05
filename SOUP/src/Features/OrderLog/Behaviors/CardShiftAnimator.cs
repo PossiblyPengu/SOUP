@@ -27,8 +27,8 @@ public class CardShiftAnimator
     private Border? _insertionIndicator;
     private int _lastIndicatorIndex = -1;
     
-    // Scale effect for shifting cards
-    private const double SHIFT_SCALE = 0.98;
+    // Scale effect for shifting cards (disabled for cleaner visual)
+    private const double SHIFT_SCALE = 1.0; // No scale change
     private const double SHIFT_SCALE_DURATION_RATIO = 0.5; // Scale animation is faster
 
     public CardShiftAnimator(Panel panel, TimeSpan animationDuration)
@@ -36,13 +36,8 @@ public class CardShiftAnimator
         _panel = panel ?? throw new ArgumentNullException(nameof(panel));
         _animationDuration = animationDuration;
         _easingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut };
-        // Spring-like easing for bouncier feel
-        _springEasing = new ElasticEase 
-        { 
-            EasingMode = EasingMode.EaseOut,
-            Oscillations = 1,
-            Springiness = 5
-        };
+        // Smooth cubic easing for predictable movement
+        _springEasing = new CubicEase { EasingMode = EasingMode.EaseOut };
         
         CreateInsertionIndicator();
     }
@@ -319,6 +314,91 @@ public class CardShiftAnimator
 
             return;
         }
+        
+        // StackPanel shift animation - simple vertical shifting
+        if (_panel is StackPanel)
+        {
+            for (int i = 0; i < allChildren.Count; i++)
+            {
+                var child = allChildren[i];
+                
+                // Don't animate the dragged element
+                if (child == draggedElement) continue;
+                
+                double targetOffset = 0;
+                
+                // If dragging DOWN (insertionIndex > draggedIndex):
+                // Items between draggedIndex+1 and insertionIndex-1 need to shift UP
+                if (insertionIndex > draggedIndex)
+                {
+                    if (i > draggedIndex && i < insertionIndex)
+                    {
+                        targetOffset = -draggedSize; // Shift up
+                    }
+                }
+                // If dragging UP (insertionIndex < draggedIndex):
+                // Items between insertionIndex and draggedIndex-1 need to shift DOWN
+                else if (insertionIndex < draggedIndex)
+                {
+                    if (i >= insertionIndex && i < draggedIndex)
+                    {
+                        targetOffset = draggedSize; // Shift down
+                    }
+                }
+                
+                AnimateCardToOffset(child, targetOffset, isVertical: true);
+            }
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Animates a single card to swap positions. Used for iOS-style slide-past reordering.
+    /// The card slides to an offset position while the dragged card passes by.
+    /// </summary>
+    /// <param name="element">The neighbor card to animate</param>
+    /// <param name="yOffset">The absolute Y offset to animate to (positive = move down, negative = move up)</param>
+    public void AnimateSwap(FrameworkElement element, double yOffset)
+    {
+        if (element == null) return;
+
+        // Get or create the transform for this element
+        if (!_transforms.TryGetValue(element, out var transform))
+        {
+            transform = new TranslateTransform();
+            _transforms[element] = transform;
+
+            var existing = element.RenderTransform;
+            if (existing == null || existing == Transform.Identity)
+            {
+                element.RenderTransform = transform;
+            }
+            else if (existing is TransformGroup group)
+            {
+                group.Children.Add(transform);
+            }
+            else
+            {
+                var newGroup = new TransformGroup();
+                newGroup.Children.Add(existing);
+                newGroup.Children.Add(transform);
+                element.RenderTransform = newGroup;
+            }
+        }
+
+        var animation = new DoubleAnimation(yOffset, _animationDuration)
+        {
+            EasingFunction = _springEasing
+        };
+
+        animation.Completed += (s, e) =>
+        {
+            // Freeze the animation value
+            transform.BeginAnimation(TranslateTransform.YProperty, null);
+            transform.Y = yOffset;
+        };
+
+        transform.BeginAnimation(TranslateTransform.YProperty, animation);
     }
 
     /// <summary>
@@ -482,61 +562,41 @@ public class CardShiftAnimator
             return 0;
         }
 
-        // Use dragged element's center position instead of mouse position
-        // Prefer the ORIGINAL layout Y (remove any live drag translate) to avoid
-        // mis-detecting rows while the element is being dragged.
+        // Use the mouse Y position directly for comparison
         double comparisonY = mousePosition.Y;
-        if (draggedElement != null)
-        {
-            var draggedPos = draggedElement.TransformToAncestor(_panel).Transform(new Point(0, 0));
-            if (_transforms.TryGetValue(draggedElement, out var dragTransform))
-            {
-                draggedPos.Y -= dragTransform.Y; // remove live drag offset
-            }
-            comparisonY = draggedPos.Y + (draggedElement.ActualHeight / 2);
-        }
 
-        // Get the panel's starting Y position (use first non-dragged child's original position)
-        double startY = 0;
-        if (children.Count > 0)
-        {
-            var firstPos = children[0].TransformToAncestor(_panel).Transform(new Point(0, 0));
-            if (_transforms.TryGetValue(children[0], out var firstTransform))
-            {
-                startY = firstPos.Y - firstTransform.Y;
-            }
-            else
-            {
-                startY = firstPos.Y;
-            }
-        }
+        // Find the dragged element's index in the children list
+        int draggedIndex = draggedElement != null ? children.IndexOf(draggedElement) : -1;
 
-        // Calculate cumulative positions for each child in their ORIGINAL layout (as if dragged element is removed)
-        double cumulativeY = startY;
-
+        // Iterate through children and find where the mouse position falls
+        int insertionIndex = 0;
         for (int i = 0; i < children.Count; i++)
         {
             var child = children[i];
-
-            // Skip the dragged element - it's being repositioned
+            
+            // Skip the dragged element in positioning logic
             if (child == draggedElement)
             {
                 continue;
             }
 
+            // Get the child's ORIGINAL position (without any shift transforms applied)
+            var childPos = child.TransformToAncestor(_panel).Transform(new Point(0, 0));
+            if (_transforms.TryGetValue(child, out var childTransform))
+            {
+                childPos.Y -= childTransform.Y; // Remove shift offset to get original position
+            }
+
             var childHeight = child.ActualHeight > 0 ? child.ActualHeight : avgItemHeight;
+            var childMidpoint = childPos.Y + (childHeight / 2);
 
-            // Account for top margin in the current position
-            var childTop = cumulativeY + child.Margin.Top;
-            var childMidpoint = childTop + (childHeight / 2);
-
+            // If mouse is above this child's midpoint, insert before it
             if (comparisonY < childMidpoint)
             {
                 return i;
             }
-
-            // Advance to next position (include full height + both margins)
-            cumulativeY += child.Margin.Top + childHeight + child.Margin.Bottom;
+            
+            insertionIndex = i + 1;
         }
 
         return children.Count;

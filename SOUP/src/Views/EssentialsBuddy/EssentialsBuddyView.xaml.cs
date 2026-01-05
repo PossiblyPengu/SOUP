@@ -15,15 +15,20 @@ public partial class EssentialsBuddyView : UserControl
         Unloaded += OnUnloaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is EssentialsBuddyViewModel vm)
+        {
+            vm.FocusSearchRequested += OnFocusSearchRequested;
+            InitializeViewModelAsync(vm);
+        }
+    }
+
+    private async void InitializeViewModelAsync(EssentialsBuddyViewModel vm)
     {
         try
         {
-            if (DataContext is EssentialsBuddyViewModel vm)
-            {
-                vm.FocusSearchRequested += OnFocusSearchRequested;
-                await vm.InitializeAsync();
-            }
+            await vm.InitializeAsync();
         }
         catch (Exception ex)
         {

@@ -8,13 +8,13 @@ public class OrderItemGroup
 {
     public ObservableCollection<OrderItem> Members { get; } = new();
 
-    public OrderItem First => Members.First();
+    public OrderItem? First => Members.FirstOrDefault();
 
     public int Count => Members.Count;
 
     public bool IsGroup => Count > 1;
 
-    public Guid? LinkedGroupId => First.LinkedGroupId;
+    public Guid? LinkedGroupId => First?.LinkedGroupId;
 
     public OrderItemGroup() { }
 

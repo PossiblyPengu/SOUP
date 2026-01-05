@@ -32,11 +32,17 @@ public partial class MainWindow : Window
         // Check if the Order Log widget is still open
         var widgetOpen = Application.Current.Windows
             .OfType<Windows.OrderLogWidgetWindow>()
-            .Any(w => w.IsVisible);
+            .Any(w => w != null && w.IsVisible);
         
-        // If widget is not open, shutdown the app
-        if (!widgetOpen)
+        // If widget is open, cancel closing and hide the window instead
+        if (widgetOpen)
         {
+            e.Cancel = true;
+            this.Hide();
+        }
+        else
+        {
+            // No widget open, shut down the application
             Application.Current.Shutdown();
         }
     }

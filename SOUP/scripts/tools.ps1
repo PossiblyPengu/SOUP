@@ -20,6 +20,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Setup local .NET SDK environment
+$localSDKPath = "D:\CODE\important files\DEPENDANCIES\dotnet-sdk-8.0.404-win-x64"
+if (Test-Path $localSDKPath) {
+    $env:DOTNET_ROOT = $localSDKPath
+    $env:PATH = "$localSDKPath;$env:PATH"
+}
+
 # Configuration
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $toolsDir = Join-Path $rootDir "tools"

@@ -20,7 +20,6 @@ namespace SOUP.Features.OrderLog.Views;
 /// </summary>
 public partial class OrderLogWidgetView : UserControl
 {
-    public event EventHandler? OpenFullViewRequested;
     private bool _nowPlayingExpanded = false;
     private bool _showingArchivedTab = false;
     private SpotifyService? _spotifyService;
@@ -129,15 +128,33 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Initialize Spotify service
-        await InitializeSpotifyAsync();
+        // Initialize Spotify service asynchronously
+        InitializeSpotifyAndWireUpAsync();
 
         // Wire up fluid drag behavior events
         WireUpFluidDragBehavior();
+    }
+
+    private async void InitializeSpotifyAndWireUpAsync()
+    {
+        try
+        {
+            // Initialize Spotify service
+            await InitializeSpotifyAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to initialize Spotify service");
+        }
 
         // Ensure the main ScrollViewer receives mouse wheel even when children mark events handled
+        SetupMouseWheelHandling();
+    }
+
+    private void SetupMouseWheelHandling()
+    {
         try
         {
             if (MainScrollViewer != null)
@@ -151,7 +168,7 @@ public partial class OrderLogWidgetView : UserControl
                         MainScrollViewer.ScrollToVerticalOffset(newOffset);
                         ev.Handled = true;
                     }
-                    catch { /* Intentionally ignored: scroll handling fallback */ }
+                    catch (Exception ex) { Log.Debug(ex, "Scroll handling fallback"); }
                 };
 
                 // Attach both preview and bubbling with handledEventsToo
@@ -159,7 +176,7 @@ public partial class OrderLogWidgetView : UserControl
                 MainScrollViewer.AddHandler(UIElement.MouseWheelEvent, handler, true);
             }
         }
-        catch { /* Intentionally ignored: optional scroll enhancement */ }
+        catch (Exception ex) { Log.Debug(ex, "Optional scroll enhancement setup failed"); }
     }
 
     private void WireUpFluidDragBehavior()
@@ -750,10 +767,29 @@ public partial class OrderLogWidgetView : UserControl
         if (sender is not ComboBox comboBox || comboBox.DataContext is not OrderItem order) return;
         if (DataContext is not OrderLogViewModel vm) return;
         if (comboBox.SelectedItem is not ComboBoxItem selectedItem) return;
+        // Skip if this is initialization (no previous selection) - only act on actual user changes
+        if (e.RemovedItems.Count == 0) return;
 
-        if (selectedItem.Tag is OrderItem.OrderStatus newStatus && order.Status != newStatus)
+        if (selectedItem.Tag is OrderItem.OrderStatus newStatus)
         {
-            _ = vm.SetStatusAsync(order, newStatus);
+            // Get the previous status from RemovedItems (before TwoWay binding changed it)
+            OrderItem.OrderStatus? previousStatus = null;
+            if (e.RemovedItems[0] is ComboBoxItem oldItem && oldItem.Tag is OrderItem.OrderStatus oldStatus)
+            {
+                previousStatus = oldStatus;
+            }
+            
+            // "Done" means archive immediately
+            if (newStatus == OrderItem.OrderStatus.Done)
+            {
+                // Store previous status and archive
+                order.PreviousStatus = previousStatus;
+                _ = vm.ArchiveOrderAsync(order);
+            }
+            else
+            {
+                _ = vm.SetStatusAsync(order, newStatus, previousStatus);
+            }
         }
     }
 
@@ -764,13 +800,31 @@ public partial class OrderLogWidgetView : UserControl
         if (DataContext is not OrderLogViewModel vm) return;
         if (comboBox.SelectedItem is not ComboBoxItem selectedItem) return;
         if (selectedItem.Tag is not OrderItem.OrderStatus newStatus) return;
+        // Skip if this is initialization (no previous selection) - only act on actual user changes
+        if (e.RemovedItems.Count == 0) return;
 
-        // Apply status to ALL members in the group
-        foreach (var member in group.Members)
+        // Get the previous status from RemovedItems (before TwoWay binding changed it)
+        OrderItem.OrderStatus? previousStatus = null;
+        if (e.RemovedItems[0] is ComboBoxItem oldItem && oldItem.Tag is OrderItem.OrderStatus oldStatus)
         {
-            if (member.Status != newStatus)
+            previousStatus = oldStatus;
+        }
+
+        // "Done" means archive immediately
+        if (newStatus == OrderItem.OrderStatus.Done)
+        {
+            foreach (var member in group.Members.ToList())
             {
-                _ = vm.SetStatusAsync(member, newStatus);
+                member.PreviousStatus = previousStatus;
+                _ = vm.ArchiveOrderAsync(member);
+            }
+        }
+        else
+        {
+            // Apply status to ALL members in the group
+            foreach (var member in group.Members)
+            {
+                _ = vm.SetStatusAsync(member, newStatus, previousStatus);
             }
         }
     }
@@ -782,7 +836,18 @@ public partial class OrderLogWidgetView : UserControl
         {
             var order = GetOrderItemFromContextMenu(menuItem);
             if (order != null)
-                _ = vm.SetStatusAsync(order, status);
+            {
+                // "Done" means archive immediately
+                if (status == OrderItem.OrderStatus.Done)
+                {
+                    order.PreviousStatus = order.Status;
+                    _ = vm.ArchiveOrderAsync(order);
+                }
+                else
+                {
+                    _ = vm.SetStatusAsync(order, status);
+                }
+            }
         }
     }
 
@@ -791,14 +856,23 @@ public partial class OrderLogWidgetView : UserControl
         try
         {
             var order = GetOrderItemFromContextMenu(sender);
-            if (order == null) return;
+            if (order == null)
+            {
+                Log.Warning("LinkWith_Click: Could not get OrderItem from context menu");
+                return;
+            }
 
             if (DataContext is OrderLogViewModel vm)
             {
-                var dlg = new LinkOrdersWindow(order, vm) { Owner = Window.GetWindow(this) };
+                var ownerWindow = Window.GetWindow(this);
+                var dlg = new LinkOrdersWindow(order, vm);
+                if (ownerWindow != null)
+                    dlg.Owner = ownerWindow;
+                    
                 if (dlg.ShowDialog() == true)
                 {
                     await vm.SaveAsync();
+                    vm.RefreshDisplayItems();
                     vm.StatusMessage = "Orders linked";
                 }
             }
@@ -897,6 +971,8 @@ public partial class OrderLogWidgetView : UserControl
             var order = GetOrderItemFromContextMenu(sender);
             if (order != null && DataContext is OrderLogViewModel vm)
             {
+                // Store previous status before archiving so it can be restored
+                order.PreviousStatus = order.Status;
                 await vm.ArchiveOrderCommand.ExecuteAsync(order);
             }
         }
@@ -954,9 +1030,73 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
-    private void OpenFullView_Click(object sender, RoutedEventArgs e)
+    private async void RestoreGroup_Click(object sender, RoutedEventArgs e)
     {
-        OpenFullViewRequested?.Invoke(this, EventArgs.Empty);
+        try
+        {
+            if (sender is not FrameworkElement fe) return;
+            if (fe.DataContext is not ViewModels.OrderItemGroup group) return;
+            if (DataContext is not OrderLogViewModel vm) return;
+
+            foreach (var member in group.Members.ToList())
+            {
+                // Restore to previous status if available, otherwise default to InProgress
+                var restoreStatus = member.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+                await vm.SetStatusAsync(member, restoreStatus);
+            }
+            vm.StatusMessage = "Restored group";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to restore group");
+        }
+    }
+
+    private async void UnarchiveGroup_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem menuItem) return;
+            // Get group from context menu's placement target
+            var contextMenu = menuItem.Parent as ContextMenu;
+            if (contextMenu?.PlacementTarget is not FrameworkElement target) return;
+            if (target.DataContext is not ViewModels.OrderItemGroup group) return;
+            if (DataContext is not OrderLogViewModel vm) return;
+
+            foreach (var member in group.Members.ToList())
+            {
+                // Restore to previous status if available, otherwise default to InProgress
+                var restoreStatus = member.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+                await vm.SetStatusAsync(member, restoreStatus);
+            }
+            vm.StatusMessage = "Restored group";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to unarchive group");
+        }
+    }
+
+    private async void DeleteArchivedGroup_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem menuItem) return;
+            var contextMenu = menuItem.Parent as ContextMenu;
+            if (contextMenu?.PlacementTarget is not FrameworkElement target) return;
+            if (target.DataContext is not ViewModels.OrderItemGroup group) return;
+            if (DataContext is not OrderLogViewModel vm) return;
+
+            foreach (var member in group.Members.ToList())
+            {
+                await vm.DeleteCommand.ExecuteAsync(member);
+            }
+            vm.StatusMessage = "Deleted group";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete archived group");
+        }
     }
 
     // Inline editing for order card fields

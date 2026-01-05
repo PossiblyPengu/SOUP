@@ -43,7 +43,7 @@ public partial class App : Application
 
         try
         {
-            Log.Information("Starting S.A.P (S.A.M. Add-on Pack)");
+            Log.Information("Starting S.O.U.P (S.A.M. Operations Utilities Pack)");
 
             // Global exception handlers to catch and report unhandled errors during startup/runtime
             AppDomain.CurrentDomain.UnhandledException += (s, ev) =>
@@ -204,7 +204,6 @@ public partial class App : Application
 
         // Windows
         services.AddSingleton<MainWindow>();
-        services.AddSingleton<Windows.OrderLogWindow>();
         services.AddSingleton<Windows.OrderLogWidgetWindow>();
     }
 

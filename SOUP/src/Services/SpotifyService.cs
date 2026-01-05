@@ -80,6 +80,26 @@ public class SpotifyService : INotifyPropertyChanged
         _pollTimer.Elapsed += (s, e) => _ = PollMediaSessionAsync();
     }
 
+    public void Dispose()
+    {
+        _pollTimer?.Stop();
+        _pollTimer?.Dispose();
+        
+        if (_sessionManager != null)
+        {
+            _sessionManager.CurrentSessionChanged -= OnCurrentSessionChanged;
+            _sessionManager.SessionsChanged -= OnSessionsChanged;
+        }
+        
+        if (_currentSession != null)
+        {
+            _currentSession.MediaPropertiesChanged -= OnMediaPropertiesChanged;
+            _currentSession.PlaybackInfoChanged -= OnPlaybackInfoChanged;
+        }
+        
+        Log.Information("SpotifyService disposed");
+    }
+
     public async Task InitializeAsync()
     {
         try

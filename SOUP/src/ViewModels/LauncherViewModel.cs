@@ -149,7 +149,8 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening ExpireWise in new window");
         var viewModel = _serviceProvider.GetRequiredService<ExpireWiseViewModel>();
         var window = new Windows.ExpireWiseWindow(viewModel);
-        window.Owner = Application.Current.MainWindow;
+        if (Application.Current?.MainWindow != null)
+            window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -159,7 +160,8 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening AllocationBuddy RPG in new window");
         var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyRPGViewModel>();
         var window = new Windows.AllocationBuddyWindow(viewModel);
-        window.Owner = Application.Current.MainWindow;
+        if (Application.Current?.MainWindow != null)
+            window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -169,7 +171,8 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening EssentialsBuddy in new window");
         var viewModel = _serviceProvider.GetRequiredService<EssentialsBuddyViewModel>();
         var window = new Windows.EssentialsBuddyWindow(viewModel);
-        window.Owner = Application.Current.MainWindow;
+        if (Application.Current?.MainWindow != null)
+            window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 
@@ -179,17 +182,8 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         _logger?.LogInformation("Opening SwiftLabel in new window");
         var viewModel = _serviceProvider.GetRequiredService<SwiftLabelViewModel>();
         var window = new Windows.SwiftLabelWindow(viewModel);
-        window.Owner = Application.Current.MainWindow;
-        window.Show();
-    }
-
-    [RelayCommand]
-    private void PopOutOrderLog()
-    {
-        _logger?.LogInformation("Opening OrderLog in new window");
-        var viewModel = _serviceProvider.GetRequiredService<Features.OrderLog.ViewModels.OrderLogViewModel>();
-        var window = new Windows.OrderLogWindow(viewModel);
-        window.Owner = Application.Current.MainWindow;
+        if (Application.Current?.MainWindow != null)
+            window.Owner = Application.Current.MainWindow;
         window.Show();
     }
 

@@ -143,16 +143,23 @@ public class WindowSettingsService
 
     /// <summary>
     /// Checks if a window position is visible on any connected monitor.
+    /// Ensures that a significant portion (>50%) of the window is on a visible screen.
     /// </summary>
     private static bool IsPositionVisible(double left, double top, double width, double height)
     {
-        // Check if at least part of the window would be visible
         var windowRect = new System.Drawing.Rectangle(
             (int)left, (int)top, (int)width, (int)height);
 
         foreach (var screen in System.Windows.Forms.Screen.AllScreens)
         {
-            if (screen.WorkingArea.IntersectsWith(windowRect))
+            var intersection = System.Drawing.Rectangle.Intersect(
+                windowRect, screen.WorkingArea);
+            
+            // Ensure significant portion (>50%) of window is visible
+            var windowArea = windowRect.Width * windowRect.Height;
+            var visibleArea = intersection.Width * intersection.Height;
+            
+            if (visibleArea > windowArea * 0.5)
             {
                 return true;
             }

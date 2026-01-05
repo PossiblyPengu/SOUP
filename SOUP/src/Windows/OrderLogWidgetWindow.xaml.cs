@@ -98,7 +98,6 @@ public partial class OrderLogWidgetWindow : Window
         _serviceProvider = serviceProvider;
         
         WidgetView.DataContext = _viewModel;
-        WidgetView.OpenFullViewRequested += OnOpenFullViewRequested;
         
         Loaded += OnLoaded;
         Closing += OnClosing;
@@ -151,11 +150,17 @@ public partial class OrderLogWidgetWindow : Window
         return IntPtr.Zero;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Start docked to right edge by default
         DockToEdge(AppBarEdge.Right);
 
+        // Initialize asynchronously without blocking
+        InitializeWidgetAsync();
+    }
+
+    private async void InitializeWidgetAsync()
+    {
         try
         {
             await _viewModel.InitializeAsync();
@@ -174,20 +179,18 @@ public partial class OrderLogWidgetWindow : Window
             UnregisterAppBar();
         }
         
-        WidgetView.OpenFullViewRequested -= OnOpenFullViewRequested;
-        
         if (_hwndSource != null)
         {
             _hwndSource.RemoveHook(WndProc);
             _hwndSource = null;
         }
         
-        // Check if main window is closed - if so, shutdown the app
-        var mainWindowOpen = Application.Current.Windows
+        // Check if MainWindow is visible - if not, shut down the app
+        var mainWindowVisible = Application.Current.Windows
             .OfType<MainWindow>()
-            .Any(w => w.IsVisible);
+            .Any(w => w != null && w.IsVisible);
         
-        if (!mainWindowOpen)
+        if (!mainWindowVisible)
         {
             Application.Current.Shutdown();
         }
@@ -391,23 +394,6 @@ public partial class OrderLogWidgetWindow : Window
     #endregion
 
     #region Window Event Handlers
-
-    private void OnOpenFullViewRequested(object? sender, EventArgs e)
-    {
-        try
-        {
-            var fullWindow = _serviceProvider.GetService<OrderLogWindow>();
-            if (fullWindow != null)
-            {
-                fullWindow.Show();
-                fullWindow.Activate();
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to open full Order Log");
-        }
-    }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {

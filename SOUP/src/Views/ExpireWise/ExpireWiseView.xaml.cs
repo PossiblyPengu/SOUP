@@ -17,15 +17,20 @@ public partial class ExpireWiseView : UserControl
         Unloaded += OnUnloaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is ExpireWiseViewModel vm)
+        {
+            vm.FocusSearchRequested += OnFocusSearchRequested;
+            InitializeViewModelAsync(vm);
+        }
+    }
+
+    private async void InitializeViewModelAsync(ExpireWiseViewModel vm)
     {
         try
         {
-            if (DataContext is ExpireWiseViewModel vm)
-            {
-                vm.FocusSearchRequested += OnFocusSearchRequested;
-                await vm.InitializeAsync();
-            }
+            await vm.InitializeAsync();
         }
         catch (Exception ex)
         {

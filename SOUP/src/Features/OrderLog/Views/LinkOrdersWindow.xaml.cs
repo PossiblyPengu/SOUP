@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.ViewModels;
 
@@ -33,6 +34,21 @@ public partial class LinkOrdersWindow : Window
         OrdersList.ItemsSource = _viewSource.View;
     }
 
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            // Double-click to maximize/restore (optional)
+            return;
+        }
+        DragMove();
+    }
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
+    }
     private void ApplyFilters(object sender, FilterEventArgs e)
     {
         if (e.Item is not OrderItem order)
