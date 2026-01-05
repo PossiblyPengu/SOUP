@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -7,6 +8,8 @@ namespace SOUP.Features.OrderLog.Converters
 {
     public class HexToBrushConverter : IValueConverter
     {
+        private static readonly Dictionary<string, SolidColorBrush> _brushCache = new();
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is string hex && !string.IsNullOrWhiteSpace(hex))
@@ -15,8 +18,16 @@ namespace SOUP.Features.OrderLog.Converters
                 {
                     if (!hex.StartsWith("#"))
                         hex = "#" + hex;
+                    
+                    // Return cached brush if available
+                    if (_brushCache.TryGetValue(hex, out var cached))
+                        return cached;
+                    
                     var color = (Color)ColorConverter.ConvertFromString(hex);
-                    return new SolidColorBrush(color);
+                    var brush = new SolidColorBrush(color);
+                    brush.Freeze(); // Improve performance and allow cross-thread access
+                    _brushCache[hex] = brush;
+                    return brush;
                 }
                 catch
                 {

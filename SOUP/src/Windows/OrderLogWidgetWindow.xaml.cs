@@ -389,6 +389,8 @@ public partial class OrderLogWidgetWindow : Window
         {
             try
             {
+                // Invalidate converter caches before applying new theme
+                Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache();
                 ApplyThemeResources(isDarkMode);
             }
             catch (Exception ex)
@@ -433,6 +435,24 @@ public partial class OrderLogWidgetWindow : Window
         if (_isAppBarRegistered && _currentEdge != AppBarEdge.None)
         {
             PositionAppBar();
+        }
+    }
+    
+    /// <summary>
+    /// Opens the unified settings window to the OrderLog tab
+    /// </summary>
+    public void OpenSettings()
+    {
+        try
+        {
+            var settingsViewModel = _serviceProvider.GetRequiredService<ViewModels.UnifiedSettingsViewModel>();
+            var settingsWindow = new Views.UnifiedSettingsWindow(settingsViewModel, "orderlog");
+            settingsWindow.Owner = this;
+            settingsWindow.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to open settings window from widget");
         }
     }
 

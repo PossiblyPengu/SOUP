@@ -420,7 +420,7 @@ public class GridDragBehavior : Behavior<Panel>
             if (b.DataContext is OrderItem bi && data is OrderItem di && bi.Id == di.Id) return child;
             if (b.DataContext is OrderItemGroup bg && data is OrderItemGroup dg)
             {
-                if (bg.Members.Count > 0 && dg.Members.Count > 0 && bg.First.Id == dg.First.Id) return child;
+                if (bg.Members?.Count > 0 && dg.Members?.Count > 0 && bg.First?.Id == dg.First?.Id) return child;
             }
         }
         return FindPanelChild(border);

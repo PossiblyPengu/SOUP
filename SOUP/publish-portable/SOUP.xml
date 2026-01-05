@@ -1685,6 +1685,9 @@
             Eliminates repetitive DataTriggers in XAML.
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache">
+            <summary>Clears cached brushes (call on theme change)</summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Converters.StatusToCardBrushConverter">
             <summary>
             Converts OrderItem.OrderStatus to a card background brush resource.
@@ -1749,15 +1752,36 @@
             Stores the status before archiving, so it can be restored when unarchiving.
             </summary>
         </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.AccumulatedTimeTicks">
+            <summary>
+            Accumulated time from previous "In Progress" sessions (laps).
+            Stored as ticks for JSON serialization.
+            </summary>
+        </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.Order">
             <summary>
             Order for manual sorting/reordering (lower = earlier in list)
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.TotalTimeInProgress">
+            <summary>
+            Total time including all previous laps plus current session.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.HasPreviousLaps">
+            <summary>
+            Whether there are previous laps to show.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Models.OrderItem.RefreshTimeInProgress">
             <summary>
             Called by a UI timer to raise PropertyChanged for computed properties.
             Only raises notifications if the displayed value actually changed.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.ResetAccumulatedTime">
+            <summary>
+            Resets the accumulated lap time to zero.
             </summary>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.IsStickyNote">
@@ -1888,6 +1912,12 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AllItems">
             <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DebouncedSaveAsync">
+            <summary>
+            Debounced save - waits 300ms for additional changes before saving.
+            Use for rapid operations like move up/down, status changes, etc.
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchiveItemsAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
             <summary>
             Archive multiple items at once with undo support
@@ -2016,10 +2046,47 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._cardFontSize"/>
         </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._showNowPlaying"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._undoTimeoutSeconds"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultOrderColor"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultNoteColor"/>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowArchivedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> is changed.</remarks>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnCardFontSizeChanged(System.Double)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowNowPlayingChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnUndoTimeoutSecondsChanged(System.Int32)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDefaultOrderColorChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDefaultNoteColorChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.loadCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand"/>.</summary>
@@ -5777,6 +5844,11 @@
             UnifiedSettingsWindow
             </summary>
         </member>
+        <member name="M:SOUP.Views.UnifiedSettingsWindow.SelectTab(System.String)">
+            <summary>
+            Selects a tab by name.
+            </summary>
+        </member>
         <member name="M:SOUP.Views.UnifiedSettingsWindow.TitleBar_MouseLeftButtonDown(System.Object,System.Windows.Input.MouseButtonEventArgs)">
             <summary>
             Handles title bar dragging for borderless window
@@ -5917,6 +5989,11 @@
             Show the widget window
             </summary>
         </member>
+        <member name="M:SOUP.Windows.OrderLogWidgetWindow.OpenSettings">
+            <summary>
+            Opens the unified settings window to the OrderLog tab
+            </summary>
+        </member>
         <member name="M:SOUP.Windows.OrderLogWidgetWindow.InitializeComponent">
             <summary>
             InitializeComponent
@@ -6033,6 +6110,18 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CardFontSize">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CardFontSize" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowNowPlaying">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowNowPlaying" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UndoTimeoutSeconds">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UndoTimeoutSeconds" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultOrderColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultOrderColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultNoteColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVisible" generated properties.</summary>
@@ -6570,6 +6659,18 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CardFontSize">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CardFontSize" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowNowPlaying">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowNowPlaying" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UndoTimeoutSeconds">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UndoTimeoutSeconds" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultOrderColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultOrderColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultNoteColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVisible" generated properties.</summary>

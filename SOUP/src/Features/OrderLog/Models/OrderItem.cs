@@ -63,9 +63,22 @@ public partial class OrderItem : ObservableObject
     [ObservableProperty]
     private bool _isArchived = false;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    
+    /// <summary>
+    /// Accumulated time from previous "In Progress" sessions (laps).
+    /// Stored as ticks for JSON serialization.
+    /// </summary>
+    public long AccumulatedTimeTicks { get; set; } = 0;
+    
+    [JsonIgnore]
+    public TimeSpan AccumulatedTime
+    {
+        get => TimeSpan.FromTicks(AccumulatedTimeTicks);
+        set => AccumulatedTimeTicks = value.Ticks;
+    }
 
     /// <summary>
     /// Order for manual sorting/reordering (lower = earlier in list)
@@ -77,41 +90,71 @@ public partial class OrderItem : ObservableObject
     {
         get
         {
+            // Current lap time only
             if (StartedAt == null) return TimeSpan.Zero;
-            if (Status == OrderStatus.Done && CompletedAt != null) return CompletedAt.Value - StartedAt.Value;
-            if (Status == OrderStatus.InProgress) return DateTime.UtcNow - StartedAt.Value;
+            if (Status == OrderStatus.InProgress) return DateTime.Now - StartedAt.Value;
             return TimeSpan.Zero;
         }
     }
+    
+    /// <summary>
+    /// Total time including all previous laps plus current session.
+    /// </summary>
+    [JsonIgnore]
+    public TimeSpan TotalTimeInProgress => AccumulatedTime + TimeInProgress;
+    
+    /// <summary>
+    /// Whether there are previous laps to show.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasPreviousLaps => AccumulatedTimeTicks > 0;
 
     [JsonIgnore]
     public string TimeInProgressDisplay
     {
         get
         {
-            var ts = TimeInProgress;
+            var current = TimeInProgress;
+            var total = TotalTimeInProgress;
             
-            // Format based on duration
-            if (ts.TotalDays >= 7)
+            // If there are previous laps, show "current (total)"
+            if (HasPreviousLaps && Status == OrderStatus.InProgress)
             {
-                int weeks = (int)(ts.TotalDays / 7);
-                int days = (int)(ts.TotalDays % 7);
-                return days > 0 ? $"{weeks}w {days}d" : $"{weeks}w";
+                return $"{FormatTimeSpan(current)} ({FormatTimeSpan(total)})";
             }
-            else if (ts.TotalDays >= 1)
+            
+            // For Done status with laps, just show total
+            if (HasPreviousLaps && Status == OrderStatus.Done)
             {
-                int days = (int)ts.TotalDays;
-                int hours = ts.Hours;
-                return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
+                return FormatTimeSpan(total);
             }
-            else if (ts.TotalHours >= 1)
-            {
-                return $"{(int)ts.TotalHours}h {ts.Minutes:D2}m";
-            }
-            else
-            {
-                return $"{ts.Minutes}m {ts.Seconds:D2}s";
-            }
+            
+            // No laps, just show current/total
+            return FormatTimeSpan(total);
+        }
+    }
+    
+    private static string FormatTimeSpan(TimeSpan ts)
+    {
+        if (ts.TotalDays >= 7)
+        {
+            int weeks = (int)(ts.TotalDays / 7);
+            int days = (int)(ts.TotalDays % 7);
+            return days > 0 ? $"{weeks}w {days}d" : $"{weeks}w";
+        }
+        else if (ts.TotalDays >= 1)
+        {
+            int days = (int)ts.TotalDays;
+            int hours = ts.Hours;
+            return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
+        }
+        else if (ts.TotalHours >= 1)
+        {
+            return $"{(int)ts.TotalHours}h {ts.Minutes:D2}m";
+        }
+        else
+        {
+            return $"{ts.Minutes}m {ts.Seconds:D2}s";
         }
     }
 
@@ -162,23 +205,53 @@ public partial class OrderItem : ObservableObject
 
     private void UpdateTimestamps(OrderStatus status)
     {
+        // If leaving InProgress, accumulate the current session time
+        if (_previousStatusForLap == OrderStatus.InProgress && status != OrderStatus.InProgress && StartedAt != null)
+        {
+            AccumulatedTime += DateTime.Now - StartedAt.Value;
+        }
+        
         switch (status)
         {
             case OrderStatus.InProgress:
-                StartedAt ??= DateTime.UtcNow;
+                StartedAt = DateTime.Now; // Always start fresh lap
                 CompletedAt = null;
                 break;
 
             case OrderStatus.Done:
-                StartedAt ??= DateTime.UtcNow;
-                CompletedAt = DateTime.UtcNow;
+                // Add final lap time to accumulated if coming from InProgress
+                if (StartedAt != null)
+                {
+                    AccumulatedTime += DateTime.Now - StartedAt.Value;
+                }
+                StartedAt = null; // Clear so TimeInProgress returns Zero
+                CompletedAt = DateTime.Now;
                 break;
 
             default: // NotReady or OnDeck
                 StartedAt = null;
                 CompletedAt = null;
+                // Keep AccumulatedTime so we can resume later
                 break;
         }
+        
+        _previousStatusForLap = status;
+    }
+    
+    // Track previous status for lap accumulation (initialized to current status)
+    [JsonIgnore]
+    private OrderStatus? _previousStatusForLap;
+    
+    /// <summary>
+    /// Resets the accumulated lap time to zero.
+    /// </summary>
+    public void ResetAccumulatedTime()
+    {
+        AccumulatedTimeTicks = 0;
+        OnPropertyChanged(nameof(AccumulatedTime));
+        OnPropertyChanged(nameof(TotalTimeInProgress));
+        OnPropertyChanged(nameof(HasPreviousLaps));
+        RefreshTimeInProgress();
     }
 
     /// <summary>

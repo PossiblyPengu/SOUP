@@ -13,22 +13,45 @@ namespace SOUP.Features.OrderLog.Converters;
 /// </summary>
 public class StatusToColorConverter : IValueConverter
 {
+    // Cache brushes to avoid repeated resource lookups
+    private static Brush? _dangerBrush;
+    private static Brush? _warningBrush;
+    private static Brush? _successBrush;
+    private static Brush? _tertiaryBrush;
+    private static bool _cacheInitialized;
+
+    private static void EnsureCacheInitialized()
+    {
+        if (_cacheInitialized) return;
+        
+        var app = Application.Current;
+        _dangerBrush = app?.TryFindResource("DangerBrush") as Brush;
+        _warningBrush = app?.TryFindResource("WarningBrush") as Brush;
+        _successBrush = app?.TryFindResource("SuccessBrush") as Brush;
+        _tertiaryBrush = app?.TryFindResource("TextTertiaryBrush") as Brush;
+        _cacheInitialized = true;
+    }
+
+    /// <summary>Clears cached brushes (call on theme change)</summary>
+    public static void InvalidateCache() => _cacheInitialized = false;
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not OrderItem.OrderStatus status)
             return DependencyProperty.UnsetValue;
 
-        var resourceKey = status switch
+        EnsureCacheInitialized();
+
+        var brush = status switch
         {
-            OrderItem.OrderStatus.NotReady => "DangerBrush",
-            OrderItem.OrderStatus.OnDeck => "WarningBrush",
-            OrderItem.OrderStatus.InProgress => "SuccessBrush",
-            OrderItem.OrderStatus.Done => "TextTertiaryBrush",
-            _ => "DangerBrush"
+            OrderItem.OrderStatus.NotReady => _dangerBrush,
+            OrderItem.OrderStatus.OnDeck => _warningBrush,
+            OrderItem.OrderStatus.InProgress => _successBrush,
+            OrderItem.OrderStatus.Done => _tertiaryBrush,
+            _ => _dangerBrush
         };
 
-        // Try to get the resource from Application resources
-        if (Application.Current.TryFindResource(resourceKey) is Brush brush)
+        if (brush != null)
         {
             return targetType == typeof(Color) && brush is SolidColorBrush solidBrush
                 ? solidBrush.Color

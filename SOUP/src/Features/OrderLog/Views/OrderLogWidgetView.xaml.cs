@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
 using SOUP.Features.OrderLog.Models;
@@ -141,6 +142,20 @@ public partial class OrderLogWidgetView : UserControl
         UpdateThemeIcon(isDarkMode);
         ApplyThemeToUserControl(isDarkMode);
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
+        
+        // Subscribe to ViewModel property changes for ShowNowPlaying
+        if (DataContext is OrderLogViewModel viewModel)
+        {
+            viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        }
+    }
+    
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(OrderLogViewModel.ShowNowPlaying))
+        {
+            Dispatcher.Invoke(() => UpdateNowPlayingUI());
+        }
     }
 
     private async void InitializeSpotifyAndWireUpAsync()
@@ -289,6 +304,12 @@ public partial class OrderLogWidgetView : UserControl
             _spotifyService.PropertyChanged -= SpotifyService_PropertyChanged;
         }
         
+        // Unsubscribe from ViewModel property changes
+        if (DataContext is OrderLogViewModel viewModel)
+        {
+            viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        }
+        
         // Clean up drag behavior subscriptions
         if (_fluidDragBehavior != null)
         {
@@ -308,6 +329,22 @@ public partial class OrderLogWidgetView : UserControl
     private void ThemeToggle_Click(object sender, RoutedEventArgs e)
     {
         ThemeService.Instance.ToggleTheme();
+    }
+    
+    private void OpenSettings_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Get parent window to access service provider
+            if (Window.GetWindow(this) is SOUP.Windows.OrderLogWidgetWindow widgetWindow)
+            {
+                widgetWindow.OpenSettings();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to open settings window");
+        }
     }
 
     private void OnThemeChanged(object? sender, bool isDarkMode)
@@ -387,8 +424,10 @@ public partial class OrderLogWidgetView : UserControl
     {
         if (_spotifyService == null) return;
 
-        // Hide the entire player section when nothing is playing
-        NowPlayingSection.Visibility = _spotifyService.HasMedia ? Visibility.Visible : Visibility.Collapsed;
+        // Hide the entire player section when nothing is playing OR when disabled in settings
+        var viewModel = DataContext as OrderLogViewModel;
+        var showNowPlaying = viewModel?.ShowNowPlaying ?? true;
+        NowPlayingSection.Visibility = (showNowPlaying && _spotifyService.HasMedia) ? Visibility.Visible : Visibility.Collapsed;
         
         if (!_spotifyService.HasMedia) return;
 
@@ -602,10 +641,11 @@ public partial class OrderLogWidgetView : UserControl
                                         if (panelChild.Visibility != Visibility.Visible) continue;
                                         var border = FindVisualChild<Border>(panelChild);
                                         if (border == null) continue;
-                                        if (!(border.DataContext is OrderItem oi))
+                                        OrderItem? oi = border.DataContext as OrderItem;
+                                        if (oi == null)
                                         {
-                                            if (border.DataContext is ViewModels.OrderItemGroup grp && grp.Members.Count>0) oi = grp.First;
-                                            else continue;
+                                            if (border.DataContext is ViewModels.OrderItemGroup grp && grp.Members?.Count > 0) oi = grp.First;
+                                            if (oi == null) continue;
                                         }
 
                                         if (oi.IsPracticallyEmpty) continue;
@@ -774,7 +814,30 @@ public partial class OrderLogWidgetView : UserControl
                 var container = ActiveItemsListBox.ItemContainerGenerator.ContainerFromIndex(0) as FrameworkElement;
                 if (container != null)
                 {
-                    // Find the first TextBox within the card
+                    // For orders, find the VendorName TextBox; for notes, find the first RichTextBox or TextBox
+                    if (item.NoteType == NoteType.Order)
+                    {
+                        // Find the TextBox bound to VendorName
+                        var vendorNameTextBox = FindTextBoxByBinding(container, "VendorName");
+                        if (vendorNameTextBox != null)
+                        {
+                            vendorNameTextBox.Focus();
+                            vendorNameTextBox.SelectAll();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // For sticky notes, try to find the RichTextBox first
+                        var richTextBox = FindVisualChild<RichTextBox>(container);
+                        if (richTextBox != null)
+                        {
+                            richTextBox.Focus();
+                            return;
+                        }
+                    }
+                    
+                    // Fallback: find first TextBox
                     var textBox = FindVisualChild<TextBox>(container);
                     if (textBox != null)
                     {
@@ -788,6 +851,39 @@ public partial class OrderLogWidgetView : UserControl
                 Log.Warning(ex, "Failed to focus new item");
             }
         }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private TextBox? FindTextBoxByBinding(DependencyObject parent, string propertyName)
+    {
+        var textBoxes = FindVisualChildren<TextBox>(parent);
+        foreach (var textBox in textBoxes)
+        {
+            var binding = textBox.GetBindingExpression(TextBox.TextProperty);
+            if (binding?.ParentBinding?.Path?.Path == propertyName)
+            {
+                return textBox;
+            }
+        }
+        return null;
+    }
+
+    private IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+    {
+        if (parent == null) yield break;
+        
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T typedChild)
+            {
+                yield return typedChild;
+            }
+            
+            foreach (var descendant in FindVisualChildren<T>(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 
     private void ColorBar_Click(object sender, MouseButtonEventArgs e)

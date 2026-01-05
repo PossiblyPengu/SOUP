@@ -1439,7 +1439,6 @@ public partial class DungeonCrawler : Window
 
     private void DrawPixelFloor(double w, double h)
     {
-        double pixelSize = 8;
         double floorY = h * 0.5;
         double floorH = h * 0.5;
 

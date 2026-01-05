@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -217,7 +216,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             {
                 if (bGroup.LinkedGroupId != null && eGroup.LinkedGroupId != null && bGroup.LinkedGroupId == eGroup.LinkedGroupId)
                     return panelChild;
-                if (bGroup.Members.Count > 0 && eGroup.Members.Count > 0 && bGroup.First.Id == eGroup.First.Id)
+                if (bGroup.Members?.Count > 0 && eGroup.Members?.Count > 0 && bGroup.First?.Id == eGroup.First?.Id)
                     return panelChild;
             }
 
@@ -1106,7 +1105,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             else if (bdc is OrderItemGroup bGroup && edc is OrderItemGroup eGroup)
             {
                 // Compare by first member id or linked group id when available
-                if (bGroup.Members.Count > 0 && eGroup.Members.Count > 0 && bGroup.First.Id == eGroup.First.Id)
+                if (bGroup.Members?.Count > 0 && eGroup.Members?.Count > 0 && bGroup.First?.Id == eGroup.First?.Id)
                     return i;
                 if (bGroup.LinkedGroupId != null && eGroup.LinkedGroupId != null && bGroup.LinkedGroupId == eGroup.LinkedGroupId)
                     return i;
@@ -1257,7 +1256,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         if (dc is OrderItem oi)
             return oi.IsRenderable;
         if (dc is OrderItemGroup og)
-            return og.Members != null && og.Members.Count > 0 && og.First.IsRenderable;
+            return og.Members != null && og.Members.Count > 0 && og.First?.IsRenderable == true;
         return false;
     }
 }

@@ -49,4 +49,34 @@ public partial class OrderLogSettingsView : UserControl
             Log.Warning(ex, "Failed to clear archived items");
         }
     }
+
+    private void PickOrderColor_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm) return;
+        
+        var picker = new OrderColorPickerWindow(vm.DefaultOrderColor)
+        {
+            Owner = Window.GetWindow(this)
+        };
+
+        if (picker.ShowDialog() == true)
+        {
+            vm.DefaultOrderColor = picker.SelectedColor;
+        }
+    }
+
+    private void PickNoteColor_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm) return;
+        
+        var picker = new OrderColorPickerWindow(vm.DefaultNoteColor)
+        {
+            Owner = Window.GetWindow(this)
+        };
+
+        if (picker.ShowDialog() == true)
+        {
+            vm.DefaultNoteColor = picker.SelectedColor;
+        }
+    }
 }

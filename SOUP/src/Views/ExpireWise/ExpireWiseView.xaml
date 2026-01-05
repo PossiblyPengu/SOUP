@@ -35,6 +35,13 @@
             </DoubleAnimation>
         </Storyboard>
         
+        <!-- ExpireWise Accent Colors (Amber/Orange theme) -->
+        <Color x:Key="ExpireWiseAccentColor">#f59e0b</Color>
+        <Color x:Key="ExpireWiseAccentLightColor">#fbbf24</Color>
+        <Color x:Key="ExpireWiseAccentDarkColor">#d97706</Color>
+        <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
+        <SolidColorBrush x:Key="ExpireWiseAccentLightBrush" Color="{StaticResource ExpireWiseAccentLightColor}"/>
+        
         <!-- Sidebar Navigation RadioButton Style -->
         <Style x:Key="SidebarNavButton" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
@@ -43,6 +50,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -55,8 +63,8 @@
                                 <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#451a03"/>
-                                <Setter Property="Foreground" Value="#fbbf24"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource ExpireWiseAccentLightBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -73,6 +81,9 @@
             <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Margin" Value="8,2"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -85,7 +96,7 @@
                                 <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -152,8 +163,8 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#7c2d12"/>
-                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource ExpireWiseAccentLightBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -190,7 +201,7 @@
                                 <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="RowBorder" Property="Background" Value="#7c2d12"/>
+                                <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -226,10 +237,13 @@
                         <Border Width="56" Height="56" CornerRadius="16" HorizontalAlignment="Left" Margin="0,0,0,16">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#f59e0b" Offset="0"/>
-                                    <GradientStop Color="#d97706" Offset="1"/>
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{StaticResource ExpireWiseAccentColor}"/>
+                            </Border.Effect>
                             <TextBlock Text="⏰" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <TextBlock Text="ExpireWise" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -360,7 +374,7 @@
 
                         <!-- Left Stats -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="14,8" Margin="0,0,12,0">
+                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,12,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding TotalItems}" FontSize="16" FontWeight="Bold" 
@@ -380,19 +394,19 @@
                                 <TextBlock Text="◀" FontSize="16" HorizontalAlignment="Center"/>
                             </Button>
                             
-                            <Border CornerRadius="8" Padding="24,8" MinWidth="200">
+                            <Border CornerRadius="10" Padding="24,10" MinWidth="200">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#f59e0b" Offset="0"/>
-                                        <GradientStop Color="#d97706" Offset="1"/>
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding CurrentMonthDisplay}" 
                                                FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextOnPrimaryBrush}"
                                                VerticalAlignment="Center"/>
-                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" 
-                                            Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" 
+                                            Padding="10,4" Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding MonthItemCount}" FontSize="12" 
                                                    FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     </Border>
@@ -409,7 +423,7 @@
 
                         <!-- Right Stats -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <Border Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="8" Padding="14,8" Margin="0,0,12,0">
+                            <Border Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,12,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding MonthItemCount}" FontSize="16" FontWeight="Bold" 
                                                Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center"/>
@@ -422,7 +436,7 @@
                                                Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="{DynamicResource DangerBackgroundBrush}" CornerRadius="8" Padding="12,8" 
+                            <Border Background="{DynamicResource DangerBackgroundBrush}" CornerRadius="10" Padding="14,10" 
                                     Visibility="{Binding CriticalCount, Converter={StaticResource CountToVisibility}}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🚨" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -514,34 +528,49 @@
                             <GroupStyle>
                                 <GroupStyle.ContainerStyle>
                                     <Style TargetType="{x:Type GroupItem}">
-                                        <Setter Property="Margin" Value="0,8,0,0"/>
+                                        <Setter Property="Margin" Value="0,12,0,0"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="{x:Type GroupItem}">
-                                                    <Expander IsExpanded="True" Background="Transparent" BorderThickness="0">
-                                                        <Expander.Header>
-                                                            <Border Background="#1a451a03" CornerRadius="8" Padding="16,10" Margin="-4,0,0,0">
-                                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" 
+                                                            BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="1"
+                                                            Margin="0,0,0,4">
+                                                        <Expander IsExpanded="True" Background="Transparent" BorderThickness="0">
+                                                            <Expander.Header>
+                                                                <Grid Margin="8,8,8,4">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    
                                                                     <!-- Location Pin Icon -->
-                                                                    <Border Background="#2afbbf24" CornerRadius="6" Padding="6,4" Margin="0,0,12,0">
-                                                                        <TextBlock Text="📍" FontSize="12" VerticalAlignment="Center"/>
+                                                                    <Border Grid.Column="0" Background="{StaticResource ExpireWiseAccentBrush}" 
+                                                                            CornerRadius="6" Width="28" Height="28" Margin="0,0,12,0">
+                                                                        <TextBlock Text="📍" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Border>
+                                                                    
                                                                     <!-- Store Name -->
-                                                                    <TextBlock Text="{Binding Name, Converter={StaticResource StoreDisplayConverter}}" 
+                                                                    <TextBlock Grid.Column="1" 
+                                                                               Text="{Binding Name, Converter={StaticResource StoreDisplayConverter}}" 
                                                                                FontWeight="SemiBold" FontSize="14" 
-                                                                               Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center"/>
+                                                                               Foreground="{StaticResource ExpireWiseAccentLightBrush}" 
+                                                                               VerticalAlignment="Center"/>
+                                                                    
                                                                     <!-- Item Count Badge -->
-                                                                    <Border Background="#20ffffff" CornerRadius="10" Padding="10,4" Margin="12,0,0,0">
+                                                                    <Border Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}" 
+                                                                            CornerRadius="8" Padding="12,6" Margin="12,0,0,0">
                                                                         <TextBlock VerticalAlignment="Center">
-                                                                            <Run Text="{Binding ItemCount, Mode=OneWay}" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}"/>
-                                                                            <Run Text=" items" Foreground="{DynamicResource SecondaryForegroundBrush}"/>
+                                                                            <Run Text="{Binding ItemCount, Mode=OneWay}" FontWeight="SemiBold" 
+                                                                                 Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                                            <Run Text=" items" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                                         </TextBlock>
                                                                     </Border>
-                                                                </StackPanel>
-                                                            </Border>
-                                                        </Expander.Header>
-                                                        <ItemsPresenter Margin="0,4,0,0"/>
-                                                    </Expander>
+                                                                </Grid>
+                                                            </Expander.Header>
+                                                            <ItemsPresenter Margin="0,0,0,8"/>
+                                                        </Expander>
+                                                    </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
                                         </Setter>

@@ -11,7 +11,7 @@ public partial class UnifiedSettingsWindow : Window
 {
     private readonly UnifiedSettingsViewModel _viewModel;
 
-    public UnifiedSettingsWindow(UnifiedSettingsViewModel viewModel)
+    public UnifiedSettingsWindow(UnifiedSettingsViewModel viewModel, string? initialTab = null)
     {
         InitializeComponent();
         _viewModel = viewModel;
@@ -19,6 +19,28 @@ public partial class UnifiedSettingsWindow : Window
         
         // Initialize asynchronously on window load
         Loaded += OnWindowLoaded;
+        
+        // Select initial tab if specified
+        if (!string.IsNullOrEmpty(initialTab))
+        {
+            SelectTab(initialTab);
+        }
+    }
+    
+    /// <summary>
+    /// Selects a tab by name.
+    /// </summary>
+    public void SelectTab(string tabName)
+    {
+        switch (tabName.ToLowerInvariant())
+        {
+            case "allocation": TabAllocation.IsChecked = true; break;
+            case "essentials": TabEssentials.IsChecked = true; break;
+            case "expirewise": TabExpireWise.IsChecked = true; break;
+            case "dictionary": TabDictionary.IsChecked = true; break;
+            case "orderlog": TabOrderLog.IsChecked = true; break;
+            case "externaldata": TabExternalData.IsChecked = true; break;
+        }
     }
 
     private async void OnWindowLoaded(object sender, RoutedEventArgs e)

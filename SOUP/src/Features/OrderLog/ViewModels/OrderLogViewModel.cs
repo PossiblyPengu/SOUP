@@ -19,7 +19,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 {
     // Constants for configurable timeouts
     private const int TimerIntervalSeconds = 1;
-    private const int UndoTimeoutSeconds = 5;
+    private const int DefaultUndoTimeoutSeconds = 5;
     private const double DefaultCardFontSize = 13.0;
 
     private readonly IOrderLogService _orderLogService;
@@ -29,6 +29,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _timer;
     private bool _disposed;
     private DispatcherTimer? _undoTimer;
+    private System.Threading.CancellationTokenSource? _saveDebounceCts;
     private List<(Guid id, OrderItem.OrderStatus previous)> _lastStatusChanges = new();
     private List<(Guid id, bool wasArchived)> _lastArchiveChanges = new();
 
@@ -104,6 +105,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private double _cardFontSize = DefaultCardFontSize;
 
+    [ObservableProperty]
+    private bool _showNowPlaying = true;
+
+    [ObservableProperty]
+    private int _undoTimeoutSeconds = DefaultUndoTimeoutSeconds;
+
+    [ObservableProperty]
+    private string _defaultOrderColor = OrderLogColors.DefaultOrder;
+
+    [ObservableProperty]
+    private string _defaultNoteColor = OrderLogColors.DefaultNote;
+
     partial void OnCardFontSizeChanged(double value)
     {
         try
@@ -114,13 +127,51 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             }
 
             // persist
-            var settings = new OrderLogWidgetSettings { CardFontSize = value };
-            _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
+            SaveWidgetSettings();
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to update card font size");
         }
+    }
+
+    partial void OnShowNowPlayingChanged(bool value)
+    {
+        SaveWidgetSettings();
+    }
+    
+    partial void OnShowArchivedChanged(bool value)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnUndoTimeoutSecondsChanged(int value)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnDefaultOrderColorChanged(string value)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnDefaultNoteColorChanged(string value)
+    {
+        SaveWidgetSettings();
+    }
+
+    private void SaveWidgetSettings()
+    {
+        var settings = new OrderLogWidgetSettings 
+        { 
+            CardFontSize = CardFontSize,
+            ShowNowPlaying = ShowNowPlaying,
+            ShowArchived = ShowArchived,
+            UndoTimeoutSeconds = UndoTimeoutSeconds,
+            DefaultOrderColor = DefaultOrderColor,
+            DefaultNoteColor = DefaultNoteColor
+        };
+        _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
 
     private void OnTimerTick(object? sender, EventArgs e)
@@ -133,11 +184,17 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     public async Task InitializeAsync()
     {
-        // load persisted widget settings (card font size)
+        // load persisted widget settings
         try
         {
             var s = await _settingsService.LoadSettingsAsync<OrderLogWidgetSettings>("OrderLogWidget");
             CardFontSize = s.CardFontSize <= 0 ? DefaultCardFontSize : s.CardFontSize;
+            // Note: ShowNowPlaying defaults to true in the model, so we can use it directly
+            ShowNowPlaying = s.ShowNowPlaying;
+            ShowArchived = s.ShowArchived;
+            UndoTimeoutSeconds = s.UndoTimeoutSeconds <= 0 ? DefaultUndoTimeoutSeconds : s.UndoTimeoutSeconds;
+            DefaultOrderColor = string.IsNullOrEmpty(s.DefaultOrderColor) ? OrderLogColors.DefaultOrder : s.DefaultOrderColor;
+            DefaultNoteColor = string.IsNullOrEmpty(s.DefaultNoteColor) ? OrderLogColors.DefaultNote : s.DefaultNoteColor;
             if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)
@@ -222,6 +279,26 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             StatusMessage = $"Failed to save: {ex.Message}";
             _logger?.LogError(ex, "Failed to save orders");
+        }
+    }
+
+    /// <summary>
+    /// Debounced save - waits 300ms for additional changes before saving.
+    /// Use for rapid operations like move up/down, status changes, etc.
+    /// </summary>
+    private async Task DebouncedSaveAsync()
+    {
+        _saveDebounceCts?.Cancel();
+        _saveDebounceCts = new System.Threading.CancellationTokenSource();
+        
+        try
+        {
+            await Task.Delay(300, _saveDebounceCts.Token);
+            await SaveAsync();
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected when another save is triggered within debounce window
         }
     }
 
@@ -409,7 +486,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (idx > 0)
         {
             Items.Move(idx, idx - 1);
-            await SaveAsync();
+            await DebouncedSaveAsync();
             StatusMessage = "Moved up";
             return;
         }
@@ -419,7 +496,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (aidx > 0)
         {
             ArchivedItems.Move(aidx, aidx - 1);
-            await SaveAsync();
+            await DebouncedSaveAsync();
             StatusMessage = "Moved up (archived)";
         }
     }
@@ -434,7 +511,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (idx >= 0 && idx < Items.Count - 1)
         {
             Items.Move(idx, idx + 1);
-            await SaveAsync();
+            await DebouncedSaveAsync();
             StatusMessage = "Moved down";
             return;
         }
@@ -444,7 +521,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (aidx >= 0 && aidx < ArchivedItems.Count - 1)
         {
             ArchivedItems.Move(aidx, aidx + 1);
-            await SaveAsync();
+            await DebouncedSaveAsync();
             StatusMessage = "Moved down (archived)";
         }
     }
@@ -702,7 +779,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         NewNoteVendorName = string.Empty;
         NewNoteTransferNumbers = string.Empty;
         NewNoteWhsShipmentNumbers = string.Empty;
-        _newNoteColorHex = OrderLogColors.DefaultOrder;
+        _newNoteColorHex = DefaultOrderColor;
 
         StatusMessage = "Order added";
         return true;
@@ -735,7 +812,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         // Clear the form
         StickyNoteContent = string.Empty;
-        _stickyNoteColorHex = OrderLogColors.DefaultNote;
+        _stickyNoteColorHex = DefaultNoteColor;
 
         StatusMessage = "Sticky note added";
         return true;
@@ -751,7 +828,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             NoteType = NoteType.StickyNote,
             NoteTitle = string.Empty,
             NoteContent = content.Trim(),
-            ColorHex = colorHex ?? OrderLogColors.DefaultNote,
+            ColorHex = colorHex ?? DefaultNoteColor,
             CreatedAt = DateTime.UtcNow,
             Status = OrderItem.OrderStatus.OnDeck
         };

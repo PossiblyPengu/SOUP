@@ -300,10 +300,7 @@
                                          MaxWidth="280"
                                          MinHeight="60"
                                          AcceptsReturn="True"
-                                         IsReadOnly="False"
-                                         Focusable="True"
                                          IsDocumentEnabled="True"
-                                         IsHitTestVisible="True"
                                          VerticalScrollBarVisibility="Auto"
                                          PreviewKeyDown="NoteContent_PreviewKeyDown"
                                          Loaded="NoteContent_Loaded"
@@ -480,10 +477,6 @@
                 </Grid>
             </Border>
         </DataTemplate>
-        
-
-        <!-- Style for phantom placeholder text -->
-        <Style x:Key="PlaceholderText" TargetType="TextBlock" BasedOn="{StaticResource WidgetPlaceholderTextStyle}"/>
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
@@ -865,24 +858,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header (hidden - window chrome already shows title) -->
-        <Border Background="{DynamicResource SurfaceBrush}" 
-                Padding="16,14"
-                BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,0,0,1"
-                Visibility="Collapsed">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="📋" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                <TextBlock Text="Order Log"
-                           FontSize="15"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           VerticalAlignment="Center"/>
-            </StackPanel>
-        </Border>
-
         <!-- Tab Bar + Add Buttons -->
-        <Border Grid.Row="1"
+        <Border Grid.Row="0"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0,0,0,1"
@@ -893,8 +870,9 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <!-- Modern Segmented Tabs -->
-                <Border Style="{StaticResource WidgetTabContainerStyle}" Margin="0,0,0,14">
+                <!-- Modern Segmented Tabs (only show when ShowArchived is true) -->
+                <Border Style="{StaticResource WidgetTabContainerStyle}" Margin="0,0,0,14"
+                        Visibility="{Binding ShowArchived, Converter={StaticResource BoolToVis}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -948,7 +926,7 @@
                 <Grid>
                     <!-- Active Notes Panel -->
                     <StackPanel x:Name="ActiveItemsPanel">
-                    <ListBox x:Name="ActiveItemsListBox" ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent" SelectionMode="Single"
+                    <ListBox x:Name="ActiveItemsListBox" ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent"
                              VirtualizingStackPanel.IsVirtualizing="False"
                              VirtualizingStackPanel.VirtualizationMode="Standard"
                              ScrollViewer.CanContentScroll="False">
@@ -1279,10 +1257,7 @@
                                                              MinHeight="80"
                                                              MaxHeight="120"
                                                              AcceptsReturn="True"
-                                                             IsReadOnly="False"
-                                                             Focusable="True"
                                                              IsDocumentEnabled="True"
-                                                             IsHitTestVisible="True"
                                                              VerticalScrollBarVisibility="Auto"
                                                              PreviewKeyDown="NoteContent_PreviewKeyDown"
                                                              Loaded="NoteContent_Loaded"
@@ -1369,7 +1344,6 @@
                              ItemsSource="{Binding DisplayArchivedItems}"
                              BorderThickness="0"
                              Background="Transparent"
-                             SelectionMode="Single"
                              VirtualizingStackPanel.IsVirtualizing="False"
                              VirtualizingStackPanel.VirtualizationMode="Standard"
                              ScrollViewer.CanContentScroll="False"
@@ -1464,7 +1438,8 @@
         <Border x:Name="NowPlayingSection" Grid.Row="3"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,1,0,0">
+                BorderThickness="0,1,0,0"
+                Visibility="{Binding ShowNowPlaying, Converter={StaticResource BoolToVis}, FallbackValue=Visible}">
             <StackPanel>
                 <!-- Full Album Art Player (collapsible - rises from bottom) -->
                 <Border x:Name="NowPlayingContent" 
@@ -1776,6 +1751,12 @@
                            VerticalAlignment="Center"/>
                 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Click="OpenSettings_Click"
+                            Style="{StaticResource WidgetIconButtonStyle}"
+                            ToolTip="Settings"
+                            Margin="0,0,4,0">
+                        <TextBlock Text="⚙️" FontSize="{DynamicResource CardFontSize}"/>
+                    </Button>
                     <Button x:Name="ThemeToggleButton"
                             Click="ThemeToggle_Click"
                             Style="{StaticResource WidgetIconButtonStyle}"

@@ -11,7 +11,6 @@ using System.Windows.Media.Animation;
 using Microsoft.Xaml.Behaviors;
 using System.Windows.Documents;
 using SOUP.Features.OrderLog.Helpers;
-using System.IO;
 
 namespace SOUP.Behaviors;
 
@@ -36,21 +35,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
     private Point _dragOffset;
     private double? _floatingFixedLeft;
     private Point _lastMousePos;
-
-    // Toggle persistent drag debug logs (set true temporarily to collect diagnostics)
-    private static readonly bool _dragDebugEnabled = false;
-    private static readonly string _dragLogPath = Path.Combine(Path.GetTempPath(), "SoupDragDebug.log");
-
-    private static void DebugLog(string message)
-    {
-        if (!_dragDebugEnabled) return;
-        try
-        {
-            var p = _dragLogPath;
-            File.AppendAllText(p, DateTime.Now.ToString("o") + " " + message + Environment.NewLine);
-        }
-        catch { /* Intentionally ignored: debug logging only */ }
-    }
 
     public static readonly DependencyProperty OnReorderProperty =
         DependencyProperty.Register(nameof(OnReorder), typeof(Action), typeof(ListBoxDragDropBehavior));
@@ -224,7 +208,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         try
         {
             var srcType = e.OriginalSource?.GetType().Name ?? "(null)";
-            DebugLog($"[DragDebug] MouseDown src={srcType} start={_startPoint}");
+            
         }
         catch { /* Intentionally ignored: debug logging only */ }
         
@@ -248,7 +232,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         var currentPoint = e.GetPosition(AssociatedObject);
         try
         {
-            DebugLog($"[DragDebug] MouseMove current={currentPoint} left={e.LeftButton} isDragging={_isDragging} draggedIndex={_draggedIndex} previewIndex={_currentPreviewIndex}");
+            
         }
         catch { }
 
@@ -274,7 +258,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         if (_draggedListBoxItem == null)
             return;
 
-        try { DebugLog($"[DragDebug] StartDrag draggedIndex={_draggedIndex}"); } catch { }
+        try {  } catch { }
         _isDragging = true;
         _dragStartIndex = _draggedIndex;
         _currentPreviewIndex = _dragStartIndex;
@@ -353,21 +337,16 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
                                             try
                                             {
-                                                try { DebugLog($"[DragDebug] Presenter.DataContext={(presenter.DataContext==null?"(null)":presenter.DataContext.GetType().FullName)}"); } catch { }
-
                                                 // Allow the presenter to perform layout/render passes before snapshotting
                                                 try { presenter.ApplyTemplate(); presenter.UpdateLayout(); } catch { }
                                                 try { presenter.Dispatcher.Invoke(() => { presenter.UpdateLayout(); }, DispatcherPriority.Render, System.Threading.CancellationToken.None); } catch { }
 
-                                                bool rtbPopulated = false;
                                                 try
                                                 {
                                                     var rtbInPresenter = FindDescendantSafe<System.Windows.Controls.RichTextBox>(presenter);
                                                     if (rtbInPresenter != null)
                                                     {
-                                                        try { DebugLog("[DragDebug] Found RichTextBox inside presenter; attempting to LoadNoteContent"); } catch { }
-                                                        try { TextFormattingHelper.LoadNoteContent(rtbInPresenter); rtbPopulated = true; } catch (Exception ex) { try { DebugLog($"[DragDebug] LoadNoteContent failed: {ex.Message}"); } catch { } }
-                                                        try { DebugLog($"[DragDebug] RichTextBox populated={rtbPopulated}"); } catch { }
+                                                        try { TextFormattingHelper.LoadNoteContent(rtbInPresenter); } catch { }
                                                     }
                                                 }
                                                 catch { }
@@ -382,12 +361,8 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                                 var rtb2 = new RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, PixelFormats.Pbgra32);
                                                 rtb2.Render(dv);
                                                 bitmapSource = rtb2;
-                                                try { DebugLog($"[DragDebug] Rendered presenter -> RenderTargetBitmap size={rtb2.PixelWidth}x{rtb2.PixelHeight}"); } catch { }
                                             }
-                                            catch (Exception ex)
-                                            {
-                                                try { DebugLog($"[DragDebug] Exception while rendering presenter: {ex.Message}"); } catch { }
-                                            }
+                                            catch { }
                                             usedTemplate = true;
                                         }
                                     }
@@ -427,8 +402,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                     rtb.Render(_draggedListBoxItem);
                                     bitmapSource = rtb;
                                 }
-
-                                try { DebugLog($"[DragDebug] bitmapSource={(bitmapSource==null?"null":bitmapSource.GetType().Name)} usedTemplate={usedTemplate}"); } catch { }
 
                                 // If bitmap rendering failed or produced no content, fall back to a textual snapshot
                                 bool needsTextFallback = false;
@@ -472,9 +445,9 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                                             {
                                                                 var sb = new System.Text.StringBuilder();
                                                                 for (int si = 0; si < sampleLen; si++) sb.AppendFormat("{0:X2}", pixels[si]);
-                                                                DebugLog($"[DragDebug] RenderTargetBitmap appears empty -> falling back; sample={sb}");
+                                                                
                                                             }
-                                                            catch { DebugLog("[DragDebug] RenderTargetBitmap appears empty -> falling back (failed to sample)"); }
+                                                            catch { /* sample failed */ }
                                                         }
                                                         catch { }
                                                 }
@@ -516,12 +489,8 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                                         var rtbFb = new RenderTargetBitmap((int)Math.Ceiling(itemW), (int)Math.Ceiling(itemH), 96, 96, PixelFormats.Pbgra32);
                                         rtbFb.Render(dv2);
                                         bitmapSource = rtbFb;
-                                        try { DebugLog("[DragDebug] Used textual fallback snapshot"); } catch { }
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        try { DebugLog($"[DragDebug] Textual fallback failed: {ex.Message}"); } catch { }
-                                    }
+                                    catch { }
                                 }
 
                                 if (bitmapSource != null)
@@ -552,22 +521,17 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
                                 // keep the original visible (don't set Opacity=0) to avoid container-recycling visual issues
                             }
-                            catch (Exception ex)
+                            catch
                             {
-                                try { DebugLog($"[DragDebug] Snapshot creation failed: {ex.Message}"); } catch { }
                                 _floatingAdorner = null;
                             }
                         }
                     else
                     {
-                        try { DebugLog("[DragDebug] Skipping snapshot: invalid item size"); } catch { }
                         _floatingAdorner = null;
                     }
                 }
-                catch (Exception ex)
-                {
-                    try { DebugLog($"[DragDebug] Adorner setup failed: {ex.Message}"); } catch { }
-                }
+                catch { }
             }
         }
         catch { }
@@ -580,7 +544,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
         // Calculate how far we've moved from the start
         double offsetY = mousePos.Y - _startPoint.Y;
-        try { DebugLog($"[DragDebug] UpdateDrag mouseY={mousePos.Y} offsetY={offsetY} currentPreview={_currentPreviewIndex}"); } catch { }
+        try {  } catch { }
         
         // Update dragged item position
         if (_transforms.TryGetValue(_draggedListBoxItem, out var dragTransform))
@@ -606,7 +570,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         // Determine insertion index using midpoint calculation (insertion semantics)
         int hoverIndex = CalculatePreviewIndexFromPosition(mousePos);
         _lastMousePos = mousePos;
-        try { DebugLog($"[DragDebug] PreviewIndex={hoverIndex} dragStart={_dragStartIndex} currentPreview={_currentPreviewIndex}"); } catch { }
+        try {  } catch { }
 
         // If hovering over a different item than the drag start, show a swap preview
         if (hoverIndex >= 0 && hoverIndex != _currentPreviewIndex)
@@ -869,13 +833,11 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             return;
         }
 
-        try { DebugLog($"[DragDebug] FinishDrag oldIndex={_draggedIndex} newIndex={_currentPreviewIndex}"); } catch { }
-            HideAdorners();
+        HideAdorners();
         Mouse.Capture(null);
 
         var newIndex = _currentPreviewIndex;
         var oldIndex = _dragStartIndex;
-        try { DebugLog($"[DragDebug] Before move: listCount={(AssociatedObject.ItemsSource as IList)?.Count ?? -1} oldIndex={oldIndex} newIndex={newIndex}"); } catch { }
 
         // Reset all transforms immediately (no animation for the final snap)
         ResetAllTransformsImmediate();
@@ -932,7 +894,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                 if (insertIndex > oldIndex)
                     insertIndex--;
 
-                try { DebugLog($"[DragDebug] Computed insertIndex={insertIndex}"); } catch { }
+                try {  } catch { }
 
                 // Clamp insertIndex to [0, list.Count]
                 insertIndex = Math.Max(0, Math.Min(insertIndex, list.Count));

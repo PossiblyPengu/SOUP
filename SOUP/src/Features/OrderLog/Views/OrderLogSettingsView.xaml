@@ -3,9 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SOUP.Features.OrderLog.Views"
              xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
+             xmlns:converters="clr-namespace:SOUP.Features.OrderLog.Converters"
              MinHeight="400" MinWidth="400">
 
     <UserControl.Resources>
+        <converters:HexToBrushConverter x:Key="HexToBrush"/>
+        
         <!-- Section Header Style -->
         <Style x:Key="SectionHeader" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
@@ -209,11 +212,87 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
+                            <TextBlock Text="Show Now Playing" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="Display the Spotify Now Playing panel at the bottom" Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource ModernToggle}" VerticalAlignment="Center"
+                                  IsChecked="{Binding ShowNowPlaying, Mode=TwoWay}"/>
+                    </Grid>
+                </Border>
+                
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
                             <TextBlock Text="Show Archived Tab" Style="{StaticResource SettingLabel}"/>
                             <TextBlock Text="Display the archived orders tab in the widget" Style="{StaticResource SettingDescription}"/>
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource ModernToggle}" VerticalAlignment="Center"
                                   IsChecked="{Binding ShowArchived, Mode=TwoWay}"/>
+                    </Grid>
+                </Border>
+                
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Undo Timeout" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="Seconds the undo action is available after changes" Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Slider Minimum="2" Maximum="15" Width="100" Style="{StaticResource ModernSlider}"
+                                    Value="{Binding UndoTimeoutSeconds, Mode=TwoWay}" 
+                                    TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" 
+                                    Padding="10,4" Margin="12,0,0,0" MinWidth="36">
+                                <TextBlock Text="{Binding UndoTimeoutSeconds, StringFormat='{}{0}s'}" 
+                                           FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- Default Colors Section -->
+                <TextBlock Text="DEFAULT COLORS" Style="{StaticResource SectionHeader}"/>
+                
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Default Order Color" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="Color used for new order cards" Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="32" Height="32" CornerRadius="6" 
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                Background="{Binding DefaultOrderColor, Converter={StaticResource HexToBrush}}"
+                                Cursor="Hand" MouseLeftButtonDown="PickOrderColor_Click" ToolTip="Click to change"/>
+                    </Grid>
+                </Border>
+                
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Default Sticky Note Color" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="Color used for new sticky notes" Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="32" Height="32" CornerRadius="6" 
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                Background="{Binding DefaultNoteColor, Converter={StaticResource HexToBrush}}"
+                                Cursor="Hand" MouseLeftButtonDown="PickNoteColor_Click" ToolTip="Click to change"/>
                     </Grid>
                 </Border>
                 
