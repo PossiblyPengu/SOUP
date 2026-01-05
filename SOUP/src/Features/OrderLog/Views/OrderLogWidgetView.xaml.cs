@@ -135,6 +135,10 @@ public partial class OrderLogWidgetView : UserControl
 
         // Wire up fluid drag behavior events
         WireUpFluidDragBehavior();
+
+        // Initialize theme toggle icon and subscribe to changes
+        UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
+        ThemeService.Instance.ThemeChanged += OnThemeChanged;
     }
 
     private async void InitializeSpotifyAndWireUpAsync()
@@ -293,6 +297,27 @@ public partial class OrderLogWidgetView : UserControl
         if (_gridDrag != null)
         {
             _gridDrag.ReorderComplete -= OnFluidDragReorderComplete;
+        }
+        
+        // Unsubscribe from theme changes
+        ThemeService.Instance.ThemeChanged -= OnThemeChanged;
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        ThemeService.Instance.ToggleTheme();
+    }
+
+    private void OnThemeChanged(object? sender, bool isDarkMode)
+    {
+        UpdateThemeIcon(isDarkMode);
+    }
+
+    private void UpdateThemeIcon(bool isDarkMode)
+    {
+        if (ThemeToggleIcon != null)
+        {
+            ThemeToggleIcon.Text = isDarkMode ? "☀️" : "🌙";
         }
     }
 
