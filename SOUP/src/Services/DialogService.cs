@@ -133,9 +133,10 @@ public class DialogService
     /// <returns>The dialog result.</returns>
     public Task<bool?> ShowDialogAsync(Window dialog)
     {
-        if (Application.Current?.MainWindow != null)
+        // Only set owner if MainWindow is visible (don't block other windows like widget)
+        if (Application.Current?.MainWindow is { IsVisible: true } mainWindow)
         {
-            dialog.Owner = Application.Current.MainWindow;
+            dialog.Owner = mainWindow;
         }
         dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         return Task.FromResult(dialog.ShowDialog());
@@ -175,10 +176,10 @@ public class DialogService
             Background = new System.Windows.Media.SolidColorBrush(backgroundColor)
         };
         
-        // Set owner with null check
-        if (Application.Current?.MainWindow != null)
+        // Set owner only when MainWindow is visible (don't block other windows like widget)
+        if (Application.Current?.MainWindow is { IsVisible: true } mainWindow)
         {
-            dialog.Owner = Application.Current.MainWindow;
+            dialog.Owner = mainWindow;
         }
 
         // Apply dark title bar when in dark mode

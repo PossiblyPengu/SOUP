@@ -54,14 +54,20 @@ public interface IRepository<T> where T : BaseEntity
     Task<T> UpdateAsync(T entity);
     
     /// <summary>
-    /// Deletes an entity by its unique identifier.
+    /// Deletes an entity by its unique identifier (soft delete).
     /// </summary>
     /// <param name="id">The entity's unique identifier.</param>
     /// <returns><c>true</c> if deleted; otherwise, <c>false</c>.</returns>
     Task<bool> DeleteAsync(Guid id);
     
     /// <summary>
-    /// Deletes all entities of this type.
+    /// Deletes all entities of this type (soft delete).
     /// </summary>
     Task DeleteAllAsync();
+    
+    /// <summary>
+    /// Permanently deletes all entities from the collection (hard delete).
+    /// </summary>
+    /// <returns>The number of entities deleted.</returns>
+    Task<int> HardDeleteAllAsync();
 }

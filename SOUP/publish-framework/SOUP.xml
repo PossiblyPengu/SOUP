@@ -583,6 +583,16 @@
             low or out of stock.
             </remarks>
         </member>
+        <member name="P:SOUP.Core.Entities.EssentialsBuddy.InventoryItem.GlobalLowStockThreshold">
+            <summary>
+            Global default for low stock threshold when item doesn't have one set.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.EssentialsBuddy.InventoryItem.GlobalSufficientThreshold">
+            <summary>
+            Global default for sufficient stock threshold when item doesn't have one set.
+            </summary>
+        </member>
         <member name="P:SOUP.Core.Entities.EssentialsBuddy.InventoryItem.ItemNumber">
             <summary>
             Gets or sets the item number identifier.
@@ -706,6 +716,7 @@
         <member name="M:SOUP.Core.Entities.EssentialsBuddy.InventoryItem.CalculateStatus">
             <summary>
             Calculates the inventory status based on current quantity and thresholds.
+            Uses per-item thresholds if set, otherwise falls back to global defaults.
             </summary>
             <returns>The calculated inventory status.</returns>
         </member>
@@ -737,24 +748,25 @@
             the last day of the expiry month for consistent comparisons.
             </para>
             <para>
-            Status thresholds:
+            Status thresholds can be configured via <see cref="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.CriticalDaysThreshold"/> and
+            <see cref="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.WarningDaysThreshold"/> static properties:
             <list type="bullet">
-            <item><description>Critical: 7 days or less until expiration</description></item>
-            <item><description>Warning: 8-30 days until expiration</description></item>
-            <item><description>Good: More than 30 days until expiration</description></item>
+            <item><description>Critical: At or below critical threshold (default 7 days)</description></item>
+            <item><description>Warning: At or below warning threshold (default 30 days)</description></item>
+            <item><description>Good: More than warning threshold days until expiration</description></item>
             <item><description>Expired: Past expiration date</description></item>
             </list>
             </para>
             </remarks>
         </member>
-        <member name="F:SOUP.Core.Entities.ExpireWise.ExpirationItem.CriticalDaysThreshold">
+        <member name="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.CriticalDaysThreshold">
             <summary>
-            Number of days until expiry to show critical status (7 days or less).
+            Number of days until expiry to show critical status (configurable, default 7 days).
             </summary>
         </member>
-        <member name="F:SOUP.Core.Entities.ExpireWise.ExpirationItem.WarningDaysThreshold">
+        <member name="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.WarningDaysThreshold">
             <summary>
-            Number of days until expiry to show warning status (30 days or less).
+            Number of days until expiry to show warning status (configurable, default 30 days).
             </summary>
         </member>
         <member name="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.ItemNumber">
@@ -819,6 +831,7 @@
         <member name="M:SOUP.Core.Entities.ExpireWise.ExpirationItem.CalculateStatus">
             <summary>
             Calculates the expiration status based on days until expiry.
+            Uses configurable thresholds from <see cref="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.CriticalDaysThreshold"/> and <see cref="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.WarningDaysThreshold"/>.
             </summary>
             <returns>The calculated expiration status.</returns>
         </member>
@@ -1205,15 +1218,21 @@
         </member>
         <member name="M:SOUP.Core.Interfaces.IRepository`1.DeleteAsync(System.Guid)">
             <summary>
-            Deletes an entity by its unique identifier.
+            Deletes an entity by its unique identifier (soft delete).
             </summary>
             <param name="id">The entity's unique identifier.</param>
             <returns><c>true</c> if deleted; otherwise, <c>false</c>.</returns>
         </member>
         <member name="M:SOUP.Core.Interfaces.IRepository`1.DeleteAllAsync">
             <summary>
-            Deletes all entities of this type.
+            Deletes all entities of this type (soft delete).
             </summary>
+        </member>
+        <member name="M:SOUP.Core.Interfaces.IRepository`1.HardDeleteAllAsync">
+            <summary>
+            Permanently deletes all entities from the collection (hard delete).
+            </summary>
+            <returns>The number of entities deleted.</returns>
         </member>
         <member name="T:SOUP.Core.Interfaces.IUnitOfWork">
             <summary>
@@ -4294,6 +4313,11 @@
             <param name="serviceProvider">The service provider for dependency resolution.</param>
             <param name="logger">Optional logger for diagnostic output.</param>
         </member>
+        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.LoadAndApplySettingsAsync">
+            <summary>
+            Loads settings from the settings service and applies stock thresholds globally.
+            </summary>
+        </member>
         <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.MatchItemsAgainstDictionary(System.Collections.Generic.List{SOUP.Core.Entities.EssentialsBuddy.InventoryItem})">
             <summary>
             Match items against the dictionary database to get descriptions and essential status.
@@ -5065,6 +5089,11 @@
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.InitializeAsync">
             <summary>
             Initialize the view model and load data
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadAndApplySettingsAsync">
+            <summary>
+            Loads settings from the settings service and applies expiration thresholds globally.
             </summary>
         </member>
         <member name="E:SOUP.ViewModels.ExpireWiseViewModel.FocusSearchRequested">

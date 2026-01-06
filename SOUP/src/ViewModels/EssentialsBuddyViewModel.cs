@@ -189,7 +189,36 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         if (_isInitialized) return;
         _isInitialized = true;
+        
+        // Load and apply settings for stock thresholds
+        await LoadAndApplySettingsAsync();
         await LoadItems();
+    }
+
+    /// <summary>
+    /// Loads settings from the settings service and applies stock thresholds globally.
+    /// </summary>
+    private async Task LoadAndApplySettingsAsync()
+    {
+        try
+        {
+            var settingsService = _serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+            if (settingsService != null)
+            {
+                var settings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.EssentialsBuddySettings>("EssentialsBuddy");
+                
+                // Apply thresholds to the static properties on InventoryItem
+                InventoryItem.GlobalLowStockThreshold = settings.LowStockThreshold;
+                InventoryItem.GlobalSufficientThreshold = settings.SufficientThreshold;
+                
+                _logger?.LogInformation("Applied EssentialsBuddy settings: LowStock={Low}, Sufficient={Sufficient}", 
+                    settings.LowStockThreshold, settings.SufficientThreshold);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to load EssentialsBuddy settings, using defaults");
+        }
     }
 
     /// <summary>
@@ -269,9 +298,10 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
         // Show dialog for user to edit items before adding
         var dialog = new Views.EssentialsBuddy.AddToDictionaryDialog(unmatchedItems);
-        if (System.Windows.Application.Current?.MainWindow != null)
+        // Only set owner if MainWindow is visible (don't block widget)
+        if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
         {
-            dialog.Owner = System.Windows.Application.Current.MainWindow;
+            dialog.Owner = mainWindow;
         }
         
         var result = dialog.ShowDialog();
@@ -765,6 +795,11 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         {
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
             var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
+            // Only set owner if MainWindow is visible (don't block widget)
+            if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
+            {
+                settingsWindow.Owner = mainWindow;
+            }
             settingsWindow.ShowDialog();
         }
         catch (Exception ex)

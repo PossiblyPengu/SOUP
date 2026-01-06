@@ -22,6 +22,7 @@ public partial class OrderLogWidgetWindow : Window
     // AppBar state
     private bool _isAppBarRegistered;
     private AppBarEdge _currentEdge = AppBarEdge.None;
+    private AppBarEdge _edgeBeforeMinimize = AppBarEdge.None;
     private int _appBarCallbackId;
     private HwndSource? _hwndSource;
     
@@ -102,6 +103,7 @@ public partial class OrderLogWidgetWindow : Window
         Loaded += OnLoaded;
         Closing += OnClosing;
         SourceInitialized += OnSourceInitialized;
+        StateChanged += OnStateChanged;
         
         ApplyTheme();
     }
@@ -193,6 +195,20 @@ public partial class OrderLogWidgetWindow : Window
         if (!mainWindowVisible)
         {
             Application.Current.Shutdown();
+        }
+    }
+
+    private void OnStateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Normal && _edgeBeforeMinimize != AppBarEdge.None)
+        {
+            // Restored from minimized - re-register AppBar at previous edge
+            RegisterAppBar();
+            _currentEdge = _edgeBeforeMinimize;
+            PositionAppBar();
+            _edgeBeforeMinimize = AppBarEdge.None;
+            
+            Log.Debug("AppBar re-registered after restore at edge: {Edge}", _currentEdge);
         }
     }
 
@@ -417,6 +433,9 @@ public partial class OrderLogWidgetWindow : Window
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
+        // Store current edge position before unregistering
+        _edgeBeforeMinimize = _currentEdge;
+        
         // Unregister AppBar to release screen space while minimized
         if (_isAppBarRegistered)
         {

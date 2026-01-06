@@ -922,7 +922,7 @@
 
         <!-- Notes List with bottom fade overlay -->
         <Grid Grid.Row="2">
-            <ScrollViewer x:Name="MainScrollViewer" Padding="16,16,16,32" Style="{StaticResource WidgetScrollViewerStyle}">
+            <ScrollViewer x:Name="MainScrollViewer" Padding="16,8,16,24" Style="{StaticResource WidgetScrollViewerStyle}">
                 <Grid>
                     <!-- Active Notes Panel -->
                     <StackPanel x:Name="ActiveItemsPanel">

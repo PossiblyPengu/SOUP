@@ -15,6 +15,16 @@ namespace SOUP.Core.Entities.EssentialsBuddy;
 public class InventoryItem : BaseEntity
 {
     /// <summary>
+    /// Global default for low stock threshold when item doesn't have one set.
+    /// </summary>
+    public static int GlobalLowStockThreshold { get; set; } = 10;
+    
+    /// <summary>
+    /// Global default for sufficient stock threshold when item doesn't have one set.
+    /// </summary>
+    public static int GlobalSufficientThreshold { get; set; } = 100;
+
+    /// <summary>
     /// Gets or sets the item number identifier.
     /// </summary>
     public string ItemNumber { get; set; } = string.Empty;
@@ -138,18 +148,20 @@ public class InventoryItem : BaseEntity
 
     /// <summary>
     /// Calculates the inventory status based on current quantity and thresholds.
+    /// Uses per-item thresholds if set, otherwise falls back to global defaults.
     /// </summary>
     /// <returns>The calculated inventory status.</returns>
     private InventoryStatus CalculateStatus()
     {
-        if (MinimumThreshold is null)
-            return InventoryStatus.InStock;
+        // Use per-item threshold if set, otherwise use global default
+        var lowThreshold = MinimumThreshold ?? GlobalLowStockThreshold;
+        var sufficientThreshold = MaximumThreshold ?? GlobalSufficientThreshold;
 
         return QuantityOnHand switch
         {
             0 => InventoryStatus.OutOfStock,
-            var q when q < MinimumThreshold => InventoryStatus.Low,
-            var q when MaximumThreshold.HasValue && q > MaximumThreshold => InventoryStatus.Sufficient,
+            var q when q < lowThreshold => InventoryStatus.Low,
+            var q when q > sufficientThreshold => InventoryStatus.Sufficient,
             _ => InventoryStatus.InStock
         };
     }

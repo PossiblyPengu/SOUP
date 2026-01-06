@@ -168,4 +168,20 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
             throw;
         }
     }
+
+    public virtual Task<int> HardDeleteAllAsync()
+    {
+        try
+        {
+            // Hard delete - permanently remove all documents from collection
+            var count = Collection.DeleteAll();
+            Logger?.LogInformation("Hard deleted {Count} entities from collection", count);
+            return Task.FromResult(count);
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Error hard deleting all entities");
+            throw;
+        }
+    }
 }

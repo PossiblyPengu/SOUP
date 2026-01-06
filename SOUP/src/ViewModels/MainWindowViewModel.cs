@@ -232,9 +232,10 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         try
         {
             var aboutWindow = new AboutWindow();
-            if (System.Windows.Application.Current?.MainWindow != null)
+            // Only set owner if MainWindow is visible (don't block widget when main window is hidden)
+            if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
             {
-                aboutWindow.Owner = System.Windows.Application.Current.MainWindow;
+                aboutWindow.Owner = mainWindow;
             }
             aboutWindow.ShowDialog();
             _logger?.LogInformation("Opened About dialog");
@@ -252,6 +253,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
             var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
+            // Only set owner if MainWindow is visible (don't block widget when main window is hidden)
+            if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
+            {
+                settingsWindow.Owner = mainWindow;
+            }
             settingsWindow.ShowDialog();
             _logger?.LogInformation("Opened unified settings window");
         }

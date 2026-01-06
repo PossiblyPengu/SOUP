@@ -228,8 +228,37 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     {
         if (_isInitialized) return;
         _isInitialized = true;
+        
+        // Load and apply settings for expiration thresholds
+        await LoadAndApplySettingsAsync();
         await LoadItems();
         UpdateAnalytics();
+    }
+
+    /// <summary>
+    /// Loads settings from the settings service and applies expiration thresholds globally.
+    /// </summary>
+    private async Task LoadAndApplySettingsAsync()
+    {
+        try
+        {
+            var settingsService = _serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+            if (settingsService != null)
+            {
+                var settings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ExpireWiseSettings>("ExpireWise");
+                
+                // Apply thresholds to the static properties on ExpirationItem
+                ExpirationItem.CriticalDaysThreshold = settings.CriticalThresholdDays;
+                ExpirationItem.WarningDaysThreshold = settings.WarningThresholdDays;
+                
+                _logger?.LogInformation("Applied ExpireWise settings: Critical={Critical} days, Warning={Warning} days", 
+                    settings.CriticalThresholdDays, settings.WarningThresholdDays);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to load ExpireWise settings, using defaults");
+        }
     }
 
     private void UpdateAnalytics()
@@ -814,6 +843,11 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         {
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
             var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
+            // Only set owner if MainWindow is visible (don't block widget)
+            if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
+            {
+                settingsWindow.Owner = mainWindow;
+            }
             settingsWindow.ShowDialog();
         }
         catch (Exception ex)

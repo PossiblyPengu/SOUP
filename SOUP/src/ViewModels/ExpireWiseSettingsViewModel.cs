@@ -169,14 +169,8 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
 
         try
         {
-            // Get all items and delete them
-            var items = await _repository.GetAllAsync();
-            var count = 0;
-            foreach (var item in items)
-            {
-                await _repository.DeleteAsync(item.Id);
-                count++;
-            }
+            // Hard delete all items permanently
+            var count = await _repository.HardDeleteAllAsync();
 
             await RefreshItemCountAsync();
             StatusMessage = $"✓ Successfully deleted {count} items";

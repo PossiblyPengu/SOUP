@@ -13,11 +13,12 @@ namespace SOUP.Core.Entities.ExpireWise;
 /// the last day of the expiry month for consistent comparisons.
 /// </para>
 /// <para>
-/// Status thresholds:
+/// Status thresholds can be configured via <see cref="CriticalDaysThreshold"/> and
+/// <see cref="WarningDaysThreshold"/> static properties:
 /// <list type="bullet">
-/// <item><description>Critical: 7 days or less until expiration</description></item>
-/// <item><description>Warning: 8-30 days until expiration</description></item>
-/// <item><description>Good: More than 30 days until expiration</description></item>
+/// <item><description>Critical: At or below critical threshold (default 7 days)</description></item>
+/// <item><description>Warning: At or below warning threshold (default 30 days)</description></item>
+/// <item><description>Good: More than warning threshold days until expiration</description></item>
 /// <item><description>Expired: Past expiration date</description></item>
 /// </list>
 /// </para>
@@ -25,14 +26,14 @@ namespace SOUP.Core.Entities.ExpireWise;
 public class ExpirationItem : BaseEntity
 {
     /// <summary>
-    /// Number of days until expiry to show critical status (7 days or less).
+    /// Number of days until expiry to show critical status (configurable, default 7 days).
     /// </summary>
-    public const int CriticalDaysThreshold = 7;
+    public static int CriticalDaysThreshold { get; set; } = 7;
 
     /// <summary>
-    /// Number of days until expiry to show warning status (30 days or less).
+    /// Number of days until expiry to show warning status (configurable, default 30 days).
     /// </summary>
-    public const int WarningDaysThreshold = 30;
+    public static int WarningDaysThreshold { get; set; } = 30;
 
     /// <summary>
     /// Gets or sets the item number identifier.
@@ -95,19 +96,20 @@ public class ExpirationItem : BaseEntity
 
     /// <summary>
     /// Calculates the expiration status based on days until expiry.
+    /// Uses configurable thresholds from <see cref="CriticalDaysThreshold"/> and <see cref="WarningDaysThreshold"/>.
     /// </summary>
     /// <returns>The calculated expiration status.</returns>
     private ExpirationStatus CalculateStatus()
     {
         var daysUntilExpiry = (ActualExpiryDate - DateTime.Today).Days;
 
-        return daysUntilExpiry switch
-        {
-            < 0 => ExpirationStatus.Expired,
-            <= CriticalDaysThreshold => ExpirationStatus.Critical,
-            <= WarningDaysThreshold => ExpirationStatus.Warning,
-            _ => ExpirationStatus.Good
-        };
+        if (daysUntilExpiry < 0)
+            return ExpirationStatus.Expired;
+        if (daysUntilExpiry <= CriticalDaysThreshold)
+            return ExpirationStatus.Critical;
+        if (daysUntilExpiry <= WarningDaysThreshold)
+            return ExpirationStatus.Warning;
+        return ExpirationStatus.Good;
     }
 
     /// <summary>
