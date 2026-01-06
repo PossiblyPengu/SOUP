@@ -40,6 +40,16 @@ public partial class OrderLogWidgetWindow : Window
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    private const int GWL_EXSTYLE = -20;
+    private const int WS_EX_NOACTIVATE = 0x08000000;
+    private const int WS_EX_TOOLWINDOW = 0x00000080;
+
     private const uint ABM_NEW = 0x00;
     private const uint ABM_REMOVE = 0x01;
     private const uint ABM_QUERYPOS = 0x02;
@@ -110,8 +120,14 @@ public partial class OrderLogWidgetWindow : Window
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
-        _hwndSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        var hwnd = new WindowInteropHelper(this).Handle;
+        _hwndSource = HwndSource.FromHwnd(hwnd);
         _hwndSource?.AddHook(WndProc);
+        
+        // Make the widget window not participate in modal dialog blocking
+        // WS_EX_TOOLWINDOW prevents it from being disabled when modal dialogs open
+        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
         
         // Register callback message
         _appBarCallbackId = RegisterWindowMessage("OrderLogAppBarCallback");
