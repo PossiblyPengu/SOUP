@@ -203,15 +203,45 @@ public partial class OrderLogWidgetWindow : Window
             _hwndSource = null;
         }
         
-        // Check if MainWindow is visible - if not, shut down the app
-        var mainWindowVisible = Application.Current.Windows
-            .OfType<MainWindow>()
-            .Any(w => w != null && w.IsVisible);
-        
-        if (!mainWindowVisible)
+        // If running on separate thread, just close - don't touch Application.Current
+        // The OnWidgetClosed event will handle app shutdown if needed
+        if (_isRunningOnSeparateThread)
         {
-            Application.Current.Shutdown();
+            OnWidgetClosed?.Invoke();
+            return;
         }
+        
+        // Legacy: Check if MainWindow is visible - if not, shut down the app
+        try
+        {
+            var mainWindowVisible = Application.Current?.Windows
+                .OfType<MainWindow>()
+                .Any(w => w != null && w.IsVisible) ?? false;
+            
+            if (!mainWindowVisible)
+            {
+                Application.Current?.Shutdown();
+            }
+        }
+        catch
+        {
+            // Ignore if Application.Current is not accessible
+        }
+    }
+    
+    /// <summary>
+    /// Event raised when widget is closed (for separate thread mode)
+    /// </summary>
+    public event Action? OnWidgetClosed;
+    
+    private bool _isRunningOnSeparateThread;
+    
+    /// <summary>
+    /// Marks this widget as running on a separate thread
+    /// </summary>
+    public void SetSeparateThreadMode()
+    {
+        _isRunningOnSeparateThread = true;
     }
 
     private void OnStateChanged(object? sender, EventArgs e)

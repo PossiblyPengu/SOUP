@@ -10,7 +10,9 @@ using SOUP.Windows;
 namespace SOUP.Services;
 
 /// <summary>
-/// Service that manages widget windows on separate threads to prevent modal dialog blocking
+/// Service that manages widget windows on separate threads to prevent modal dialog blocking.
+/// The widget runs completely independently and can continue working even when
+/// modal dialogs are open in the main application.
 /// </summary>
 public class WidgetThreadService : IDisposable
 {
@@ -20,6 +22,11 @@ public class WidgetThreadService : IDisposable
     private OrderLogWidgetWindow? _widgetWindow;
     private readonly object _lock = new();
     private bool _disposed;
+    
+    /// <summary>
+    /// Event raised when the widget is closed
+    /// </summary>
+    public event Action? WidgetClosed;
 
     public WidgetThreadService(IServiceProvider serviceProvider)
     {
@@ -49,53 +56,65 @@ public class WidgetThreadService : IDisposable
             }
 
             // Create new thread for widget
-            _widgetThread = new Thread(() =>
-            {
-                try
-                {
-                    // Create the widget window on this thread
-                    var viewModel = _serviceProvider.GetRequiredService<OrderLogViewModel>();
-                    _widgetWindow = new OrderLogWidgetWindow(viewModel, _serviceProvider);
-                    
-                    // Store the dispatcher for this thread
-                    _widgetDispatcher = Dispatcher.CurrentDispatcher;
-                    
-                    // Handle window closed to clean up
-                    _widgetWindow.Closed += (s, e) =>
-                    {
-                        lock (_lock)
-                        {
-                            _widgetWindow = null;
-                        }
-                        Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
-                    };
-                    
-                    _widgetWindow.Show();
-                    
-                    Log.Information("OrderLog widget started on separate thread");
-                    
-                    // Run the dispatcher for this thread
-                    Dispatcher.Run();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error running widget on separate thread");
-                }
-                finally
-                {
-                    lock (_lock)
-                    {
-                        _widgetDispatcher = null;
-                        _widgetThread = null;
-                    }
-                }
-            });
-
+            _widgetThread = new Thread(WidgetThreadProc);
             _widgetThread.SetApartmentState(ApartmentState.STA);
-            _widgetThread.IsBackground = true;
+            _widgetThread.IsBackground = false; // Keep app alive while widget is open
             _widgetThread.Name = "OrderLogWidgetThread";
             _widgetThread.Start();
         }
+    }
+    
+    private void WidgetThreadProc()
+    {
+        try
+        {
+            // Get services - these are thread-safe singletons
+            var viewModel = _serviceProvider.GetRequiredService<OrderLogViewModel>();
+            
+            // Create the widget window on this thread
+            _widgetWindow = new OrderLogWidgetWindow(viewModel, _serviceProvider);
+            _widgetWindow.SetSeparateThreadMode();
+            
+            // Store the dispatcher for this thread
+            _widgetDispatcher = Dispatcher.CurrentDispatcher;
+            
+            // Handle window closed to clean up
+            _widgetWindow.OnWidgetClosed += OnWidgetWindowClosed;
+            _widgetWindow.Closed += (s, e) =>
+            {
+                lock (_lock)
+                {
+                    _widgetWindow = null;
+                }
+                Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
+            };
+            
+            _widgetWindow.Show();
+            
+            Log.Information("OrderLog widget started on separate thread (ThreadId: {ThreadId})", 
+                Environment.CurrentManagedThreadId);
+            
+            // Run the dispatcher for this thread
+            Dispatcher.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error running widget on separate thread");
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                _widgetDispatcher = null;
+                _widgetThread = null;
+            }
+            Log.Information("Widget thread ended");
+        }
+    }
+    
+    private void OnWidgetWindowClosed()
+    {
+        WidgetClosed?.Invoke();
     }
 
     /// <summary>

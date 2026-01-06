@@ -319,9 +319,20 @@ public partial class App : Application
                 {
                     if (moduleConfig.OrderLogEnabled)
                     {
-                        // Launch widget on its own thread so it's independent of modal dialogs
+                        // Launch widget on its own thread - completely independent
                         var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
+                        
+                        // When widget closes, shut down the app
+                        widgetService.WidgetClosed += () =>
+                        {
+                            Log.Information("Widget closed, shutting down application");
+                            Dispatcher.Invoke(() => Shutdown());
+                        };
+                        
                         widgetService.ShowOrderLogWidget();
+                        
+                        // Don't show main window - just run the widget
+                        Log.Information("Running in widget-only mode");
                     }
                     else
                     {

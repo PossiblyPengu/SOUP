@@ -3210,7 +3210,14 @@
         </member>
         <member name="T:SOUP.Services.WidgetThreadService">
             <summary>
-            Service that manages widget windows on separate threads to prevent modal dialog blocking
+            Service that manages widget windows on separate threads to prevent modal dialog blocking.
+            The widget runs completely independently and can continue working even when
+            modal dialogs are open in the main application.
+            </summary>
+        </member>
+        <member name="E:SOUP.Services.WidgetThreadService.WidgetClosed">
+            <summary>
+            Event raised when the widget is closed
             </summary>
         </member>
         <member name="M:SOUP.Services.WidgetThreadService.ShowOrderLogWidget">
@@ -6061,6 +6068,16 @@
             OrderLogWidgetWindow
             </summary>
         </member>
+        <member name="E:SOUP.Windows.OrderLogWidgetWindow.OnWidgetClosed">
+            <summary>
+            Event raised when widget is closed (for separate thread mode)
+            </summary>
+        </member>
+        <member name="M:SOUP.Windows.OrderLogWidgetWindow.SetSeparateThreadMode">
+            <summary>
+            Marks this widget as running on a separate thread
+            </summary>
+        </member>
         <member name="M:SOUP.Windows.OrderLogWidgetWindow.ShowWidget">
             <summary>
             Show the widget window
@@ -6084,36 +6101,6 @@
         <member name="M:SOUP.Windows.SwiftLabelWindow.InitializeComponent">
             <summary>
             InitializeComponent
-            </summary>
-        </member>
-        <member name="T:XamlGeneratedNamespace.GeneratedInternalTypeHelper">
-            <summary>
-            GeneratedInternalTypeHelper
-            </summary>
-        </member>
-        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateInstance(System.Type,System.Globalization.CultureInfo)">
-            <summary>
-            CreateInstance
-            </summary>
-        </member>
-        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.GetPropertyValue(System.Reflection.PropertyInfo,System.Object,System.Globalization.CultureInfo)">
-            <summary>
-            GetPropertyValue
-            </summary>
-        </member>
-        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.SetPropertyValue(System.Reflection.PropertyInfo,System.Object,System.Object,System.Globalization.CultureInfo)">
-            <summary>
-            SetPropertyValue
-            </summary>
-        </member>
-        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateDelegate(System.Type,System.Object,System.String)">
-            <summary>
-            CreateDelegate
-            </summary>
-        </member>
-        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.AddEventHandler(System.Reflection.EventInfo,System.Object,System.Delegate)">
-            <summary>
-            AddEventHandler
             </summary>
         </member>
         <member name="T:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs">
