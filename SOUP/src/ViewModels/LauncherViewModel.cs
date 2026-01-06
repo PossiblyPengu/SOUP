@@ -18,6 +18,7 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<LauncherViewModel>? _logger;
     private readonly ModuleConfiguration _moduleConfig;
+    private readonly WidgetThreadService? _widgetThreadService;
     private bool _disposed;
 
     [ObservableProperty]
@@ -52,13 +53,15 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
         ThemeService themeService,
         NavigationService navigationService,
         IServiceProvider serviceProvider,
-        ILogger<LauncherViewModel>? logger = null)
+        ILogger<LauncherViewModel>? logger = null,
+        WidgetThreadService? widgetThreadService = null)
     {
         _themeService = themeService;
         _navigationService = navigationService;
         _serviceProvider = serviceProvider;
         _logger = logger;
         _moduleConfig = ModuleConfiguration.Instance;
+        _widgetThreadService = widgetThreadService;
 
         // Initialize dark mode state
         _isDarkMode = _themeService.IsDarkMode;
@@ -261,9 +264,20 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
             _logger?.LogWarning("Attempted to open disabled module widget: OrderLog");
             return;
         }
-        _logger?.LogInformation("Opening OrderLog widget");
-        var widget = _serviceProvider.GetRequiredService<Windows.OrderLogWidgetWindow>();
-        widget.ShowWidget();
+        _logger?.LogInformation("Opening OrderLog widget on separate thread");
+        
+        // Use the WidgetThreadService to open widget on its own thread
+        // This makes it independent from modal dialogs in the main app
+        if (_widgetThreadService != null)
+        {
+            _widgetThreadService.ShowOrderLogWidget();
+        }
+        else
+        {
+            // Fallback to same-thread widget if service not available
+            var widget = _serviceProvider.GetRequiredService<Windows.OrderLogWidgetWindow>();
+            widget.ShowWidget();
+        }
     }
 
 }

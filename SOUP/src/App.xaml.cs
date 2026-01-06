@@ -228,6 +228,7 @@ public partial class App : Application
         if (moduleConfig.OrderLogEnabled)
         {
             services.AddTransient<Windows.OrderLogWidgetWindow>();
+            services.AddSingleton<WidgetThreadService>();
         }
     }
 
@@ -318,8 +319,9 @@ public partial class App : Application
                 {
                     if (moduleConfig.OrderLogEnabled)
                     {
-                        var widgetWindow = _host.Services.GetRequiredService<Windows.OrderLogWidgetWindow>();
-                        widgetWindow.Show();
+                        // Launch widget on its own thread so it's independent of modal dialogs
+                        var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
+                        widgetService.ShowOrderLogWidget();
                     }
                     else
                     {
@@ -354,6 +356,10 @@ public partial class App : Application
     {
         try
         {
+            // Close widget thread if running
+            var widgetService = _host.Services.GetService<WidgetThreadService>();
+            widgetService?.Dispose();
+            
             // Save all app data before closing
             try
             {
