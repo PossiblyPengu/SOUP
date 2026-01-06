@@ -118,7 +118,7 @@ public partial class App : Application
     {
         // Database configuration
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var dbDir = Path.Combine(appDataPath, "SOUP", "Data");
+        var dbDir = Path.Combine(appDataPath, "SOUP", "Data");
         Directory.CreateDirectory(dbDir);
         var dbPath = Path.Combine(dbDir, "SOUP.db");
 
@@ -130,10 +130,17 @@ public partial class App : Application
         services.AddSingleton(_ => DictionaryDbContext.Instance);
 
         // Repositories - Singletons to match ViewModel lifetimes (prevents captive dependency)
+        // Only register repositories for enabled modules
         services.AddSingleton(typeof(IRepository<>), typeof(LiteDbRepository<>));
-        services.AddSingleton<IAllocationBuddyRepository, AllocationBuddyRepository>();
-        services.AddSingleton<IEssentialsBuddyRepository, EssentialsBuddyRepository>();
-        services.AddSingleton<IExpireWiseRepository, ExpireWiseRepository>();
+        
+        var moduleConfig = ModuleConfiguration.Instance;
+        
+        if (moduleConfig.AllocationBuddyEnabled)
+            services.AddSingleton<IAllocationBuddyRepository, AllocationBuddyRepository>();
+        if (moduleConfig.EssentialsBuddyEnabled)
+            services.AddSingleton<IEssentialsBuddyRepository, EssentialsBuddyRepository>();
+        if (moduleConfig.ExpireWiseEnabled)
+            services.AddSingleton<IExpireWiseRepository, ExpireWiseRepository>();
 
         // Application services
         services.AddSingleton<IFileImportExportService, FileImportExportService>();
@@ -155,30 +162,44 @@ public partial class App : Application
                 sp.GetService<ILogger<DictionaryManagementViewModel>>()));
 
         // ViewModels - AllocationBuddy (Singletons persist data across navigation)
-        services.AddSingleton<AllocationBuddyRPGViewModel>();
-        services.AddTransient<SelectLocationDialogViewModel>();
-        services.AddTransient<AllocationBuddySettingsViewModel>();
+        if (moduleConfig.AllocationBuddyEnabled)
+        {
+            services.AddSingleton<AllocationBuddyRPGViewModel>();
+            services.AddTransient<SelectLocationDialogViewModel>();
+            services.AddTransient<AllocationBuddySettingsViewModel>();
+        }
 
         // ViewModels - EssentialsBuddy (Singleton persists data across navigation)
-        services.AddSingleton<EssentialsBuddyViewModel>();
-        services.AddTransient<InventoryItemDialogViewModel>();
-        services.AddTransient<EssentialsBuddySettingsViewModel>();
+        if (moduleConfig.EssentialsBuddyEnabled)
+        {
+            services.AddSingleton<EssentialsBuddyViewModel>();
+            services.AddTransient<InventoryItemDialogViewModel>();
+            services.AddTransient<EssentialsBuddySettingsViewModel>();
+        }
 
         // ViewModels - ExpireWise (Singleton persists data across navigation)
-        services.AddSingleton<ExpireWiseViewModel>();
-        services.AddTransient<ExpirationItemDialogViewModel>();
-        services.AddTransient<ExpireWiseSettingsViewModel>();
+        if (moduleConfig.ExpireWiseEnabled)
+        {
+            services.AddSingleton<ExpireWiseViewModel>();
+            services.AddTransient<ExpirationItemDialogViewModel>();
+            services.AddTransient<ExpireWiseSettingsViewModel>();
+        }
 
         // ViewModels - OrderLog (persist with LiteDB, using singleton factory)
-        services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService>(sp =>
-            SOUP.Features.OrderLog.Services.OrderLogRepository.GetInstance(
-                sp.GetService<ILogger<SOUP.Features.OrderLog.Services.OrderLogRepository>>()));
-        services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>(); // Settings service for OrderLog widget
-        services.AddSingleton<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
-        services.AddSingleton<SOUP.Features.OrderLog.Services.GroupStateStore>();
+        if (moduleConfig.OrderLogEnabled)
+        {
+            services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService>(sp =>
+                SOUP.Features.OrderLog.Services.OrderLogRepository.GetInstance(
+                    sp.GetService<ILogger<SOUP.Features.OrderLog.Services.OrderLogRepository>>()));
+            services.AddSingleton<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.GroupStateStore>();
+        }
 
         // ViewModels - SwiftLabel
-        services.AddTransient<SwiftLabelViewModel>();
+        if (moduleConfig.SwiftLabelEnabled)
+        {
+            services.AddTransient<SwiftLabelViewModel>();
+        }
 
         // External Data Services (MySQL and Business Central)
         services.AddHttpClient("BusinessCentral", client =>
@@ -204,7 +225,10 @@ public partial class App : Application
 
         // Windows
         services.AddSingleton<MainWindow>();
-        services.AddSingleton<Windows.OrderLogWidgetWindow>();
+        if (moduleConfig.OrderLogEnabled)
+        {
+            services.AddTransient<Windows.OrderLogWidgetWindow>();
+        }
     }
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -240,29 +264,42 @@ public partial class App : Application
                 Log.Error(ex, "Failed to initialize dictionary database");
             }
 
-            // Load persisted data for all apps
+            // Load persisted data for enabled modules only
+            var moduleConfig = ModuleConfiguration.Instance;
             try
             {
-                var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
-                if (essentialsViewModel != null)
+                if (moduleConfig.EssentialsBuddyEnabled)
                 {
-                    await essentialsViewModel.LoadPersistedDataAsync();
+                    var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
+                    if (essentialsViewModel != null)
+                    {
+                        await essentialsViewModel.LoadPersistedDataAsync();
+                        Log.Information("EssentialsBuddy data loaded");
+                    }
                 }
 
-                var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
-                if (expireWiseViewModel != null)
+                if (moduleConfig.ExpireWiseEnabled)
                 {
-                    await expireWiseViewModel.LoadPersistedDataAsync();
+                    var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
+                    if (expireWiseViewModel != null)
+                    {
+                        await expireWiseViewModel.LoadPersistedDataAsync();
+                        Log.Information("ExpireWise data loaded");
+                    }
                 }
 
                 // AllocationBuddy auto-loads from archives via LoadArchivesAsync
-                var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
-                if (allocationViewModel != null)
+                if (moduleConfig.AllocationBuddyEnabled)
                 {
-                    await allocationViewModel.LoadMostRecentArchiveAsync();
+                    var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+                    if (allocationViewModel != null)
+                    {
+                        await allocationViewModel.LoadMostRecentArchiveAsync();
+                        Log.Information("AllocationBuddy data loaded");
+                    }
                 }
 
-                Log.Information("Persisted data loaded for all apps");
+                Log.Information("Persisted data loaded for enabled modules");
             }
             catch (Exception ex)
             {
@@ -279,8 +316,17 @@ public partial class App : Application
                 }
                 else if (e.Args[0].Equals("--widget", StringComparison.OrdinalIgnoreCase))
                 {
-                    var widgetWindow = _host.Services.GetRequiredService<Windows.OrderLogWidgetWindow>();
-                    widgetWindow.Show();
+                    if (moduleConfig.OrderLogEnabled)
+                    {
+                        var widgetWindow = _host.Services.GetRequiredService<Windows.OrderLogWidgetWindow>();
+                        widgetWindow.Show();
+                    }
+                    else
+                    {
+                        Log.Warning("OrderLog widget requested but module is disabled");
+                        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                        mainWindow.Show();
+                    }
                 }
                 else
                 {

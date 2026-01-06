@@ -183,6 +183,12 @@
             </Setter>
         </Style>
     </UserControl.Resources>
+    
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard Storyboard="{StaticResource FadeInStoryboard}"/>
+        </EventTrigger>
+    </UserControl.Triggers>
 
     <!-- Main Background - Dark -->
     <Border Background="{DynamicResource BackgroundBrush}">

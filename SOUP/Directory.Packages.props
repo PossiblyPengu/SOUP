@@ -27,5 +27,9 @@
     <!-- ===== Logging ===== -->
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    
+    <!-- ===== Code Analysis (Development Only) ===== -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.182" />
   </ItemGroup>
 </Project>

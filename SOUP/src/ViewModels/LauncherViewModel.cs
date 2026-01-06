@@ -97,7 +97,13 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void LaunchExpireWise()
     {
+        if (!IsExpireWiseEnabled)
+        {
+            _logger?.LogWarning("Attempted to launch disabled module: ExpireWise");
+            return;
+        }
         _logger?.LogInformation("Navigating to ExpireWise module");
+        EnsureMainWindowVisible();
         var viewModel = _serviceProvider.GetRequiredService<ExpireWiseViewModel>();
         _navigationService.NavigateToModule("ExpireWise", viewModel);
     }
@@ -105,7 +111,13 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void LaunchAllocationBuddy()
     {
+        if (!IsAllocationBuddyEnabled)
+        {
+            _logger?.LogWarning("Attempted to launch disabled module: AllocationBuddy");
+            return;
+        }
         _logger?.LogInformation("Navigating to AllocationBuddy RPG module");
+        EnsureMainWindowVisible();
         var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyRPGViewModel>();
         _navigationService.NavigateToModule("AllocationBuddy", viewModel);
     }
@@ -113,7 +125,13 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void LaunchEssentialsBuddy()
     {
+        if (!IsEssentialsBuddyEnabled)
+        {
+            _logger?.LogWarning("Attempted to launch disabled module: EssentialsBuddy");
+            return;
+        }
         _logger?.LogInformation("Navigating to EssentialsBuddy module");
+        EnsureMainWindowVisible();
         var viewModel = _serviceProvider.GetRequiredService<EssentialsBuddyViewModel>();
         _navigationService.NavigateToModule("EssentialsBuddy", viewModel);
     }
@@ -121,7 +139,13 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void LaunchSwiftLabel()
     {
+        if (!IsSwiftLabelEnabled)
+        {
+            _logger?.LogWarning("Attempted to launch disabled module: SwiftLabel");
+            return;
+        }
         _logger?.LogInformation("Navigating to SwiftLabel module");
+        EnsureMainWindowVisible();
         var viewModel = _serviceProvider.GetRequiredService<SwiftLabelViewModel>();
         _navigationService.NavigateToModule("SwiftLabel", viewModel);
     }
@@ -129,10 +153,28 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private async Task LaunchOrderLogAsync()
     {
+        if (!IsOrderLogEnabled)
+        {
+            _logger?.LogWarning("Attempted to launch disabled module: OrderLog");
+            return;
+        }
         _logger?.LogInformation("Navigating to OrderLog module");
+        EnsureMainWindowVisible();
         var viewModel = _serviceProvider.GetRequiredService<Features.OrderLog.ViewModels.OrderLogViewModel>();
         await viewModel.InitializeAsync();
         _navigationService.NavigateToModule("OrderLog", viewModel);
+    }
+
+    /// <summary>
+    /// Ensures the MainWindow is visible and activated (for when it's hidden due to widget mode)
+    /// </summary>
+    private static void EnsureMainWindowVisible()
+    {
+        if (Application.Current?.MainWindow is { } mainWindow && !mainWindow.IsVisible)
+        {
+            mainWindow.Show();
+            mainWindow.Activate();
+        }
     }
 
     [RelayCommand]
@@ -146,50 +188,79 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void PopOutExpireWise()
     {
+        if (!IsExpireWiseEnabled)
+        {
+            _logger?.LogWarning("Attempted to pop out disabled module: ExpireWise");
+            return;
+        }
         _logger?.LogInformation("Opening ExpireWise in new window");
         var viewModel = _serviceProvider.GetRequiredService<ExpireWiseViewModel>();
         var window = new Windows.ExpireWiseWindow(viewModel);
-        if (Application.Current?.MainWindow != null)
-            window.Owner = Application.Current.MainWindow;
+        // Only set owner if MainWindow is visible (not hidden due to widget mode)
+        if (Application.Current?.MainWindow is { } mainWindow && mainWindow.IsVisible)
+            window.Owner = mainWindow;
         window.Show();
     }
 
     [RelayCommand]
     private void PopOutAllocationBuddy()
     {
+        if (!IsAllocationBuddyEnabled)
+        {
+            _logger?.LogWarning("Attempted to pop out disabled module: AllocationBuddy");
+            return;
+        }
         _logger?.LogInformation("Opening AllocationBuddy RPG in new window");
         var viewModel = _serviceProvider.GetRequiredService<AllocationBuddyRPGViewModel>();
         var window = new Windows.AllocationBuddyWindow(viewModel);
-        if (Application.Current?.MainWindow != null)
-            window.Owner = Application.Current.MainWindow;
+        // Only set owner if MainWindow is visible (not hidden due to widget mode)
+        if (Application.Current?.MainWindow is { } mainWindow && mainWindow.IsVisible)
+            window.Owner = mainWindow;
         window.Show();
     }
 
     [RelayCommand]
     private void PopOutEssentialsBuddy()
     {
+        if (!IsEssentialsBuddyEnabled)
+        {
+            _logger?.LogWarning("Attempted to pop out disabled module: EssentialsBuddy");
+            return;
+        }
         _logger?.LogInformation("Opening EssentialsBuddy in new window");
         var viewModel = _serviceProvider.GetRequiredService<EssentialsBuddyViewModel>();
         var window = new Windows.EssentialsBuddyWindow(viewModel);
-        if (Application.Current?.MainWindow != null)
-            window.Owner = Application.Current.MainWindow;
+        // Only set owner if MainWindow is visible (not hidden due to widget mode)
+        if (Application.Current?.MainWindow is { } mainWindow && mainWindow.IsVisible)
+            window.Owner = mainWindow;
         window.Show();
     }
 
     [RelayCommand]
     private void PopOutSwiftLabel()
     {
+        if (!IsSwiftLabelEnabled)
+        {
+            _logger?.LogWarning("Attempted to pop out disabled module: SwiftLabel");
+            return;
+        }
         _logger?.LogInformation("Opening SwiftLabel in new window");
         var viewModel = _serviceProvider.GetRequiredService<SwiftLabelViewModel>();
         var window = new Windows.SwiftLabelWindow(viewModel);
-        if (Application.Current?.MainWindow != null)
-            window.Owner = Application.Current.MainWindow;
+        // Only set owner if MainWindow is visible (not hidden due to widget mode)
+        if (Application.Current?.MainWindow is { } mainWindow && mainWindow.IsVisible)
+            window.Owner = mainWindow;
         window.Show();
     }
 
     [RelayCommand]
     private void OpenOrderLogWidget()
     {
+        if (!IsOrderLogEnabled)
+        {
+            _logger?.LogWarning("Attempted to open disabled module widget: OrderLog");
+            return;
+        }
         _logger?.LogInformation("Opening OrderLog widget");
         var widget = _serviceProvider.GetRequiredService<Windows.OrderLogWidgetWindow>();
         widget.ShowWidget();

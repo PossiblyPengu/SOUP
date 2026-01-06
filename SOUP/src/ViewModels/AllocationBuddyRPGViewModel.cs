@@ -41,6 +41,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
 
+    private static readonly System.Text.Json.JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
+
     private readonly AllocationBuddyParser _parser;
     private readonly DialogService _dialogService;
     private readonly ILogger<AllocationBuddyRPGViewModel>? _logger;
@@ -1379,11 +1381,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             };
 
             // Save to file
-            var json = System.Text.Json.JsonSerializer.Serialize(archiveData, new System.Text.Json.JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-            await File.WriteAllTextAsync(filePath, json);
+            var json = System.Text.Json.JsonSerializer.Serialize(archiveData, s_jsonOptions);
+            await File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
 
             // Reload archives list
             await LoadArchivesAsync();
@@ -1681,11 +1680,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             };
 
             // Save to file
-            var json = System.Text.Json.JsonSerializer.Serialize(archiveData, new System.Text.Json.JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-            await File.WriteAllTextAsync(filePath, json);
+            var json = System.Text.Json.JsonSerializer.Serialize(archiveData, s_jsonOptions);
+            await File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
 
             _hasUnarchivedChanges = false;
             _logger?.LogInformation("{Prefix} allocation data ({Count} items)", prefix, TotalEntries);
@@ -1762,7 +1758,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public bool IsActive { get; set; } = true;
     }
 
-    private class ItemSnapshot
+    private sealed class ItemSnapshot
     {
         public string ItemNumber { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -1770,7 +1766,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public string? SKU { get; set; }
     }
 
-    private class DeactivationRecord
+    private sealed class DeactivationRecord
     {
         public LocationAllocation? Location { get; set; }
         public List<ItemSnapshot> Items { get; set; } = new();

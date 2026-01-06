@@ -8,7 +8,7 @@ namespace SOUP.Infrastructure.Services;
 /// <summary>
 /// Service for loading and saving application settings
 /// </summary>
-public class SettingsService
+public sealed class SettingsService
 {
     private readonly string _settingsDirectory;
     private readonly JsonSerializerOptions _jsonOptions;

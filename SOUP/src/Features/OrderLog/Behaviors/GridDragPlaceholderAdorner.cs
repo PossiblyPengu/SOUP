@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace SOUP.Features.OrderLog.Behaviors;
 
-internal class GridDragPlaceholderAdorner : Adorner
+internal sealed class GridDragPlaceholderAdorner : Adorner
 {
     private Rect _rect;
 

@@ -4,6 +4,7 @@ using System.Windows.Input;
 using SOUP.ViewModels;
 using SOUP.Windows;
 using SOUP.Features.OrderLog.Views;
+using SOUP.Services;
 
 namespace SOUP.Views;
 
@@ -17,14 +18,41 @@ public partial class UnifiedSettingsWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
         
+        // Hide tabs for disabled modules
+        var moduleConfig = ModuleConfiguration.Instance;
+        TabAllocation.Visibility = moduleConfig.AllocationBuddyEnabled ? Visibility.Visible : Visibility.Collapsed;
+        TabEssentials.Visibility = moduleConfig.EssentialsBuddyEnabled ? Visibility.Visible : Visibility.Collapsed;
+        TabExpireWise.Visibility = moduleConfig.ExpireWiseEnabled ? Visibility.Visible : Visibility.Collapsed;
+        TabOrderLog.Visibility = moduleConfig.OrderLogEnabled ? Visibility.Visible : Visibility.Collapsed;
+        
         // Initialize asynchronously on window load
         Loaded += OnWindowLoaded;
         
-        // Select initial tab if specified
+        // Select initial tab if specified, or first visible module tab
         if (!string.IsNullOrEmpty(initialTab))
         {
             SelectTab(initialTab);
         }
+        else
+        {
+            // Select first visible tab
+            SelectFirstVisibleTab();
+        }
+    }
+    
+    /// <summary>
+    /// Selects the first visible tab.
+    /// </summary>
+    private void SelectFirstVisibleTab()
+    {
+        if (TabAllocation.Visibility == Visibility.Visible)
+            TabAllocation.IsChecked = true;
+        else if (TabEssentials.Visibility == Visibility.Visible)
+            TabEssentials.IsChecked = true;
+        else if (TabExpireWise.Visibility == Visibility.Visible)
+            TabExpireWise.IsChecked = true;
+        else
+            TabDictionary.IsChecked = true; // Database is always available
     }
     
     /// <summary>
@@ -32,14 +60,30 @@ public partial class UnifiedSettingsWindow : Window
     /// </summary>
     public void SelectTab(string tabName)
     {
+        var moduleConfig = ModuleConfiguration.Instance;
         switch (tabName.ToLowerInvariant())
         {
-            case "allocation": TabAllocation.IsChecked = true; break;
-            case "essentials": TabEssentials.IsChecked = true; break;
-            case "expirewise": TabExpireWise.IsChecked = true; break;
-            case "dictionary": TabDictionary.IsChecked = true; break;
-            case "orderlog": TabOrderLog.IsChecked = true; break;
-            case "externaldata": TabExternalData.IsChecked = true; break;
+            case "allocation" when moduleConfig.AllocationBuddyEnabled: 
+                TabAllocation.IsChecked = true; 
+                break;
+            case "essentials" when moduleConfig.EssentialsBuddyEnabled: 
+                TabEssentials.IsChecked = true; 
+                break;
+            case "expirewise" when moduleConfig.ExpireWiseEnabled: 
+                TabExpireWise.IsChecked = true; 
+                break;
+            case "dictionary": 
+                TabDictionary.IsChecked = true; 
+                break;
+            case "orderlog" when moduleConfig.OrderLogEnabled: 
+                TabOrderLog.IsChecked = true; 
+                break;
+            case "externaldata": 
+                TabExternalData.IsChecked = true; 
+                break;
+            default:
+                SelectFirstVisibleTab();
+                break;
         }
     }
 

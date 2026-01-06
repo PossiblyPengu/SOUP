@@ -3511,7 +3511,7 @@ public partial class DungeonCrawler : Window
     #endregion
 
     #region Helper Classes
-    private class Enemy
+    private sealed class Enemy
     {
         public string Name { get; }
         public int MaxHealth { get; }
@@ -3533,7 +3533,7 @@ public partial class DungeonCrawler : Window
         }
     }
 
-    private class InventoryItem
+    private sealed class InventoryItem
     {
         public string Icon { get; }
         public string Name { get; }

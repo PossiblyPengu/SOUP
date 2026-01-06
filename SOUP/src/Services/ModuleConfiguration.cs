@@ -77,7 +77,7 @@ public class ModuleConfiguration
     private ModuleConfiguration()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                _iniConfigPath = Path.Combine(appDataPath, "SOUP", "modules.ini");
+        _iniConfigPath = Path.Combine(appDataPath, "SOUP", "modules.ini");
         
         // JSON config is in the app directory (created by installer)
         var appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -285,12 +285,12 @@ public class ModuleConfiguration
             var lines = new[]
             {
                 "[Modules]",
-                $"AllocationBuddy={AllocationBuddyEnabled.ToString().ToLower()}",
-                $"EssentialsBuddy={EssentialsBuddyEnabled.ToString().ToLower()}",
-                $"ExpireWise={ExpireWiseEnabled.ToString().ToLower()}",
-                $"SwiftLabel={SwiftLabelEnabled.ToString().ToLower()}",
-                $"OrderLog={OrderLogEnabled.ToString().ToLower()}",
-                $"FunStuff={FunStuffEnabled.ToString().ToLower()}",
+                $"AllocationBuddy={AllocationBuddyEnabled.ToString().ToLowerInvariant()}",
+                $"EssentialsBuddy={EssentialsBuddyEnabled.ToString().ToLowerInvariant()}",
+                $"ExpireWise={ExpireWiseEnabled.ToString().ToLowerInvariant()}",
+                $"SwiftLabel={SwiftLabelEnabled.ToString().ToLowerInvariant()}",
+                $"OrderLog={OrderLogEnabled.ToString().ToLowerInvariant()}",
+                $"FunStuff={FunStuffEnabled.ToString().ToLowerInvariant()}",
                 "",
                 "[Info]",
                 $"InstalledVersion={InstalledVersion ?? "unknown"}",

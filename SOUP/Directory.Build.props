@@ -14,7 +14,8 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
     
     <!-- Assembly Info -->
     <Company>PossiblyPengu</Company>
@@ -24,7 +25,47 @@
     
     <!-- Build Output -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    
+    <!-- Suppressed Warnings -->
+    <!-- CS1591: Missing XML comment (handled by GenerateDocumentationFile) -->
+    <!-- CA1848: Use LoggerMessage delegates (significant refactoring, low impact for WPF app) -->
+    <!-- CA1822: Member can be static (style preference) -->
+    <!-- CA1852: Type can be sealed (style preference) -->
+    <!-- CA1859: Change return type for performance (micro-optimization) -->
+    <!-- CA1861: Prefer static readonly arrays (micro-optimization) -->
+    <!-- CA1847: Use char overload (micro-optimization) -->
+    <!-- CA1304/CA1305/CA1311: Culture-specific formatting (internal app, not localized) -->
+    <!-- CA1862: String comparison style (style preference) -->
+    <!-- MA0004: ConfigureAwait (WPF apps need UI thread context) -->
+    <!-- MA0002: IEqualityComparer overload (style preference) -->
+    <!-- MA0006: string.Equals vs == (style preference, both valid) -->
+    <!-- MA0011: IFormatProvider overload (internal app, not localized) -->
+    <!-- MA0016: Collection abstraction (style preference) -->
+    <!-- MA0051: Method too long (style preference, refactoring cost) -->
+    <!-- MA0099: Explicit enum value (style preference) -->
+    <!-- MA0147: Async void delegate (event handlers require this pattern) -->
+    <!-- MA0048: File name must match type name (multiple converters per file is intentional) -->
+    <!-- CA1711: Type name ends in Dictionary (intentional naming for dictionary classes) -->
+    <!-- CA1805: Member initialized to default value (explicit initialization for clarity) -->
+    <!-- MA0046: Event handler signature (custom event patterns are intentional) -->
+    <!-- CA1051: Visible instance fields (protected fields in base classes) -->
+    <!-- CA1716: Parameter name conflicts with keyword (minor, internal API) -->
+    <!-- CA1000: Static members on generic types (Result<T> pattern is intentional) -->
+    <!-- CA2101: P/Invoke marshaling (legacy interop, working correctly) -->
+    <!-- MA0015: ArgumentException parameter name (minor style) -->
+    <!-- MA0025: NotSupportedException in converters (ConvertBack not used in WPF) -->
+    <!-- CA1513: ObjectDisposedException.ThrowIf (style preference) -->
+    <!-- CA1806: Unused return value from P/Invoke (intentional, fire-and-forget) -->
+    <!-- CA1869: JsonSerializerOptions caching (low frequency calls) -->
+    <!-- CA1854: TryGetValue vs ContainsKey (minor optimization) -->
+    <!-- MA0009: Regex DoS (internal app, trusted input) -->
+    <!-- MA0074: StartsWith/EndsWith StringComparison (internal app, ASCII only) -->
+    <!-- CA1310: StartsWith/EndsWith locale (internal app, ASCII only) -->
+    <!-- CA1866: StartsWith/EndsWith char (minor optimization) -->
+    <!-- CA1001: IDisposable (service lifetime managed by DI) -->
+    <!-- CA1507: Use nameof (string literals are intentional for serialization) -->
+    <!-- CA1838: StringBuilder P/Invoke (legacy interop pattern) -->
+    <NoWarn>$(NoWarn);CS1591;CA1848;CA1822;CA1852;CA1859;CA1861;CA1847;CA1304;CA1305;CA1311;CA1862;CA1711;CA1805;MA0004;MA0002;MA0006;MA0011;MA0016;MA0051;MA0099;MA0147;MA0048;MA0046;CA1051;CA1716;CA1000;CA2101;MA0015;MA0025;CA1513;CA1806;CA1869;CA1854;MA0009;MA0074;CA1310;CA1866;CA1001;CA1507;CA1838</NoWarn>
   </PropertyGroup>
 
   <!-- ============================================== -->

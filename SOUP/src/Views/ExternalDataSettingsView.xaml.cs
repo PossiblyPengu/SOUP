@@ -166,7 +166,7 @@ public partial class ExternalDataSettingsView : UserControl
 
     private const uint CREDUIWIN_ENUMERATE_ADMINS = 0x100;
 
-    private class CredentialResult
+    private sealed class CredentialResult
     {
         public bool Success { get; set; }
         public string? Username { get; set; }

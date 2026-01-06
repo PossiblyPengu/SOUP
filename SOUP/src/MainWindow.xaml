@@ -157,7 +157,8 @@
                     <StackPanel Grid.Row="0" Margin="24,32,24,24">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                             <Border Width="56" Height="56" CornerRadius="{DynamicResource AppLogoCornerRadius}"
-                                Background="{DynamicResource AppLogoGradient}">
+                                Background="{DynamicResource AppLogoGradient}"
+                                Style="{DynamicResource LogoBounceStyle}">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{DynamicResource AppLogoShadowColor}"/>
                                 </Border.Effect>
@@ -330,7 +331,8 @@
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource ExpireWiseIconGradient}">
+                                Background="{DynamicResource ExpireWiseIconGradient}"
+                                Style="{DynamicResource FloatingSplashIconStyle}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource ExpireWiseIconShadowColor}"/>
                             </Border.Effect>
@@ -345,13 +347,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="📅 Expiry Tracking" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="📊 Analytics" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="🔔 Smart Alerts" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -375,7 +377,8 @@
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource AllocationBuddyIconGradient}">
+                                Background="{DynamicResource AllocationBuddyIconGradient}"
+                                Style="{DynamicResource FloatingSplashIconStyle}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource AllocationBuddyIconShadowColor}"/>
                             </Border.Effect>
@@ -390,13 +393,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="🏪 Multi-Store" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="📋 BC Ready" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="📥 Excel Import" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -420,7 +423,8 @@
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource EssentialsBuddyIconGradient}">
+                                Background="{DynamicResource EssentialsBuddyIconGradient}"
+                                Style="{DynamicResource FloatingSplashIconStyle}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource EssentialsBuddyIconShadowColor}"/>
                             </Border.Effect>
@@ -435,13 +439,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="⭐ Essential Tracking" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="🎨 Status Colors" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="⚠️ Misplaced Alerts" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -465,7 +469,8 @@
                     
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource SwiftLabelIconGradient}">
+                                Background="{DynamicResource SwiftLabelIconGradient}"
+                                Style="{DynamicResource FloatingSplashIconStyle}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource SwiftLabelIconShadowColor}"/>
                             </Border.Effect>
@@ -480,13 +485,13 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,24"/>
                         
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="🖨️ Quick Print" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="📦 Box Labels" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="🏪 Store Info" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -511,7 +516,8 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
                         <!-- Large Icon -->
                         <Border Width="120" Height="120" CornerRadius="{DynamicResource SplashIconCornerRadius}" HorizontalAlignment="Center" Margin="0,0,0,32"
-                                Background="{DynamicResource OrderLogIconGradient}">
+                                Background="{DynamicResource OrderLogIconGradient}"
+                                Style="{DynamicResource FloatingSplashIconStyle}">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource OrderLogIconShadowColor}"/>
                             </Border.Effect>
@@ -529,13 +535,13 @@
                         
                         <!-- Features -->
                         <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,40">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="📋 Transfer Groups" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="🎨 Colour Coding" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="{DynamicResource BadgeCornerRadius}" Padding="14,8" Margin="4">
+                            <Border Style="{DynamicResource AnimatedFeatureBadgeStyle}">
                                 <TextBlock Text="✅ Status Tracking" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                             </Border>
                         </WrapPanel>
@@ -606,7 +612,7 @@
                     </Button>
                     
                     <!-- Widget (OrderLog) + Theme Toggle -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Command="{Binding LauncherViewModel.OpenOrderLogWidgetCommand}"
                                 Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=OrderLog}"
                                 Style="{DynamicResource SecondaryButtonStyle}"

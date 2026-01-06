@@ -89,17 +89,17 @@
             </Setter>
         </Style>
     </UserControl.Resources>
+    
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard Storyboard="{StaticResource FadeInStoryboard}"/>
+        </EventTrigger>
+    </UserControl.Triggers>
 
     <Grid Background="{DynamicResource BackgroundBrush}">
         <!-- Full Screen Welcome Screen (shown when no data) -->
-        <Grid Visibility="{Binding HasNoData, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Grid.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#0f0f23" Offset="0"/>
-                    <GradientStop Color="#1a1a2e" Offset="0.5"/>
-                    <GradientStop Color="#16213e" Offset="1"/>
-                </LinearGradientBrush>
-            </Grid.Background>
+        <Grid Visibility="{Binding HasNoData, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="{DynamicResource WelcomeScreenGradientBrush}">
             
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" 
@@ -396,7 +396,7 @@
                                                         <Setter.Value>
                                                             <VisualBrush Stretch="None" AlignmentX="Left">
                                                                 <VisualBrush.Visual>
-                                                                    <TextBlock Text="Search items..." Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,0"/>
+                                                                    <TextBlock Text="Search items..." Foreground="{DynamicResource TextTertiaryBrush}"/>
                                                                 </VisualBrush.Visual>
                                                             </VisualBrush>
                                                         </Setter.Value>

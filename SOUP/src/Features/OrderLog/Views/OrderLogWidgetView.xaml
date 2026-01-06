@@ -1640,7 +1640,14 @@
                         MouseLeftButtonDown="NowPlayingHeader_Click"
                         ToolTip="Click to expand • Double-click to open Spotify">
                     <Grid>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Left side: Equalizer/Icon -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Animated Equalizer Bars -->
                             <Canvas x:Name="EqualizerPanel" Width="14" Height="12" Margin="0,0,6,0" Visibility="Collapsed">
                                 <Rectangle x:Name="EqBar1" Canvas.Left="0" Canvas.Bottom="0" Width="3" Height="12" 
@@ -1667,13 +1674,43 @@
                             </Canvas>
                             <!-- Static music icon when not playing -->
                             <TextBlock x:Name="MusicIcon" Text="🎵" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
+                        </StackPanel>
+                        
+                        <!-- Center: Track Info - shows "Now Playing" when expanded, scrolling track/artist when collapsed -->
+                        <Grid Grid.Column="1" Margin="0,0,8,0" ClipToBounds="True">
+                            <!-- Expanded state: just shows "Now Playing" -->
                             <TextBlock x:Name="NowPlayingHeaderText" 
                                        Text="Now Playing" 
                                        FontSize="{DynamicResource CardFontSize}" 
                                        FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
+                            
+                            <!-- Collapsed state: scrolling track info spanning full width -->
+                            <Canvas x:Name="MarqueeContainer" Height="20" Visibility="Collapsed" ClipToBounds="True">
+                                <StackPanel x:Name="MarqueeContent" Orientation="Horizontal" Canvas.Top="0">
+                                    <StackPanel.RenderTransform>
+                                        <TranslateTransform x:Name="MarqueeTransform" X="0"/>
+                                    </StackPanel.RenderTransform>
+                                    <TextBlock x:Name="CollapsedTrackTitle"
+                                               FontSize="{DynamicResource CardFontSize}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text=" • "
+                                               FontSize="{DynamicResource CardFontSize}"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    <TextBlock x:Name="CollapsedArtistName"
+                                               FontSize="{DynamicResource CardFontSize}"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <!-- Spacer for seamless loop -->
+                                    <TextBlock x:Name="MarqueeSpacer" Text="          " FontSize="{DynamicResource CardFontSize}"/>
+                                </StackPanel>
+                            </Canvas>
+                        </Grid>
+                        
+                        <!-- Right side: Toggle icon -->
                         <TextBlock x:Name="NowPlayingToggleIcon" 
+                                   Grid.Column="2"
                                    Text="▲" 
                                    FontSize="10" 
                                    HorizontalAlignment="Right"

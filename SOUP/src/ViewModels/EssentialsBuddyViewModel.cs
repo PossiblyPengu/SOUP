@@ -38,6 +38,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
 
+    private static readonly JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
+    
     private readonly IEssentialsBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
     private readonly EssentialsBuddyParser _parser;
@@ -818,8 +820,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 }).ToList()
             };
 
-            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(GetDataFilePath(), json);
+            var json = JsonSerializer.Serialize(data, s_jsonOptions);
+            await File.WriteAllTextAsync(GetDataFilePath(), json).ConfigureAwait(false);
 
             _logger?.LogInformation("Saved EssentialsBuddy data: {Count} items", Items.Count);
         }
@@ -881,13 +883,13 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
     #region Persistence Data Classes
 
-    private class EssentialsBuddyData
+    private sealed class EssentialsBuddyData
     {
         public DateTime SavedAt { get; set; }
         public List<SavedInventoryItem> Items { get; set; } = new();
     }
 
-    private class SavedInventoryItem
+    private sealed class SavedInventoryItem
     {
         public string ItemNumber { get; set; } = string.Empty;
         public string Upc { get; set; } = string.Empty;

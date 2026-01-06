@@ -32,7 +32,7 @@
             <!-- Title Bar -->
             <DockPanel Grid.Row="0" LastChildFill="True" Background="{DynamicResource TitleBarBackgroundBrush}" Height="32">
                 <TextBlock Text="⚙" FontSize="16" VerticalAlignment="Center" Foreground="{DynamicResource TitleBarTextBrush}" Margin="10,0,6,0"/>
-                <TextBlock Text="About S.A.P" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center" Margin="0,0,0,0"/>
+                <TextBlock Text="About S.A.P" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center"/>
                 <Button Content="✕" Width="32" Height="24" Margin="0,4,4,4" Click="CloseButton_Click"
                     Background="{DynamicResource SurfaceActiveBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="2"
                     FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>

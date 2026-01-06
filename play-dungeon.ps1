@@ -23,10 +23,10 @@ Write-Host "  A silly-creepy adventure  " -ForegroundColor DarkMagenta
 Write-Host ""
 
 if ($MonoGame) {
-    $projectFile = Join-Path $scriptDir "FriendshipDungeonMG" "FriendshipDungeonMG.csproj"
+    $projectFile = Join-Path (Join-Path $scriptDir "FriendshipDungeonMG") "FriendshipDungeonMG.csproj"
     Write-Host "  [MonoGame Version]" -ForegroundColor Cyan
 } else {
-    $projectFile = Join-Path $scriptDir "FriendshipDungeon" "FriendshipDungeon.csproj"
+    $projectFile = Join-Path (Join-Path $scriptDir "FriendshipDungeon") "FriendshipDungeon.csproj"
     Write-Host "  [WPF Version]" -ForegroundColor Yellow
 }
 

@@ -10,7 +10,7 @@ namespace SOUP.Services.External;
 /// Data Access Layer for MySQL database - mirrors SAM's STAG_COMMON pattern.
 /// Uses connection-per-operation pattern for better reliability and connection pooling.
 /// </summary>
-public class MySqlDataService : IDisposable
+public sealed class MySqlDataService : IDisposable
 {
     private readonly ILogger<MySqlDataService>? _logger;
     private string? _connectionString;

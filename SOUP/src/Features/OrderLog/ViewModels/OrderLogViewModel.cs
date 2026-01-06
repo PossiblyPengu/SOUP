@@ -123,7 +123,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             if (Application.Current != null)
             {
+                // Update app-level resources
                 Application.Current.Resources["CardFontSize"] = value;
+                
+                // Also update any open OrderLogWidgetWindow instances
+                foreach (var window in Application.Current.Windows.OfType<SOUP.Windows.OrderLogWidgetWindow>())
+                {
+                    window.Resources["CardFontSize"] = value;
+                }
             }
 
             // persist

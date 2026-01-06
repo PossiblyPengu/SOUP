@@ -1565,126 +1565,158 @@ public class TextureGenerator
 
     private void DrawSharpCrayonSprite(Color[] data, int w, int h)
     {
-        // === UNCANNY WEAPON - A child's crayon sharpened to a lethal point ===
-        void P(int x, int y, Color c) { if (x >= 0 && x < w && y >= 0 && y < h) data[y * w + x] = c; }
+        // === SIMPLE BOLD CRAYON - Clear silhouette at 64x64 ===
         
-        // Burnt Sienna crayon colors (brown-orange, classic crayon)
-        Color C0 = new Color(255, 180, 140); // Highlight
-        Color C1 = new Color(205, 125, 90);  // Light
-        Color C2 = new Color(160, 85, 55);   // Mid (Burnt Sienna)
-        Color C3 = new Color(120, 60, 35);   // Dark
-        Color C4 = new Color(80, 40, 20);    // Shadow
+        // Colors
+        Color crayonLight = new Color(220, 140, 90);
+        Color crayonMid = new Color(180, 100, 60);
+        Color crayonDark = new Color(130, 65, 35);
+        Color paperLight = new Color(250, 245, 235);
+        Color paperMid = new Color(220, 210, 195);
+        Color paperDark = new Color(180, 165, 145);
+        Color blood = new Color(140, 30, 30);
+        Color bloodDark = new Color(90, 15, 15);
+        Color skinLight = new Color(255, 210, 180);
+        Color skinMid = new Color(220, 170, 140);
+        Color skinDark = new Color(180, 130, 100);
+        Color outline = new Color(40, 25, 15);
         
-        // Paper wrapper colors (aged/torn)
-        Color P0 = new Color(240, 235, 220); // Clean paper
-        Color P1 = new Color(200, 190, 170); // Aged
-        Color P2 = new Color(160, 150, 130); // Dirty
-        Color PB = new Color(30, 20, 15);    // Paper text (black)
+        // === BOLD HAND (simple block shape from bottom-right) ===
+        // Palm area
+        FillEllipseBold(data, w, h, 52, 50, 14, 18, skinMid, skinLight, skinDark, outline);
         
-        // Blood stains
-        Color B0 = new Color(140, 30, 30);
-        Color B1 = new Color(100, 20, 20);
-        Color B2 = new Color(60, 10, 10);
-        
-        // === CRAYON BODY (cylindrical, slightly warped from use) ===
-        for (int cx = 10; cx <= 52; cx++)
+        // Three visible fingers curving around
+        for (int f = 0; f < 3; f++)
         {
-            int baseY = 30;
-            int radius = 9;
-            // Slight waviness like it's been gripped hard
-            float warp = MathF.Sin(cx * 0.2f) * 1.5f;
-            
-            for (int cy = (int)(baseY - radius + warp); cy <= (int)(baseY + radius + warp); cy++)
+            int fy = 22 + f * 10;
+            // Finger as thick line
+            for (int fx = 54; fx >= 38; fx--)
             {
-                float normY = (cy - baseY - warp) / radius;
-                // Cylindrical shading
-                float light = MathF.Sqrt(1 - normY * normY);
-                int shade = (int)((1 - light) * 4);
-                shade = Math.Clamp(shade, 0, 4);
-                Color c = shade == 0 ? C1 : shade == 1 ? C2 : shade == 2 ? C3 : C4;
-                P(cx, cy, c);
+                int fingerY = fy + (54 - fx) / 4;
+                FillCircleBold(data, w, h, fx, fingerY, 4, skinMid, skinLight, skinDark, outline);
             }
         }
         
-        // === SHARPENED TIP (lethally pointed) ===
-        for (int tx = 0; tx < 12; tx++)
+        // Thumb
+        FillEllipseBold(data, w, h, 58, 34, 6, 10, skinMid, skinLight, skinDark, outline);
+        
+        // === CRAYON BODY (bold cylinder) ===
+        // Main crayon shaft
+        for (int x = 8; x <= 48; x++)
         {
+            bool isPaper = x >= 24 && x <= 44;
+            Color light = isPaper ? paperLight : crayonLight;
+            Color mid = isPaper ? paperMid : crayonMid;
+            Color dark = isPaper ? paperDark : crayonDark;
+            
+            // Draw vertical slice with shading
+            for (int y = 20; y <= 40; y++)
+            {
+                float shade = (y - 20) / 20f;
+                Color c;
+                if (shade < 0.3f) c = light;
+                else if (shade < 0.7f) c = mid;
+                else c = dark;
+                SetPixelSafe(data, w, h, x, y, c);
+            }
+        }
+        
+        // Top/bottom outline
+        for (int x = 8; x <= 48; x++)
+        {
+            SetPixelSafe(data, w, h, x, 19, outline);
+            SetPixelSafe(data, w, h, x, 41, outline);
+        }
+        
+        // === SHARP TIP (triangle) ===
+        for (int tx = 0; tx < 10; tx++)
+        {
+            int tipWidth = 10 - tx;
             int tipY = 30;
-            int tipRad = 9 - (tx * 9 / 12);
-            if (tipRad < 1) tipRad = 1;
-            
-            for (int ty = tipY - tipRad; ty <= tipY + tipRad; ty++)
+            for (int ty = -tipWidth; ty <= tipWidth; ty++)
             {
-                float normY = (float)(ty - tipY) / tipRad;
-                float light = MathF.Sqrt(1 - normY * normY);
-                int shade = (int)((1 - light) * 4) + tx / 4;
-                shade = Math.Clamp(shade, 0, 4);
-                Color c = shade == 0 ? C0 : shade == 1 ? C1 : shade == 2 ? C2 : shade == 3 ? C3 : C4;
-                P(10 - tx, ty, c);
+                float shade = (ty + tipWidth) / (2f * tipWidth + 1);
+                Color c = shade < 0.4f ? crayonLight : shade < 0.7f ? crayonMid : crayonDark;
+                SetPixelSafe(data, w, h, 7 - tx, tipY + ty, c);
             }
         }
-        // Extremely sharp point
-        P(-2, 30, C3); P(-3, 30, C4);
+        // Point
+        SetPixelSafe(data, w, h, -2, 30, crayonDark);
+        SetPixelSafe(data, w, h, -3, 30, outline);
         
-        // === PAPER WRAPPER (torn and aged) ===
-        for (int px = 24; px <= 48; px++)
+        // === BLOOD ON TIP ===
+        FillCircleBold(data, w, h, 2, 32, 3, blood, blood, bloodDark, bloodDark);
+        FillCircleBold(data, w, h, 0, 28, 2, blood, blood, bloodDark, bloodDark);
+        // Drip
+        for (int d = 0; d < 6; d++)
+            SetPixelSafe(data, w, h, 5, 42 + d, d % 2 == 0 ? blood : bloodDark);
+        
+        // === PAPER LABEL TEXT hint ===
+        for (int t = 0; t < 4; t++)
         {
-            int paperY = 30;
-            int paperRad = 10;
-            // Torn edge at one side
-            bool isTornEdge = px < 28 && (px + 30) % 3 == 0;
-            
-            if (!isTornEdge)
+            SetPixelSafe(data, w, h, 30 + t * 3, 28, outline);
+            SetPixelSafe(data, w, h, 30 + t * 3, 32, outline);
+        }
+    }
+    
+    // Bold filled ellipse with outline
+    private void FillEllipseBold(Color[] data, int w, int h, int cx, int cy, int rx, int ry, 
+        Color mid, Color light, Color dark, Color outline)
+    {
+        // Outline first
+        for (int y = -ry - 1; y <= ry + 1; y++)
+        {
+            for (int x = -rx - 1; x <= rx + 1; x++)
             {
-                for (int py = paperY - paperRad; py <= paperY + paperRad; py++)
-                {
-                    float normY = (float)(py - paperY) / paperRad;
-                    if (MathF.Abs(normY) > 0.9f) continue;
-                    
-                    float light = MathF.Sqrt(1 - normY * normY);
-                    int shade = (int)((1 - light) * 2);
-                    Color c = shade == 0 ? P0 : shade == 1 ? P1 : P2;
-                    P(px, py, c);
-                }
+                float d = (float)(x * x) / ((rx + 1) * (rx + 1)) + (float)(y * y) / ((ry + 1) * (ry + 1));
+                float dInner = (float)(x * x) / (rx * rx) + (float)(y * y) / (ry * ry);
+                if (d <= 1 && dInner > 1)
+                    SetPixelSafe(data, w, h, cx + x, cy + y, outline);
             }
         }
-        
-        // === CRAYOLA-STYLE TEXT "BURNT SIENNA" (barely readable) ===
-        // Simplified "BURNT" text
-        for (int tx = 28; tx <= 32; tx++) P(tx, 26, PB); // B
-        P(28, 27, PB); P(28, 28, PB); P(28, 29, PB); P(30, 28, PB);
-        
-        // === CREEPY CHILD'S SCRAWL on wrapper ===
-        // "HELP" scratched into the wrapper faintly
-        P(35, 33, B1); P(35, 34, B1); P(35, 35, B1); P(36, 34, B1); // H
-        P(37, 35, B1); // E
-        P(38, 33, B1); P(38, 34, B1); P(38, 35, B1); // L
-        P(40, 33, B1); P(40, 34, B1); // P
-        
-        // === BLOOD STAINS (dried, old) ===
-        // On the tip
-        P(2, 28, B0); P(3, 29, B1); P(4, 31, B0); P(5, 32, B1);
-        P(0, 30, B2); P(1, 31, B1); P(2, 32, B0);
-        // Drip down the side
-        P(15, 36, B1); P(15, 37, B0); P(14, 38, B1); P(15, 39, B2);
-        P(16, 40, B1); P(15, 41, B2);
-        
-        // === BITE MARKS (a child chewed on this) ===
-        for (int bx = 50; bx <= 52; bx++)
+        // Fill
+        for (int y = -ry; y <= ry; y++)
         {
-            P(bx, 25, C4); P(bx, 35, C4);
+            for (int x = -rx; x <= rx; x++)
+            {
+                float d = (float)(x * x) / (rx * rx) + (float)(y * y) / (ry * ry);
+                if (d > 1) continue;
+                
+                // Simple 3-band shading
+                float shade = (y + ry) / (2f * ry);
+                Color c = shade < 0.35f ? light : shade < 0.65f ? mid : dark;
+                SetPixelSafe(data, w, h, cx + x, cy + y, c);
+            }
         }
-        
-        // === ONE UNBLINKING EYE (scratched into the wax at the back) ===
-        // Eye carved into the flat back of the crayon
-        for (int ey = -3; ey <= 3; ey++)
-            for (int ex = -4; ex <= 4; ex++)
-                if (ex*ex/2 + ey*ey <= 9) P(54 + ex, 30 + ey, P0);
-        // Iris (unsettling brown)
-        P(54, 29, C4); P(55, 29, C4); P(54, 30, C4); P(55, 30, C4);
-        P(53, 30, C3); P(56, 30, C3);
-        // It's watching
-        P(54, 30, PB); P(55, 30, PB);
+    }
+    
+    // Bold filled circle with outline
+    private void FillCircleBold(Color[] data, int w, int h, int cx, int cy, int r,
+        Color mid, Color light, Color dark, Color outline)
+    {
+        FillEllipseBold(data, w, h, cx, cy, r, r, mid, light, dark, outline);
+    }
+    
+    // Simplified 2-color overload: fill and outline (auto-generates light/dark)
+    private void FillEllipseBold(Color[] data, int w, int h, int cx, int cy, int rx, int ry,
+        Color fill, Color outline)
+    {
+        Color light = new Color(
+            Math.Min(255, fill.R + 40),
+            Math.Min(255, fill.G + 40),
+            Math.Min(255, fill.B + 40));
+        Color dark = new Color(
+            Math.Max(0, fill.R - 40),
+            Math.Max(0, fill.G - 40),
+            Math.Max(0, fill.B - 40));
+        FillEllipseBold(data, w, h, cx, cy, rx, ry, fill, light, dark, outline);
+    }
+    
+    // Simplified 2-color circle overload
+    private void FillCircleBold(Color[] data, int w, int h, int cx, int cy, int r,
+        Color fill, Color outline)
+    {
+        FillEllipseBold(data, w, h, cx, cy, r, r, fill, outline);
     }
     
     // Simple rectangle fill for chunky pixel art
@@ -2437,159 +2469,124 @@ public class TextureGenerator
 
     private void DrawTeddyMawSprite(Color[] data, int w, int h)
     {
-        // === UNCANNY WEAPON - Mr. Huggles: A teddy bear whose mouth opens too wide ===
-        void P(int x, int y, Color c) { if (x >= 0 && x < w && y >= 0 && y < h) data[y * w + x] = c; }
+        // === SIMPLE BOLD TEDDY BEAR - Clear silhouette at 64x64 ===
         
-        // Faded brown teddy fur (loved too much)
-        Color F0 = new Color(200, 175, 145); // Highlight (worn)
-        Color F1 = new Color(170, 140, 105); // Light
-        Color F2 = new Color(140, 110, 75);  // Mid
-        Color F3 = new Color(105, 80, 50);   // Dark
-        Color F4 = new Color(70, 50, 30);    // Shadow
+        Color furLight = new Color(200, 170, 130);
+        Color furMid = new Color(160, 125, 85);
+        Color furDark = new Color(100, 70, 45);
+        Color furOutline = new Color(50, 35, 20);
         
-        // Inner mouth (fleshy, wrong)
-        Color M0 = new Color(180, 80, 90);   // Gum highlight
-        Color M1 = new Color(140, 50, 60);   // Flesh
-        Color M2 = new Color(100, 30, 40);   // Dark flesh
-        Color M3 = new Color(50, 15, 20);    // Throat void
+        Color mouthDark = new Color(40, 15, 20);
+        Color mouthMid = new Color(100, 40, 50);
+        Color teethWhite = new Color(250, 245, 235);
         
-        // Button eye (one missing)
-        Color BTN = new Color(20, 15, 10);
-        Color THR = new Color(180, 60, 60);  // Thread (red, like blood)
+        Color skinLight = new Color(255, 220, 195);
+        Color skinMid = new Color(220, 175, 145);
+        Color skinDark = new Color(160, 110, 85);
         
-        // Stitches
-        Color STH = new Color(80, 60, 40);
-        
-        Color BK = new Color(10, 5, 5);
-        
-        // === TEDDY BODY (round, huggable, worn) ===
-        int bodyCx = 38, bodyCy = 40;
-        for (int by = -16; by <= 16; by++)
-        {
-            for (int bx = -14; bx <= 14; bx++)
+        // === HAND (simple block from bottom-right) ===
+        for (int y = 48; y < 64; y++)
+            for (int x = 44; x < 64; x++)
             {
-                if (bx*bx/196f + by*by/256f > 1) continue;
-                float normX = (float)bx / 14;
-                float normY = (float)by / 16;
-                float light = 0.5f - normX * 0.3f - normY * 0.2f;
-                int shade = (int)((1 - light) * 4);
-                shade = Math.Clamp(shade, 0, 4);
-                Color c = shade == 0 ? F0 : shade == 1 ? F1 : shade == 2 ? F2 : shade == 3 ? F3 : F4;
-                P(bodyCx + bx, bodyCy + by, c);
+                Color c = (x + y) % 8 < 4 ? skinMid : skinLight;
+                if (x == 44 || y == 48) c = skinDark;
+                SetPixelSafe(data, w, h, x, y, c);
+            }
+        
+        // === TEDDY BODY (big round shape, bottom half) ===
+        FillEllipseBold(data, w, h, 32, 50, 18, 18, furMid, furOutline);
+        // Belly patch
+        FillEllipseBold(data, w, h, 32, 52, 10, 10, furLight, furMid);
+        
+        // === TEDDY HEAD (big round shape, upper half) ===
+        FillEllipseBold(data, w, h, 24, 26, 18, 16, furMid, furOutline);
+        // Light side
+        FillEllipseBold(data, w, h, 20, 22, 8, 7, furLight, furMid);
+        
+        // === EARS (simple circles) ===
+        FillCircleBold(data, w, h, 8, 14, 7, furMid, furOutline);
+        FillCircleBold(data, w, h, 8, 14, 4, mouthMid, furMid); // Inner ear pink
+        FillCircleBold(data, w, h, 38, 12, 7, furMid, furOutline);
+        FillCircleBold(data, w, h, 38, 12, 4, mouthMid, furMid);
+        
+        // === THE MAW (big dark hole with teeth) ===
+        // Mouth opening - wide gaping dark oval
+        FillEllipseBold(data, w, h, 24, 34, 14, 10, mouthDark, furOutline);
+        FillEllipseBold(data, w, h, 24, 34, 10, 6, new Color(20, 5, 8), mouthDark);
+        
+        // Upper teeth - simple white triangles
+        for (int t = 0; t < 5; t++)
+        {
+            int tx = 14 + t * 5;
+            SetPixelSafe(data, w, h, tx, 26, teethWhite);
+            SetPixelSafe(data, w, h, tx - 1, 27, teethWhite);
+            SetPixelSafe(data, w, h, tx, 27, teethWhite);
+            SetPixelSafe(data, w, h, tx + 1, 27, teethWhite);
+            SetPixelSafe(data, w, h, tx, 28, teethWhite);
+        }
+        // Lower teeth
+        for (int t = 0; t < 4; t++)
+        {
+            int tx = 16 + t * 5;
+            SetPixelSafe(data, w, h, tx, 42, teethWhite);
+            SetPixelSafe(data, w, h, tx - 1, 41, teethWhite);
+            SetPixelSafe(data, w, h, tx, 41, teethWhite);
+            SetPixelSafe(data, w, h, tx + 1, 41, teethWhite);
+            SetPixelSafe(data, w, h, tx, 40, teethWhite);
+        }
+        
+        // === BUTTON EYE (one big black circle) ===
+        FillCircleBold(data, w, h, 32, 20, 5, new Color(25, 20, 18), furOutline);
+        // Specular highlight
+        SetPixelSafe(data, w, h, 30, 18, new Color(150, 145, 140));
+        SetPixelSafe(data, w, h, 31, 19, new Color(100, 95, 90));
+        
+        // === MISSING EYE (dark hole with red thread) ===
+        FillCircleBold(data, w, h, 14, 22, 5, mouthDark, furOutline);
+        // Red thread dangling
+        Color threadRed = new Color(180, 50, 50);
+        for (int t = 0; t < 12; t++)
+        {
+            SetPixelSafe(data, w, h, 14 - t / 3, 27 + t, threadRed);
+        }
+        
+        // === TEDDY PAW (reaching out from right) ===
+        FillEllipseBold(data, w, h, 56, 36, 10, 8, furMid, furOutline);
+        // Pink paw pad
+        FillCircleBold(data, w, h, 56, 37, 4, mouthMid, furMid);
+        
+        // === STITCHES (visible line) ===
+        for (int s = 0; s < 6; s++)
+        {
+            SetPixelSafe(data, w, h, 42, 40 + s * 3, new Color(80, 55, 35));
+            SetPixelSafe(data, w, h, 43, 41 + s * 3, new Color(60, 40, 25));
+        }
+        
+        // === DROOL (dark drips from mouth) ===
+        for (int d = 0; d < 8; d++)
+        {
+            SetPixelSafe(data, w, h, 24, 44 + d, mouthMid);
+            if (d > 2) SetPixelSafe(data, w, h, 20, 46 + d, mouthDark);
+        }
+    }
+    
+    // Helper: Draw a 3D tooth
+    private void DrawTooth3D(Color[] data, int w, int h, int cx, int cy, int length, bool pointDown, Color[] palette)
+    {
+        int dir = pointDown ? 1 : -1;
+        for (int i = 0; i < length; i++)
+        {
+            int toothWidth = Math.Max(1, 2 - i / 2);
+            int ty = cy + i * dir;
+            
+            for (int dx = -toothWidth; dx <= toothWidth; dx++)
+            {
+                float light = 0.8f - (float)i / length * 0.4f - MathF.Abs(dx) * 0.15f;
+                int idx = (int)((1 - light) * (palette.Length - 1));
+                idx = Math.Clamp(idx, 0, palette.Length - 1);
+                SetPixelSafe(data, w, h, cx + dx, ty, palette[idx]);
             }
         }
-        
-        // === HEAD (tilted, staring) ===
-        int headCx = 18, headCy = 26;
-        for (int hy = -12; hy <= 12; hy++)
-        {
-            for (int hx = -11; hx <= 11; hx++)
-            {
-                if (hx*hx + hy*hy > 144) continue;
-                float normX = (float)hx / 11;
-                float normY = (float)hy / 12;
-                float light = 0.5f - normX * 0.3f - normY * 0.2f;
-                int shade = (int)((1 - light) * 4);
-                shade = Math.Clamp(shade, 0, 4);
-                Color c = shade == 0 ? F0 : shade == 1 ? F1 : shade == 2 ? F2 : shade == 3 ? F3 : F4;
-                P(headCx + hx, headCy + hy, c);
-            }
-        }
-        
-        // === EARS (round, floppy) ===
-        for (int ey = -5; ey <= 5; ey++)
-            for (int ex = -5; ex <= 5; ex++)
-                if (ex*ex + ey*ey <= 25) {
-                    P(8 + ex, 16 + ey, F2);
-                    P(28 + ex, 16 + ey, F2);
-                }
-        // Inner ear
-        for (int ey = -3; ey <= 3; ey++)
-            for (int ex = -3; ex <= 3; ex++)
-                if (ex*ex + ey*ey <= 9) {
-                    P(8 + ex, 16 + ey, M1);
-                    P(28 + ex, 16 + ey, M1);
-                }
-        
-        // === THE MAW (opens too wide, unhinging) ===
-        // Upper jaw lifted
-        for (int mx = -8; mx <= 8; mx++)
-        {
-            int jawY = 30 - Math.Abs(mx) / 3;
-            for (int my = jawY; my >= jawY - 4; my--)
-                P(headCx + mx, my, F3);
-        }
-        // Lower jaw dropped WAY down
-        for (int mx = -8; mx <= 8; mx++)
-        {
-            int jawY = 36 + Math.Abs(mx) / 2;
-            for (int my = 32; my <= jawY; my++)
-                P(headCx + mx, my, F3);
-        }
-        // The void inside (dark throat)
-        for (int my = 28; my <= 38; my++)
-        {
-            int mawWidth = 6 - Math.Abs(my - 33) / 2;
-            for (int mx = -mawWidth; mx <= mawWidth; mx++)
-            {
-                float depth = 1 - MathF.Abs(mx) / (mawWidth + 1f);
-                Color c = depth > 0.6f ? M3 : depth > 0.3f ? M2 : M1;
-                P(headCx + mx, my, c);
-            }
-        }
-        // Teeth (baby teeth, too many)
-        for (int tx = -5; tx <= 5; tx += 2)
-        {
-            P(headCx + tx, 29, Color.White);
-            P(headCx + tx, 30, new Color(240, 235, 220));
-            P(headCx + tx, 36, Color.White);
-            P(headCx + tx, 35, new Color(240, 235, 220));
-        }
-        
-        // === BUTTON EYE (one remaining, staring) ===
-        for (int ey = -4; ey <= 4; ey++)
-            for (int ex = -4; ex <= 4; ex++)
-                if (ex*ex + ey*ey <= 16) P(24 + ex, 22 + ey, BTN);
-        // Shine
-        P(22, 20, new Color(60, 55, 50));
-        
-        // === MISSING EYE (just thread and void) ===
-        // Empty socket
-        for (int ey = -3; ey <= 3; ey++)
-            for (int ex = -3; ex <= 3; ex++)
-                if (ex*ex + ey*ey <= 9) P(12 + ex, 22 + ey, M3);
-        // Dangling thread
-        P(12, 26, THR); P(11, 27, THR); P(12, 28, THR); P(10, 29, THR);
-        P(11, 30, THR); P(9, 31, THR);
-        
-        // === STITCHES (coming undone) ===
-        for (int sy = 0; sy < 20; sy += 3)
-        {
-            P(38, 32 + sy, STH); P(39, 33 + sy, STH);
-        }
-        // Loose thread
-        P(40, 50, STH); P(42, 51, STH); P(43, 53, STH); P(45, 54, STH);
-        
-        // === ARM (reaching toward you) ===
-        for (int ax = 0; ax < 14; ax++)
-        {
-            int armY = 36 + ax / 2;
-            for (int ay = -4; ay <= 4; ay++)
-                P(52 + ax, armY + ay, F2);
-        }
-        // Paw
-        for (int py = -5; py <= 5; py++)
-            for (int px = -5; px <= 5; px++)
-                if (px*px + py*py <= 25) P(66 + px, 44 + py, F1);
-        // Paw pad
-        for (int py = -2; py <= 2; py++)
-            for (int px = -2; px <= 2; px++)
-                if (px*px + py*py <= 4) P(66 + px, 44 + py, M1);
-        
-        // === SOMETHING DRIPPING from the mouth ===
-        Color DRIP = new Color(120, 40, 50);
-        P(18, 40, DRIP); P(17, 42, DRIP); P(18, 44, DRIP); 
-        P(16, 46, DRIP); P(17, 48, DRIP);
     }
     
     // Duke3D style vein helper
@@ -3002,151 +2999,126 @@ public class TextureGenerator
 
     private void DrawJackInTheGunSprite(Color[] data, int w, int h)
     {
-        // === UNCANNY WEAPON - Jack-in-the-Box with a gun barrel instead of a clown ===
-        void P(int x, int y, Color c) { if (x >= 0 && x < w && y >= 0 && y < h) data[y * w + x] = c; }
+        // === SIMPLE BOLD JACK-IN-THE-BOX - Clear silhouette at 64x64 ===
         
-        // Faded circus colors (old, sun-bleached)
-        Color RED = new Color(200, 70, 70);
-        Color REDD = new Color(150, 45, 45);
-        Color YEL = new Color(240, 210, 100);
-        Color YELD = new Color(190, 160, 70);
-        Color BLU = new Color(100, 130, 180);
-        Color BLUD = new Color(60, 90, 140);
+        Color redLight = new Color(255, 100, 100);
+        Color redMid = new Color(200, 60, 65);
+        Color redDark = new Color(140, 35, 40);
         
-        // Metal (gun barrel, crank)
-        Color M0 = new Color(180, 180, 190);
-        Color M1 = new Color(130, 130, 145);
-        Color M2 = new Color(85, 85, 100);
-        Color M3 = new Color(45, 45, 60);
+        Color yellowLight = new Color(255, 240, 120);
+        Color yellowMid = new Color(220, 190, 70);
+        Color yellowDark = new Color(160, 130, 40);
         
-        // Wood box (chipped paint)
-        Color W0 = new Color(160, 130, 90);
-        Color W1 = new Color(120, 95, 60);
-        Color W2 = new Color(80, 60, 35);
+        Color skinLight = new Color(255, 220, 195);
+        Color skinMid = new Color(220, 175, 145);
+        Color skinDark = new Color(160, 110, 85);
         
-        // Clown face (emerging from spring, twisted)
-        Color SKIN = new Color(255, 220, 200);
-        Color SKIND = new Color(200, 160, 140);
-        Color NOSE = new Color(255, 80, 80);
+        Color metalLight = new Color(180, 175, 165);
+        Color metalMid = new Color(130, 125, 115);
+        Color metalDark = new Color(70, 65, 60);
         
-        Color BK = new Color(15, 10, 10);
+        Color boxOutline = new Color(60, 40, 25);
         
-        // === THE BOX (slightly open, lid ajar) ===
-        // Front face
-        for (int by = 32; by <= 58; by++)
-        {
-            for (int bx = 28; bx <= 58; bx++)
+        // === HAND (simple block from bottom-right) ===
+        for (int y = 50; y < 64; y++)
+            for (int x = 50; x < 64; x++)
             {
-                int stripe = ((bx - 28) / 5 + (by - 32) / 5) % 2;
-                Color c = stripe == 0 ? (bx < 43 ? RED : REDD) : (bx < 43 ? YEL : YELD);
-                P(bx, by, c);
+                Color c = (x + y) % 8 < 4 ? skinMid : skinLight;
+                if (x == 50 || y == 50) c = skinDark;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
-        // Side of box
-        for (int by = 34; by <= 58; by++)
-        {
-            for (int bx = 58; bx <= 64; bx++)
-            {
-                P(bx, by, W1);
-            }
-        }
-        // Box edge highlight
-        for (int by = 32; by <= 58; by++) P(28, by, W0);
-        for (int bx = 28; bx <= 58; bx++) P(bx, 58, W2);
         
-        // === LID (open, hinged at back) ===
-        for (int ly = 24; ly <= 32; ly++)
+        // === THE BOX (bold striped square) ===
+        int boxL = 28, boxR = 62, boxT = 32, boxB = 62;
+        
+        for (int y = boxT; y <= boxB; y++)
         {
-            for (int lx = 28 - (32 - ly); lx <= 58 - (32 - ly) / 2; lx++)
+            for (int x = boxL; x <= boxR; x++)
             {
-                int stripe = ((lx - 20) / 5 + (ly - 24) / 3) % 2;
-                Color c = stripe == 0 ? BLU : BLUD;
-                P(lx, ly, c);
+                // Diagonal stripes
+                int stripe = ((x - boxL + y - boxT) / 6) % 2;
+                Color c = stripe == 0 ? redMid : yellowMid;
+                
+                // Edges darker
+                if (x == boxL || x == boxR || y == boxT || y == boxB)
+                    c = boxOutline;
+                else if (x == boxL + 1 || y == boxT + 1)
+                    c = stripe == 0 ? redLight : yellowLight;
+                else if (x == boxR - 1 || y == boxB - 1)
+                    c = stripe == 0 ? redDark : yellowDark;
+                    
+                SetPixelSafe(data, w, h, x, y, c);
             }
         }
         
-        // === THE SPRING (coiled, emerging) ===
-        for (int sy = 0; sy < 20; sy++)
+        // === LID (angled open lid) ===
+        for (int y = 24; y <= 32; y++)
         {
-            int springX = 20 - sy / 2;
-            float coil = MathF.Sin(sy * 0.8f) * 4;
-            for (int sw = -3; sw <= 3; sw++)
+            int xOffset = (32 - y) / 2;
+            for (int x = boxL - xOffset; x <= boxR - 4 - xOffset; x++)
             {
-                float light = 1 - MathF.Abs(sw) / 4f;
-                Color c = LerpColor(M2, M0, light);
-                P((int)(springX + coil + sw), 30 + sy / 2, c);
+                int stripe = ((x + y) / 5) % 2;
+                Color c = stripe == 0 ? new Color(100, 140, 200) : new Color(70, 100, 160);
+                if (y == 24 || y == 32 || x == boxL - xOffset || x == boxR - 4 - xOffset)
+                    c = new Color(40, 60, 100);
+                SetPixelSafe(data, w, h, x, y, c);
             }
         }
         
-        // === CLOWN HEAD (twisted, wrong) ===
-        int clownX = 10, clownY = 24;
-        // Face (pale)
-        for (int cy = -8; cy <= 8; cy++)
-            for (int cx = -7; cx <= 7; cx++)
-                if (cx*cx + cy*cy <= 56) {
-                    float light = 0.5f - cx * 0.05f - cy * 0.03f;
-                    Color c = light > 0.4f ? SKIN : SKIND;
-                    P(clownX + cx, clownY + cy, c);
-                }
-        // Red nose (too big)
-        for (int ny = -3; ny <= 3; ny++)
-            for (int nx = -3; nx <= 3; nx++)
-                if (nx*nx + ny*ny <= 9) P(clownX + nx, clownY + ny, NOSE);
+        // === THE SPRING (bold coiled zig-zag) ===
+        for (int i = 0; i < 12; i++)
+        {
+            int sy = 24 + i;
+            int sx = 20 + (i % 2) * 6;
+            FillCircleBold(data, w, h, sx, sy, 3, metalMid, metalDark);
+        }
         
-        // === BUT WHERE THE EYES SHOULD BE: GUN BARRELS ===
-        // Left barrel
-        for (int bx = 0; bx < 12; bx++)
-        {
-            for (int by = -2; by <= 2; by++)
-            {
-                float light = 1 - MathF.Abs(by) / 3f;
-                Color c = LerpColor(M3, M1, light);
-                P(clownX - 4 - bx, clownY - 3 + by, c);
-            }
-        }
-        // Right barrel
-        for (int bx = 0; bx < 12; bx++)
-        {
-            for (int by = -2; by <= 2; by++)
-            {
-                float light = 1 - MathF.Abs(by) / 3f;
-                Color c = LerpColor(M3, M1, light);
-                P(clownX - 4 - bx, clownY + 3 + by, c);
-            }
-        }
+        // === CLOWN HEAD (big round face) ===
+        int clownX = 14, clownY = 18;
+        FillCircleBold(data, w, h, clownX, clownY, 12, skinMid, skinDark);
+        // Light side
+        FillCircleBold(data, w, h, clownX - 3, clownY - 3, 5, skinLight, skinMid);
+        
+        // === BIG RED NOSE ===
+        FillCircleBold(data, w, h, clownX, clownY, 5, redMid, redDark);
+        SetPixelSafe(data, w, h, clownX - 2, clownY - 2, redLight);
+        
+        // === GUN BARREL EYES (two dark holes) ===
+        FillCircleBold(data, w, h, clownX - 5, clownY - 5, 4, metalDark, new Color(20, 15, 15));
+        FillCircleBold(data, w, h, clownX + 5, clownY - 5, 4, metalDark, new Color(20, 15, 15));
         // Dark barrel holes
-        P(-4, clownY - 3, BK); P(-3, clownY - 3, BK);
-        P(-4, clownY + 3, BK); P(-3, clownY + 3, BK);
+        SetPixelSafe(data, w, h, clownX - 5, clownY - 5, new Color(10, 5, 5));
+        SetPixelSafe(data, w, h, clownX + 5, clownY - 5, new Color(10, 5, 5));
         
-        // Clown smile (frozen, too wide)
-        for (int mx = -5; mx <= 5; mx++)
+        // Muzzle flash hint
+        SetPixelSafe(data, w, h, clownX - 9, clownY - 5, new Color(255, 255, 180));
+        SetPixelSafe(data, w, h, clownX - 8, clownY - 6, new Color(255, 240, 150));
+        
+        // === WIDE CREEPY SMILE ===
+        for (int mx = -7; mx <= 7; mx++)
         {
-            int smileY = clownY + 5 + Math.Abs(mx) / 2;
-            P(clownX + mx, smileY, BK);
-            P(clownX + mx, smileY + 1, new Color(100, 30, 40));
+            int smileY = clownY + 6 + Math.Abs(mx) / 2;
+            SetPixelSafe(data, w, h, clownX + mx, smileY, new Color(25, 10, 15));
+            SetPixelSafe(data, w, h, clownX + mx, smileY + 1, redDark);
         }
         
-        // === CRANK HANDLE (on side of box) ===
-        int crankX = 62, crankY = 46;
-        // Arm
-        for (int ca = 0; ca < 8; ca++)
-            P(crankX + ca, crankY, M1);
-        // Handle
-        for (int ch = -4; ch <= 4; ch++)
-            P(crankX + 8, crankY + ch, M0);
+        // === CRANK HANDLE (sticking out right side) ===
+        for (int cx = 0; cx < 10; cx++)
+        {
+            SetPixelSafe(data, w, h, 60 + cx, 46, metalMid);
+            SetPixelSafe(data, w, h, 60 + cx, 47, metalDark);
+        }
+        // Handle knob
+        FillCircleBold(data, w, h, 70, 47, 4, metalLight, metalDark);
         
-        // === MUZZLE FLASH (something just fired) ===
-        Color FLASH = new Color(255, 240, 150);
-        P(-6, clownY - 3, FLASH); P(-7, clownY - 4, FLASH); P(-7, clownY - 2, FLASH);
-        P(-6, clownY + 3, FLASH); P(-7, clownY + 4, FLASH); P(-7, clownY + 2, FLASH);
-        
-        // === MUSIC NOTE (the song is playing) ===
-        Color NOTE = new Color(60, 40, 80);
-        P(8, 12, NOTE); P(9, 11, NOTE); P(10, 11, NOTE);
-        P(8, 13, NOTE); P(8, 14, NOTE); P(8, 15, NOTE);
-        for (int ny = -2; ny <= 2; ny++)
-            for (int nx = -2; nx <= 2; nx++)
-                if (nx*nx + ny*ny <= 4) P(6 + nx, 16 + ny, NOTE);
+        // === MUSIC NOTE (floating) ===
+        Color noteColor = new Color(80, 60, 100);
+        SetPixelSafe(data, w, h, 6, 6, noteColor);
+        SetPixelSafe(data, w, h, 7, 5, noteColor);
+        SetPixelSafe(data, w, h, 8, 5, noteColor);
+        for (int ny = 6; ny <= 10; ny++)
+            SetPixelSafe(data, w, h, 6, ny, noteColor);
+        FillCircleBold(data, w, h, 4, 11, 2, noteColor, new Color(50, 35, 65));
     }
     
     // Duke3D style eye socket
@@ -3436,148 +3408,170 @@ public class TextureGenerator
 
     private void DrawMyFirstNailerSprite(Color[] data, int w, int h)
     {
-        // === UNCANNY WEAPON - Fisher-Price style "My First Nailer" - real nails ===
-        void P(int x, int y, Color c) { if (x >= 0 && x < w && y >= 0 && y < h) data[y * w + x] = c; }
+        // === SIMPLE BOLD TOY NAIL GUN - Clear silhouette at 64x64 ===
         
-        // Cheerful toy colors (primary colors, but wrong)
-        Color RED = new Color(230, 80, 80);
-        Color REDD = new Color(180, 50, 50);
-        Color YEL = new Color(255, 230, 100);
-        Color YELD = new Color(210, 180, 60);
-        Color BLU = new Color(100, 160, 230);
-        Color BLUD = new Color(60, 120, 180);
-        Color GRN = new Color(100, 200, 100);
-        Color GRND = new Color(60, 150, 60);
+        Color redLight = new Color(255, 110, 110);
+        Color redMid = new Color(210, 70, 75);
+        Color redDark = new Color(150, 40, 45);
         
-        // Metal nails (real, rusty, dangerous)
-        Color N0 = new Color(180, 175, 165);
-        Color N1 = new Color(140, 130, 120);
-        Color N2 = new Color(100, 90, 80);
-        Color RUST = new Color(160, 80, 50);
+        Color yellowLight = new Color(255, 245, 130);
+        Color yellowMid = new Color(220, 200, 80);
+        Color yellowDark = new Color(160, 140, 50);
         
-        // Blood
-        Color BLD = new Color(140, 30, 30);
+        Color blueLight = new Color(150, 200, 255);
+        Color blueMid = new Color(90, 140, 200);
+        Color blueDark = new Color(50, 90, 140);
         
-        Color BK = new Color(20, 15, 10);
-        Color WHT = new Color(255, 250, 240);
+        Color greenMid = new Color(80, 180, 80);
+        Color greenDark = new Color(45, 120, 45);
         
-        // === MAIN BODY (chunky, rounded toy shape) ===
-        for (int by = 20; by <= 44; by++)
-        {
-            int bodyWidth = 18 - Math.Abs(by - 32) / 3;
-            for (int bx = 30 - bodyWidth; bx <= 30 + bodyWidth; bx++)
+        Color nailLight = new Color(200, 195, 185);
+        Color nailMid = new Color(150, 145, 135);
+        Color nailDark = new Color(90, 85, 75);
+        
+        Color bloodRed = new Color(150, 40, 40);
+        
+        Color skinLight = new Color(255, 220, 195);
+        Color skinMid = new Color(220, 175, 145);
+        Color skinDark = new Color(160, 110, 85);
+        
+        // === HAND (block from bottom-right) ===
+        for (int y = 52; y < 64; y++)
+            for (int x = 38; x < 54; x++)
             {
-                float light = 0.5f - (bx - 30) * 0.02f - (by - 32) * 0.015f;
-                Color c = light > 0.45f ? RED : light > 0.35f ? REDD : new Color(140, 35, 35);
-                P(bx, by, c);
+                Color c = (x + y) % 6 < 3 ? skinMid : skinLight;
+                if (x == 38 || y == 52) c = skinDark;
+                SetPixelSafe(data, w, h, x, y, c);
+            }
+        
+        // === MAIN BODY (big chunky red rounded rectangle) ===
+        for (int y = 22; y <= 46; y++)
+        {
+            for (int x = 18; x <= 50; x++)
+            {
+                // Rounded corners
+                int dx = Math.Min(x - 18, 50 - x);
+                int dy = Math.Min(y - 22, 46 - y);
+                if (dx < 4 && dy < 4 && dx + dy < 5) continue;
+                
+                Color c = redMid;
+                // Simple 3-band shading
+                if (y < 28 || x < 24) c = redLight;
+                else if (y > 40 || x > 44) c = redDark;
+                
+                SetPixelSafe(data, w, h, x, y, c);
             }
         }
-        
-        // === BARREL (yellow tube, but a REAL nail sticks out) ===
-        for (int bx = 2; bx <= 18; bx++)
+        // Outline
+        for (int y = 24; y <= 44; y++)
         {
-            for (int by = 28; by <= 36; by++)
+            SetPixelSafe(data, w, h, 17, y, redDark);
+            SetPixelSafe(data, w, h, 51, y, redDark);
+        }
+        for (int x = 20; x <= 48; x++)
+        {
+            SetPixelSafe(data, w, h, x, 21, redDark);
+            SetPixelSafe(data, w, h, x, 47, redDark);
+        }
+        
+        // === YELLOW BARREL (thick cylinder pointing left) ===
+        for (int y = 28; y <= 38; y++)
+            for (int x = 2; x <= 18; x++)
             {
-                float light = 0.5f - (by - 32) * 0.08f;
-                Color c = light > 0.4f ? YEL : YELD;
-                P(bx, by, c);
+                Color c = yellowMid;
+                if (y < 31) c = yellowLight;
+                else if (y > 35) c = yellowDark;
+                SetPixelSafe(data, w, h, x, y, c);
+            }
+        // Barrel outline
+        for (int x = 2; x <= 18; x++)
+        {
+            SetPixelSafe(data, w, h, x, 27, yellowDark);
+            SetPixelSafe(data, w, h, x, 39, yellowDark);
+        }
+        // Barrel hole
+        FillCircleBold(data, w, h, 3, 33, 3, new Color(30, 25, 20), new Color(15, 10, 8));
+        
+        // === NAIL STICKING OUT (metal spike) ===
+        for (int x = -12; x <= 2; x++)
+        {
+            int nailY = 33;
+            int thick = x < -8 ? 1 : 2;
+            for (int dy = -thick; dy <= thick; dy++)
+            {
+                Color c = dy == 0 ? nailLight : (dy < 0 ? nailMid : nailDark);
+                SetPixelSafe(data, w, h, x, nailY + dy, c);
             }
         }
-        // Barrel opening
-        for (int by = 29; by <= 35; by++) { P(0, by, BK); P(1, by, BK); }
+        // Blood on nail tip
+        SetPixelSafe(data, w, h, -11, 32, bloodRed);
+        SetPixelSafe(data, w, h, -12, 33, bloodRed);
+        SetPixelSafe(data, w, h, -11, 34, bloodRed);
         
-        // === REAL NAIL sticking out (too sharp, too real) ===
-        // Nail shaft
-        for (int nx = -10; nx <= 0; nx++)
-        {
-            int nailY = 32;
-            P(nx, nailY - 1, N0); P(nx, nailY, N1); P(nx, nailY + 1, N2);
-        }
-        // Nail point (sharp!)
-        P(-11, 32, N1); P(-12, 32, N2); P(-13, 32, BK);
-        // Rust spots
-        P(-5, 31, RUST); P(-7, 33, RUST); P(-3, 32, RUST);
-        // Blood on tip
-        P(-11, 31, BLD); P(-12, 32, BLD); P(-11, 33, BLD);
-        
-        // === NAIL MAGAZINE (visible through window) ===
-        for (int my = 18; my <= 26; my++)
-        {
-            for (int mx = 24; mx <= 36; mx++)
+        // === NAIL MAGAZINE (blue box on top) ===
+        for (int y = 8; y <= 22; y++)
+            for (int x = 24; x <= 40; x++)
             {
-                P(mx, my, BLU);
+                Color c = blueMid;
+                if (y < 12) c = blueLight;
+                else if (y > 18) c = blueDark;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
-        // Window showing nails inside
-        for (int wy = 20; wy <= 24; wy++)
-            for (int wx = 26; wx <= 34; wx++)
-                P(wx, wy, new Color(220, 230, 240));
-        // Nails visible inside
+        // Window showing nails
+        for (int y = 11; y <= 19; y++)
+            for (int x = 27; x <= 37; x++)
+                SetPixelSafe(data, w, h, x, y, new Color(210, 225, 240));
+        // Nails inside
         for (int n = 0; n < 4; n++)
         {
-            int nx = 27 + n * 2;
-            P(nx, 21, N1); P(nx, 22, N1); P(nx, 23, N1);
-            P(nx, 24, N2);
+            int nx = 29 + n * 3;
+            for (int ny = 12; ny <= 18; ny++)
+                SetPixelSafe(data, w, h, nx, ny, nailMid);
         }
         
-        // === HANDLE (blue, chunky grip) ===
-        for (int hy = 44; hy <= 60; hy++)
-        {
-            int hw = 8 - (hy - 44) / 4;
-            if (hw < 4) hw = 4;
-            for (int hx = 32 - hw; hx <= 32 + hw; hx++)
+        // === HANDLE (blue grip going down) ===
+        for (int y = 46; y <= 62; y++)
+            for (int x = 26; x <= 42; x++)
             {
-                float light = 0.5f - (hx - 32) * 0.04f;
-                Color c = light > 0.4f ? BLU : BLUD;
-                P(hx, hy, c);
+                Color c = blueMid;
+                if (x < 30) c = blueLight;
+                else if (x > 38) c = blueDark;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
         
-        // === TRIGGER (green, big for small hands) ===
-        for (int ty = 46; ty <= 54; ty++)
+        // === TRIGGER (green button) ===
+        FillCircleBold(data, w, h, 46, 52, 5, greenMid, greenDark);
+        
+        // === LABEL (white rectangle with "MY 1ST") ===
+        for (int y = 32; y <= 40; y++)
+            for (int x = 24; x <= 44; x++)
+                SetPixelSafe(data, w, h, x, y, new Color(250, 248, 245));
+        // Red text hint
+        for (int t = 0; t < 4; t++)
         {
-            int tw = 4 - (ty - 46) / 3;
-            for (int tx = 36; tx <= 36 + tw; tx++)
-            {
-                P(tx, ty, ty < 50 ? GRN : GRND);
-            }
+            SetPixelSafe(data, w, h, 28 + t * 4, 35, redMid);
+            SetPixelSafe(data, w, h, 28 + t * 4, 37, redMid);
         }
         
-        // === "MY FIRST NAILER" LABEL ===
-        // White label background
-        for (int ly = 34; ly <= 42; ly++)
-            for (int lx = 20; lx <= 42; lx++)
-                P(lx, ly, WHT);
-        // Cheerful star
-        P(24, 36, YEL); P(23, 37, YEL); P(25, 37, YEL); P(24, 38, YEL);
-        P(22, 38, YEL); P(26, 38, YEL); P(24, 39, YEL); P(24, 40, YEL);
-        // Text hint "MY 1ST"
-        for (int tx = 28; tx <= 40; tx += 2) P(tx, 37, RED);
-        for (int tx = 28; tx <= 40; tx += 3) P(tx, 39, RED);
-        
-        // === SMILEY FACE (but wrong) ===
-        int smileX = 50, smileY = 30;
-        // Face circle
-        for (int sy = -6; sy <= 6; sy++)
-            for (int sx = -6; sx <= 6; sx++)
-                if (sx*sx + sy*sy <= 36) P(smileX + sx, smileY + sy, YEL);
-        // Eyes (one winking... or damaged?)
-        P(smileX - 2, smileY - 2, BK); P(smileX - 3, smileY - 2, BK);
-        // X for other eye (broken)
-        P(smileX + 2, smileY - 3, BK); P(smileX + 4, smileY - 1, BK);
-        P(smileX + 2, smileY - 1, BK); P(smileX + 4, smileY - 3, BK);
-        // Smile (too wide)
+        // === SMILEY FACE STICKER (yellow with X eye) ===
+        FillCircleBold(data, w, h, 54, 34, 7, yellowMid, yellowDark);
+        SetPixelSafe(data, w, h, 53, 33, yellowLight); // highlight
+        // Normal eye
+        SetPixelSafe(data, w, h, 51, 32, new Color(25, 20, 15));
+        SetPixelSafe(data, w, h, 52, 32, new Color(25, 20, 15));
+        // X eye (damaged)
+        SetPixelSafe(data, w, h, 55, 31, new Color(25, 20, 15));
+        SetPixelSafe(data, w, h, 57, 33, new Color(25, 20, 15));
+        SetPixelSafe(data, w, h, 57, 31, new Color(25, 20, 15));
+        SetPixelSafe(data, w, h, 55, 33, new Color(25, 20, 15));
+        // Smile
         for (int mx = -3; mx <= 3; mx++)
-            P(smileX + mx, smileY + 3 + Math.Abs(mx) / 2, BK);
+            SetPixelSafe(data, w, h, 54 + mx, 37 + Math.Abs(mx) / 2, new Color(25, 20, 15));
         
-        // === WARNING LABEL (small, ignored) ===
-        P(48, 42, WHT); P(49, 42, WHT); P(50, 42, WHT); P(51, 42, WHT);
-        P(49, 43, BK); // !
-        P(49, 45, BK);
-        
-        // === BLOOD SPLATTER (someone already used this) ===
-        P(14, 40, BLD); P(16, 41, BLD); P(13, 42, BLD);
-        P(46, 26, BLD); P(48, 27, BLD);
+        // === BLOOD SPLATTER ===
+        SetPixelSafe(data, w, h, 12, 42, bloodRed);
+        SetPixelSafe(data, w, h, 13, 43, bloodRed);
+        SetPixelSafe(data, w, h, 11, 44, bloodRed);
     }
     
     // === HELPER: Gloved finger ===
@@ -3815,147 +3809,149 @@ public class TextureGenerator
 
     private void DrawSippyCannonSprite(Color[] data, int w, int h)
     {
-        // === UNCANNY WEAPON - Sippy Cup with twin barrels, leaking something wrong ===
-        void P(int x, int y, Color c) { if (x >= 0 && x < w && y >= 0 && y < h) data[y * w + x] = c; }
+        // === SIMPLE BOLD SIPPY CUP - Clear silhouette at 64x64 ===
         
-        // Pastel baby colors (faded, stained)
-        Color PINK = new Color(255, 180, 200);
-        Color PINKD = new Color(220, 140, 160);
-        Color PINKDD = new Color(180, 100, 120);
-        Color BLU = new Color(180, 210, 240);
-        Color BLUD = new Color(140, 170, 200);
+        Color pinkLight = new Color(255, 200, 220);
+        Color pinkMid = new Color(235, 160, 185);
+        Color pinkDark = new Color(180, 110, 140);
         
-        // The liquid inside (not milk)
-        Color LIQ = new Color(80, 30, 40);
-        Color LIQD = new Color(50, 15, 25);
+        Color blueLight = new Color(200, 230, 255);
+        Color blueMid = new Color(140, 185, 230);
+        Color blueDark = new Color(90, 130, 180);
         
-        // Plastic
-        Color PL0 = new Color(240, 240, 245);
-        Color PL1 = new Color(200, 200, 210);
-        Color PL2 = new Color(160, 160, 175);
+        Color liquidDark = new Color(70, 30, 40);
+        Color liquidMid = new Color(100, 45, 55);
         
-        Color BK = new Color(15, 10, 12);
+        Color white = new Color(250, 250, 255);
+        Color whiteShade = new Color(220, 220, 230);
         
-        // === MAIN CUP BODY (round, baby-safe) ===
-        int cupX = 36, cupY = 34;
-        for (int cy = -18; cy <= 18; cy++)
-        {
-            int cupWidth = (int)(14 * MathF.Sqrt(1 - (cy * cy) / 400f));
-            for (int cx = -cupWidth; cx <= cupWidth; cx++)
+        Color skinLight = new Color(255, 220, 195);
+        Color skinMid = new Color(220, 175, 145);
+        Color skinDark = new Color(160, 110, 85);
+        
+        // === HAND (block from bottom-right) ===
+        for (int y = 44; y < 64; y++)
+            for (int x = 48; x < 64; x++)
             {
-                float light = 0.5f - cx * 0.025f - cy * 0.015f;
-                Color c = light > 0.45f ? PINK : light > 0.35f ? PINKD : PINKDD;
-                P(cupX + cx, cupY + cy, c);
+                Color c = (x + y) % 6 < 3 ? skinMid : skinLight;
+                if (x == 48 || y == 44) c = skinDark;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
         
-        // === TWIN SPOUTS (barrels) ===
-        // Top spout
-        for (int sx = -14; sx <= 0; sx++)
-        {
-            for (int sy = -3; sy <= 3; sy++)
+        // === MAIN CUP BODY (big oval shape) ===
+        FillEllipseBold(data, w, h, 36, 38, 16, 22, pinkMid, pinkDark);
+        // Highlight side
+        FillEllipseBold(data, w, h, 30, 32, 8, 12, pinkLight, pinkMid);
+        
+        // === TWIN SPOUTS/BARRELS (two blue tubes pointing left) ===
+        // Top barrel
+        for (int y = 22; y <= 30; y++)
+            for (int x = 4; x <= 22; x++)
             {
-                float light = 0.5f - sy * 0.12f;
-                Color c = light > 0.4f ? BLU : BLUD;
-                P(22 + sx, 26 + sy, c);
+                Color c = blueMid;
+                if (y < 25) c = blueLight;
+                else if (y > 27) c = blueDark;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
-        // Bottom spout
-        for (int sx = -14; sx <= 0; sx++)
-        {
-            for (int sy = -3; sy <= 3; sy++)
+        // Barrel hole
+        FillCircleBold(data, w, h, 5, 26, 3, new Color(30, 20, 25), new Color(15, 10, 12));
+        
+        // Bottom barrel
+        for (int y = 44; y <= 52; y++)
+            for (int x = 4; x <= 22; x++)
             {
-                float light = 0.5f - sy * 0.12f;
-                Color c = light > 0.4f ? BLU : BLUD;
-                P(22 + sx, 42 + sy, c);
+                Color c = blueMid;
+                if (y < 47) c = blueLight;
+                else if (y > 49) c = blueDark;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
-        // Spout holes (dark)
-        for (int sy = -2; sy <= 2; sy++) { P(6, 26 + sy, BK); P(7, 26 + sy, BK); }
-        for (int sy = -2; sy <= 2; sy++) { P(6, 42 + sy, BK); P(7, 42 + sy, BK); }
+        // Barrel hole
+        FillCircleBold(data, w, h, 5, 48, 3, new Color(30, 20, 25), new Color(15, 10, 12));
         
-        // === LIQUID DRIPPING from spouts (not milk) ===
-        // Top drip
-        P(4, 27, LIQ); P(3, 28, LIQ); P(2, 30, LIQD); P(3, 32, LIQ);
-        P(1, 34, LIQD); P(2, 36, LIQ);
-        // Bottom drip
-        P(4, 44, LIQ); P(2, 45, LIQD); P(3, 47, LIQ); P(1, 49, LIQD);
-        
-        // === HANDLES (baby grip handles on sides) ===
-        // Top handle
-        for (int ha = 0; ha < 10; ha++)
+        // === LIQUID DRIPPING ===
+        for (int d = 0; d < 8; d++)
         {
-            float angle = ha * 0.15f - 0.75f;
-            int hx = cupX + (int)(MathF.Cos(angle) * 18);
-            int hy = cupY - 8 + (int)(MathF.Sin(angle) * 8);
-            for (int ht = -3; ht <= 3; ht++)
-                P(hx, hy + ht, PINK);
-        }
-        // Bottom handle
-        for (int ha = 0; ha < 10; ha++)
-        {
-            float angle = ha * 0.15f + 0.75f;
-            int hx = cupX + (int)(MathF.Cos(angle) * 18);
-            int hy = cupY + 8 + (int)(MathF.Sin(angle) * 8);
-            for (int ht = -3; ht <= 3; ht++)
-                P(hx, hy + ht, PINK);
+            SetPixelSafe(data, w, h, 3 - d / 3, 31 + d, liquidMid);
+            SetPixelSafe(data, w, h, 2 - d / 4, 53 + d, liquidDark);
         }
         
-        // === LID (semi-transparent, see the liquid) ===
-        for (int ly = -6; ly <= 6; ly++)
+        // === HANDLES (curved pink grips on sides) ===
+        // Right handle arc
+        for (int a = 0; a < 8; a++)
         {
-            int lidWidth = 16 - Math.Abs(ly);
-            for (int lx = -lidWidth; lx <= lidWidth; lx++)
+            int hx = 52 + (int)(MathF.Cos(a * 0.25f - 0.5f) * 6);
+            int hy = 32 + a * 3;
+            FillCircleBold(data, w, h, hx, hy, 3, pinkMid, pinkDark);
+        }
+        
+        // === LID (dome on top showing dark liquid) ===
+        for (int y = 12; y <= 22; y++)
+            for (int x = 22; x <= 50; x++)
             {
-                float light = 0.6f - lx * 0.02f;
-                Color c = light > 0.5f ? PL0 : light > 0.4f ? PL1 : PL2;
-                P(cupX + lx, cupY - 14 + ly, c);
+                // Dome shape
+                int dx = x - 36;
+                int dy = y - 17;
+                if (dx * dx / 196f + dy * dy / 25f > 1) continue;
+                
+                Color c = whiteShade;
+                if (dy < -2) c = white;
+                SetPixelSafe(data, w, h, x, y, c);
             }
-        }
+        
         // Dark liquid visible through lid
-        for (int vy = -3; vy <= 3; vy++)
-            for (int vx = -8; vx <= 8; vx++)
-                if (vx*vx + vy*vy < 50) P(cupX + vx, cupY - 14 + vy, LIQD);
+        FillEllipseBold(data, w, h, 36, 17, 8, 4, liquidMid, liquidDark);
         
-        // === CUTE DECORATION (bunny face, but wrong) ===
-        int bunX = cupX, bunY = cupY;
-        // Bunny face circle
-        for (int by = -6; by <= 6; by++)
-            for (int bx = -6; bx <= 6; bx++)
-                if (bx*bx + by*by <= 36) P(bunX + bx, bunY + by, PL0);
-        // Ears
-        P(bunX - 4, bunY - 8, PL0); P(bunX - 4, bunY - 9, PL0); P(bunX - 4, bunY - 10, PL0);
-        P(bunX + 4, bunY - 8, PL0); P(bunX + 4, bunY - 9, PL0); P(bunX + 4, bunY - 10, PL0);
-        P(bunX - 4, bunY - 9, PINKD); // Inner ear
-        P(bunX + 4, bunY - 9, PINKD);
-        // Eyes (X's - dead bunny)
-        P(bunX - 3, bunY - 2, BK); P(bunX - 1, bunY - 2, BK);
-        P(bunX - 2, bunY - 1, BK); P(bunX - 2, bunY - 3, BK);
-        P(bunX + 3, bunY - 2, BK); P(bunX + 1, bunY - 2, BK);
-        P(bunX + 2, bunY - 1, BK); P(bunX + 2, bunY - 3, BK);
-        // Nose
-        P(bunX, bunY + 1, PINKD);
-        // Mouth (frown)
-        P(bunX - 2, bunY + 3, BK); P(bunX - 1, bunY + 4, BK);
-        P(bunX, bunY + 4, BK); P(bunX + 1, bunY + 4, BK); P(bunX + 2, bunY + 3, BK);
+        // === BUNNY FACE ON CUP (simple cute but wrong) ===
+        int bunX = 36, bunY = 38;
         
-        // === STAINS on the cup (old, used) ===
-        Color STAIN = new Color(160, 140, 130);
-        P(cupX + 8, cupY + 10, STAIN); P(cupX + 9, cupY + 11, STAIN);
-        P(cupX - 10, cupY + 5, STAIN); P(cupX - 11, cupY + 6, STAIN);
+        // Bunny face (white circle)
+        FillCircleBold(data, w, h, bunX, bunY, 9, white, whiteShade);
         
-        // === "NO-SPILL" LABEL (ironic) ===
-        for (int ly = 48; ly <= 52; ly++)
-            for (int lx = 28; lx <= 44; lx++)
-                P(lx, ly, PL0);
+        // Ears (tall ovals)
+        FillEllipseBold(data, w, h, bunX - 5, bunY - 14, 3, 6, white, whiteShade);
+        FillEllipseBold(data, w, h, bunX + 5, bunY - 14, 3, 6, white, whiteShade);
+        // Inner ear pink
+        SetPixelSafe(data, w, h, bunX - 5, bunY - 14, pinkMid);
+        SetPixelSafe(data, w, h, bunX + 5, bunY - 14, pinkMid);
+        
+        // X eyes (dead bunny)
+        Color eyeColor = new Color(25, 15, 20);
+        // Left X
+        SetPixelSafe(data, w, h, bunX - 4, bunY - 3, eyeColor);
+        SetPixelSafe(data, w, h, bunX - 2, bunY - 1, eyeColor);
+        SetPixelSafe(data, w, h, bunX - 4, bunY - 1, eyeColor);
+        SetPixelSafe(data, w, h, bunX - 2, bunY - 3, eyeColor);
+        // Right X
+        SetPixelSafe(data, w, h, bunX + 4, bunY - 3, eyeColor);
+        SetPixelSafe(data, w, h, bunX + 2, bunY - 1, eyeColor);
+        SetPixelSafe(data, w, h, bunX + 4, bunY - 1, eyeColor);
+        SetPixelSafe(data, w, h, bunX + 2, bunY - 3, eyeColor);
+        
+        // Pink nose
+        SetPixelSafe(data, w, h, bunX, bunY + 2, pinkMid);
+        SetPixelSafe(data, w, h, bunX - 1, bunY + 2, pinkMid);
+        SetPixelSafe(data, w, h, bunX + 1, bunY + 2, pinkMid);
+        
+        // Frown
+        for (int mx = -3; mx <= 3; mx++)
+            SetPixelSafe(data, w, h, bunX + mx, bunY + 5 - Math.Abs(mx) / 2, eyeColor);
+        
+        // === STAINS ===
+        Color stainColor = new Color(140, 120, 110);
+        SetPixelSafe(data, w, h, 46, 50, stainColor);
+        SetPixelSafe(data, w, h, 47, 51, stainColor);
+        
+        // === "NO-SPILL" LABEL ===
+        for (int ly = 0; ly < 4; ly++)
+            for (int lx = 0; lx < 12; lx++)
+                SetPixelSafe(data, w, h, 30 + lx, 54 + ly, white);
         // Text hint
-        for (int tx = 30; tx <= 42; tx += 2) P(tx, 50, PINKD);
+        for (int tx = 0; tx < 4; tx++)
+            SetPixelSafe(data, w, h, 32 + tx * 3, 56, pinkDark);
         
-        // === SOMETHING moving inside (bubbles? eyes?) ===
-        for (int ey = -2; ey <= 2; ey++)
-            for (int ex = -2; ex <= 2; ex++)
-                if (ex*ex + ey*ey <= 4) P(cupX + 4 + ex, cupY - 14 + ey, new Color(200, 180, 160));
-        P(cupX + 4, cupY - 14, BK); // Pupil???
+        // === EYEBALL IN LIQUID (creepy!) ===
+        FillCircleBold(data, w, h, 40, 17, 3, new Color(240, 230, 210), new Color(200, 190, 170));
+        SetPixelSafe(data, w, h, 40, 17, new Color(20, 15, 15)); // pupil
     }
     
     // Duke3D style screaming mouth

@@ -25,6 +25,9 @@ public partial class OrderLogWidgetView : UserControl
     private bool _showingArchivedTab = false;
     private SpotifyService? _spotifyService;
     private System.Windows.Threading.DispatcherTimer? _equalizerTimer;
+    private System.Windows.Threading.DispatcherTimer? _marqueeTimer;
+    private Storyboard? _marqueeStoryboard;
+    private bool _isMarqueeRunning = false;
     private Random _random = new Random();
     private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
     private Behaviors.GridDragBehavior? _gridDrag;
@@ -35,6 +38,7 @@ public partial class OrderLogWidgetView : UserControl
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         InitializeEqualizerTimer();
+        InitializeMarqueeTimer();
     }
 
     private void ActiveTab_Click(object sender, RoutedEventArgs e)
@@ -83,6 +87,98 @@ public partial class OrderLogWidgetView : UserControl
             Interval = TimeSpan.FromMilliseconds(150)
         };
         _equalizerTimer.Tick += (s, e) => AnimateEqualizerBars();
+    }
+
+    private void InitializeMarqueeTimer()
+    {
+        // Timer to periodically check if marquee should be running
+        _marqueeTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(100)
+        };
+        _marqueeTimer.Tick += MarqueeTimer_Tick;
+    }
+
+    private void MarqueeTimer_Tick(object? sender, EventArgs e)
+    {
+        // Only update marquee when collapsed and visible
+        if (_nowPlayingExpanded || MarqueeContainer.Visibility != Visibility.Visible)
+        {
+            StopMarquee();
+            return;
+        }
+
+        // Measure content width vs container width
+        MarqueeContent.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        double contentWidth = MarqueeContent.DesiredSize.Width;
+        double containerWidth = MarqueeContainer.ActualWidth;
+
+        if (contentWidth > containerWidth && !_isMarqueeRunning)
+        {
+            StartMarquee(contentWidth, containerWidth);
+        }
+        else if (contentWidth <= containerWidth && _isMarqueeRunning)
+        {
+            StopMarquee();
+        }
+    }
+
+    private void StartMarquee(double contentWidth, double containerWidth)
+    {
+        if (_isMarqueeRunning) return;
+        _isMarqueeRunning = true;
+
+        // Calculate animation duration based on content width (pixels per second)
+        double pixelsPerSecond = 40; // Adjust speed here
+        double scrollDistance = contentWidth;
+        double duration = scrollDistance / pixelsPerSecond;
+
+        // Create the scroll animation
+        _marqueeStoryboard = new Storyboard();
+        
+        var animation = new DoubleAnimationUsingKeyFrames
+        {
+            RepeatBehavior = RepeatBehavior.Forever
+        };
+
+        // Start at 0 (left edge)
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        
+        // Pause briefly at start
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(2))));
+        
+        // Scroll left (negative X) to show all content
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-scrollDistance + containerWidth, 
+            KeyTime.FromTimeSpan(TimeSpan.FromSeconds(2 + duration))));
+        
+        // Pause briefly at end
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-scrollDistance + containerWidth, 
+            KeyTime.FromTimeSpan(TimeSpan.FromSeconds(4 + duration))));
+        
+        // Quick reset to start
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, 
+            KeyTime.FromTimeSpan(TimeSpan.FromSeconds(4.5 + duration))));
+
+        Storyboard.SetTarget(animation, MarqueeTransform);
+        Storyboard.SetTargetProperty(animation, new PropertyPath(TranslateTransform.XProperty));
+        
+        _marqueeStoryboard.Children.Add(animation);
+        _marqueeStoryboard.Begin();
+    }
+
+    private void StopMarquee()
+    {
+        if (!_isMarqueeRunning) return;
+        _isMarqueeRunning = false;
+
+        _marqueeStoryboard?.Stop();
+        _marqueeStoryboard = null;
+        
+        // Reset position
+        if (MarqueeTransform != null)
+        {
+            MarqueeTransform.X = 0;
+        }
     }
 
     private void NowPlayingContent_MouseEnter(object sender, MouseEventArgs e)
@@ -299,6 +395,9 @@ public partial class OrderLogWidgetView : UserControl
         Unloaded -= OnUnloaded;
         
         _equalizerTimer?.Stop();
+        _marqueeTimer?.Stop();
+        StopMarquee();
+        
         if (_spotifyService != null)
         {
             _spotifyService.PropertyChanged -= SpotifyService_PropertyChanged;
@@ -456,29 +555,39 @@ public partial class OrderLogWidgetView : UserControl
             MusicIcon.Visibility = Visibility.Visible;
         }
 
-        // Update header text with current track if playing
-        if (!string.IsNullOrEmpty(_spotifyService.TrackTitle))
+        // Update header and collapsed view based on expand state
+        var track = _spotifyService.TrackTitle ?? "";
+        var artist = _spotifyService.ArtistName ?? "";
+        
+        if (_nowPlayingExpanded)
         {
-            if (_nowPlayingExpanded)
-            {
-                NowPlayingHeaderText.Text = "Now Playing";
-            }
-            else
-            {
-                // Show "Artist - Track" in collapsed mode
-                var artist = _spotifyService.ArtistName;
-                var track = _spotifyService.TrackTitle;
-                var display = !string.IsNullOrEmpty(artist) ? $"{artist} - {track}" : track;
-                
-                // Truncate if too long
-                NowPlayingHeaderText.Text = display.Length > 30 
-                    ? display.Substring(0, 27) + "..." 
-                    : display;
-            }
+            // Expanded: show "Now Playing" label, hide marquee
+            NowPlayingHeaderText.Visibility = Visibility.Visible;
+            NowPlayingHeaderText.Text = "Now Playing";
+            MarqueeContainer.Visibility = Visibility.Collapsed;
+            StopMarquee();
+            _marqueeTimer?.Stop();
         }
         else
         {
-            NowPlayingHeaderText.Text = "Now Playing";
+            // Collapsed: show scrolling track info, hide static label
+            NowPlayingHeaderText.Visibility = Visibility.Collapsed;
+            
+            if (!string.IsNullOrEmpty(track))
+            {
+                MarqueeContainer.Visibility = Visibility.Visible;
+                CollapsedTrackTitle.Text = track;
+                CollapsedArtistName.Text = artist;
+                _marqueeTimer?.Start();
+            }
+            else
+            {
+                // No track playing, show static "Now Playing"
+                MarqueeContainer.Visibility = Visibility.Collapsed;
+                NowPlayingHeaderText.Visibility = Visibility.Visible;
+                NowPlayingHeaderText.Text = "Now Playing";
+                _marqueeTimer?.Stop();
+            }
         }
     }
 

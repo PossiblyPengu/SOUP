@@ -15,7 +15,7 @@ namespace SOUP.Services.External;
 /// Business Central API client using OAuth 2.0 authentication
 /// Mirrors SAM's BC_Auth and BC_DAL patterns
 /// </summary>
-public class BusinessCentralService : IDisposable
+public sealed class BusinessCentralService : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<BusinessCentralService>? _logger;
@@ -330,7 +330,7 @@ public class BusinessCentralService : IDisposable
 
 #region Response Models
 
-internal class TokenResponse
+internal sealed class TokenResponse
 {
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = "";
@@ -342,7 +342,7 @@ internal class TokenResponse
     public string TokenType { get; set; } = "";
 }
 
-internal class ODataResponse<T>
+internal sealed class ODataResponse<T>
 {
     [JsonPropertyName("value")]
     public List<T> Value { get; set; } = new();

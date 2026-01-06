@@ -1064,7 +1064,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 
                 foreach (var cell in headerRow.CellsUsed())
                 {
-                    var headerText = cell.GetString().ToLower().Trim();
+                    var headerText = cell.GetString().ToLowerInvariant().Trim();
                     
                     // Check for store code/number column (e.g., "store #", "store code", "store number", "#")
                     if (headerText.Contains("#") || headerText.Contains("code") || headerText.Contains("number") || 
@@ -1089,7 +1089,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 {
                     var code = worksheet.Cell(row, codeCol).GetString().Trim();
                     var name = worksheet.Cell(row, nameCol).GetString().Trim();
-                    var rank = rankCol > 0 ? worksheet.Cell(row, rankCol).GetString().Trim().ToUpper() : "A";
+                    var rank = rankCol > 0 ? worksheet.Cell(row, rankCol).GetString().Trim().ToUpperInvariant() : "A";
                     
                     if (string.IsNullOrWhiteSpace(code))
                         continue;

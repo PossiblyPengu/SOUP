@@ -6,7 +6,7 @@ namespace SOUP.Infrastructure.Data;
 /// <summary>
 /// LiteDB database context wrapper for managing database connections and collections
 /// </summary>
-public class LiteDbContext : IDisposable
+public sealed class LiteDbContext : IDisposable
 {
     private readonly LiteDatabase _database;
     private bool _disposed;
@@ -31,19 +31,11 @@ public class LiteDbContext : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
         if (!_disposed)
         {
-            if (disposing)
-            {
-                _database?.Dispose();
-            }
+            _database?.Dispose();
             _disposed = true;
         }
+        GC.SuppressFinalize(this);
     }
 }

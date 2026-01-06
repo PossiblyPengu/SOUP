@@ -38,6 +38,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
 
+    private static readonly JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
+    
     private readonly IExpireWiseRepository _repository;
     private readonly IFileImportExportService _fileService;
     private readonly ExpireWiseParser _parser;
@@ -861,8 +863,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 }).ToList()
             };
 
-            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(GetDataFilePath(), json);
+            var json = JsonSerializer.Serialize(data, s_jsonOptions);
+            await File.WriteAllTextAsync(GetDataFilePath(), json).ConfigureAwait(false);
 
             _logger?.LogInformation("Saved ExpireWise data: {Count} items", Items.Count);
         }
@@ -922,13 +924,13 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         }
     }
 
-    private class ExpireWiseData
+    private sealed class ExpireWiseData
     {
         public DateTime SavedAt { get; set; }
         public List<SavedExpirationItem> Items { get; set; } = new();
     }
 
-    private class SavedExpirationItem
+    private sealed class SavedExpirationItem
     {
         public string ItemNumber { get; set; } = string.Empty;
         public string Upc { get; set; } = string.Empty;

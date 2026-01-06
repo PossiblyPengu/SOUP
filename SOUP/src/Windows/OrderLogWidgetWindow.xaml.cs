@@ -381,6 +381,12 @@ public partial class OrderLogWidgetWindow : Window
         
         // Then add color theme
         Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+        
+        // Re-apply CardFontSize from ViewModel after theme resources are loaded
+        if (_viewModel.CardFontSize > 0)
+        {
+            Resources["CardFontSize"] = _viewModel.CardFontSize;
+        }
     }
 
     private void OnThemeChanged(object? sender, bool isDarkMode)
