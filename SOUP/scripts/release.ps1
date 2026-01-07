@@ -2,14 +2,22 @@
 # SOUP Full Release Script
 # ============================================================================
 # Usage:
-#   .\scripts\release.ps1                  # Full release build + installer
-#   .\scripts\release.ps1 -BumpMinor       # Bump minor version first
-#   .\scripts\release.ps1 -BumpPatch       # Bump patch version first
+#   .\scripts\release.ps1                  # Interactive version bump + full release
+#   .\scripts\release.ps1 -Patch           # Bump patch version (4.6.2 -> 4.6.3)
+#   .\scripts\release.ps1 -Minor           # Bump minor version (4.6.2 -> 4.7.0)
+#   .\scripts\release.ps1 -Major           # Bump major version (4.6.2 -> 5.0.0)
+#   .\scripts\release.ps1 -Version 5.0.0   # Set specific version
+#   .\scripts\release.ps1 -DryRun          # Preview without making changes
+#   .\scripts\release.ps1 -SkipGit         # Build only, don't commit/tag/push
 # ============================================================================
 
 param(
-    [switch]$BumpMinor,
-    [switch]$BumpPatch
+    [switch]$Patch,
+    [switch]$Minor,
+    [switch]$Major,
+    [string]$Version,
+    [switch]$DryRun,
+    [switch]$SkipGit
 )
 
 $ErrorActionPreference = "Stop"
@@ -35,25 +43,85 @@ Write-Host ""
 # Get current version from csproj
 $csprojContent = Get-Content $csprojFile -Raw
 if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
-    $major = [int]$matches[1]
-    $minor = [int]$matches[2]
-    $patch = [int]$matches[3]
-    $currentVersion = "$major.$minor.$patch"
+    $majorNum = [int]$matches[1]
+    $minorNum = [int]$matches[2]
+    $patchNum = [int]$matches[3]
+    $currentVersion = "$majorNum.$minorNum.$patchNum"
     
-    Write-Host "Current version: $currentVersion" -ForegroundColor Cyan
+    Write-Host "Current version: v$currentVersion" -ForegroundColor Cyan
     
-    # Bump version if requested
-    if ($BumpMinor) {
-        $minor++
-        $patch = 0
-        $newVersion = "$major.$minor.$patch"
-        Write-Host "Bumping to: $newVersion" -ForegroundColor Yellow
-    } elseif ($BumpPatch) {
-        $patch++
-        $newVersion = "$major.$minor.$patch"
-        Write-Host "Bumping to: $newVersion" -ForegroundColor Yellow
-    } else {
-        $newVersion = $currentVersion
+    # Determine new version
+    if ($Version) {
+        if ($Version -match '^\d+\.\d+\.\d+$') {
+            $newVersion = $Version
+        } else {
+            Write-Host "ERROR: Invalid version format. Use X.Y.Z (e.g., 1.2.3)" -ForegroundColor Red
+            exit 1
+        }
+    }
+    elseif ($Major) {
+        $newVersion = "$($majorNum + 1).0.0"
+    }
+    elseif ($Minor) {
+        $newVersion = "$majorNum.$($minorNum + 1).0"
+    }
+    elseif ($Patch) {
+        $newVersion = "$majorNum.$minorNum.$($patchNum + 1)"
+    }
+    else {
+        # Interactive mode
+        Write-Host ""
+        Write-Host "Select version bump type:" -ForegroundColor Yellow
+        Write-Host "  [1] Patch  ($majorNum.$minorNum.$($patchNum + 1)) - Bug fixes"
+        Write-Host "  [2] Minor  ($majorNum.$($minorNum + 1).0) - New features"
+        Write-Host "  [3] Major  ($($majorNum + 1).0.0) - Breaking changes"
+        Write-Host "  [4] Custom - Enter specific version"
+        Write-Host "  [Q] Quit"
+        Write-Host ""
+        
+        $choice = Read-Host "Choice"
+        
+        switch ($choice) {
+            "1" { $newVersion = "$majorNum.$minorNum.$($patchNum + 1)" }
+            "2" { $newVersion = "$majorNum.$($minorNum + 1).0" }
+            "3" { $newVersion = "$($majorNum + 1).0.0" }
+            "4" {
+                $customVersion = Read-Host "Enter version (X.Y.Z)"
+                if ($customVersion -match '^\d+\.\d+\.\d+$') {
+                    $newVersion = $customVersion
+                } else {
+                    Write-Host "ERROR: Invalid version format!" -ForegroundColor Red
+                    exit 1
+                }
+            }
+            "q" { Write-Host "Aborted." -ForegroundColor Yellow; exit 0 }
+            "Q" { Write-Host "Aborted." -ForegroundColor Yellow; exit 0 }
+            default {
+                Write-Host "ERROR: Invalid choice!" -ForegroundColor Red
+                exit 1
+            }
+        }
+    }
+    
+    Write-Host "New version: v$newVersion" -ForegroundColor Green
+    $tagName = "v$newVersion"
+    
+    # Check if tag already exists
+    if (-not $SkipGit) {
+        $existingTag = git -C $rootDir tag -l $tagName
+        if ($existingTag) {
+            Write-Host "ERROR: Tag $tagName already exists!" -ForegroundColor Red
+            exit 1
+        }
+    }
+    
+    # Dry run check
+    if ($DryRun) {
+        Write-Host ""
+        Write-Host "DRY RUN - No changes will be made" -ForegroundColor Yellow
+        Write-Host "  Would update: $currentVersion -> $newVersion" -ForegroundColor Gray
+        Write-Host "  Would create tag: $tagName" -ForegroundColor Gray
+        exit 0
     }
     
     # Update version in files if changed
@@ -67,10 +135,21 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
         $csprojContent = $csprojContent -replace '<FileVersion>\d+\.\d+\.\d+\.\d+</FileVersion>', "<FileVersion>$newVersion.0</FileVersion>"
         Set-Content $csprojFile $csprojContent -NoNewline
         
-        # Update iss
+        # Update iss (installer)
         $issContent = Get-Content $issFile -Raw
         $issContent = $issContent -replace '#define MyAppVersion "\d+\.\d+\.\d+"', "#define MyAppVersion `"$newVersion`""
         Set-Content $issFile $issContent -NoNewline
+        
+        # Update AppVersion.cs
+        $appVersionFile = Join-Path $srcDir "Core\AppVersion.cs"
+        if (Test-Path $appVersionFile) {
+            $appVersionContent = Get-Content $appVersionFile -Raw
+            $appVersionContent = $appVersionContent -replace 'public const string Version = "[^"]+";', "public const string Version = `"$newVersion`";"
+            $today = Get-Date -Format "yyyy-MM-dd"
+            $appVersionContent = $appVersionContent -replace 'public const string BuildDate = "[^"]+";', "public const string BuildDate = `"$today`";"
+            Set-Content $appVersionFile $appVersionContent -NoNewline
+            Write-Host "  Updated AppVersion.cs" -ForegroundColor Green
+        }
         
         Write-Host "  Updated to $newVersion" -ForegroundColor Green
     }
@@ -102,7 +181,7 @@ Write-Host "[4/4] Creating installer..." -ForegroundColor Yellow
 Write-Host ""
 
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "  Release $newVersion Complete!" -ForegroundColor Green
+Write-Host "  Build Complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
@@ -115,3 +194,77 @@ Write-Host "Release artifacts:" -ForegroundColor White
 Write-Host "  Installer: $($installerFile.FullName)" -ForegroundColor Cyan
 Write-Host "  Framework: $(Join-Path $rootDir 'publish-framework')" -ForegroundColor White
 Write-Host "  Portable:  $(Join-Path $rootDir 'publish-portable')" -ForegroundColor White
+Write-Host ""
+
+# Git operations
+if (-not $SkipGit) {
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "  Git Release" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Run security check
+    Write-Host "Running security check..." -ForegroundColor Yellow
+    $securityScript = Join-Path $rootDir "scripts\security-check.ps1"
+    if (Test-Path $securityScript) {
+        $securityResult = & $securityScript
+        if (-not $?) {
+            Write-Host "ERROR: Security check failed!" -ForegroundColor Red
+            exit 1
+        }
+    }
+    
+    # Stage and commit
+    Write-Host ""
+    Write-Host "Committing changes..." -ForegroundColor Yellow
+    git -C $rootDir add -A
+    
+    $commitMessage = "Release v$newVersion"
+    git -C $rootDir commit -m $commitMessage
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "WARNING: Nothing to commit or commit failed" -ForegroundColor Yellow
+    } else {
+        Write-Host "  Committed: $commitMessage" -ForegroundColor Green
+    }
+    
+    # Push commit
+    Write-Host ""
+    Write-Host "Pushing to origin..." -ForegroundColor Yellow
+    git -C $rootDir push
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Failed to push!" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  Pushed to origin" -ForegroundColor Green
+    
+    # Create and push tag
+    Write-Host ""
+    Write-Host "Creating tag $tagName..." -ForegroundColor Yellow
+    git -C $rootDir tag -a $tagName -m "Release $tagName"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Failed to create tag!" -ForegroundColor Red
+        exit 1
+    }
+    
+    Write-Host "Pushing tag to origin..." -ForegroundColor Yellow
+    git -C $rootDir push origin $tagName
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Failed to push tag!" -ForegroundColor Red
+        exit 1
+    }
+    
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "  Release v$newVersion Published!" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "GitHub Actions will now create the release." -ForegroundColor White
+    Write-Host "Check: https://github.com/PossiblyPengu/SOUP/actions" -ForegroundColor Cyan
+} else {
+    Write-Host "Skipped git operations (use without -SkipGit to commit/tag/push)" -ForegroundColor Gray
+}
+Write-Host ""

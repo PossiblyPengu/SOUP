@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using SOUP.Core.Entities.EssentialsBuddy;
 
 namespace SOUP.Views.EssentialsBuddy;
@@ -21,6 +22,19 @@ public partial class AddToDictionaryDialog : Window
         ItemsGrid.ItemsSource = Items;
         
         UpdateSummary();
+    }
+
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            // Double-click to maximize/restore
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+        else
+        {
+            DragMove();
+        }
     }
 
     private void UpdateSummary()

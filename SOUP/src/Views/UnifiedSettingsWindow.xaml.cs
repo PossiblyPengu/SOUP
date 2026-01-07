@@ -45,14 +45,8 @@ public partial class UnifiedSettingsWindow : Window
     /// </summary>
     private void SelectFirstVisibleTab()
     {
-        if (TabAllocation.Visibility == Visibility.Visible)
-            TabAllocation.IsChecked = true;
-        else if (TabEssentials.Visibility == Visibility.Visible)
-            TabEssentials.IsChecked = true;
-        else if (TabExpireWise.Visibility == Visibility.Visible)
-            TabExpireWise.IsChecked = true;
-        else
-            TabDictionary.IsChecked = true; // Database is always available
+        // Application tab is always visible
+        TabApplication.IsChecked = true;
     }
     
     /// <summary>
@@ -63,6 +57,9 @@ public partial class UnifiedSettingsWindow : Window
         var moduleConfig = ModuleConfiguration.Instance;
         switch (tabName.ToLowerInvariant())
         {
+            case "application":
+                TabApplication.IsChecked = true;
+                break;
             case "allocation" when moduleConfig.AllocationBuddyEnabled: 
                 TabAllocation.IsChecked = true; 
                 break;
@@ -140,6 +137,7 @@ public partial class UnifiedSettingsWindow : Window
         try
         {
             // Hide all panels
+            PanelApplication.Visibility = Visibility.Collapsed;
             PanelAllocation.Visibility = Visibility.Collapsed;
             PanelEssentials.Visibility = Visibility.Collapsed;
             PanelExpireWise.Visibility = Visibility.Collapsed;
@@ -148,7 +146,11 @@ public partial class UnifiedSettingsWindow : Window
             PanelExternalData.Visibility = Visibility.Collapsed;
 
             // Show the selected panel
-            if (TabAllocation.IsChecked == true)
+            if (TabApplication.IsChecked == true)
+            {
+                PanelApplication.Visibility = Visibility.Visible;
+            }
+            else if (TabAllocation.IsChecked == true)
             {
                 PanelAllocation.Visibility = Visibility.Visible;
             }

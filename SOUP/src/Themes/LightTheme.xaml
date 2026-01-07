@@ -296,6 +296,14 @@
     <SolidColorBrush x:Key="SectionTitleBarBrush" Color="#6366f1"/>
     <SolidColorBrush x:Key="SectionTitleTextBrush" Color="#FFFFFF"/>
 
+    <!-- Dialog Title Bar Gradient (brand purple) -->
+    <LinearGradientBrush x:Key="DialogTitleBarGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#6366f1" Offset="0"/>
+        <GradientStop Color="#8b5cf6" Offset="0.5"/>
+        <GradientStop Color="#a855f7" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="DialogTitleBarShadowColor">#6366f1</Color>
+
     <!-- ============================= -->
     <!-- SEMANTIC ACCENT COLORS        -->
     <!-- ============================= -->

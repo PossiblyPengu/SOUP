@@ -50,7 +50,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Track" Property="Background" Value="{DynamicResource AccentBrush}"/>
-                                <Setter TargetName="Thumb" Property="Background" Value="White"/>
+                                <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                 <Setter TargetName="Thumb" Property="Margin" Value="23,0,0,0"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -169,7 +169,7 @@
                     <Border Style="{StaticResource StatCard}" Margin="6,0,0,0">
                         <StackPanel>
                             <TextBlock Text="{Binding DisplayItems.Count}" FontSize="24" FontWeight="Bold" 
-                                       Foreground="#4CAF50"/>
+                                       Foreground="{DynamicResource SuccessBrush}"/>
                             <TextBlock Text="Groups" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
                     </Border>
@@ -259,6 +259,21 @@
                     </Grid>
                 </Border>
                 
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Notes Only Mode" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="Hide order functionality, use widget for sticky notes only" Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource ModernToggle}" VerticalAlignment="Center"
+                                  IsChecked="{Binding NotesOnlyMode, Mode=TwoWay}"/>
+                    </Grid>
+                </Border>
+                
                 <!-- Default Colors Section -->
                 <TextBlock Text="DEFAULT COLORS" Style="{StaticResource SectionHeader}"/>
                 
@@ -303,7 +318,7 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🗑️" FontSize="16" Margin="0,0,12,0"/>
                         <StackPanel>
-                            <TextBlock Text="Clear All Archived" FontWeight="SemiBold" FontSize="13" Foreground="#FF6B6B"/>
+                            <TextBlock Text="Clear All Archived" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource DangerBrush}"/>
                             <TextBlock Text="Permanently delete all archived orders" FontSize="11" 
                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>

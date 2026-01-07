@@ -185,4 +185,58 @@ public partial class AboutWindow : Window
     {
         Close();
     }
+
+    /// <summary>
+    /// Checks for updates from GitHub.
+    /// </summary>
+    private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        CheckUpdateButton.IsEnabled = false;
+        CheckUpdateButton.Content = "⏳ Checking...";
+
+        try
+        {
+            using var updateService = new UpdateService();
+            var updateInfo = await updateService.CheckForUpdatesAsync();
+
+            if (updateInfo != null)
+            {
+                var result = MessageBox.Show(
+                    $"A new version is available!\n\n" +
+                    $"Current: v{updateService.CurrentVersion}\n" +
+                    $"Latest: v{updateInfo.Version}\n\n" +
+                    $"Would you like to open the download page?",
+                    "Update Available",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    updateService.OpenReleasePage(updateInfo);
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"You're running the latest version (v{updateService.CurrentVersion}).",
+                    "No Updates",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to check for updates");
+            MessageBox.Show(
+                "Failed to check for updates. Please try again later.",
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+        finally
+        {
+            CheckUpdateButton.IsEnabled = true;
+            CheckUpdateButton.Content = "🔄 Check for Updates";
+        }
+    }
 }

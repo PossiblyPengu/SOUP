@@ -46,6 +46,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     private readonly DialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
+    private readonly Infrastructure.Services.SettingsService? _settingsService;
     private bool _isInitialized;
 
     #endregion
@@ -183,6 +184,24 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
         _logger = logger;
+        
+        // Subscribe to settings changes for dynamic updates
+        _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+        if (_settingsService != null)
+        {
+            _settingsService.SettingsChanged += OnSettingsChanged;
+        }
+    }
+
+    /// <summary>
+    /// Handles settings change notifications to apply settings dynamically.
+    /// </summary>
+    private void OnSettingsChanged(object? sender, Infrastructure.Services.SettingsChangedEventArgs e)
+    {
+        if (e.AppName == "EssentialsBuddy")
+        {
+            _ = LoadAndApplySettingsAsync();
+        }
     }
 
     public async Task InitializeAsync()
@@ -211,8 +230,12 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 InventoryItem.GlobalLowStockThreshold = settings.LowStockThreshold;
                 InventoryItem.GlobalSufficientThreshold = settings.SufficientThreshold;
                 
-                _logger?.LogInformation("Applied EssentialsBuddy settings: LowStock={Low}, Sufficient={Sufficient}", 
-                    settings.LowStockThreshold, settings.SufficientThreshold);
+                // Apply default filter settings
+                StatusFilter = settings.DefaultStatusFilter;
+                EssentialsOnly = settings.DefaultEssentialsOnly;
+                
+                _logger?.LogInformation("Applied EssentialsBuddy settings: LowStock={Low}, Sufficient={Sufficient}, Filter={Filter}, EssentialsOnly={EO}", 
+                    settings.LowStockThreshold, settings.SufficientThreshold, settings.DefaultStatusFilter, settings.DefaultEssentialsOnly);
             }
         }
         catch (Exception ex)
@@ -698,14 +721,22 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void ClearData()
+    private async Task ClearData()
     {
         try
         {
+            // Clear database first
+            await _repository.DeleteAllAsync();
+            
             Items.Clear();
             FilteredItems.Clear();
             SearchText = string.Empty;
             StatusFilter = "All";
+            HasNoData = true;
+
+            // Delete session file so cleared state persists across restarts
+            DeleteSessionData();
+
             StatusMessage = "All data cleared";
             _logger?.LogInformation("Cleared all EssentialsBuddy data");
         }
@@ -713,6 +744,26 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         {
             StatusMessage = $"Clear error: {ex.Message}";
             _logger?.LogError(ex, "Exception during data clear");
+        }
+    }
+
+    /// <summary>
+    /// Deletes the session-data.json file to prevent auto-restore after clearing data.
+    /// </summary>
+    private void DeleteSessionData()
+    {
+        try
+        {
+            var filePath = GetDataFilePath();
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                _logger?.LogInformation("Deleted session data file: {FilePath}", filePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to delete session data file");
         }
     }
 
@@ -959,6 +1010,12 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         if (_disposed) return;
         if (disposing)
         {
+            // Unsubscribe from settings changes
+            if (_settingsService != null)
+            {
+                _settingsService.SettingsChanged -= OnSettingsChanged;
+            }
+            
             // Dispose managed resources
             (_repository as IDisposable)?.Dispose();
         }

@@ -260,7 +260,7 @@
     <!-- Primary Button -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="20,12"/>
         <Setter Property="FontSize" Value="14"/>
@@ -1249,8 +1249,8 @@
     <!-- ============================= -->
     
     <Style x:Key="ModernToolTipStyle" TargetType="ToolTip">
-        <Setter Property="Background" Value="#1a1a2e"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="Padding" Value="12,8"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Template">
@@ -1364,8 +1364,8 @@
     <!-- ============================= -->
     
     <Style x:Key="RippleButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="20,12"/>
         <Setter Property="FontSize" Value="14"/>

@@ -72,9 +72,9 @@
                         <TextBlock Text="📊" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="Analytics Dashboard" FontSize="22" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="Analytics Dashboard" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource SectionTitleTextBrush}"/>
                         <TextBlock Text="Overview of expiration data and trends" FontSize="13" 
-                                   Foreground="#ffffffcc" Margin="0,4,0,0"/>
+                                   Foreground="{DynamicResource TextOnPrimaryBrush}" Opacity="0.8" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>

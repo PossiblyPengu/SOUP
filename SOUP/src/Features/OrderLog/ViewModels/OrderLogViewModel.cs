@@ -52,6 +52,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _showArchived = false;
 
+    /// <summary>
+    /// Gets or sets whether the widget is in notes-only mode (hides order functionality).
+    /// </summary>
+    [ObservableProperty]
+    private bool _notesOnlyMode = false;
+
     [ObservableProperty]
     private OrderItem? _selectedItem;
 
@@ -167,6 +173,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         SaveWidgetSettings();
     }
 
+    partial void OnNotesOnlyModeChanged(bool value)
+    {
+        SaveWidgetSettings();
+    }
+
     private void SaveWidgetSettings()
     {
         var settings = new OrderLogWidgetSettings 
@@ -176,7 +187,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             ShowArchived = ShowArchived,
             UndoTimeoutSeconds = UndoTimeoutSeconds,
             DefaultOrderColor = DefaultOrderColor,
-            DefaultNoteColor = DefaultNoteColor
+            DefaultNoteColor = DefaultNoteColor,
+            NotesOnlyMode = NotesOnlyMode
         };
         _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
@@ -202,6 +214,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             UndoTimeoutSeconds = s.UndoTimeoutSeconds <= 0 ? DefaultUndoTimeoutSeconds : s.UndoTimeoutSeconds;
             DefaultOrderColor = string.IsNullOrEmpty(s.DefaultOrderColor) ? OrderLogColors.DefaultOrder : s.DefaultOrderColor;
             DefaultNoteColor = string.IsNullOrEmpty(s.DefaultNoteColor) ? OrderLogColors.DefaultNote : s.DefaultNoteColor;
+            NotesOnlyMode = s.NotesOnlyMode;
             if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)

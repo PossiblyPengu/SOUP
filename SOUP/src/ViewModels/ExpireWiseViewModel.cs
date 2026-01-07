@@ -46,6 +46,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private readonly DialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ExpireWiseViewModel>? _logger;
+    private readonly Infrastructure.Services.SettingsService? _settingsService;
 
     #endregion
 
@@ -86,6 +87,20 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty]
     private string _searchText = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the status filter: "All", "Good", "Warning", "Critical", or "Expired".
+    /// </summary>
+    [ObservableProperty]
+    private string _statusFilter = "All";
+
+    /// <summary>
+    /// Available status filter options for the ComboBox.
+    /// </summary>
+    public ObservableCollection<string> StatusFilters { get; } = new()
+    {
+        "All", "Good", "Warning", "Critical", "Expired"
+    };
 
     /// <summary>
     /// Gets or sets the currently displayed month.
@@ -218,7 +233,25 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         _serviceProvider = serviceProvider;
         _logger = logger;
 
+        // Subscribe to settings changes for dynamic updates
+        _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+        if (_settingsService != null)
+        {
+            _settingsService.SettingsChanged += OnSettingsChanged;
+        }
+
         UpdateMonthDisplay();
+    }
+
+    /// <summary>
+    /// Handles settings change notifications to apply settings dynamically.
+    /// </summary>
+    private void OnSettingsChanged(object? sender, Infrastructure.Services.SettingsChangedEventArgs e)
+    {
+        if (e.AppName == "ExpireWise")
+        {
+            _ = LoadAndApplySettingsAsync();
+        }
     }
 
     /// <summary>
@@ -251,8 +284,11 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 ExpirationItem.CriticalDaysThreshold = settings.CriticalThresholdDays;
                 ExpirationItem.WarningDaysThreshold = settings.WarningThresholdDays;
                 
-                _logger?.LogInformation("Applied ExpireWise settings: Critical={Critical} days, Warning={Warning} days", 
-                    settings.CriticalThresholdDays, settings.WarningThresholdDays);
+                // Apply default filter settings
+                StatusFilter = settings.DefaultStatusFilter;
+                
+                _logger?.LogInformation("Applied ExpireWise settings: Critical={Critical} days, Warning={Warning} days, Filter={Filter}", 
+                    settings.CriticalThresholdDays, settings.WarningThresholdDays, settings.DefaultStatusFilter);
             }
         }
         catch (Exception ex)
@@ -782,12 +818,30 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         ApplyFilters();
     }
 
+    partial void OnStatusFilterChanged(string value)
+    {
+        ApplyFilters();
+    }
+
     private void ApplyFilters()
     {
         // Filter by current month
         var filtered = Items.Where(i =>
             i.ExpiryDate.Year == CurrentMonth.Year &&
             i.ExpiryDate.Month == CurrentMonth.Month);
+
+        // Apply status filter
+        if (StatusFilter != "All")
+        {
+            filtered = StatusFilter switch
+            {
+                "Good" => filtered.Where(i => i.Status == ExpirationStatus.Good),
+                "Warning" => filtered.Where(i => i.Status == ExpirationStatus.Warning),
+                "Critical" => filtered.Where(i => i.Status == ExpirationStatus.Critical),
+                "Expired" => filtered.Where(i => i.Status == ExpirationStatus.Expired),
+                _ => filtered
+            };
+        }
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(SearchText))
@@ -993,6 +1047,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         if (_disposed) return;
         if (disposing)
         {
+            // Unsubscribe from settings changes
+            if (_settingsService != null)
+            {
+                _settingsService.SettingsChanged -= OnSettingsChanged;
+            }
+            
             // Dispose managed resources
             (_repository as IDisposable)?.Dispose();
         }

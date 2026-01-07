@@ -143,6 +143,7 @@ public partial class App : Application
         services.AddSingleton<NavigationService>();
         services.AddSingleton<ThemeService>();
         services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>();
+        services.AddSingleton<TrayIconService>();
         services.AddSingleton<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp => 
             new SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser(
                 sp.GetService<ILogger<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>>()));
@@ -151,6 +152,7 @@ public partial class App : Application
         services.AddSingleton<LauncherViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<UnifiedSettingsViewModel>();
+        services.AddSingleton<ApplicationSettingsViewModel>();
         services.AddTransient<DictionaryManagementViewModel>(sp => 
             new DictionaryManagementViewModel(
                 sp.GetService<SOUP.Services.External.DictionarySyncService>(),
@@ -241,6 +243,14 @@ public partial class App : Application
                 Log.Information("Theme initialized: {Theme}", themeService.IsDarkMode ? "Dark" : "Light");
             });
 
+            // Initialize tray icon service (must be on UI thread)
+            Dispatcher.Invoke(() =>
+            {
+                var trayService = _host.Services.GetRequiredService<TrayIconService>();
+                trayService.Initialize();
+                Log.Information("Tray icon initialized");
+            });
+
             // Initialize the shared dictionary database at startup
             // This loads items and stores that are used across multiple modules
             try
@@ -302,6 +312,10 @@ public partial class App : Application
                 Log.Warning(ex, "Error loading persisted app data");
             }
 
+            // Load application settings for startup behavior
+            var settingsService = _host.Services.GetRequiredService<Infrastructure.Services.SettingsService>();
+            var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
+
             // Check for command-line arguments to launch specific windows
             if (e.Args.Length > 0)
             {
@@ -327,7 +341,7 @@ public partial class App : Application
                         widgetService.ShowOrderLogWidget();
                         
                         // Don't show main window - just run the widget
-                        Log.Information("Running in widget-only mode");
+                        Log.Information("Running in widget-only mode (command line)");
                     }
                     else
                     {
@@ -344,8 +358,39 @@ public partial class App : Application
             }
             else
             {
-                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                mainWindow.Show();
+                // No command-line args - use settings to determine startup behavior
+                var widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
+                var launchWidget = appSettings.LaunchWidgetOnStartup && moduleConfig.OrderLogEnabled;
+                
+                if (widgetOnlyMode)
+                {
+                    // Widget-only mode: launch widget, skip main window
+                    var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
+                    
+                    // When widget closes in widget-only mode, shut down the app
+                    widgetService.WidgetClosed += () =>
+                    {
+                        Log.Information("Widget closed in widget-only mode, shutting down application");
+                        Dispatcher.Invoke(() => Shutdown());
+                    };
+                    
+                    widgetService.ShowOrderLogWidget();
+                    Log.Information("Running in widget-only mode (settings)");
+                }
+                else
+                {
+                    // Normal startup - show main window
+                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                    mainWindow.Show();
+                    
+                    // Also launch widget if configured
+                    if (launchWidget)
+                    {
+                        var widgetService = _host.Services.GetService<WidgetThreadService>();
+                        widgetService?.ShowOrderLogWidget();
+                        Log.Information("Widget launched on startup (settings)");
+                    }
+                }
             }
 
             base.OnStartup(e);

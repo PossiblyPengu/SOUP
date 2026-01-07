@@ -1,0 +1,73 @@
+# ============================================================================
+# SOUP CI Workflow
+# ============================================================================
+# Runs on pull requests and pushes to main
+# Builds and tests the application
+# ============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  security-check:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run security check
+        shell: pwsh
+        run: |
+          # Simple check for common secret patterns in source files
+          $patterns = @(
+            'password\s*=\s*[''"][^''"]{8,}[''"]',
+            'api[_-]?key\s*=\s*[''"][A-Za-z0-9]{20,}[''"]',
+            'client[_-]?secret\s*=\s*[''"][^''"]{20,}[''"]',
+            '-----BEGIN.*PRIVATE KEY-----'
+          )
+          
+          $found = $false
+          Get-ChildItem -Path src -Recurse -Include @("*.cs", "*.json") |
+            Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' } |
+            ForEach-Object {
+              $content = Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue
+              foreach ($pattern in $patterns) {
+                if ($content -match $pattern -and $content -notmatch 'YOUR_|REPLACE_|Encrypted') {
+                  Write-Host "Potential secret in: $($_.FullName)" -ForegroundColor Red
+                  $found = $true
+                }
+              }
+            }
+          
+          if ($found) {
+            Write-Host "::error::Potential secrets detected! Please review before merging."
+            exit 1
+          }
+          Write-Host "No secrets detected." -ForegroundColor Green
+
+  build:
+    runs-on: windows-latest
+    needs: security-check
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/SOUP.csproj
+
+      - name: Build
+        run: dotnet build src/SOUP.csproj --configuration Release --no-restore
+
+      - name: Run analyzers
+        run: dotnet build src/SOUP.csproj --configuration Release --no-restore /p:TreatWarningsAsErrors=false

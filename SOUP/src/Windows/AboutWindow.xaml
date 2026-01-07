@@ -33,21 +33,15 @@
             </Grid.RowDefinitions>
 
             <!-- Title Bar -->
-            <Border Grid.Row="0" CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#6366f1" Offset="0"/>
-                        <GradientStop Color="#8b5cf6" Offset="0.5"/>
-                        <GradientStop Color="#a855f7" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
+            <Border Grid.Row="0" CornerRadius="12,12,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"
+                    Background="{DynamicResource DialogTitleBarGradient}">
                 <DockPanel LastChildFill="True" Height="40">
                     <Button DockPanel.Dock="Right" Content="✕" Width="40" Height="40" Click="CloseButton_Click"
                         Background="Transparent" BorderThickness="0"
-                        FontSize="14" FontWeight="Bold" Foreground="White" Cursor="Hand" Opacity="0.8"/>
+                        FontSize="14" FontWeight="Bold" Foreground="{DynamicResource SectionTitleTextBrush}" Cursor="Hand" Opacity="0.8"/>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
                         <TextBlock Text="ℹ️" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBlock Text="About S.O.U.P" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                        <TextBlock Text="About S.O.U.P" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource SectionTitleTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -58,16 +52,10 @@
                     <!-- App Icon and Name -->
                     <Border Width="88" Height="88" CornerRadius="20"
                             HorizontalAlignment="Center" Margin="0,0,0,20" Cursor="Hand"
-                            MouseLeftButtonDown="AppIcon_MouseLeftButtonDown">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#6366f1" Offset="0"/>
-                                <GradientStop Color="#8b5cf6" Offset="0.5"/>
-                                <GradientStop Color="#a855f7" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
+                            MouseLeftButtonDown="AppIcon_MouseLeftButtonDown"
+                            Background="{DynamicResource DialogTitleBarGradient}">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.4" Color="#6366f1"/>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.4" Color="{DynamicResource DialogTitleBarShadowColor}"/>
                         </Border.Effect>
                         <Image Source="/Assets/soup-logo.png" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -80,19 +68,14 @@
                                HorizontalAlignment="Center" Margin="0,4,0,8"/>
                     
                     <!-- Version Badge -->
-                    <Border HorizontalAlignment="Center" Margin="0,0,0,24" CornerRadius="16" Padding="16,8">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#6366f1" Offset="0"/>
-                                <GradientStop Color="#8b5cf6" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
+                    <Border HorizontalAlignment="Center" Margin="0,0,0,24" CornerRadius="16" Padding="16,8"
+                            Background="{DynamicResource DialogTitleBarGradient}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" 
-                                       Foreground="White" FontSize="14" FontWeight="Bold"/>
-                            <TextBlock Text="  •  " Foreground="#ffffff80" FontSize="14"/>
+                                       Foreground="{DynamicResource SectionTitleTextBrush}" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="14"/>
                             <TextBlock Text="{x:Static core:AppVersion.Channel}" 
-                                       Foreground="#90EE90" FontSize="14" FontWeight="SemiBold"/>
+                                       Foreground="{DynamicResource SuccessLightBrush}" FontSize="14" FontWeight="SemiBold"/>
                         </StackPanel>
                     </Border>
 
@@ -155,11 +138,11 @@
                         <StackPanel>
                             <Border CornerRadius="8" Padding="10,6" HorizontalAlignment="Left" Margin="0,0,0,12">
                                 <Border.Background>
-                                    <SolidColorBrush Color="#6366f1" Opacity="0.15"/>
+                                    <SolidColorBrush Color="{DynamicResource DialogTitleBarShadowColor}" Opacity="0.15"/>
                                 </Border.Background>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock x:Name="ChangelogVersionText" Text="v4.6.1" FontSize="12" FontWeight="Bold"
-                                               Foreground="#6366f1"/>
+                                               Foreground="{DynamicResource PrimaryBrush}"/>
                                     <TextBlock Text="  —  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
                                     <TextBlock x:Name="ChangelogTitleText" Text="Maintenance Update" FontSize="12" FontWeight="Medium"
                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -190,27 +173,51 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,14" 
                     CornerRadius="0,0,12,12" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0">
-                <Button Content="Close" HorizontalAlignment="Center" Click="CloseButton_Click"
-                    Padding="32,10" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
-                    Background="{DynamicResource SurfaceHoverBrush}" 
-                    BorderBrush="{DynamicResource BorderLightBrush}" BorderThickness="1">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" 
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="CheckUpdateButton" Content="🔄 Check for Updates" Click="CheckForUpdates_Click"
+                        Padding="20,10" FontWeight="SemiBold" FontSize="13" Cursor="Hand" Margin="0,0,12,0"
+                        Background="{DynamicResource PrimaryBrush}" 
+                        Foreground="{DynamicResource TextOnPrimaryBrush}"
+                        BorderThickness="0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" 
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="Close" HorizontalAlignment="Center" Click="CloseButton_Click"
+                        Padding="32,10" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                        Background="{DynamicResource SurfaceHoverBrush}" 
+                        BorderBrush="{DynamicResource BorderLightBrush}" BorderThickness="1">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" 
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
             </Border>
         </Grid>
     </Border>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- ============================================== -->
   <!-- Project Properties                             -->
@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>SOUP</RootNamespace>
     <AssemblyName>SOUP</AssemblyName>
-    <ApplicationIcon>soup.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\soup.ico</ApplicationIcon>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
   </PropertyGroup>
 
@@ -22,9 +22,9 @@
   <!-- Version Information                            -->
   <!-- ============================================== -->
   <PropertyGroup>
-    <Version>4.6.1</Version>
-    <AssemblyVersion>4.6.1.0</AssemblyVersion>
-    <FileVersion>4.6.1.0</FileVersion>
+    <Version>4.6.4</Version>
+    <AssemblyVersion>4.6.4.0</AssemblyVersion>
+    <FileVersion>4.6.4.0</FileVersion>
     <Description>Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools</Description>
   </PropertyGroup>
 
@@ -85,6 +85,7 @@
   <ItemGroup>
     <None Update="Assets\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
     <!-- PNG images need to be Resources for WPF Image controls -->
     <Resource Include="Assets\soup-logo.png" />

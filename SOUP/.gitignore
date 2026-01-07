@@ -145,3 +145,37 @@ installer/Output/
 *.temp
 ~$*
 
+## Sensitive/Secret Files - NEVER COMMIT
+# Configuration files with credentials
+**/appsettings.*.json
+!**/appsettings.json
+**/secrets.json
+**/credentials.json
+*.secrets
+*.credentials
+
+# External connection configs (stored in AppData, but just in case)
+external_config.json
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Certificate/Key files
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+*.crt
+
+# Business Central / Azure configs
+bc_config.json
+azure_config.json
+
+# Database files that might contain data
+*.db
+*.sqlite
+*.litedb
+!**/Shared/dictionaries.db

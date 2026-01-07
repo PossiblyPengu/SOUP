@@ -23,16 +23,16 @@
             <Setter Property="CornerRadius" Value="2"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.NotReady}">
-                    <Setter Property="Background" Value="#F44336"/>
+                    <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
-                    <Setter Property="Background" Value="#FF9800"/>
+                    <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                    <Setter Property="Background" Value="#2196F3"/>
+                    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
-                    <Setter Property="Background" Value="#4CAF50"/>
+                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -79,7 +79,7 @@
                             Padding="6,3"
                             Margin="8,0,0,0"
                             Visibility="{Binding LinkedGroupId, Converter={StaticResource NullToVisibilityConverter}}">
-                        <TextBlock Text="🔗 Linked" FontSize="10" Foreground="White"/>
+                        <TextBlock Text="🔗 Linked" FontSize="10" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
                     </Border>
                 </Grid>
             </Border>
@@ -131,7 +131,7 @@
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -385,7 +385,7 @@
                     Height="32"
                     Click="LinkBtn_Click"
                     IsEnabled="False"
-                    Foreground="White">
+                    Foreground="{DynamicResource TextOnPrimaryBrush}">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>

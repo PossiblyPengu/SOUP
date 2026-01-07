@@ -48,6 +48,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     private readonly DialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<AllocationBuddyRPGViewModel>? _logger;
+    private readonly Infrastructure.Services.SettingsService? _settingsService;
+
+    // Runtime settings loaded from SettingsService
+    private bool _showConfirmationDialogs = true;
+    private bool _includeDescriptionsInCopy = false;
+    private string _clipboardFormat = "TabSeparated";
 
     /// <summary>
     /// Thread-safe lookup dictionary for O(1) item access by item number.
@@ -376,6 +382,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// </summary>
     /// <param name="parser">The parser for processing allocation data.</param>
     /// <param name="dialogService">The service for displaying dialogs.</param>
+    /// <param name="serviceProvider">The service provider for resolving dependencies.</param>
     /// <param name="logger">Optional logger for diagnostic output.</param>
     public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, IServiceProvider serviceProvider, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
@@ -383,6 +390,13 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
         _logger = logger;
+        
+        // Get settings service and subscribe to changes
+        _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+        if (_settingsService != null)
+        {
+            _settingsService.SettingsChanged += OnSettingsChanged;
+        }
 
         // Initialize import/export commands
         ImportCommand = new AsyncRelayCommand(ImportAsync);
@@ -407,11 +421,47 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         ArchiveCurrentCommand = new AsyncRelayCommand(ArchiveCurrentAsync, () => HasData);
         ViewArchivesCommand = new AsyncRelayCommand(LoadArchivesAsync);
 
-        // Load dictionaries on a background task to avoid blocking the UI during startup
+        // Load settings and dictionaries on a background task
+        _ = LoadSettingsAsync();
         _ = LoadDictionariesAsync();
         
         // Load archives on startup
         _ = LoadArchivesAsync();
+    }
+
+    /// <summary>
+    /// Loads AllocationBuddy settings from the settings service.
+    /// </summary>
+    private async Task LoadSettingsAsync()
+    {
+        try
+        {
+            var settingsService = _serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+            if (settingsService != null)
+            {
+                var settings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.AllocationBuddySettings>("AllocationBuddy");
+                _showConfirmationDialogs = settings.ShowConfirmationDialogs;
+                _includeDescriptionsInCopy = settings.IncludeDescriptionsInCopy;
+                _clipboardFormat = settings.ClipboardFormat;
+                _logger?.LogInformation("Applied AllocationBuddy settings: ShowConfirm={Confirm}, IncludeDesc={Desc}, Format={Format}",
+                    _showConfirmationDialogs, _includeDescriptionsInCopy, _clipboardFormat);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to load AllocationBuddy settings, using defaults");
+        }
+    }
+
+    /// <summary>
+    /// Handles settings change notifications to apply settings dynamically.
+    /// </summary>
+    private void OnSettingsChanged(object? sender, Infrastructure.Services.SettingsChangedEventArgs e)
+    {
+        if (e.AppName == "AllocationBuddy")
+        {
+            _ = LoadSettingsAsync();
+        }
     }
 
     /// <summary>
@@ -495,9 +545,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Copies the items from a location to the clipboard in a tab-separated format
-    /// suitable for pasting into Business Central transfer orders.
-    /// Format: ItemNumber[TAB]Quantity per line
+    /// Copies the items from a location to the clipboard.
+    /// Format depends on settings: Tab-separated or Comma-separated.
+    /// Optionally includes descriptions based on settings.
     /// </summary>
     private void CopyLocationToClipboard(LocationAllocation? loc)
     {
@@ -507,11 +557,20 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var separator = _clipboardFormat == "CommaSeparated" ? "," : "\t";
         var sb = new System.Text.StringBuilder();
+        
         foreach (var item in loc.Items)
         {
-            // Tab-separated: Item Number, Quantity
-            sb.AppendLine($"{item.ItemNumber}\t{item.Quantity}");
+            if (_includeDescriptionsInCopy)
+            {
+                var desc = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(item.ItemNumber) : item.Description;
+                sb.AppendLine($"{item.ItemNumber}{separator}{item.Quantity}{separator}{desc}");
+            }
+            else
+            {
+                sb.AppendLine($"{item.ItemNumber}{separator}{item.Quantity}");
+            }
         }
 
         try
@@ -1820,6 +1879,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             if (disposing)
             {
+                // Unsubscribe from settings changes
+                if (_settingsService != null)
+                {
+                    _settingsService.SettingsChanged -= OnSettingsChanged;
+                }
+                
                 _loadDictionariesCts?.Cancel();
                 _loadDictionariesCts?.Dispose();
                 _loadDictionariesCts = null;

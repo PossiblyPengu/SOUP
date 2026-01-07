@@ -423,7 +423,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <TextBlock Text="📆" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding CurrentMonthDisplay}" 
-                                               FontSize="14" FontWeight="Bold" Foreground="White"
+                                               FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextOnPrimaryBrush}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
@@ -454,11 +454,12 @@
                     </Grid>
                 </Border>
                 
-                <!-- Search Bar with Group Toggle -->
+                <!-- Search Bar with Status Filter and Group Toggle -->
                 <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
@@ -495,8 +496,14 @@
                             </Grid>
                         </Border>
                         
+                        <!-- Status Filter -->
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}" 
+                                  SelectedItem="{Binding StatusFilter}" 
+                                  Margin="12,0" MinWidth="120"
+                                  Style="{StaticResource ModernComboBoxStyle}"/>
+                        
                         <!-- Group by Store Toggle -->
-                        <ToggleButton Grid.Column="1" IsChecked="{Binding GroupByStore}" 
+                        <ToggleButton Grid.Column="2" IsChecked="{Binding GroupByStore}" 
                                       ToolTip="Group items by store location" Cursor="Hand">
                             <ToggleButton.Style>
                                 <Style TargetType="ToggleButton">
@@ -615,7 +622,7 @@
                                                 </Style>
                                             </Border.Style>
                                             <TextBlock Text="{Binding Status}" FontWeight="SemiBold" 
-                                                       Foreground="White" FontSize="11"/>
+                                                       Foreground="{DynamicResource TextOnPrimaryBrush}" FontSize="11"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

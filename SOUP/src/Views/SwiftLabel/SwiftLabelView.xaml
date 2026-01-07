@@ -331,7 +331,7 @@
                                                  Foreground="{DynamicResource TextPrimaryBrush}"
                                                  BorderThickness="0"
                                                  Background="Transparent"
-                                                 CaretBrush="#8b5cf6"/>
+                                                 CaretBrush="{DynamicResource AccentBrush}"/>
                                     </Border>
 
                                     <Button Grid.Column="2" Content="+" Style="{StaticResource StepperButton}"

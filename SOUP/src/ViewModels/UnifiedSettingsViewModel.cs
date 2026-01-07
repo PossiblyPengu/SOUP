@@ -10,6 +10,9 @@ namespace SOUP.ViewModels;
 
 public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
 {
+    // Application settings (global, not module-specific)
+    public ApplicationSettingsViewModel ApplicationSettings { get; }
+
     // Module settings - nullable for disabled modules
     public AllocationBuddySettingsViewModel? AllocationBuddySettings { get; }
     public EssentialsBuddySettingsViewModel? EssentialsBuddySettings { get; }
@@ -29,6 +32,7 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
     private bool _disposed;
 
     // Store event handlers so we can unsubscribe later
+    private readonly PropertyChangedEventHandler _applicationHandler;
     private readonly PropertyChangedEventHandler? _allocationBuddyHandler;
     private readonly PropertyChangedEventHandler? _essentialsBuddyHandler;
     private readonly PropertyChangedEventHandler? _expireWiseHandler;
@@ -36,17 +40,27 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
     private readonly PropertyChangedEventHandler? _orderLogHandler;
 
     public UnifiedSettingsViewModel(
+        ApplicationSettingsViewModel applicationSettings,
         DictionaryManagementViewModel dictionaryManagement,
         AllocationBuddySettingsViewModel? allocationBuddySettings = null,
         EssentialsBuddySettingsViewModel? essentialsBuddySettings = null,
         ExpireWiseSettingsViewModel? expireWiseSettings = null,
         SOUP.Features.OrderLog.ViewModels.OrderLogViewModel? orderLogSettings = null)
     {
+        ApplicationSettings = applicationSettings;
         AllocationBuddySettings = allocationBuddySettings;
         EssentialsBuddySettings = essentialsBuddySettings;
         ExpireWiseSettings = expireWiseSettings;
         DictionaryManagement = dictionaryManagement;
         OrderLogSettings = orderLogSettings;
+
+        // Application settings status passthrough
+        _applicationHandler = (s, e) =>
+        {
+            if (e.PropertyName == nameof(ApplicationSettingsViewModel.StatusMessage))
+                StatusMessage = ApplicationSettings.StatusMessage;
+        };
+        ApplicationSettings.PropertyChanged += _applicationHandler;
 
         // Create named handlers so we can unsubscribe - only for enabled modules
         if (AllocationBuddySettings != null)
@@ -177,6 +191,7 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         if (disposing)
         {
             // Unsubscribe from all child ViewModel events
+            ApplicationSettings.PropertyChanged -= _applicationHandler;
             if (AllocationBuddySettings != null && _allocationBuddyHandler != null)
                 AllocationBuddySettings.PropertyChanged -= _allocationBuddyHandler;
             if (EssentialsBuddySettings != null && _essentialsBuddyHandler != null)

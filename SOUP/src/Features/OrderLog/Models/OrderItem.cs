@@ -216,6 +216,10 @@ public partial class OrderItem : ObservableObject
 
     private void UpdateTimestamps(OrderStatus status)
     {
+        // Initialize _previousStatusForLap if this is the first status change after loading
+        // Use StartedAt presence to detect if we were InProgress (StartedAt is only set when InProgress)
+        _previousStatusForLap ??= StartedAt != null ? OrderStatus.InProgress : Status;
+        
         // If leaving InProgress, accumulate the current session time
         if (_previousStatusForLap == OrderStatus.InProgress && status != OrderStatus.InProgress && StartedAt != null)
         {
@@ -234,11 +238,7 @@ public partial class OrderItem : ObservableObject
                 break;
 
             case OrderStatus.Done:
-                // Add final lap time to accumulated if coming from InProgress
-                if (StartedAt != null)
-                {
-                    AccumulatedTime += DateTime.Now - StartedAt.Value;
-                }
+                // Time was already accumulated above when leaving InProgress
                 StartedAt = null; // Clear so TimeInProgress returns Zero
                 CompletedAt ??= DateTime.Now; // Only set if not already set
                 break;

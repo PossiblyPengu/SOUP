@@ -6,12 +6,26 @@ using System.Threading.Tasks;
 namespace SOUP.Infrastructure.Services;
 
 /// <summary>
+/// Event args for settings changed notifications.
+/// </summary>
+public class SettingsChangedEventArgs : EventArgs
+{
+    public string AppName { get; }
+    public SettingsChangedEventArgs(string appName) => AppName = appName;
+}
+
+/// <summary>
 /// Service for loading and saving application settings
 /// </summary>
 public sealed class SettingsService
 {
     private readonly string _settingsDirectory;
     private readonly JsonSerializerOptions _jsonOptions;
+
+    /// <summary>
+    /// Event raised when settings are saved for any app.
+    /// </summary>
+    public event EventHandler<SettingsChangedEventArgs>? SettingsChanged;
 
     public SettingsService()
     {
@@ -53,7 +67,7 @@ public sealed class SettingsService
     }
 
     /// <summary>
-    /// Save settings to file
+    /// Save settings to file and notify subscribers.
     /// </summary>
     public async Task SaveSettingsAsync<T>(string appName, T settings)
     {
@@ -63,6 +77,9 @@ public sealed class SettingsService
         {
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             await File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
+            
+            // Notify subscribers that settings have changed
+            SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(appName));
         }
         catch (Exception ex)
         {

@@ -203,8 +203,19 @@
 
                         <!-- Navigation Items -->
                         <StackPanel Grid.Row="1">
-                            <RadioButton x:Name="TabAllocation" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                            <RadioButton x:Name="TabApplication" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
                                          IsChecked="True" Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Application" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="General settings" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabAllocation" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
                                     <StackPanel>
@@ -305,8 +316,151 @@
 
                     <!-- Content Panels -->
                     <Grid Grid.Row="1">
+                        <!-- Application Panel -->
+                        <ScrollViewer x:Name="PanelApplication" VerticalScrollBarVisibility="Auto">
+                            <StackPanel DataContext="{Binding ApplicationSettings}">
+
+                            <!-- Appearance Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="🎨" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <CheckBox Content="Dark mode"
+                                              IsChecked="{Binding IsDarkMode}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Use dark theme throughout the application"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Startup Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="🚀" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Startup" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Default module on startup" Style="{StaticResource SettingLabel}"/>
+                                    <ComboBox ItemsSource="{Binding AvailableModules}"
+                                              SelectedValue="{Binding DefaultModule}"
+                                              SelectedValuePath="Value"
+                                              DisplayMemberPath="DisplayName"
+                                              Style="{StaticResource SettingsComboBox}"
+                                              Width="250"
+                                              HorizontalAlignment="Left"/>
+                                    <TextBlock Text="Which module to open when the application starts"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="0,4,0,16"/>
+
+                                    <CheckBox Content="Run at Windows startup"
+                                              IsChecked="{Binding RunAtStartup}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Automatically start S.O.U.P when you sign in to Windows"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,16"/>
+
+                                    <CheckBox Content="Start minimized to tray"
+                                              IsChecked="{Binding StartMinimizedToTray}"
+                                              IsEnabled="{Binding ShowTrayIcon}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Launch the application minimized to system tray"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Widget Behavior Section -->
+                            <Border Style="{StaticResource SettingsCard}" 
+                                    Visibility="{Binding IsOrderLogEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="📝" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Order Log Widget" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <CheckBox Content="Launch widget on startup"
+                                              IsChecked="{Binding LaunchWidgetOnStartup}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Automatically open the Order Log widget when S.O.U.P starts"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,16"/>
+
+                                    <CheckBox Content="Widget-only mode"
+                                              IsChecked="{Binding WidgetOnlyMode}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Only launch the widget on startup, skip the main window entirely"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,16"/>
+
+                                    <CheckBox Content="Keep widget running when main window closes"
+                                              IsChecked="{Binding KeepWidgetRunning}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="The widget stays open even after closing the main S.O.U.P window"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- System Tray Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="🔔" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="System Tray" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <CheckBox Content="Show tray icon"
+                                              IsChecked="{Binding ShowTrayIcon}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Display the S.O.U.P icon in the system notification area"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,16"/>
+
+                                    <CheckBox Content="Close to tray instead of exiting"
+                                              IsChecked="{Binding CloseToTray}"
+                                              IsEnabled="{Binding ShowTrayIcon}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="When closing the main window, minimize to system tray instead of exiting. The Order Log widget will continue to work regardless of this setting."
+                                               Style="{StaticResource HelperText}"
+                                               TextWrapping="Wrap"
+                                               Margin="24,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Behavior Section -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <TextBlock Text="⚡" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Behavior" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <CheckBox Content="Confirm before exit"
+                                              IsChecked="{Binding ConfirmBeforeExit}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Show a confirmation dialog before closing the application"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,16"/>
+
+                                    <CheckBox Content="Remember window positions"
+                                              IsChecked="{Binding RememberWindowPositions}"
+                                              Style="{StaticResource SettingsCheckBox}"/>
+                                    <TextBlock Text="Save and restore window size and position when reopening"
+                                               Style="{StaticResource HelperText}"
+                                               Margin="24,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
                         <!-- AllocationBuddy Panel -->
-                        <ScrollViewer x:Name="PanelAllocation" VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer x:Name="PanelAllocation" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                             <StackPanel DataContext="{Binding AllocationBuddySettings}">
 
                             <!-- Behavior Section -->
