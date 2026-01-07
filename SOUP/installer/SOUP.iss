@@ -6,7 +6,7 @@
 ; ============================================================================
 
 #define MyAppName "SOUP"
-#define MyAppVersion "4.6.6"
+#define MyAppVersion "4.6.7"
 #define MyAppPublisher "SOUP"
 #define MyAppExeName "SOUP.exe"
 #define MyAppDescription "Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools"

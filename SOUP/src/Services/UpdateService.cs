@@ -17,12 +17,9 @@ public sealed class UpdateService : IDisposable
     private readonly string _currentVersion;
     private bool _disposed;
 
-    // Local/Network update server URL - update this to your server location
-    // Examples:
-    //   - Local IIS: "http://localhost/soup/version.json"
-    //   - Network share via IIS: "http://server-name/soup/version.json"  
-    //   - File share (use file:// URI): Configure via settings instead
-    private const string UpdateManifestUrl = "http://localhost/soup/version.json";
+    // Local update server URL - run .\scripts\serve-updates.ps1 to start the server
+    // Or change to your network server address for other machines
+    private const string UpdateManifestUrl = "http://localhost:8080/version.json";
 
     public UpdateService(ILogger<UpdateService>? logger = null)
     {
@@ -177,11 +174,17 @@ public sealed class UpdateService : IDisposable
     }
 
     /// <summary>
-    /// Opens the GitHub releases page in the default browser.
+    /// Opens the download page in the default browser.
     /// </summary>
     public void OpenReleasePage(UpdateInfo? updateInfo = null)
     {
-        var url = updateInfo?.HtmlUrl ?? $"https://github.com/{GitHubOwner}/{GitHubRepo}/releases/latest";
+        var url = updateInfo?.HtmlUrl ?? updateInfo?.DownloadUrl;
+        
+        if (string.IsNullOrEmpty(url))
+        {
+            _logger?.LogWarning("No download URL available");
+            return;
+        }
         
         try
         {
@@ -193,7 +196,7 @@ public sealed class UpdateService : IDisposable
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to open release page");
+            _logger?.LogError(ex, "Failed to open download page");
         }
     }
 

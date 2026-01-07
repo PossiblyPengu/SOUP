@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private const string WindowKey = "MainWindow";
     private readonly WidgetThreadService? _widgetThreadService;
     private readonly TrayIconService? _trayIconService;
+    private bool _hasBeenShownOnce;
 
     public MainWindow(
         MainWindowViewModel viewModel, 
@@ -32,6 +33,9 @@ public partial class MainWindow : Window
         
         // Handle closing to check if widget or close-to-tray should keep app alive
         Closing += MainWindow_Closing;
+        
+        // Handle visibility changes to refresh bindings when window is shown again
+        IsVisibleChanged += MainWindow_IsVisibleChanged;
 
         // Setup tray icon events
         if (_trayIconService != null)
@@ -41,8 +45,47 @@ public partial class MainWindow : Window
         }
     }
 
+    private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is true)
+        {
+            // Skip first show - only handle re-shows after being hidden
+            if (!_hasBeenShownOnce)
+            {
+                _hasBeenShownOnce = true;
+                return;
+            }
+            
+            // Window became visible again after being hidden
+            if (DataContext is MainWindowViewModel vm)
+            {
+                // If a module view was open when hidden, go back to launcher
+                if (vm.NavigationService.CurrentView != null)
+                {
+                    vm.NavigationService.NavigateToLauncher();
+                }
+                
+                // Refresh command bindings
+                vm.OpenSettingsCommand.NotifyCanExecuteChanged();
+                vm.ToggleThemeCommand.NotifyCanExecuteChanged();
+                vm.ShowAboutCommand.NotifyCanExecuteChanged();
+            }
+            else
+            {
+                Serilog.Log.Warning("MainWindow DataContext was null when window became visible");
+            }
+        }
+    }
+
     private void OnTrayShowRequested()
     {
+        // Ensure we're on the UI thread (tray events come from WinForms thread)
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(OnTrayShowRequested);
+            return;
+        }
+        
         Show();
         WindowState = WindowState.Normal;
         Activate();
@@ -129,6 +172,22 @@ public partial class MainWindow : Window
                 Top = point.Y - 20;
             }
             DragMove();
+        }
+    }
+
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        Serilog.Log.Information("SettingsButton_Click fired");
+        
+        // Fallback click handler in case command binding fails after window hide/show
+        if (DataContext is MainWindowViewModel vm)
+        {
+            Serilog.Log.Information("DataContext is valid, executing OpenSettings");
+            vm.OpenSettingsCommand.Execute(null);
+        }
+        else
+        {
+            Serilog.Log.Warning("SettingsButton_Click: DataContext is not MainWindowViewModel, it is {Type}", DataContext?.GetType().Name ?? "null");
         }
     }
 

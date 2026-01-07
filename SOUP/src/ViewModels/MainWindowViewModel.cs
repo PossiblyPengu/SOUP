@@ -251,13 +251,20 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
+            _logger?.LogDebug("OpenSettings command invoked");
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
             var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
-            // Only set owner if MainWindow is visible (don't block widget when main window is hidden)
-            if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
+            
+            // Find the main window - Application.Current.MainWindow may not be reliable
+            var mainWindow = System.Windows.Application.Current?.Windows
+                .OfType<MainWindow>()
+                .FirstOrDefault(w => w.IsVisible);
+            
+            if (mainWindow != null)
             {
                 settingsWindow.Owner = mainWindow;
             }
+            
             settingsWindow.ShowDialog();
             _logger?.LogInformation("Opened unified settings window");
         }

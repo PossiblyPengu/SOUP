@@ -446,6 +446,21 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    private void OpenLauncher_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (Window.GetWindow(this) is SOUP.Windows.OrderLogWidgetWindow widgetWindow)
+            {
+                widgetWindow.OpenLauncher();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to open launcher");
+        }
+    }
+
     private void OnThemeChanged(object? sender, bool isDarkMode)
     {
         Dispatcher.Invoke(() =>

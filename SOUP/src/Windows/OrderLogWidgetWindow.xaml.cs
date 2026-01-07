@@ -527,5 +527,37 @@ public partial class OrderLogWidgetWindow : Window
         }
     }
 
+    /// <summary>
+    /// Opens the main S.O.U.P launcher window
+    /// </summary>
+    public void OpenLauncher()
+    {
+        try
+        {
+            // Widget runs on separate thread, so we must invoke on the main app dispatcher
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var mainWindow = Application.Current.Windows
+                    .OfType<MainWindow>()
+                    .FirstOrDefault();
+
+                if (mainWindow != null)
+                {
+                    mainWindow.Show();
+                    mainWindow.WindowState = WindowState.Normal;
+                    mainWindow.Activate();
+                }
+                else
+                {
+                    Serilog.Log.Warning("MainWindow not found in Application.Current.Windows");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to open launcher from widget");
+        }
+    }
+
     #endregion
 }
