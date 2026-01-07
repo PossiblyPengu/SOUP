@@ -23,12 +23,13 @@
         <local:StoreDisplayConverter x:Key="StoreDisplayConverter"/>
         <CollectionViewSource x:Key="GroupedItemsView" Source="{Binding FilteredItems}"/>
         
-        <!-- ExpireWise Accent Colors (Amber/Orange theme) -->
+        <!-- ExpireWise Accent Colors (Amber/Orange theme - matches launcher) -->
         <Color x:Key="ExpireWiseAccentColor">#f59e0b</Color>
         <Color x:Key="ExpireWiseAccentLightColor">#fbbf24</Color>
         <Color x:Key="ExpireWiseAccentDarkColor">#d97706</Color>
         <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
         <SolidColorBrush x:Key="ExpireWiseAccentLightBrush" Color="{StaticResource ExpireWiseAccentLightColor}"/>
+        <SolidColorBrush x:Key="ExpireWiseAccentDarkBrush" Color="{StaticResource ExpireWiseAccentDarkColor}"/>
         
         <!-- Sidebar Navigation RadioButton Style -->
         <Style x:Key="SidebarNavButton" TargetType="RadioButton">
@@ -234,98 +235,140 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
-        <!-- Sidebar -->
-        <Border Grid.Column="0" Background="{DynamicResource BackgroundBrush}">
+        <!-- Left Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,1,0">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
-                <!-- App Header -->
-                <Border Grid.Row="0" Padding="20,24,20,20" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,0,1">
-                    <StackPanel>
-                        <Border Width="56" Height="56" CornerRadius="16" HorizontalAlignment="Left" Margin="0,0,0,16">
+
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Margin="16,20,16,16">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Border Width="36" Height="36" CornerRadius="10" Margin="0,0,12,0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                     <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
-                                    <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="1"/>
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.4" Color="{StaticResource ExpireWiseAccentColor}"/>
-                            </Border.Effect>
-                            <TextBlock Text="⏰" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="📅" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="ExpireWise" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Expiration Tracking" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,4,0,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="ExpireWise" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Expiration Tracker" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </StackPanel>
                     </StackPanel>
+                </StackPanel>
+
+                <!-- Stats Summary -->
+                <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="12" Margin="12,0,12,12" Padding="12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,0,8">
+                            <TextBlock Text="{Binding TotalItems}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource ExpireWiseAccentLightBrush}"/>
+                            <TextBlock Text="Total Items" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,0,8">
+                            <TextBlock Text="{Binding MonthItemCount}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource WarningLightBrush}"/>
+                            <TextBlock Text="This Month" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="0" Grid.Row="1">
+                            <TextBlock Text="{Binding CriticalCount}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                            <TextBlock Text="Critical" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="1" Grid.Row="1">
+                            <TextBlock Text="{Binding MonthTotalUnits}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Total Units" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
-                
+
                 <!-- Navigation -->
-                <StackPanel Grid.Row="1" Margin="12,16,12,0">
-                    <TextBlock Text="NAVIGATION" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" 
-                               Margin="14,0,0,10" />
+                <StackPanel Grid.Row="2" Margin="0,8,0,0">
+                    <TextBlock Text="NAVIGATION" FontSize="10" FontWeight="SemiBold" 
+                               Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
                     
-                    <RadioButton x:Name="DataTab" GroupName="NavTabs" IsChecked="True" Style="{StaticResource SidebarNavButton}">
+                    <RadioButton x:Name="DataTab" Style="{StaticResource SidebarNavButton}" 
+                                 IsChecked="True" GroupName="ExpireWiseNav">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📋" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Data View" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
                     
-                    <RadioButton x:Name="AnalyticsTab" GroupName="NavTabs" Style="{StaticResource SidebarNavButton}">
+                    <RadioButton x:Name="AnalyticsTab" Style="{StaticResource SidebarNavButton}" GroupName="ExpireWiseNav">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Analytics" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
                     
-                    <Border Height="1" Background="{DynamicResource SurfaceHoverBrush}" Margin="0,16,0,16"/>
+                    <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="16,12"/>
                     
-                    <TextBlock Text="ACTIONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" 
-                               Margin="14,0,0,10"/>
+                    <TextBlock Text="ACTIONS" FontSize="10" FontWeight="SemiBold" 
+                               Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
                     
-                    <Button Command="{Binding AddItemCommand}" Style="{StaticResource SidebarActionButton}">
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding AddItemCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="➕" FontSize="16" Margin="0,0,12,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="Add Item" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="➕" FontSize="16" Margin="0,0,12,0"/>
+                            <TextBlock Text="Add Item" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     
-                    <Button Command="{Binding ImportFromExcelCommand}" Style="{StaticResource SidebarActionButton}">
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ImportFromExcelCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📥" FontSize="16" Margin="0,0,12,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="Import Data" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="📥" FontSize="16" Margin="0,0,12,0"/>
+                            <TextBlock Text="Import Data" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     
-                    <Button Command="{Binding ExportToExcelCommand}" Style="{StaticResource SidebarActionButton}">
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ExportToExcelCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📤" FontSize="16" Margin="0,0,12,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="Export Data" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="📤" FontSize="16" Margin="0,0,12,0"/>
+                            <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ExportToCsvCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📄" FontSize="16" Margin="0,0,12,0"/>
+                            <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
-                
-                <!-- Bottom Section -->
-                <StackPanel Grid.Row="2" Margin="12,0,12,16">
-                    <Border Height="1" Background="{DynamicResource SurfaceHoverBrush}" Margin="0,0,0,12"/>
+
+                <!-- Bottom Actions -->
+                <StackPanel Grid.Row="3" Margin="8,0,8,12">
+                    <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="8,0,8,12"/>
                     
-                    <Button Command="{Binding OpenSettingsCommand}" Style="{StaticResource SidebarActionButton}">
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding OpenSettingsCommand}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
-                            <TextBlock Text="Settings" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     
-                    <!-- Status Info -->
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="14,12" Margin="0,8,0,0"
+                    <!-- Last Saved Status -->
+                    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="12,8" Margin="8,8,8,0"
                             Visibility="{Binding LastSavedDisplay, Converter={StaticResource StringToVisibilityConverter}}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="✓" FontSize="12" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,8,0"/>
-                            <TextBlock Text="{Binding LastSavedDisplay}" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            <TextBlock Text="✓" FontSize="11" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding LastSavedDisplay}" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -339,44 +382,12 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <!-- Header Bar -->
-                <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="20,16" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,0,1">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Expiration Data" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Track and manage items by expiration date" FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,4,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- Quick Actions -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="✏️" FontSize="14" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Edit"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding DeleteSelectedCommand}" Style="{StaticResource DangerButton}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🗑️" FontSize="14" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Delete"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-                
-                <!-- Month Navigator -->
-                <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,0,1" Padding="20,14">
+                <!-- Header with Month Navigator -->
+                <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="20,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -384,17 +395,12 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left Stats -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,12,0">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding TotalItems}" FontSize="16" FontWeight="Bold" 
-                                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" total" FontSize="12" 
-                                               Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                        <!-- Left - Title -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="Expiration Calendar" FontSize="18" FontWeight="SemiBold" 
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Track items by expiration month" FontSize="12" 
+                                       Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <!-- Center - Month Navigator -->
@@ -402,94 +408,92 @@
                             <Button Command="{Binding PreviousMonthCommand}" 
                                     IsEnabled="{Binding CanGoToPreviousMonth}"
                                     Style="{StaticResource SecondaryButton}"
-                                    Width="40" Height="40" Padding="0" Margin="0,0,8,0">
-                                <TextBlock Text="◀" FontSize="16" HorizontalAlignment="Center"/>
+                                    Width="36" Height="36" Padding="0" Margin="0,0,8,0">
+                                <TextBlock Text="◀" FontSize="12" HorizontalAlignment="Center"/>
                             </Button>
                             
-                            <Border CornerRadius="10" Padding="24,10" MinWidth="200">
+                            <Border CornerRadius="10" Padding="20,8" MinWidth="180">
                                 <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
-                                        <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="1"/>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0.5"/>
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="📆" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding CurrentMonthDisplay}" 
-                                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextOnPrimaryBrush}"
+                                               FontSize="14" FontWeight="Bold" Foreground="White"
                                                VerticalAlignment="Center"/>
-                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" 
-                                            Padding="10,4" Margin="12,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding MonthItemCount}" FontSize="12" 
-                                                   FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    </Border>
                                 </StackPanel>
                             </Border>
                             
                             <Button Command="{Binding NextMonthCommand}" 
                                     IsEnabled="{Binding CanGoToNextMonth}"
                                     Style="{StaticResource SecondaryButton}"
-                                    Width="40" Height="40" Padding="0" Margin="8,0,0,0">
-                                <TextBlock Text="▶" FontSize="16" HorizontalAlignment="Center"/>
+                                    Width="36" Height="36" Padding="0" Margin="8,0,0,0">
+                                <TextBlock Text="▶" FontSize="12" HorizontalAlignment="Center"/>
                             </Button>
                         </StackPanel>
 
-                        <!-- Right Stats -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <Border Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,12,0">
+                        <!-- Right - Quick Actions -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Padding="12,8">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding MonthItemCount}" FontSize="16" FontWeight="Bold" 
-                                               Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" items" FontSize="12" 
-                                               Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                    <TextBlock Text=" •" Foreground="{DynamicResource WarningLightBrush}" Margin="8,0"/>
-                                    <TextBlock Text="{Binding MonthTotalUnits}" FontSize="16" FontWeight="Bold" 
-                                               Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" units" FontSize="12" 
-                                               Foreground="{DynamicResource WarningLightBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    <TextBlock Text="✏️" FontSize="12" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Edit" FontSize="12"/>
                                 </StackPanel>
-                            </Border>
-                            <Border Background="{DynamicResource DangerBackgroundBrush}" CornerRadius="10" Padding="14,10" 
-                                    Visibility="{Binding CriticalCount, Converter={StaticResource CountToVisibility}}">
+                            </Button>
+                            <Button Command="{Binding DeleteSelectedCommand}" Style="{StaticResource DangerButton}" Padding="12,8">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🚨" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                    <TextBlock Text="{Binding CriticalCount}" FontSize="14" FontWeight="Bold" 
-                                               Foreground="{DynamicResource DangerLightBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" critical" FontSize="11" 
-                                               Foreground="{DynamicResource DangerLightBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    <TextBlock Text="🗑️" FontSize="12" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Delete" FontSize="12"/>
                                 </StackPanel>
-                            </Border>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
-
+                
                 <!-- Search Bar with Group Toggle -->
-                <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,0,0,1">
+                <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <TextBox x:Name="SearchBox" Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
-                                    <Style.Triggers>
-                                        <Trigger Property="Text" Value="">
-                                            <Setter Property="Background">
-                                                <Setter.Value>
-                                                    <VisualBrush Stretch="None" AlignmentX="Left">
-                                                        <VisualBrush.Visual>
-                                                            <TextBlock Text="🔍 Search items in this month..."
-                                                                     Foreground="{DynamicResource TextTertiaryBrush}" Margin="12,0,0,0"/>
-                                                        </VisualBrush.Visual>
-                                                    </VisualBrush>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
+                        <!-- Search Box -->
+                        <Border Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="12,0" MaxWidth="500" HorizontalAlignment="Left">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox x:Name="SearchBox" Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         VerticalAlignment="Center" Padding="0,8" FontSize="14"
+                                         CaretBrush="{DynamicResource TextPrimaryBrush}">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox">
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter Property="Background">
+                                                        <Setter.Value>
+                                                            <VisualBrush Stretch="None" AlignmentX="Left">
+                                                                <VisualBrush.Visual>
+                                                                    <TextBlock Text="Search items..." Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                                                </VisualBrush.Visual>
+                                                            </VisualBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                            </Grid>
+                        </Border>
                         
                         <!-- Group by Store Toggle -->
                         <ToggleButton Grid.Column="1" IsChecked="{Binding GroupByStore}" 
@@ -506,8 +510,8 @@
                                                 <Border x:Name="Bg" Background="{TemplateBinding Background}" 
                                                         CornerRadius="10" Padding="{TemplateBinding Padding}">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock x:Name="Icon" Text="📍" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                        <TextBlock x:Name="Label" Text="Group by Store" FontSize="13" 
+                                                        <TextBlock Text="📍" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Group by Store" FontSize="13" 
                                                                    Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Border>
@@ -517,7 +521,7 @@
                                                     </Trigger>
                                                     <Trigger Property="IsChecked" Value="True">
                                                         <Setter TargetName="Bg" Property="Background" Value="{StaticResource ExpireWiseAccentBrush}"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                                                        <Setter Property="Foreground" Value="White"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -529,9 +533,48 @@
                     </Grid>
                 </Border>
                 
-                <!-- Data Grid -->
-                <Grid Grid.Row="3" Margin="20">
+                <!-- Data Grid Area -->
+                <Grid Grid.Row="2" Margin="20">
+                    <!-- Empty State -->
+                    <Border Visibility="{Binding HasData, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                            Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="40">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border Width="100" Height="100" CornerRadius="50" Margin="0,0,0,24">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
+                                        <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <TextBlock Text="📅" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="No Expiration Data" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Add items or import data to start tracking" 
+                                       FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" 
+                                       HorizontalAlignment="Center" Margin="0,8,0,24"/>
+                            
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Command="{Binding AddItemCommand}" Style="{StaticResource PrimaryButton}" Padding="16,10" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="➕" FontSize="14" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Add Item" FontSize="13"/>
+                                    </StackPanel>
+                                </Button>
+                                
+                                <Button Command="{Binding ImportFromExcelCommand}" Style="{StaticResource SecondaryButton}" Padding="16,10">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📥" FontSize="14" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Import Data" FontSize="13"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Data Grid (visible when has data) -->
                     <DataGrid x:Name="ItemsGrid" ItemsSource="{Binding Source={StaticResource GroupedItemsView}}"
+                              Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SelectedItem="{Binding SelectedItem}"
                               SelectionMode="Extended" SelectionUnit="FullRow"
                               SelectionChanged="OnItemsGridSelectionChanged"
@@ -547,14 +590,14 @@
                             <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
                         </DataGrid.InputBindings>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="120"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
-                            <DataGridTextColumn Header="Store" Binding="{Binding Location, Converter={StaticResource StoreDisplayConverter}}" Width="240"/>
-                            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80"/>
-                            <DataGridTemplateColumn Header="Status" Width="100">
+                            <DataGridTextColumn Header="ITEM NUMBER" Binding="{Binding ItemNumber}" Width="120"/>
+                            <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*"/>
+                            <DataGridTextColumn Header="STORE" Binding="{Binding Location, Converter={StaticResource StoreDisplayConverter}}" Width="200"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
+                            <DataGridTemplateColumn Header="STATUS" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border CornerRadius="4" Padding="8,4" HorizontalAlignment="Center">
+                                        <Border CornerRadius="6" Padding="8,4" HorizontalAlignment="Center">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
@@ -572,7 +615,7 @@
                                                 </Style>
                                             </Border.Style>
                                             <TextBlock Text="{Binding Status}" FontWeight="SemiBold" 
-                                                       Foreground="{DynamicResource TextOnPrimaryBrush}" FontSize="10"/>
+                                                       Foreground="White" FontSize="11"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -599,20 +642,17 @@
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     
-                                                                    <!-- Location Pin Icon -->
                                                                     <Border Grid.Column="0" Background="{StaticResource ExpireWiseAccentBrush}" 
                                                                             CornerRadius="6" Width="28" Height="28" Margin="0,0,12,0">
                                                                         <TextBlock Text="📍" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Border>
                                                                     
-                                                                    <!-- Store Name -->
                                                                     <TextBlock Grid.Column="1" 
                                                                                Text="{Binding Name, Converter={StaticResource StoreDisplayConverter}}" 
                                                                                FontWeight="SemiBold" FontSize="14" 
                                                                                Foreground="{StaticResource ExpireWiseAccentLightBrush}" 
                                                                                VerticalAlignment="Center"/>
                                                                     
-                                                                    <!-- Item Count Badge -->
                                                                     <Border Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}" 
                                                                             CornerRadius="8" Padding="12,6" Margin="12,0,0,0">
                                                                         <TextBlock VerticalAlignment="Center">
@@ -642,7 +682,7 @@
                 </Grid>
 
                 <!-- Status Bar -->
-                <Border Grid.Row="4" Background="{DynamicResource SurfaceBrush}" Padding="20,12" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0,1,0,0">
+                <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
                     <Grid>
                         <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
@@ -660,8 +700,3 @@
         </Grid>
     </Grid>
 </UserControl>
-
-
-
-
-

@@ -52,10 +52,11 @@ public partial class AboutWindow : Window
     {
         var config = ModuleConfiguration.Instance;
         
-        AddModuleEntry("ExpireWise", "📅", config.ExpireWiseEnabled, "#10b981");
         AddModuleEntry("AllocationBuddy", "📊", config.AllocationBuddyEnabled, "#6366f1");
         AddModuleEntry("EssentialsBuddy", "✅", config.EssentialsBuddyEnabled, "#f59e0b");
-        AddModuleEntry("SwiftLabel", "🏷️", true, "#ec4899"); // Always enabled
+        AddModuleEntry("ExpireWise", "📅", config.ExpireWiseEnabled, "#10b981");
+        AddModuleEntry("OrderLog", "📋", config.OrderLogEnabled, "#3b82f6");
+        AddModuleEntry("SwiftLabel", "🏷️", config.SwiftLabelEnabled, "#ec4899");
     }
 
     /// <summary>

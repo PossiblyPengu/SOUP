@@ -329,6 +329,7 @@
                         <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Color Bar (Done status = muted gray) -->
@@ -380,6 +381,14 @@
                         <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas"/>
                     </StackPanel>
+                    
+                    <!-- Footer with timestamp -->
+                    <TextBlock Grid.Row="3" 
+                               Text="{Binding CreatedAtDisplay}" 
+                               FontSize="10" 
+                               Foreground="{DynamicResource TextDisabledBrush}" 
+                               HorizontalAlignment="Right" 
+                               Margin="0,4,16,8"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -691,6 +700,13 @@
                                                    FontSize="{DynamicResource CardFontSize}"
                                                    FontFamily="Consolas"
                                                    Margin="0,6,0,0"/>
+                                        
+                                        <!-- Created timestamp -->
+                                        <TextBlock Text="{Binding CreatedAtDisplay}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource TextDisabledBrush}"
+                                                   HorizontalAlignment="Right"
+                                                   Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -823,6 +839,13 @@
                                                    FontSize="{DynamicResource CardFontSize}"
                                                    FontFamily="Consolas"
                                                    Margin="0,6,0,0"/>
+                                        
+                                        <!-- Created timestamp -->
+                                        <TextBlock Text="{Binding CreatedAtDisplay}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource TextDisabledBrush}"
+                                                   HorizontalAlignment="Right"
+                                                   Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -995,6 +1018,7 @@
                                         <RowDefinition Height="8"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <!-- Color Bar - Status color for Orders, Custom color for Notes -->
@@ -1316,6 +1340,14 @@
                                             </Border>
                                         </StackPanel>
                                     </StackPanel>
+                                    
+                                    <!-- Footer with timestamp -->
+                                    <TextBlock Grid.Row="3" 
+                                               Text="{Binding CreatedAtDisplay}" 
+                                               FontSize="10" 
+                                               Foreground="{DynamicResource TextDisabledBrush}" 
+                                               HorizontalAlignment="Right" 
+                                               Margin="0,4,16,8"/>
                                 </Grid>
                                                                 </Border>
                                                             </DataTemplate>

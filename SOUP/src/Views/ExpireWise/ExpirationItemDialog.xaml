@@ -8,6 +8,14 @@
              d:DesignHeight="550" d:DesignWidth="600"
              d:DataContext="{d:DesignInstance Type=vm:ExpirationItemDialogViewModel}">
 
+    <UserControl.Resources>
+        <!-- ExpireWise Amber Colors -->
+        <Color x:Key="ExpireWiseAccentColor">#f59e0b</Color>
+        <Color x:Key="ExpireWiseAccentDarkColor">#d97706</Color>
+        <Color x:Key="ExpireWiseAccentLightColor">#fbbf24</Color>
+        <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
+    </UserControl.Resources>
+
     <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -16,20 +24,32 @@
             </Grid.ColumnDefinitions>
 
             <!-- Sidebar Navigation -->
-            <Border Grid.Column="0" Background="{DynamicResource BackgroundBrush}" 
-                    CornerRadius="12,0,0,12" Padding="12">
-                <Grid>
+            <Border Grid.Column="0" CornerRadius="12,0,0,12">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
+                        <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0.5"/>
+                        <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <!-- Header -->
-                    <StackPanel Grid.Row="0" Margin="8,12,8,20">
-                        <TextBlock Text="📅" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                        <TextBlock Text="Add Item" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   HorizontalAlignment="Center"/>
+                    <StackPanel Grid.Row="0" Margin="8,16,8,24">
+                        <Border Width="56" Height="56" CornerRadius="28" Background="White" Opacity="0.2" 
+                                HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <Border Width="56" Height="56" CornerRadius="28" Background="Transparent" 
+                                HorizontalAlignment="Center" Margin="0,-68,0,0">
+                            <TextBlock Text="📅" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Add Item" FontSize="18" FontWeight="Bold"
+                                   Foreground="White" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                        <TextBlock Text="Expiration Tracking" FontSize="11" Foreground="#ffffffaa" 
+                                   HorizontalAlignment="Center" Margin="0,4,0,0"/>
                     </StackPanel>
 
                     <!-- Navigation Items -->
@@ -45,26 +65,27 @@
                                             <TextBlock Text="📝" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock x:Name="Title" Text="Single Item" FontSize="13" FontWeight="SemiBold" 
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                <TextBlock Text="Add one item" FontSize="10" 
-                                                           Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2,0,0"/>
+                                                           Foreground="#ffffffcc"/>
+                                                <TextBlock x:Name="Subtitle" Text="Add one item" FontSize="10" 
+                                                           Foreground="#ffffff88" Margin="0,2,0,0"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsChecked" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                                            <Setter TargetName="Title" Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="#ffffff22"/>
+                                            <Setter TargetName="Title" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="Subtitle" Property="Foreground" Value="#ffffffbb"/>
                                         </Trigger>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="#ffffff15"/>
                                         </Trigger>
                                         <MultiTrigger>
                                             <MultiTrigger.Conditions>
                                                 <Condition Property="IsChecked" Value="True"/>
                                                 <Condition Property="IsMouseOver" Value="True"/>
                                             </MultiTrigger.Conditions>
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="#ffffff28"/>
                                         </MultiTrigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -82,26 +103,27 @@
                                             <TextBlock Text="📋" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock x:Name="Title" Text="Bulk Input" FontSize="13" FontWeight="SemiBold" 
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                <TextBlock Text="Paste multiple SKUs" FontSize="10" 
-                                                           Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2,0,0"/>
+                                                           Foreground="#ffffffcc"/>
+                                                <TextBlock x:Name="Subtitle" Text="Paste multiple SKUs" FontSize="10" 
+                                                           Foreground="#ffffff88" Margin="0,2,0,0"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsChecked" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                                            <Setter TargetName="Title" Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="#ffffff22"/>
+                                            <Setter TargetName="Title" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="Subtitle" Property="Foreground" Value="#ffffffbb"/>
                                         </Trigger>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="#ffffff15"/>
                                         </Trigger>
                                         <MultiTrigger>
                                             <MultiTrigger.Conditions>
                                                 <Condition Property="IsChecked" Value="True"/>
                                                 <Condition Property="IsMouseOver" Value="True"/>
                                             </MultiTrigger.Conditions>
-                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                            <Setter TargetName="Bd" Property="Background" Value="#ffffff28"/>
                                         </MultiTrigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>

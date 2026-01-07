@@ -68,6 +68,24 @@ public partial class OrderItem : ObservableObject
     public DateTime? CompletedAt { get; set; }
     
     /// <summary>
+    /// Formatted display of the creation timestamp.
+    /// Shows time only if created today, otherwise shows date and time.
+    /// </summary>
+    [JsonIgnore]
+    public string CreatedAtDisplay
+    {
+        get
+        {
+            if (CreatedAt.Date == DateTime.Today)
+                return CreatedAt.ToString("h:mm tt").ToLower();
+            else if (CreatedAt.Year == DateTime.Now.Year)
+                return CreatedAt.ToString("MMM d, h:mm tt").ToLower();
+            else
+                return CreatedAt.ToString("MMM d yyyy, h:mm tt").ToLower();
+        }
+    }
+    
+    /// <summary>
     /// Accumulated time from previous "In Progress" sessions (laps).
     /// Stored as ticks for JSON serialization.
     /// </summary>

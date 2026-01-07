@@ -235,12 +235,12 @@
         </member>
         <member name="F:SOUP.Core.AppVersion.Version">
             <summary>
-            The current application version string (e.g., "4.3.0").
+            The current application version string (e.g., "4.6.1").
             </summary>
         </member>
         <member name="F:SOUP.Core.AppVersion.DisplayVersion">
             <summary>
-            The current version display string with 'v' prefix (e.g., "v4.3.0").
+            The current version display string with 'v' prefix (e.g., "v4.6.1").
             </summary>
         </member>
         <member name="F:SOUP.Core.AppVersion.Channel">

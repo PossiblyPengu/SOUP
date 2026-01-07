@@ -794,7 +794,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         try
         {
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
-            var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
+            var settingsWindow = new UnifiedSettingsWindow(settingsViewModel, "essentials");
             // Only set owner if MainWindow is visible (don't block widget)
             if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
             {

@@ -842,7 +842,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         try
         {
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
-            var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
+            var settingsWindow = new UnifiedSettingsWindow(settingsViewModel, "expirewise");
             // Only set owner if MainWindow is visible (don't block widget)
             if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
             {

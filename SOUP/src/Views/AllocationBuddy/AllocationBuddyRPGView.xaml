@@ -463,6 +463,14 @@
                         <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="8,0,8,12"/>
                         
                         <Button Style="{StaticResource SidebarActionItem}"
+                                Command="{Binding OpenSettingsCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
+                                <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Button Style="{StaticResource SidebarActionItem}"
                                 Command="{Binding ClearDataCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🗑️" FontSize="16" Margin="0,0,12,0"/>

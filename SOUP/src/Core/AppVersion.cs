@@ -19,12 +19,12 @@ namespace SOUP.Core;
 public static class AppVersion
 {
     /// <summary>
-    /// The current application version string (e.g., "4.3.0").
+    /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.2.1";
+    public const string Version = "4.6.1";
 
     /// <summary>
-    /// The current version display string with 'v' prefix (e.g., "v4.3.0").
+    /// The current version display string with 'v' prefix (e.g., "v4.6.1").
     /// </summary>
     public const string DisplayVersion = "v" + Version;
 
@@ -36,7 +36,7 @@ public static class AppVersion
     /// <summary>
     /// The build date in ISO format.
     /// </summary>
-    public const string BuildDate = "2025-12-11";
+    public const string BuildDate = "2026-01-06";
 
     /// <summary>
     /// Full version string with channel (e.g., "v4.3.0 - Stable").
@@ -48,6 +48,13 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.6.1", "2026-01-06", "Maintenance Update", new[]
+        {
+            "🔧 Fixed hallucinated WPF project references in play-dungeon scripts",
+            "🧹 Cleaned up non-existent FriendshipDungeon project references",
+            "📝 Simplified dungeon launcher to MonoGame-only"
+        }),
+
         new("4.2.0", "2025-12-05", "UI Polish Update", new[]
         {
             "🎨 Enhanced gradient backgrounds in both light and dark themes",

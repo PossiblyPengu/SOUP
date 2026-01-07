@@ -13,6 +13,7 @@ using SOUP.Services;
 using SOUP.Data;
 using SOUP.Core.Common;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.IO;
 
@@ -45,6 +46,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     private readonly AllocationBuddyParser _parser;
     private readonly DialogService _dialogService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<AllocationBuddyRPGViewModel>? _logger;
 
     /// <summary>
@@ -81,6 +83,11 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// Tracks whether current data has unsaved changes that need archiving.
     /// </summary>
     private bool _hasUnarchivedChanges;
+
+    /// <summary>
+    /// Tracks the name of the last imported allocation file for session naming.
+    /// </summary>
+    private string? _lastImportedFileName;
 
     /// <summary>
     /// Buffer storing the last deactivation operation for undo functionality.
@@ -334,6 +341,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     
     /// <summary>Command to sort item totals by the specified mode.</summary>
     public IRelayCommand<string> SortItemTotalsCommand { get; private set; } = null!;
+    
+    /// <summary>Command to open the settings window to the Allocation tab.</summary>
+    public IRelayCommand OpenSettingsCommand { get; }
 
     #endregion
 
@@ -367,14 +377,16 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// <param name="parser">The parser for processing allocation data.</param>
     /// <param name="dialogService">The service for displaying dialogs.</param>
     /// <param name="logger">Optional logger for diagnostic output.</param>
-    public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, ILogger<AllocationBuddyRPGViewModel>? logger = null)
+    public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, IServiceProvider serviceProvider, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
         _parser = parser;
         _dialogService = dialogService;
+        _serviceProvider = serviceProvider;
         _logger = logger;
 
         // Initialize import/export commands
         ImportCommand = new AsyncRelayCommand(ImportAsync);
+        OpenSettingsCommand = new RelayCommand(OpenSettings);
         ImportFilesCommand = new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); });
         PasteCommand = new RelayCommand(PasteFromClipboard);
         ImportFromPasteTextCommand = new RelayCommand(ImportFromPasteText);
@@ -787,6 +799,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             await AutoArchiveIfNeededAsync();
             PopulateFromEntries(allEntries);
             MarkAsModified();
+            
+            // Track the imported file name for session saves
+            _lastImportedFileName = files.Length == 1 
+                ? Path.GetFileNameWithoutExtension(files[0]) 
+                : $"{files.Length} files";
+            
             StatusMessage = $"Imported {allEntries.Count} entries from {files.Length} files";
             OnPropertyChanged(nameof(LocationsCount));
             OnPropertyChanged(nameof(ItemPoolCount));
@@ -1192,6 +1210,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         // Auto-archive before clearing
         await AutoArchiveIfNeededAsync();
 
+        // Delete session-save archives so cleared state persists across restarts
+        DeleteSessionSaveArchives();
+
         // Clear all collections
         LocationAllocations.Clear();
         ItemPool.Clear();
@@ -1211,6 +1232,64 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         StatusMessage = "All data cleared";
         _logger?.LogInformation("All allocation data cleared by user");
+    }
+
+    private void OpenSettings()
+    {
+        try
+        {
+            var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
+            var settingsWindow = new Views.UnifiedSettingsWindow(settingsViewModel, "allocation");
+            // Only set owner if MainWindow is visible
+            if (System.Windows.Application.Current?.MainWindow is { IsVisible: true } mainWindow)
+            {
+                settingsWindow.Owner = mainWindow;
+            }
+            settingsWindow.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to open settings window");
+            StatusMessage = "Failed to open settings";
+        }
+    }
+
+    /// <summary>
+    /// Deletes session-save archives to prevent auto-restore after clearing data.
+    /// </summary>
+    private void DeleteSessionSaveArchives()
+    {
+        try
+        {
+            var archivePath = GetArchivePath();
+            if (!Directory.Exists(archivePath)) return;
+
+            // Delete Session saves (Session-Save and Session_*) and Auto-Archive files
+            // These are auto-restored on startup, so delete them when user clears data
+            var sessionFiles = Directory.GetFiles(archivePath, "*_Session-Save.json")
+                .Concat(Directory.GetFiles(archivePath, "*_Session_*.json"))
+                .Concat(Directory.GetFiles(archivePath, "*_Auto-Archive.json"));
+
+            foreach (var file in sessionFiles)
+            {
+                try
+                {
+                    File.Delete(file);
+                    _logger?.LogInformation("Deleted session archive: {FilePath}", file);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to delete session archive: {FilePath}", file);
+                }
+            }
+            
+            // Clear the imported file name since data is cleared
+            _lastImportedFileName = null;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to delete session save archives");
+        }
     }
 
     private Task ExportToExcelAsync()
@@ -1425,6 +1504,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     var data = System.Text.Json.JsonSerializer.Deserialize<ArchiveData>(json);
                     if (data != null)
                     {
+                        // Capture file path in local variable for correct closure binding
+                        var archiveFilePath = file;
                         Archives.Add(new ArchiveViewModel
                         {
                             Name = data.Name,
@@ -1432,9 +1513,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                             ArchivedAt = data.ArchivedAt,
                             TotalItems = data.TotalItems,
                             LocationCount = data.LocationCount,
-                            FilePath = file,
-                            LoadCommand = new AsyncRelayCommand(async () => await LoadArchiveAsync(file)),
-                            DeleteCommand = new AsyncRelayCommand(async () => await DeleteArchiveAsync(file))
+                            FilePath = archiveFilePath,
+                            LoadCommand = new AsyncRelayCommand(async () => await LoadArchiveAsync(archiveFilePath)),
+                            DeleteCommand = new AsyncRelayCommand(async () => await DeleteArchiveAsync(archiveFilePath))
                         });
                     }
                 }
@@ -1569,7 +1650,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             return;
         }
 
-        await SaveCurrentDataAsync("Session-Save", "Automatically saved when application closed");
+        // Use imported file name if available, otherwise generic session save
+        var sessionName = !string.IsNullOrEmpty(_lastImportedFileName)
+            ? $"Session_{_lastImportedFileName}"
+            : "Session-Save";
+        
+        await SaveCurrentDataAsync(sessionName, "Automatically saved when application closed");
     }
 
     /// <summary>
@@ -1633,6 +1719,15 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             RefreshItemTotals();
 
             _hasUnarchivedChanges = false; // Loaded data is already archived
+            
+            // Extract the original file name from session archives (Session_filename format)
+            var archiveFileName = Path.GetFileNameWithoutExtension(files.Path);
+            if (archiveFileName.Contains("_Session_"))
+            {
+                var sessionIndex = archiveFileName.IndexOf("_Session_", StringComparison.Ordinal);
+                _lastImportedFileName = archiveFileName[(sessionIndex + 9)..]; // Skip "_Session_"
+            }
+            
             StatusMessage = $"Restored {data.Locations.Count} locations from previous session";
             _logger?.LogInformation("Loaded most recent archive: {Name}", data.Name);
         }
