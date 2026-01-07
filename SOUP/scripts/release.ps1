@@ -171,6 +171,9 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
             $changelogItems += $item
         }
         
+        # Clear any remaining input buffer to prevent echo after script exits
+        while ([Console]::KeyAvailable) { $null = [Console]::ReadKey($true) }
+        
         if ($changelogItems.Count -gt 0) {
             # Build the changelog entry string
             $itemsString = ($changelogItems | ForEach-Object { "            `"$_`"" }) -join ",`r`n"
@@ -306,3 +309,6 @@ if (-not $SkipGit) {
     Write-Host "Skipped git operations (use without -SkipGit to commit/tag/push)" -ForegroundColor Gray
 }
 Write-Host ""
+
+# Clear input buffer to prevent any buffered input from echoing after script exits
+while ([Console]::KeyAvailable) { $null = [Console]::ReadKey($true) }
