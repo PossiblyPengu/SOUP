@@ -1042,22 +1042,20 @@ public partial class OrderLogWidgetView : UserControl
                 if (btn.Template.FindName("Icon", btn) is System.Windows.Shapes.Path icon &&
                     btn.Template.FindName("Bd", btn) is Border border)
                 {
-                    // Store original values
+                    // Store original icon data (fill and background are dynamic resources, so we reset via resource lookup)
                     var originalData = icon.Data;
-                    var originalFill = icon.Fill;
-                    var originalBackground = border.Background;
                     
                     // Show checkmark icon and success color
                     icon.Data = System.Windows.Media.Geometry.Parse("M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41-1.41z");
                     icon.Fill = System.Windows.Media.Brushes.White;
                     border.Background = (System.Windows.Media.Brush)FindResource("SuccessBrush");
                     
-                    // Wait briefly then restore
+                    // Wait briefly then restore to default (not hover) state
                     await Task.Delay(800);
                     
                     icon.Data = originalData;
-                    icon.Fill = originalFill;
-                    border.Background = originalBackground;
+                    icon.Fill = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
+                    border.Background = (System.Windows.Media.Brush)FindResource("SurfaceBrush");
                 }
             }
             catch (Exception ex)

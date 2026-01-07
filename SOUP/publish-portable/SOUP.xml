@@ -3438,6 +3438,11 @@
             Gets the current application version.
             </summary>
         </member>
+        <member name="P:SOUP.Services.UpdateService.LastCheckError">
+            <summary>
+            Gets the last error message from update check, if any.
+            </summary>
+        </member>
         <member name="M:SOUP.Services.UpdateService.CheckForUpdatesAsync(System.Threading.CancellationToken)">
             <summary>
             Checks for updates from GitHub releases.

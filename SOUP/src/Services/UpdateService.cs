@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace SOUP.Services;
 
 /// <summary>
-/// Service for checking and downloading updates from GitHub releases.
+/// Service for checking and downloading updates from a local/network server.
 /// </summary>
 public sealed class UpdateService : IDisposable
 {
@@ -17,17 +17,19 @@ public sealed class UpdateService : IDisposable
     private readonly string _currentVersion;
     private bool _disposed;
 
-    // GitHub repository info - update these for your repo
-    private const string GitHubOwner = "PossiblyPengu";
-    private const string GitHubRepo = "SOUP";
-    private const string GitHubApiUrl = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest";
+    // Local/Network update server URL - update this to your server location
+    // Examples:
+    //   - Local IIS: "http://localhost/soup/version.json"
+    //   - Network share via IIS: "http://server-name/soup/version.json"  
+    //   - File share (use file:// URI): Configure via settings instead
+    private const string UpdateManifestUrl = "http://localhost/soup/version.json";
 
     public UpdateService(ILogger<UpdateService>? logger = null)
     {
         _logger = logger;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "SOUP-Updater");
-        _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+        _httpClient.Timeout = TimeSpan.FromSeconds(10);
 
         // Get current version from assembly
         var assembly = Assembly.GetExecutingAssembly();
@@ -41,7 +43,12 @@ public sealed class UpdateService : IDisposable
     public string CurrentVersion => _currentVersion;
 
     /// <summary>
-    /// Checks for updates from GitHub releases.
+    /// Gets the last error message from update check, if any.
+    /// </summary>
+    public string? LastCheckError { get; private set; }
+
+    /// <summary>
+    /// Checks for updates from the local update server.
     /// </summary>
     /// <returns>Update info if available, null otherwise.</returns>
     public async Task<UpdateInfo?> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
@@ -49,57 +56,69 @@ public sealed class UpdateService : IDisposable
         try
         {
             _logger?.LogInformation("Checking for updates. Current version: {Version}", _currentVersion);
+            LastCheckError = null;
 
-            var response = await _httpClient.GetAsync(GitHubApiUrl, cancellationToken);
+            var response = await _httpClient.GetAsync(UpdateManifestUrl, cancellationToken);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger?.LogWarning("Update manifest not found at {Url}", UpdateManifestUrl);
+                LastCheckError = "Update server not configured";
+                return null;
+            }
             
             if (!response.IsSuccessStatusCode)
             {
                 _logger?.LogWarning("Failed to check for updates. Status: {StatusCode}", response.StatusCode);
+                LastCheckError = $"Update server error: {response.StatusCode}";
                 return null;
             }
 
-            var release = await response.Content.ReadFromJsonAsync<GitHubRelease>(cancellationToken: cancellationToken);
+            var manifest = await response.Content.ReadFromJsonAsync<UpdateManifest>(cancellationToken: cancellationToken);
             
-            if (release == null)
+            if (manifest == null)
             {
-                _logger?.LogWarning("Failed to parse release response");
+                _logger?.LogWarning("Failed to parse update manifest");
+                LastCheckError = "Invalid update manifest";
                 return null;
             }
 
-            var latestVersion = release.TagName.TrimStart('v');
-            
-            if (!IsNewerVersion(latestVersion, _currentVersion))
+            if (!IsNewerVersion(manifest.Version, _currentVersion))
             {
                 _logger?.LogInformation("No update available. Latest: {Latest}, Current: {Current}", 
-                    latestVersion, _currentVersion);
+                    manifest.Version, _currentVersion);
                 return null;
             }
 
-            _logger?.LogInformation("Update available: {Version}", latestVersion);
-
-            // Find the portable ZIP asset (self-contained)
-            var portableAsset = release.Assets.FirstOrDefault(a => 
-                a.Name.Contains("portable", StringComparison.OrdinalIgnoreCase) && 
-                a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
-
-            // Fall back to framework-dependent if portable not found
-            var asset = portableAsset ?? release.Assets.FirstOrDefault(a => 
-                a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
+            _logger?.LogInformation("Update available: {Version}", manifest.Version);
 
             return new UpdateInfo
             {
-                Version = latestVersion,
-                ReleaseNotes = release.Body ?? "",
-                DownloadUrl = asset?.BrowserDownloadUrl ?? release.HtmlUrl,
-                PublishedAt = release.PublishedAt,
-                HtmlUrl = release.HtmlUrl,
-                AssetName = asset?.Name,
-                AssetSize = asset?.Size ?? 0
+                Version = manifest.Version,
+                ReleaseNotes = manifest.ReleaseNotes ?? "",
+                DownloadUrl = manifest.DownloadUrl,
+                PublishedAt = manifest.PublishedAt,
+                HtmlUrl = manifest.DownloadUrl,
+                AssetName = manifest.AssetName,
+                AssetSize = manifest.AssetSize
             };
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger?.LogWarning(ex, "Cannot reach update server");
+            LastCheckError = "Cannot reach update server";
+            return null;
+        }
+        catch (TaskCanceledException)
+        {
+            _logger?.LogWarning("Update check timed out");
+            LastCheckError = "Update check timed out";
+            return null;
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error checking for updates");
+            LastCheckError = "Failed to check for updates";
             return null;
         }
     }
@@ -215,40 +234,26 @@ public class UpdateInfo
 }
 
 /// <summary>
-/// GitHub release API response model.
+/// Update manifest model for local/network update server.
+/// Place this JSON file on your update server.
 /// </summary>
-internal class GitHubRelease
+internal class UpdateManifest
 {
-    [JsonPropertyName("tag_name")]
-    public string TagName { get; set; } = "";
+    [JsonPropertyName("version")]
+    public string Version { get; set; } = "";
 
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = "";
+    [JsonPropertyName("downloadUrl")]
+    public string? DownloadUrl { get; set; }
 
-    [JsonPropertyName("body")]
-    public string? Body { get; set; }
+    [JsonPropertyName("releaseNotes")]
+    public string? ReleaseNotes { get; set; }
 
-    [JsonPropertyName("html_url")]
-    public string HtmlUrl { get; set; } = "";
-
-    [JsonPropertyName("published_at")]
+    [JsonPropertyName("publishedAt")]
     public DateTime? PublishedAt { get; set; }
 
-    [JsonPropertyName("assets")]
-    public List<GitHubAsset> Assets { get; set; } = [];
-}
+    [JsonPropertyName("assetName")]
+    public string? AssetName { get; set; }
 
-/// <summary>
-/// GitHub release asset model.
-/// </summary>
-internal class GitHubAsset
-{
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = "";
-
-    [JsonPropertyName("browser_download_url")]
-    public string BrowserDownloadUrl { get; set; } = "";
-
-    [JsonPropertyName("size")]
-    public long Size { get; set; }
+    [JsonPropertyName("assetSize")]
+    public long AssetSize { get; set; }
 }

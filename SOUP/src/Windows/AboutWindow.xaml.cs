@@ -217,9 +217,16 @@ public partial class AboutWindow : Window
             }
             else
             {
+                var message = $"You're running the latest version (v{updateService.CurrentVersion}).";
+                if (!string.IsNullOrEmpty(updateService.LastCheckError))
+                {
+                    message = $"Could not check for updates:\n{updateService.LastCheckError}\n\n" +
+                              $"Current version: v{updateService.CurrentVersion}";
+                }
+                
                 MessageBox.Show(
-                    $"You're running the latest version (v{updateService.CurrentVersion}).",
-                    "No Updates",
+                    message,
+                    "Update Check",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }

@@ -220,6 +220,31 @@ if ($Installer) {
     Write-Host "  Installer created!" -ForegroundColor Green
 }
 
+# Generate version.json for local update server
+$publishDir = Join-Path $rootDir "publish"
+if (-not (Test-Path $publishDir)) {
+    New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
+}
+
+$portableSize = 0
+if (Test-Path $publishPortableDir) {
+    $portableSize = (Get-ChildItem $publishPortableDir -Recurse | Measure-Object -Property Length -Sum).Sum
+}
+
+$today = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+$versionJson = @{
+    version = $version
+    releaseNotes = "SOUP v$version"
+    downloadUrl = "http://localhost/soup/SOUP-portable.zip"
+    publishedAt = $today
+    assetName = "SOUP-portable.zip"
+    assetSize = $portableSize
+} | ConvertTo-Json -Depth 2
+
+$versionJsonPath = Join-Path $publishDir "version.json"
+Set-Content -Path $versionJsonPath -Value $versionJson
+Write-Host "  Generated version.json for update server" -ForegroundColor Green
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Publish Complete!" -ForegroundColor Green
@@ -233,6 +258,7 @@ if ($Framework) {
 if ($Portable) {
     Write-Host "  Portable:  $publishPortableDir" -ForegroundColor White
 }
+Write-Host "  version.json: $versionJsonPath" -ForegroundColor White
 if ($Installer) {
     $installerFile = Get-ChildItem -Path (Join-Path $rootDir "installer") -Filter "SOUP-Setup-*.exe" | 
         Sort-Object LastWriteTime -Descending | 
