@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reflection;
@@ -171,6 +172,125 @@ public sealed class UpdateService : IDisposable
             _logger?.LogError(ex, "Error downloading update");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Applies a downloaded update by extracting it and restarting the application.
+    /// </summary>
+    /// <param name="zipPath">Path to the downloaded zip file</param>
+    /// <returns>True if update was initiated successfully</returns>
+    public bool ApplyUpdate(string zipPath)
+    {
+        try
+        {
+            if (!File.Exists(zipPath))
+            {
+                _logger?.LogError("Update zip file not found: {Path}", zipPath);
+                return false;
+            }
+
+            var appPath = Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrEmpty(appPath))
+            {
+                _logger?.LogError("Could not determine application path");
+                return false;
+            }
+
+            var appDir = Path.GetDirectoryName(appPath)!;
+            var extractPath = Path.Combine(Path.GetTempPath(), "SOUP_Update_Extract");
+            var updaterScript = Path.Combine(Path.GetTempPath(), "SOUP_Updater.bat");
+
+            _logger?.LogInformation("Applying update from {ZipPath} to {AppDir}", zipPath, appDir);
+
+            // Clean extract directory
+            if (Directory.Exists(extractPath))
+            {
+                Directory.Delete(extractPath, true);
+            }
+
+            // Extract the update
+            ZipFile.ExtractToDirectory(zipPath, extractPath);
+
+            // Create the updater batch script
+            // This script waits for the app to close, copies files, and restarts
+            var batchContent = $@"@echo off
+title SOUP Updater
+echo Updating SOUP...
+echo.
+
+:: Wait for the application to close (up to 10 seconds)
+set attempts=0
+:waitloop
+tasklist /fi ""imagename eq SOUP.exe"" 2>nul | find /i ""SOUP.exe"" >nul
+if errorlevel 1 goto docopy
+set /a attempts+=1
+if %attempts% gtr 20 (
+    echo Timeout waiting for SOUP to close.
+    pause
+    exit /b 1
+)
+timeout /t 1 /nobreak >nul
+goto waitloop
+
+:docopy
+echo Copying new files...
+xcopy /E /Y /Q ""{extractPath}\*"" ""{appDir}\""
+if errorlevel 1 (
+    echo Failed to copy files!
+    pause
+    exit /b 1
+)
+
+echo.
+echo Update complete! Restarting SOUP...
+timeout /t 1 /nobreak >nul
+
+:: Restart the application
+start """" ""{appPath}""
+
+:: Cleanup
+rmdir /s /q ""{extractPath}"" 2>nul
+del ""{zipPath}"" 2>nul
+del ""%~f0"" 2>nul
+exit
+";
+
+            File.WriteAllText(updaterScript, batchContent);
+
+            // Start the updater script (hidden window)
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c \"{updaterScript}\"",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            Process.Start(startInfo);
+
+            _logger?.LogInformation("Updater script started, application will restart");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error applying update");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Downloads and applies an update, then restarts the application.
+    /// </summary>
+    public async Task<bool> DownloadAndApplyUpdateAsync(UpdateInfo updateInfo, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        var zipPath = await DownloadUpdateAsync(updateInfo, progress, cancellationToken);
+        if (string.IsNullOrEmpty(zipPath))
+        {
+            return false;
+        }
+
+        return ApplyUpdate(zipPath);
     }
 
     /// <summary>

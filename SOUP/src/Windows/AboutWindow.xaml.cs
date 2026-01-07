@@ -205,14 +205,15 @@ public partial class AboutWindow : Window
                     $"A new version is available!\n\n" +
                     $"Current: v{updateService.CurrentVersion}\n" +
                     $"Latest: v{updateInfo.Version}\n\n" +
-                    $"Would you like to open the download page?",
+                    $"{updateInfo.ReleaseNotes}\n\n" +
+                    $"Would you like to download and install it now?",
                     "Update Available",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Information);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    updateService.OpenReleasePage(updateInfo);
+                    await DownloadAndApplyUpdate(updateService, updateInfo);
                 }
             }
             else
@@ -244,6 +245,75 @@ public partial class AboutWindow : Window
         {
             CheckUpdateButton.IsEnabled = true;
             CheckUpdateButton.Content = "🔄 Check for Updates";
+        }
+    }
+
+    private async Task DownloadAndApplyUpdate(UpdateService updateService, UpdateInfo updateInfo)
+    {
+        try
+        {
+            // Show progress UI
+            UpdateProgressPanel.Visibility = Visibility.Visible;
+            UpdateStatusText.Text = "Downloading update...";
+            UpdateProgressBar.Value = 0;
+            CheckUpdateButton.IsEnabled = false;
+
+            var progress = new Progress<double>(percent =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateProgressBar.Value = percent;
+                    UpdateStatusText.Text = $"Downloading... {percent:F0}%";
+                });
+            });
+
+            var zipPath = await updateService.DownloadUpdateAsync(updateInfo, progress);
+
+            if (string.IsNullOrEmpty(zipPath))
+            {
+                MessageBox.Show(
+                    "Failed to download update. Please try again later.",
+                    "Download Failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            UpdateStatusText.Text = "Applying update...";
+            UpdateProgressBar.IsIndeterminate = true;
+
+            // Apply the update
+            if (updateService.ApplyUpdate(zipPath))
+            {
+                UpdateStatusText.Text = "Update ready! Restarting...";
+                
+                // Close the application - the updater script will restart it
+                await Task.Delay(500);
+                Application.Current.Shutdown();
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Failed to apply update. Please try downloading manually.",
+                    "Update Failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to download/apply update");
+            MessageBox.Show(
+                $"Failed to update: {ex.Message}",
+                "Update Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+        finally
+        {
+            UpdateProgressPanel.Visibility = Visibility.Collapsed;
+            UpdateProgressBar.IsIndeterminate = false;
+            CheckUpdateButton.IsEnabled = true;
         }
     }
 }

@@ -220,15 +220,30 @@ if ($Installer) {
     Write-Host "  Installer created!" -ForegroundColor Green
 }
 
-# Generate version.json for local update server
+# Generate version.json and portable zip for local update server
 $publishDir = Join-Path $rootDir "publish"
 if (-not (Test-Path $publishDir)) {
     New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 }
 
-$portableSize = 0
+# Create portable zip for auto-update
+$portableZipPath = Join-Path $publishDir "SOUP-portable.zip"
 if (Test-Path $publishPortableDir) {
-    $portableSize = (Get-ChildItem $publishPortableDir -Recurse | Measure-Object -Property Length -Sum).Sum
+    Write-Host "Creating portable zip for auto-update..." -ForegroundColor Yellow
+    
+    # Remove old zip if exists
+    if (Test-Path $portableZipPath) {
+        Remove-Item $portableZipPath -Force
+    }
+    
+    # Create the zip
+    Compress-Archive -Path "$publishPortableDir\*" -DestinationPath $portableZipPath -Force
+    Write-Host "  Created SOUP-portable.zip" -ForegroundColor Green
+}
+
+$portableSize = 0
+if (Test-Path $portableZipPath) {
+    $portableSize = (Get-Item $portableZipPath).Length
 }
 
 $today = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"

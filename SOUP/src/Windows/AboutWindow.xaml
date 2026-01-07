@@ -173,7 +173,18 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,14" 
                     CornerRadius="0,0,12,12" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel>
+                    <!-- Update Progress (hidden by default) -->
+                    <StackPanel x:Name="UpdateProgressPanel" Visibility="Collapsed" Margin="0,0,0,12">
+                        <TextBlock x:Name="UpdateStatusText" Text="Downloading update..." 
+                                   Foreground="{DynamicResource TextPrimaryBrush}" 
+                                   FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <ProgressBar x:Name="UpdateProgressBar" Height="6" Minimum="0" Maximum="100" Value="0"
+                                     Background="{DynamicResource SurfaceHoverBrush}"
+                                     Foreground="{DynamicResource PrimaryBrush}"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button x:Name="CheckUpdateButton" Content="🔄 Check for Updates" Click="CheckForUpdates_Click"
                         Padding="20,10" FontWeight="SemiBold" FontSize="13" Cursor="Hand" Margin="0,0,12,0"
                         Background="{DynamicResource PrimaryBrush}" 
@@ -217,6 +228,7 @@
                             </Style>
                         </Button.Style>
                     </Button>
+                </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

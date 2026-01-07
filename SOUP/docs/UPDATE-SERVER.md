@@ -6,28 +6,36 @@
    ```powershell
    .\scripts\publish.ps1
    ```
+   This automatically creates both `version.json` and `SOUP-portable.zip`.
 
-2. **Create the ZIP file:**
-   - Zip the contents of `publish-portable\` folder
-   - Save as `publish\SOUP-portable.zip`
-
-3. **Start the server:**
+2. **Start the server:**
    ```powershell
    .\scripts\serve-updates.ps1
    ```
 
-4. **Test it:**
+3. **Test it:**
    - Open SOUP → Settings → About → "Check for Updates"
+   - If an update is available, click "Yes" to download and install automatically
+   - SOUP will restart with the new version
+
+---
+
+## How Auto-Update Works
+
+1. SOUP checks `http://localhost:8080/version.json` for the latest version
+2. If newer, user is prompted to update
+3. The portable zip is downloaded with progress indication
+4. A batch script extracts files and restarts the app
 
 ---
 
 ## Files Structure
 
-After publishing, your `publish\` folder should contain:
+After publishing, your `publish\` folder contains:
 ```
 publish\
 ├── version.json         (auto-generated)
-└── SOUP-portable.zip    (you create this)
+└── SOUP-portable.zip    (auto-generated)
 ```
 
 ---
@@ -57,7 +65,7 @@ publish\
 ### On Client Machines:
 
 - Install SOUP from the `publish-portable\` folder or installer
-- "Check for Updates" will connect to this server
+- "Check for Updates" will download and install automatically
 
 ---
 
