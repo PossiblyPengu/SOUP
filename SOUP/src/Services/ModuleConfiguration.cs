@@ -76,8 +76,7 @@ public class ModuleConfiguration
     /// </summary>
     private ModuleConfiguration()
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _iniConfigPath = Path.Combine(appDataPath, "SOUP", "modules.ini");
+        _iniConfigPath = Path.Combine(Core.AppPaths.AppData, "modules.ini");
         
         // JSON config is in the app directory (created by installer)
         var appDir = AppDomain.CurrentDomain.BaseDirectory;

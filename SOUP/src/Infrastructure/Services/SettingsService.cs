@@ -15,11 +15,7 @@ public sealed class SettingsService
 
     public SettingsService()
     {
-        _settingsDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SOUP",
-            "Settings"
-        );
+        _settingsDirectory = Path.Combine(Core.AppPaths.LocalAppData, "Settings");
 
         // Ensure the settings directory exists
         Directory.CreateDirectory(_settingsDirectory);

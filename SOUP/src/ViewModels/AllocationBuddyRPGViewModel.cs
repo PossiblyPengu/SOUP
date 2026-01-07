@@ -1304,8 +1304,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var fileName = $"AllocationBuddy_Export_{timestamp}.xlsx";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = Path.Combine(desktopPath, fileName);
+            var filePath = Path.Combine(Core.AppPaths.Desktop, fileName);
 
             // Create Excel file using ClosedXML
             using var workbook = new ClosedXML.Excel.XLWorkbook();
@@ -1368,8 +1367,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var fileName = $"AllocationBuddy_Export_{timestamp}.csv";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = Path.Combine(desktopPath, fileName);
+            var filePath = Path.Combine(Core.AppPaths.Desktop, fileName);
 
             using var writer = new StreamWriter(filePath);
             
@@ -1620,8 +1618,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     private static string GetArchivePath()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "SOUP", "AllocationBuddy", "Archives");
+        return Path.Combine(Core.AppPaths.AllocationBuddyDir, "Archives");
     }
 
     /// <summary>

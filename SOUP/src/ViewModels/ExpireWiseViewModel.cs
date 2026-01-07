@@ -716,8 +716,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var fileName = $"ExpireWise_Export_{timestamp}.xlsx";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = System.IO.Path.Combine(desktopPath, fileName);
+            var filePath = System.IO.Path.Combine(Core.AppPaths.Desktop, fileName);
 
             var result = await _fileService.ExportToExcelAsync(Items.ToList(), filePath);
 
@@ -750,8 +749,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var fileName = $"ExpireWise_Export_{timestamp}.csv";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = System.IO.Path.Combine(desktopPath, fileName);
+            var filePath = System.IO.Path.Combine(Core.AppPaths.Desktop, fileName);
 
             var result = await _fileService.ExportToCsvAsync(Items.ToList(), filePath);
 
@@ -861,11 +859,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     #region Data Persistence
 
-    private static string GetDataPath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "SOUP", "ExpireWise");
-    }
+    private static string GetDataPath() => Core.AppPaths.ExpireWiseDir;
 
     private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");
 

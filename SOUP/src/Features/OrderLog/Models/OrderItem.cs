@@ -197,7 +197,6 @@ public partial class OrderItem : ObservableObject
     partial void OnStatusChanged(OrderStatus value)
     {
         UpdateStatusColor(value);
-        UpdateArchiveState(value);
         UpdateTimestamps(value);
         RefreshTimeInProgress();
     }
@@ -215,12 +214,6 @@ public partial class OrderItem : ObservableObject
         };
     }
 
-    private void UpdateArchiveState(OrderStatus status)
-    {
-        // Note: Archiving is now handled by the ViewModel (SetStatusAsync) to ensure proper
-        // collection management and undo support. This method is kept for potential future use.
-    }
-
     private void UpdateTimestamps(OrderStatus status)
     {
         // If leaving InProgress, accumulate the current session time
@@ -232,7 +225,11 @@ public partial class OrderItem : ObservableObject
         switch (status)
         {
             case OrderStatus.InProgress:
-                StartedAt = DateTime.Now; // Always start fresh lap
+                // Only set StartedAt if not already set (preserve on deserialization/reload)
+                if (StartedAt == null)
+                {
+                    StartedAt = DateTime.Now;
+                }
                 CompletedAt = null;
                 break;
 
@@ -243,7 +240,7 @@ public partial class OrderItem : ObservableObject
                     AccumulatedTime += DateTime.Now - StartedAt.Value;
                 }
                 StartedAt = null; // Clear so TimeInProgress returns Zero
-                CompletedAt = DateTime.Now;
+                CompletedAt ??= DateTime.Now; // Only set if not already set
                 break;
 
             default: // NotReady or OnDeck

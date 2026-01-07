@@ -34,8 +34,7 @@ public class WindowSettingsService
     /// </summary>
     private WindowSettingsService()
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _settingsDir = Path.Combine(appDataPath, "SOUP", "WindowSettings");
+        _settingsDir = Path.Combine(Core.AppPaths.AppData, "WindowSettings");
         Directory.CreateDirectory(_settingsDir);
     }
 

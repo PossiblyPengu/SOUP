@@ -50,10 +50,7 @@ public partial class ThemeService : ObservableObject
     /// </summary>
     public ThemeService()
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var settingsDir = Path.Combine(appDataPath, "SOUP");
-        Directory.CreateDirectory(settingsDir);
-        _settingsPath = Path.Combine(settingsDir, SettingsFileName);
+        _settingsPath = Path.Combine(Core.AppPaths.AppData, SettingsFileName);
 
         LoadTheme();
     }

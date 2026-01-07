@@ -24,10 +24,8 @@ public sealed class GroupStateStore : IDisposable
     {
         _logger = logger;
 
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "SOUP", "OrderLog");
-        Directory.CreateDirectory(dir);
-        _path = Path.Combine(dir, "groups.json");
+        Directory.CreateDirectory(Core.AppPaths.OrderLogDir);
+        _path = Path.Combine(Core.AppPaths.OrderLogDir, "groups.json");
 
         Load();
     }

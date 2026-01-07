@@ -27,10 +27,8 @@ public partial class App : Application
     public App()
     {
         // Configure Serilog
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var logDir = Path.Combine(appDataPath, "SOUP", "Logs");
-        Directory.CreateDirectory(logDir);
-        var logPath = Path.Combine(logDir, "app-.log");
+        Directory.CreateDirectory(Core.AppPaths.LogsDir);
+        var logPath = Path.Combine(Core.AppPaths.LogsDir, "app-.log");
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
@@ -116,14 +114,11 @@ public partial class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
-        // Database configuration
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dbDir = Path.Combine(appDataPath, "SOUP", "Data");
-        Directory.CreateDirectory(dbDir);
-        var dbPath = Path.Combine(dbDir, "SOUP.db");
+        // Ensure all app directories exist
+        Core.AppPaths.EnsureDirectoriesExist();
 
         // Infrastructure services
-        services.AddSingleton(sp => new LiteDbContext(dbPath));
+        services.AddSingleton(sp => new LiteDbContext(Core.AppPaths.MainDbPath));
         services.AddSingleton<IUnitOfWork, LiteDbUnitOfWork>();
 
         // Shared dictionary database (items and stores for matching across modules)

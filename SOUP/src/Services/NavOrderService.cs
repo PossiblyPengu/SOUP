@@ -20,10 +20,7 @@ public class NavOrderService
     {
         _logger = logger;
 
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "SOUP");
-        Directory.CreateDirectory(dir);
-        _filePath = Path.Combine(dir, "nav-order.json");
+        _filePath = Path.Combine(Core.AppPaths.AppData, "nav-order.json");
 
         Load();
     }

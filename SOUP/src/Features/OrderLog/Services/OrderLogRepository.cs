@@ -48,18 +48,17 @@ public sealed class OrderLogRepository : IOrderLogService
 
         try
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var dir = Path.Combine(appData, "SOUP", "OrderLog");
-            Directory.CreateDirectory(dir);
-            var dbPath = Path.Combine(dir, "orders.db");
+            Directory.CreateDirectory(Core.AppPaths.OrderLogDir);
 
             // Use direct connection mode (singleton handles concurrency via semaphore)
-            _db = new LiteDatabase(dbPath);
+            // InitialSize reduces disk fragmentation, Flush=true ensures durability
+            var connectionString = $"Filename={Core.AppPaths.OrderLogDbPath};Connection=Direct;InitialSize=1MB";
+            _db = new LiteDatabase(connectionString);
             _collection = _db.GetCollection<OrderItem>("orders");
             _collection.EnsureIndex(x => x.VendorName);
             _collection.EnsureIndex(x => x.Order);
 
-            _logger?.LogInformation("OrderLogRepository initialized at {Path}", dbPath);
+            _logger?.LogInformation("OrderLogRepository initialized at {Path}", Core.AppPaths.OrderLogDbPath);
         }
         catch (Exception ex)
         {
@@ -99,10 +98,8 @@ public sealed class OrderLogRepository : IOrderLogService
 
             if (toSave.Count > 0)
             {
-                foreach (var item in toSave)
-                {
-                    _collection.Upsert(item);
-                }
+                // Batch upsert - much faster than individual calls
+                _collection.Upsert(toSave);
             }
 
             // Clean up any items that were deleted (not in the current list)
@@ -112,10 +109,16 @@ public sealed class OrderLogRepository : IOrderLogService
             var allIds = _collection.FindAll().Select(i => i.Id).ToList();
             var idsToDelete = allIds.Where(id => !currentIds.Contains(id)).ToList();
 
-            foreach (var id in idsToDelete)
+            if (idsToDelete.Count > 0)
             {
-                _collection.Delete(new BsonValue(id));
+                foreach (var id in idsToDelete)
+                {
+                    _collection.Delete(new BsonValue(id));
+                }
             }
+
+            // Checkpoint to consolidate journal file after bulk operations
+            _db.Checkpoint();
 
             _logger?.LogInformation("Saved {Count} orders, deleted {DeletedCount} obsolete records",
                 items?.Count ?? 0, idsToDelete.Count);

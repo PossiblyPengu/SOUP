@@ -11,8 +11,11 @@ public sealed class LiteDbContext : IDisposable
     private readonly LiteDatabase _database;
     private bool _disposed;
 
-    public LiteDbContext(string connectionString)
+    public LiteDbContext(string databasePath)
     {
+        // Build optimized connection string
+        // Direct mode for single-process desktop app, InitialSize reduces fragmentation
+        var connectionString = $"Filename={databasePath};Connection=Direct;InitialSize=1MB";
         _database = new LiteDatabase(connectionString);
     }
 

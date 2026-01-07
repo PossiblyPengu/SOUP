@@ -37,8 +37,7 @@ public class OrderLogExportService : IOrderLogExportService
         try
         {
             fileName ??= $"OrderLog_Export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = Path.Combine(desktopPath, fileName);
+            var filePath = Path.Combine(Core.AppPaths.Desktop, fileName);
 
             var itemsList = items.ToList();
             var csvContent = BuildCsvContent(itemsList);

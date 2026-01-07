@@ -14,8 +14,7 @@ namespace SOUP.Services.External;
 public class ExternalConnectionConfig
 {
     private static readonly string ConfigPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "SOUP",
+        Core.AppPaths.AppData,
         "external_config.json"
     );
 

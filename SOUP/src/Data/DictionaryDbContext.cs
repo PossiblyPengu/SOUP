@@ -25,22 +25,15 @@ public sealed class DictionaryDbContext : IDisposable
     /// <summary>
     /// Path to the shared dictionary database
     /// </summary>
-    public static string DatabasePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "SOUP",
-        "Shared",
-        "dictionaries.db"
-    );
+    public static string DatabasePath => Core.AppPaths.DictionaryDbPath;
 
     private DictionaryDbContext()
     {
-        var directory = Path.GetDirectoryName(DatabasePath);
-        if (!string.IsNullOrEmpty(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
+        Directory.CreateDirectory(Core.AppPaths.SharedDir);
 
-        _database = new LiteDatabase(DatabasePath);
+        // InitialSize reduces disk fragmentation for dictionary data
+        var connectionString = $"Filename={DatabasePath};Connection=Direct;InitialSize=2MB";
+        _database = new LiteDatabase(connectionString);
         
         // Ensure indexes for fast lookups
         var items = _database.GetCollection<DictionaryItemEntity>("items");

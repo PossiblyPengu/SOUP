@@ -258,7 +258,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         if (_draggedListBoxItem == null)
             return;
 
-        try {  } catch { }
         _isDragging = true;
         _dragStartIndex = _draggedIndex;
         _currentPreviewIndex = _dragStartIndex;
@@ -544,7 +543,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
         // Calculate how far we've moved from the start
         double offsetY = mousePos.Y - _startPoint.Y;
-        try {  } catch { }
         
         // Update dragged item position
         if (_transforms.TryGetValue(_draggedListBoxItem, out var dragTransform))
@@ -570,7 +568,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         // Determine insertion index using midpoint calculation (insertion semantics)
         int hoverIndex = CalculatePreviewIndexFromPosition(mousePos);
         _lastMousePos = mousePos;
-        try {  } catch { }
 
         // If hovering over a different item than the drag start, show a swap preview
         if (hoverIndex >= 0 && hoverIndex != _currentPreviewIndex)
@@ -893,8 +890,6 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                 int insertIndex = newIndex;
                 if (insertIndex > oldIndex)
                     insertIndex--;
-
-                try {  } catch { }
 
                 // Clamp insertIndex to [0, list.Count]
                 insertIndex = Math.Max(0, Math.Min(insertIndex, list.Count));
