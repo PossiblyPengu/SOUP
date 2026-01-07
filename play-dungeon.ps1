@@ -1,18 +1,10 @@
-# Play Friendship Dungeon
-# -MonoGame : Run the MonoGame version (better graphics, recommended)
-# -WPF     : Run the WPF version (original)
+# Play Friendship Dungeon (MonoGame)
 param(
-    [switch]$MonoGame,
-    [switch]$WPF
+    [switch]$NoBuild
 )
 
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-# Default to MonoGame if neither is specified
-if (-not $MonoGame -and -not $WPF) {
-    $MonoGame = $true
-}
 
 # Find dotnet
 $dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
@@ -22,13 +14,10 @@ Write-Host "  + FRIENDSHIP DUNGEON +  " -ForegroundColor Magenta
 Write-Host "  A silly-creepy adventure  " -ForegroundColor DarkMagenta
 Write-Host ""
 
-if ($MonoGame) {
-    $projectFile = Join-Path (Join-Path $scriptDir "FriendshipDungeonMG") "FriendshipDungeonMG.csproj"
-    Write-Host "  [MonoGame Version]" -ForegroundColor Cyan
-} else {
-    $projectFile = Join-Path (Join-Path $scriptDir "FriendshipDungeon") "FriendshipDungeon.csproj"
-    Write-Host "  [WPF Version]" -ForegroundColor Yellow
-}
+$projectFile = Join-Path (Join-Path $scriptDir "FriendshipDungeonMG") "FriendshipDungeonMG.csproj"
 
-Write-Host ""
-& $dotnetPath run --project $projectFile --configuration Debug
+if ($NoBuild) {
+    & $dotnetPath run --project $projectFile --configuration Debug --no-build
+} else {
+    & $dotnetPath run --project $projectFile --configuration Debug
+}
