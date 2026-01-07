@@ -152,6 +152,44 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
         }
         
         Write-Host "  Updated to $newVersion" -ForegroundColor Green
+        
+        # Prompt for changelog entry
+        Write-Host ""
+        Write-Host "[Changelog] Add release notes for v$newVersion" -ForegroundColor Cyan
+        Write-Host "  Enter a title for this release (or press Enter for 'Release Update'):" -ForegroundColor Gray
+        $releaseTitle = Read-Host
+        if ([string]::IsNullOrWhiteSpace($releaseTitle)) {
+            $releaseTitle = "Release Update"
+        }
+        
+        Write-Host "  Enter changelog items (one per line, empty line to finish):" -ForegroundColor Gray
+        Write-Host "  Tip: Use emoji prefixes like ✨ 🐛 🔧 🎨 📦 ⚡" -ForegroundColor DarkGray
+        $changelogItems = @()
+        while ($true) {
+            $item = Read-Host "  >"
+            if ([string]::IsNullOrWhiteSpace($item)) { break }
+            $changelogItems += $item
+        }
+        
+        if ($changelogItems.Count -gt 0) {
+            # Build the changelog entry string
+            $itemsString = ($changelogItems | ForEach-Object { "            `"$_`"" }) -join ",`r`n"
+            $newEntry = @"
+        new("$newVersion", "$today", "$releaseTitle", new[]
+        {
+$itemsString
+        }),
+
+"@
+            # Insert after "Changelog { get; } = new List<ChangelogEntry>"
+            $appVersionContent = Get-Content $appVersionFile -Raw
+            $insertPoint = "Changelog { get; } = new List<ChangelogEntry>`r`n    {`r`n"
+            $appVersionContent = $appVersionContent -replace [regex]::Escape($insertPoint), ($insertPoint + $newEntry)
+            Set-Content $appVersionFile $appVersionContent -NoNewline
+            Write-Host "  Added changelog entry for v$newVersion" -ForegroundColor Green
+        } else {
+            Write-Host "  No changelog items entered, skipping" -ForegroundColor Yellow
+        }
     }
 } else {
     Write-Host "WARNING: Could not parse version from csproj" -ForegroundColor Yellow

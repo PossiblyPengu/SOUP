@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.6.4";
+    public const string Version = "4.6.5";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,19 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.6.5", "2026-01-07", "Release Update", new[]
+        {
+            "feat: Update version to 4.6.5 and enhance release script with changelog prompts"
+        }),
+        new("4.6.4", "2026-01-07", "Release Infrastructure", new[]
+        {
+            "🚀 Added GitHub Actions release workflow",
+            "🔄 Added automatic update checking via GitHub Releases",
+            "🔒 Added security scanning for sensitive data",
+            "📦 Enhanced release script with changelog prompts",
+            "🖼️ Fixed tray icon not showing in published builds"
+        }),
+
         new("4.6.1", "2026-01-06", "Maintenance Update", new[]
         {
             "🔧 Fixed hallucinated WPF project references in play-dungeon scripts",
