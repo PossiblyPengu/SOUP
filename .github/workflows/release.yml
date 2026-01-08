@@ -81,15 +81,17 @@ jobs:
           Compress-Archive -Path publish-portable\* -DestinationPath SOUP-${{ steps.version.outputs.VERSION }}-portable.zip
           # Also create generic name for auto-updater
           Copy-Item "SOUP-${{ steps.version.outputs.VERSION }}-portable.zip" "SOUP-portable.zip"
+          Get-ChildItem *.zip
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.TAG }}
           name: SOUP v${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: false
           generate_release_notes: true
+          fail_on_unmatched_files: false
           files: |
             SOUP-${{ steps.version.outputs.VERSION }}-framework.zip
             SOUP-${{ steps.version.outputs.VERSION }}-portable.zip
