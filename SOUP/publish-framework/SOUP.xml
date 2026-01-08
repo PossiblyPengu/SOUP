@@ -94,6 +94,7 @@
             <remarks>
             <c>true</c> converts to <see cref="F:System.Windows.Visibility.Visible"/>,
             <c>false</c> converts to <see cref="F:System.Windows.Visibility.Collapsed"/>.
+            Use ConverterParameter="Invert" to reverse the logic.
             </remarks>
         </member>
         <member name="M:SOUP.Converters.BoolToVisibilityConverter.Convert(System.Object,System.Type,System.Object,System.Globalization.CultureInfo)">

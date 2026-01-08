@@ -6,6 +6,7 @@
              xmlns:vm="clr-namespace:SOUP.ViewModels"
              xmlns:converters="clr-namespace:SOUP.Converters"
              mc:Ignorable="d"
+             MinWidth="520" MinHeight="480"
              d:DesignHeight="500" d:DesignWidth="520"
              d:DataContext="{d:DesignInstance Type=vm:ExpirationItemDialogViewModel}">
 

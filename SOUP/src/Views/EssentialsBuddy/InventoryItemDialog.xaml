@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SOUP.ViewModels"
              mc:Ignorable="d"
+             MinWidth="500" MinHeight="550"
              d:DesignHeight="650" d:DesignWidth="500"
              d:DataContext="{d:DesignInstance Type=vm:InventoryItemDialogViewModel}">
 

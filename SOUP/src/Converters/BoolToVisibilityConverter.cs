@@ -11,6 +11,7 @@ namespace SOUP.Converters;
 /// <remarks>
 /// <c>true</c> converts to <see cref="Visibility.Visible"/>,
 /// <c>false</c> converts to <see cref="Visibility.Collapsed"/>.
+/// Use ConverterParameter="Invert" to reverse the logic.
 /// </remarks>
 public class BoolToVisibilityConverter : IValueConverter
 {
@@ -19,6 +20,10 @@ public class BoolToVisibilityConverter : IValueConverter
     {
         if (value is bool boolValue)
         {
+            // Check if we should invert
+            bool invert = parameter is string s && s.Equals("Invert", StringComparison.OrdinalIgnoreCase);
+            if (invert) boolValue = !boolValue;
+            
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
         return Visibility.Collapsed;
@@ -29,7 +34,9 @@ public class BoolToVisibilityConverter : IValueConverter
     {
         if (value is Visibility visibility)
         {
-            return visibility == Visibility.Visible;
+            bool result = visibility == Visibility.Visible;
+            bool invert = parameter is string s && s.Equals("Invert", StringComparison.OrdinalIgnoreCase);
+            return invert ? !result : result;
         }
         return false;
     }

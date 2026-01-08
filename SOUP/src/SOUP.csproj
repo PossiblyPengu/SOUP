@@ -22,9 +22,9 @@
   <!-- Version Information                            -->
   <!-- ============================================== -->
   <PropertyGroup>
-    <Version>4.6.20</Version>
-    <AssemblyVersion>4.6.20.0</AssemblyVersion>
-    <FileVersion>4.6.20.0</FileVersion>
+    <Version>4.6.21</Version>
+    <AssemblyVersion>4.6.21.0</AssemblyVersion>
+    <FileVersion>4.6.21.0</FileVersion>
     <Description>Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools</Description>
   </PropertyGroup>
 

@@ -168,9 +168,9 @@ public class DialogService
             SizeToContent = SizeToContent.WidthAndHeight,
             WindowStyle = WindowStyle.SingleBorderWindow,
             ResizeMode = ResizeMode.CanResizeWithGrip,
-            MinWidth = 400,
-            MinHeight = 300,
-            MaxWidth = 800,
+            MinWidth = 450,
+            MinHeight = 350,
+            MaxWidth = 1000,
             MaxHeight = 900,
             ShowInTaskbar = false,
             Background = new System.Windows.Media.SolidColorBrush(backgroundColor)

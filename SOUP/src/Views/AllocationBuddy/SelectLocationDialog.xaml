@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SOUP.ViewModels"
              mc:Ignorable="d"
-             Width="420" Height="240"
+             MinWidth="420" MinHeight="240"
              d:DataContext="{d:DesignInstance Type=vm:SelectLocationDialogViewModel}">
 
     <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12">
