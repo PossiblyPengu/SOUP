@@ -144,6 +144,7 @@ public partial class App : Application
         services.AddSingleton<ThemeService>();
         services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>();
         services.AddSingleton<TrayIconService>();
+        services.AddSingleton<UpdateService>();
         services.AddSingleton<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp => 
             new SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser(
                 sp.GetService<ILogger<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>>()));

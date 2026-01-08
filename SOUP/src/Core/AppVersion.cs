@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.6.19";
+    public const string Version = "4.6.20";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
