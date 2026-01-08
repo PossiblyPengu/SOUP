@@ -68,15 +68,15 @@ jobs:
             --runtime win-x64 `
             --self-contained true `
             --output publish-portable `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:EnableCompressionInSingleFile=true
+            -p:PublishSingleFile=false
 
       - name: Create ZIP archives
         shell: pwsh
         run: |
           Compress-Archive -Path publish-framework\* -DestinationPath SOUP-${{ steps.version.outputs.VERSION }}-framework.zip
           Compress-Archive -Path publish-portable\* -DestinationPath SOUP-${{ steps.version.outputs.VERSION }}-portable.zip
+          # Also create generic name for auto-updater
+          Copy-Item "SOUP-${{ steps.version.outputs.VERSION }}-portable.zip" "SOUP-portable.zip"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -89,5 +89,6 @@ jobs:
           files: |
             SOUP-${{ steps.version.outputs.VERSION }}-framework.zip
             SOUP-${{ steps.version.outputs.VERSION }}-portable.zip
+            SOUP-portable.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

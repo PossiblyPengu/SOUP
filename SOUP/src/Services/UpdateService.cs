@@ -20,7 +20,8 @@ public sealed class UpdateService : IDisposable
 
     private const string GitHubOwner = "PossiblyPengu";
     private const string GitHubRepo = "SOUP";
-    private const string GitHubApiUrl = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest";
+    // Use /releases (not /releases/latest) to include prereleases
+    private const string GitHubApiUrl = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases";
 
     public UpdateService(ILogger<UpdateService>? logger = null)
     {
@@ -80,12 +81,16 @@ public sealed class UpdateService : IDisposable
                 return null;
             }
 
-            var release = await response.Content.ReadFromJsonAsync<GitHubRelease>(cancellationToken: cancellationToken);
+            // Parse as array since we're fetching all releases
+            var releases = await response.Content.ReadFromJsonAsync<GitHubRelease[]>(cancellationToken: cancellationToken);
+            
+            // Get the first release (latest by published date)
+            var release = releases?.FirstOrDefault();
             
             if (release == null)
             {
-                _logger?.LogWarning("Failed to parse GitHub release");
-                LastCheckError = "Invalid release data";
+                _logger?.LogWarning("No releases found on GitHub");
+                LastCheckError = "No releases found";
                 return null;
             }
 
