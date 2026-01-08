@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,34 +11,23 @@ using SOUP.Infrastructure.Services.Parsers;
 namespace SOUP.ViewModels;
 
 /// <summary>
-/// Simple store option for the location dropdown
-/// </summary>
-public class StoreOption
-{
-    public string Code { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Display => string.IsNullOrEmpty(Name) ? Code : $"{Code} - {Name}";
-}
-
-/// <summary>
-/// ViewModel for Add/Edit Expiration Item dialog with dictionary autocomplete
+/// Unified ViewModel for Add/Edit Expiration Item dialog.
+/// Supports single items, bulk paste, and Excel paste (SKU + Quantity tab-separated).
 /// </summary>
 public partial class ExpirationItemDialogViewModel : ObservableObject
 {
-    // Validation constants
     private const int MaxItemNumberLength = 50;
     private const int MaxDescriptionLength = 500;
-    private const int MaxNotesLength = 1000;
     private const int MaxUnits = 999999;
 
-    [ObservableProperty]
-    private string _itemNumber = string.Empty;
+    #region Input Properties
 
+    /// <summary>
+    /// Main input field - supports single SKU or multiple lines.
+    /// Accepts formats: "SKU" or "SKU[tab]Qty" per line.
+    /// </summary>
     [ObservableProperty]
-    private string _description = string.Empty;
-
-    [ObservableProperty]
-    private string _location = string.Empty;
+    private string _skuInput = string.Empty;
 
     [ObservableProperty]
     private StoreOption? _selectedStore;
@@ -48,10 +36,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     private ObservableCollection<StoreOption> _availableStores = new();
 
     [ObservableProperty]
-    private int _units = 1;
-
-    [ObservableProperty]
-    private DateTime _expiryDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
+    private int _defaultUnits = 1;
 
     [ObservableProperty]
     private int _expiryMonth = DateTime.Today.AddMonths(1).Month;
@@ -59,495 +44,114 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     [ObservableProperty]
     private int _expiryYear = DateTime.Today.AddMonths(1).Year;
 
-    [ObservableProperty]
-    private string _notes = string.Empty;
+    #endregion
+
+    #region Parsed Items
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSingleItemMode))]
-    [NotifyPropertyChangedFor(nameof(IsBulkMode))]
-    private int _selectedTabIndex = 0;
-
-    // Bulk input properties
-    [ObservableProperty]
-    private string _bulkSkuInput = string.Empty;
+    [NotifyPropertyChangedFor(nameof(CanSubmit))]
+    private ObservableCollection<ParsedSkuEntry> _parsedItems = new();
 
     [ObservableProperty]
-    private StoreOption? _bulkSelectedStore;
+    private int _totalItemCount;
 
     [ObservableProperty]
-    private int _bulkExpiryMonth = DateTime.Today.AddMonths(1).Month;
+    private int _foundCount;
 
     [ObservableProperty]
-    private int _bulkExpiryYear = DateTime.Today.AddMonths(1).Year;
+    private int _notFoundCount;
 
     [ObservableProperty]
-    private int _bulkUnits = 1;
+    private string _statusMessage = string.Empty;
 
     [ObservableProperty]
-    private int _bulkItemCount = 0;
+    private bool _showResults;
 
     [ObservableProperty]
-    private string _bulkLookupStatus = string.Empty;
+    [NotifyPropertyChangedFor(nameof(CanSubmit))]
+    private bool _isVerified;
 
-    [ObservableProperty]
-    private bool _bulkVerified = false;
+    #endregion
 
-    [ObservableProperty]
-    private ObservableCollection<BulkSkuResult> _bulkVerificationResults = new();
-
-    [ObservableProperty]
-    private int _bulkFoundCount = 0;
-
-    [ObservableProperty]
-    private int _bulkNotFoundCount = 0;
-
-    [ObservableProperty]
-    private bool _showVerificationResults = false;
-
-    [ObservableProperty]
-    private BulkSkuResult? _selectedNotFoundItem;
-
-    [ObservableProperty]
-    private string _newItemNumber = string.Empty;
-
-    [ObservableProperty]
-    private string _newItemDescription = string.Empty;
-
-    [ObservableProperty]
-    private string _newItemSku = string.Empty;
-
-    [ObservableProperty]
-    private bool _showAddItemPanel = false;
-
-    [ObservableProperty]
-    private ObservableCollection<DictionaryItem> _addItemSuggestions = new();
-
-    [ObservableProperty]
-    private bool _showAddItemSuggestions = false;
-
-    [ObservableProperty]
-    private string _dialogTitle = "Add Expiration Item";
+    #region Edit Mode
 
     [ObservableProperty]
     private bool _isEditMode;
 
     [ObservableProperty]
-    private ObservableCollection<DictionaryItem> _suggestions = new();
+    private string _dialogTitle = "Add Expiration Items";
+
+    public Guid? EditItemId { get; private set; }
+
+    #endregion
+
+    #region Add to Dictionary Panel
 
     [ObservableProperty]
-    private DictionaryItem? _selectedSuggestion;
+    private bool _showAddToDictionaryPanel;
 
     [ObservableProperty]
-    private bool _showSuggestions;
+    private ParsedSkuEntry? _itemToAddToDict;
 
     [ObservableProperty]
-    private string _lookupStatus = string.Empty;
+    private string _newDictItemNumber = string.Empty;
 
     [ObservableProperty]
-    private bool _itemFoundInDictionary;
+    private string _newDictDescription = string.Empty;
 
-    public Guid? ItemId { get; private set; }
+    [ObservableProperty]
+    private ObservableCollection<DictionaryItem> _dictSuggestions = new();
+
+    [ObservableProperty]
+    private bool _showDictSuggestions;
+
+    #endregion
+
+    public ObservableCollection<MonthOption> AvailableMonths { get; } = new()
+    {
+        new(1, "January"), new(2, "February"), new(3, "March"),
+        new(4, "April"), new(5, "May"), new(6, "June"),
+        new(7, "July"), new(8, "August"), new(9, "September"),
+        new(10, "October"), new(11, "November"), new(12, "December")
+    };
+
+    public ObservableCollection<int> AvailableYears { get; }
 
     public ExpirationItemDialogViewModel()
     {
+        AvailableYears = new ObservableCollection<int>(
+            Enumerable.Range(DateTime.Today.Year, 6));
         LoadStores();
-        
-        // Initialize month options
-        AvailableMonths = new ObservableCollection<MonthOption>
-        {
-            new(1, "January"), new(2, "February"), new(3, "March"),
-            new(4, "April"), new(5, "May"), new(6, "June"),
-            new(7, "July"), new(8, "August"), new(9, "September"),
-            new(10, "October"), new(11, "November"), new(12, "December")
-        };
-        
-        // Initialize year options (current year to +5 years)
-        AvailableYears = new ObservableCollection<int>();
-        var currentYear = DateTime.Today.Year;
-        for (int i = currentYear; i <= currentYear + 5; i++)
-        {
-            AvailableYears.Add(i);
-        }
-    }
-
-    public ObservableCollection<MonthOption> AvailableMonths { get; }
-    public ObservableCollection<int> AvailableYears { get; }
-
-    partial void OnExpiryMonthChanged(int value)
-    {
-        UpdateExpiryDate();
-    }
-
-    partial void OnExpiryYearChanged(int value)
-    {
-        UpdateExpiryDate();
-    }
-
-    private void UpdateExpiryDate()
-    {
-        ExpiryDate = new DateTime(ExpiryYear, ExpiryMonth, 1);
-    }
-
-    partial void OnBulkSkuInputChanged(string value)
-    {
-        UpdateBulkItemCount();
-        // Reset verification when input changes
-        BulkVerified = false;
-        ShowVerificationResults = false;
-        BulkVerificationResults.Clear();
-    }
-
-    private void UpdateBulkItemCount()
-    {
-        if (string.IsNullOrWhiteSpace(BulkSkuInput))
-        {
-            BulkItemCount = 0;
-            BulkLookupStatus = string.Empty;
-            BulkFoundCount = 0;
-            BulkNotFoundCount = 0;
-            return;
-        }
-
-        var lines = BulkSkuInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(l => l.Trim())
-            .Where(l => !string.IsNullOrEmpty(l))
-            .ToList();
-        
-        BulkItemCount = lines.Count;
-        BulkLookupStatus = "Click 'Verify SKUs' to check items";
-    }
-
-    /// <summary>
-    /// Verify all bulk SKUs against the dictionary
-    /// </summary>
-    [RelayCommand]
-    private void VerifyBulkSkus()
-    {
-        BulkVerificationResults.Clear();
-        BulkFoundCount = 0;
-        BulkNotFoundCount = 0;
-
-        if (string.IsNullOrWhiteSpace(BulkSkuInput))
-        {
-            BulkLookupStatus = "No SKUs to verify";
-            return;
-        }
-
-        var lines = BulkSkuInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(l => l.Trim())
-            .Where(l => !string.IsNullOrEmpty(l))
-            .Distinct()
-            .ToList();
-
-        foreach (var sku in lines)
-        {
-            // Try to find by SKU first, then by item number
-            var dictItemBySku = InternalItemDictionary.FindBySku(sku);
-            var dictItemByNumber = InternalItemDictionary.FindByNumber(sku);
-            var dictItem = dictItemBySku ?? dictItemByNumber;
-            
-            // Check if the SKU should be added to an existing item
-            // This is true if we found by item number but NOT by SKU, and the SKU differs from item number
-            var skuCanBeAdded = dictItem != null 
-                && dictItemBySku == null 
-                && !string.Equals(sku, dictItem.Number, StringComparison.OrdinalIgnoreCase)
-                && (dictItem.Skus == null || !dictItem.Skus.Contains(sku, StringComparer.OrdinalIgnoreCase));
-            
-            var result = new BulkSkuResult
-            {
-                Sku = sku,
-                ItemNumber = dictItem?.Number ?? sku,
-                Found = dictItem != null,
-                Description = dictItem?.Description ?? "Not in database",
-                SkuCanBeAdded = skuCanBeAdded,
-                SkuWasAdded = false
-            };
-            BulkVerificationResults.Add(result);
-
-            if (dictItem != null)
-                BulkFoundCount++;
-            else
-                BulkNotFoundCount++;
-        }
-
-        ShowVerificationResults = true;
-        BulkVerified = true;
-
-        if (BulkNotFoundCount == 0)
-        {
-            BulkLookupStatus = $"✓ All {BulkFoundCount} items found!";
-        }
-        else if (BulkFoundCount == 0)
-        {
-            BulkLookupStatus = $"⚠ None of the {BulkNotFoundCount} items found in database";
-        }
-        else
-        {
-            BulkLookupStatus = $"✓ {BulkFoundCount} found, ⚠ {BulkNotFoundCount} not found";
-        }
-    }
-
-    /// <summary>
-    /// Start adding a missing item to the dictionary
-    /// </summary>
-    [RelayCommand]
-    private void StartAddToDictionary(BulkSkuResult item)
-    {
-        if (item == null || item.Found) return;
-        
-        SelectedNotFoundItem = item;
-        NewItemNumber = string.Empty;
-        NewItemDescription = string.Empty;
-        NewItemSku = item.Sku;
-        AddItemSuggestions.Clear();
-        ShowAddItemSuggestions = false;
-        ShowAddItemPanel = true;
-    }
-
-    /// <summary>
-    /// Add SKU to an existing item in the dictionary
-    /// </summary>
-    [RelayCommand]
-    private void AddSkuToExistingItem(BulkSkuResult item)
-    {
-        if (item == null || !item.Found || !item.SkuCanBeAdded || item.SkuWasAdded) return;
-        
-        // Get the existing item from dictionary
-        var existingItem = InternalItemDictionary.FindByNumber(item.ItemNumber);
-        if (existingItem == null) return;
-        
-        // Add the new SKU
-        var skus = existingItem.Skus?.ToList() ?? new List<string>();
-        if (!skus.Contains(item.Sku, StringComparer.OrdinalIgnoreCase))
-        {
-            skus.Add(item.Sku);
-            existingItem.Skus = skus;
-            InternalItemDictionary.UpsertItem(existingItem);
-            
-            // Update the result to show it was added
-            item.SkuCanBeAdded = false;
-            item.SkuWasAdded = true;
-            
-            // Force UI refresh
-            var index = BulkVerificationResults.IndexOf(item);
-            if (index >= 0)
-            {
-                var updated = new BulkSkuResult
-                {
-                    Sku = item.Sku,
-                    ItemNumber = item.ItemNumber,
-                    Description = item.Description,
-                    Found = true,
-                    SkuCanBeAdded = false,
-                    SkuWasAdded = true
-                };
-                BulkVerificationResults[index] = updated;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Cancel adding item to dictionary
-    /// </summary>
-    [RelayCommand]
-    private void CancelAddToDictionary()
-    {
-        ShowAddItemPanel = false;
-        SelectedNotFoundItem = null;
-        NewItemNumber = string.Empty;
-        NewItemDescription = string.Empty;
-        NewItemSku = string.Empty;
-        AddItemSuggestions.Clear();
-        ShowAddItemSuggestions = false;
-    }
-
-    partial void OnNewItemNumberChanged(string value)
-    {
-        SearchForAddItemSuggestions(value);
-    }
-
-    private void SearchForAddItemSuggestions(string searchTerm)
-    {
-        AddItemSuggestions.Clear();
-        
-        if (string.IsNullOrWhiteSpace(searchTerm) || searchTerm.Length < 2)
-        {
-            ShowAddItemSuggestions = false;
-            return;
-        }
-
-        // Search by item number first
-        var byNumber = InternalItemDictionary.FindByNumber(searchTerm);
-        if (byNumber != null)
-        {
-            AddItemSuggestions.Add(byNumber);
-        }
-
-        // Then search by partial match
-        var partial = InternalItemDictionary.FindItem(searchTerm);
-        if (partial != null && !AddItemSuggestions.Any(s => s.Number == partial.Number))
-        {
-            AddItemSuggestions.Add(partial);
-        }
-
-        // Search by description
-        var byDescription = InternalItemDictionary.SearchByDescription(searchTerm, 5);
-        foreach (var item in byDescription)
-        {
-            if (!AddItemSuggestions.Any(s => s.Number == item.Number))
-            {
-                AddItemSuggestions.Add(item);
-            }
-        }
-
-        ShowAddItemSuggestions = AddItemSuggestions.Count > 0;
-    }
-
-    /// <summary>
-    /// Select an existing item to add the SKU to
-    /// </summary>
-    [RelayCommand]
-    private void SelectAddItemSuggestion(DictionaryItem item)
-    {
-        if (item == null) return;
-        
-        NewItemNumber = item.Number;
-        NewItemDescription = item.Description;
-        ShowAddItemSuggestions = false;
-    }
-
-    /// <summary>
-    /// Confirm adding item to dictionary
-    /// </summary>
-    [RelayCommand]
-    private void ConfirmAddToDictionary()
-    {
-        if (string.IsNullOrWhiteSpace(NewItemNumber) || string.IsNullOrWhiteSpace(NewItemDescription))
-            return;
-
-        // Add to dictionary
-        var newItem = new DictionaryItem
-        {
-            Number = NewItemNumber.Trim(),
-            Description = NewItemDescription.Trim(),
-            Skus = string.IsNullOrWhiteSpace(NewItemSku) 
-                ? new List<string>() 
-                : new List<string> { NewItemSku.Trim() }
-        };
-        InternalItemDictionary.UpsertItem(newItem);
-
-        // Update the verification result
-        if (SelectedNotFoundItem != null)
-        {
-            SelectedNotFoundItem.Found = true;
-            SelectedNotFoundItem.ItemNumber = newItem.Number;
-            SelectedNotFoundItem.Description = newItem.Description;
-            
-            // Recalculate counts
-            BulkFoundCount = BulkVerificationResults.Count(r => r.Found);
-            BulkNotFoundCount = BulkVerificationResults.Count(r => !r.Found);
-            
-            // Update status
-            if (BulkNotFoundCount == 0)
-            {
-                BulkLookupStatus = $"✓ All {BulkFoundCount} items found!";
-            }
-            else
-            {
-                BulkLookupStatus = $"✓ {BulkFoundCount} found, ⚠ {BulkNotFoundCount} not found";
-            }
-            
-            // Force UI refresh by replacing the item
-            var index = BulkVerificationResults.IndexOf(SelectedNotFoundItem);
-            if (index >= 0)
-            {
-                var updated = new BulkSkuResult
-                {
-                    Sku = SelectedNotFoundItem.Sku,
-                    ItemNumber = newItem.Number,
-                    Description = newItem.Description,
-                    Found = true
-                };
-                BulkVerificationResults[index] = updated;
-            }
-        }
-
-        ShowAddItemPanel = false;
-        SelectedNotFoundItem = null;
-        NewItemNumber = string.Empty;
-        NewItemDescription = string.Empty;
-        NewItemSku = string.Empty;
     }
 
     private void LoadStores()
     {
         AvailableStores.Clear();
-        
-        // Add empty option for "no location"
-        AvailableStores.Add(new StoreOption { Code = "", Name = "" });
-        
-        var stores = InternalStoreDictionary.GetStores();
-        foreach (var store in stores.OrderBy(s => s.Code))
-        {
-            AvailableStores.Add(new StoreOption
-            {
-                Code = store.Code,
-                Name = store.Name
-            });
-        }
-    }
+        AvailableStores.Add(new StoreOption { Code = "", Name = "(No Store)" });
 
-    partial void OnSelectedStoreChanged(StoreOption? value)
-    {
-        if (value != null)
+        try
         {
-            Location = value.Code;
+            var stores = DictionaryDbContext.Instance.Stores.FindAll();
+            foreach (var store in stores.OrderBy(s => s.Code))
+            {
+                AvailableStores.Add(new StoreOption { Code = store.Code, Name = store.Name });
+            }
         }
+        catch { }
     }
 
     /// <summary>
-    /// Initialize for adding a new item
+    /// Initialize for adding new items
     /// </summary>
     public void InitializeForAdd()
     {
-        ItemId = null;
         IsEditMode = false;
-        DialogTitle = "Add Expiration Item";
-        SelectedTabIndex = 0;
-        
-        // Single item fields
-        ItemNumber = string.Empty;
-        Description = string.Empty;
-        Location = string.Empty;
-        SelectedStore = AvailableStores.FirstOrDefault();
-        Units = 1;
-        ExpiryMonth = DateTime.Today.AddMonths(1).Month;
-        ExpiryYear = DateTime.Today.AddMonths(1).Year;
-        ExpiryDate = new DateTime(ExpiryYear, ExpiryMonth, 1);
-        Notes = string.Empty;
-        LookupStatus = string.Empty;
-        ItemFoundInDictionary = false;
-        Suggestions.Clear();
-        ShowSuggestions = false;
-        
-        // Bulk input fields
-        BulkSkuInput = string.Empty;
-        BulkSelectedStore = AvailableStores.FirstOrDefault();
-        BulkExpiryMonth = DateTime.Today.AddMonths(1).Month;
-        BulkExpiryYear = DateTime.Today.AddMonths(1).Year;
-        BulkUnits = 1;
-        BulkItemCount = 0;
-        BulkLookupStatus = string.Empty;
-        BulkVerified = false;
-        BulkVerificationResults.Clear();
-        BulkFoundCount = 0;
-        BulkNotFoundCount = 0;
-        ShowVerificationResults = false;
-        ShowAddItemPanel = false;
-        SelectedNotFoundItem = null;
-        NewItemNumber = string.Empty;
-        NewItemDescription = string.Empty;
-        NewItemSku = string.Empty;
+        DialogTitle = "Add Expiration Items";
+        SkuInput = string.Empty;
+        ParsedItems.Clear();
+        ShowResults = false;
+        IsVerified = false;
+        StatusMessage = "Enter SKUs (one per line, or paste SKU + Qty from Excel)";
     }
 
     /// <summary>
@@ -555,206 +159,161 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     /// </summary>
     public void InitializeForEdit(ExpirationItem item)
     {
-        ItemId = item.Id;
         IsEditMode = true;
         DialogTitle = "Edit Expiration Item";
-        SelectedTabIndex = 0; // Force single item tab for editing
-        ItemNumber = item.ItemNumber;
-        Description = item.Description;
-        Location = item.Location ?? string.Empty;
-        SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == item.Location) ?? AvailableStores.FirstOrDefault();
-        Units = item.Units;
+        EditItemId = item.Id;
+        
+        SkuInput = item.ItemNumber;
+        DefaultUnits = item.Units;
         ExpiryMonth = item.ExpiryDate.Month;
         ExpiryYear = item.ExpiryDate.Year;
-        ExpiryDate = new DateTime(ExpiryYear, ExpiryMonth, 1);
-        Notes = item.Notes ?? string.Empty;
-        LookupStatus = string.Empty;
-        ItemFoundInDictionary = false;
-        Suggestions.Clear();
-        ShowSuggestions = false;
+        SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == item.Location) 
+                       ?? AvailableStores.FirstOrDefault();
+
+        // Auto-verify for edit mode
+        ParseAndVerify();
     }
 
-    partial void OnItemNumberChanged(string value)
+    partial void OnSkuInputChanged(string value)
     {
-        if (IsEditMode) return; // Don't search in edit mode
-        
-        if (string.IsNullOrWhiteSpace(value) || value.Length < 2)
+        // Reset verification when input changes
+        IsVerified = false;
+        UpdateItemCount();
+    }
+
+    private void UpdateItemCount()
+    {
+        if (string.IsNullOrWhiteSpace(SkuInput))
         {
-            Suggestions.Clear();
-            ShowSuggestions = false;
-            LookupStatus = string.Empty;
-            ItemFoundInDictionary = false;
+            TotalItemCount = 0;
+            StatusMessage = "Enter SKUs (one per line, or paste SKU + Qty from Excel)";
             return;
         }
 
-        SearchDictionary(value);
+        var lines = ParseInputLines();
+        TotalItemCount = lines.Count;
+        
+        if (TotalItemCount == 1)
+            StatusMessage = "1 item - Press Verify to check";
+        else
+            StatusMessage = $"{TotalItemCount} items - Press Verify to check";
     }
 
     /// <summary>
-    /// Search the dictionary for matching items
+    /// Parse input lines, handling tab-separated SKU+Qty from Excel
     /// </summary>
-    private void SearchDictionary(string searchTerm)
+    private List<(string Sku, int? Qty)> ParseInputLines()
     {
-        Suggestions.Clear();
+        var results = new List<(string Sku, int? Qty)>();
+        
+        if (string.IsNullOrWhiteSpace(SkuInput))
+            return results;
 
-        // First try exact item number match
-        var exactMatch = InternalItemDictionary.FindByNumber(searchTerm);
-        if (exactMatch != null)
+        var lines = SkuInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        foreach (var line in lines)
         {
-            Suggestions.Add(exactMatch);
-            LookupStatus = "✓ Item found in dictionary";
-            ItemFoundInDictionary = true;
-            ShowSuggestions = true;
-            return;
-        }
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
 
-        // Try partial number match and description search
-        var byNumber = InternalItemDictionary.FindItem(searchTerm);
-        if (byNumber != null)
-        {
-            Suggestions.Add(byNumber);
-        }
-
-        // Search by description
-        var byDescription = InternalItemDictionary.SearchByDescription(searchTerm, 10);
-        foreach (var item in byDescription)
-        {
-            if (!Suggestions.Any(s => s.Number == item.Number))
+            // Check for tab-separated (Excel paste) or multiple spaces
+            var parts = trimmed.Split(new[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (parts.Length >= 2)
             {
-                Suggestions.Add(item);
+                // Last part might be quantity - check if it's a number
+                var lastPart = parts[^1].Trim();
+                if (int.TryParse(lastPart, out var qty))
+                {
+                    // Everything except last part is the SKU
+                    var skuPart = string.Join(" ", parts[..^1]);
+                    results.Add((skuPart, qty));
+                }
+                else
+                {
+                    // No quantity found, whole thing is SKU
+                    results.Add((parts[0], null));
+                }
+            }
+            else
+            {
+                // Just SKU, use default units
+                results.Add((trimmed, null));
             }
         }
 
-        if (Suggestions.Count > 0)
-        {
-            LookupStatus = $"Found {Suggestions.Count} matching item(s)";
-            ItemFoundInDictionary = true;
-            ShowSuggestions = true;
-        }
-        else
-        {
-            LookupStatus = "No matches found - enter details manually";
-            ItemFoundInDictionary = false;
-            ShowSuggestions = false;
-        }
-    }
-
-    partial void OnSelectedSuggestionChanged(DictionaryItem? value)
-    {
-        if (value == null) return;
-
-        // Auto-fill the form with selected item
-        IsEditMode = true; // Temporarily prevent re-search
-        ItemNumber = value.Number;
-        Description = value.Description;
-        IsEditMode = false;
-        ShowSuggestions = false;
-        LookupStatus = $"✓ {value.Number} - {value.Description}";
-        ItemFoundInDictionary = true;
+        return results;
     }
 
     /// <summary>
-    /// Command to select a suggestion from the list
+    /// Verify all SKUs against the dictionary
     /// </summary>
     [RelayCommand]
-    private void SelectSuggestion(DictionaryItem item)
+    private void ParseAndVerify()
     {
-        if (item == null) return;
+        ParsedItems.Clear();
+        FoundCount = 0;
+        NotFoundCount = 0;
+
+        var lines = ParseInputLines();
         
-        // Temporarily set edit mode to prevent re-triggering search
-        var wasEditMode = IsEditMode;
-        IsEditMode = true;
-        ItemNumber = item.Number;
-        Description = item.Description;
-        IsEditMode = wasEditMode;
-        ShowSuggestions = false;
-        LookupStatus = $"✓ {item.Number} - {item.Description}";
-        ItemFoundInDictionary = true;
-    }
-
-    /// <summary>
-    /// Command to clear the form and start fresh
-    /// </summary>
-    [RelayCommand]
-    private void ClearForm()
-    {
-        if (SelectedTabIndex == 0)
+        foreach (var (sku, qty) in lines)
         {
-            // Clear single item form
-            ItemNumber = string.Empty;
-            Description = string.Empty;
-            Location = string.Empty;
-            SelectedStore = AvailableStores.FirstOrDefault();
-            Units = 1;
-            ExpiryMonth = DateTime.Today.AddMonths(1).Month;
-            ExpiryYear = DateTime.Today.AddMonths(1).Year;
-            ExpiryDate = new DateTime(ExpiryYear, ExpiryMonth, 1);
-            Notes = string.Empty;
-            LookupStatus = string.Empty;
-            ItemFoundInDictionary = false;
-            Suggestions.Clear();
-            ShowSuggestions = false;
+            var dictItemBySku = InternalItemDictionary.FindBySku(sku);
+            var dictItemByNumber = InternalItemDictionary.FindByNumber(sku);
+            var dictItem = dictItemBySku ?? dictItemByNumber;
+
+            var entry = new ParsedSkuEntry
+            {
+                InputSku = sku,
+                ItemNumber = dictItem?.Number ?? sku,
+                Description = dictItem?.Description ?? "Not in database",
+                Units = qty ?? DefaultUnits,
+                Found = dictItem != null,
+                CanAddSkuToItem = dictItem != null && dictItemBySku == null 
+                    && !string.Equals(sku, dictItem.Number, StringComparison.OrdinalIgnoreCase)
+            };
+
+            ParsedItems.Add(entry);
+
+            if (entry.Found)
+                FoundCount++;
+            else
+                NotFoundCount++;
         }
+
+        ShowResults = ParsedItems.Count > 0;
+        IsVerified = true;
+
+        if (NotFoundCount == 0)
+            StatusMessage = $"✓ All {FoundCount} items found in database";
+        else if (FoundCount == 0)
+            StatusMessage = $"⚠ {NotFoundCount} items not found";
         else
-        {
-            // Clear bulk input
-            BulkSkuInput = string.Empty;
-            BulkSelectedStore = AvailableStores.FirstOrDefault();
-            BulkExpiryMonth = DateTime.Today.AddMonths(1).Month;
-            BulkExpiryYear = DateTime.Today.AddMonths(1).Year;
-            BulkUnits = 1;
-            BulkItemCount = 0;
-            BulkLookupStatus = string.Empty;
-            BulkVerified = false;
-            BulkVerificationResults.Clear();
-            BulkFoundCount = 0;
-            BulkNotFoundCount = 0;
-            ShowVerificationResults = false;
-            ShowAddItemPanel = false;
-            SelectedNotFoundItem = null;
-        }
+            StatusMessage = $"✓ {FoundCount} found, ⚠ {NotFoundCount} not found";
     }
 
     /// <summary>
-    /// Create or update the entity from the form data
+    /// Build the final list of ExpirationItems to add
     /// </summary>
-    public ExpirationItem ToEntity()
-    {
-        var item = new ExpirationItem
-        {
-            ItemNumber = ItemNumber,
-            Description = Description,
-            Location = string.IsNullOrWhiteSpace(Location) ? null : Location,
-            Units = Units,
-            ExpiryDate = ExpiryDate,
-            Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes,
-            Id = ItemId ?? Guid.NewGuid()
-        };
-        return item;
-    }
-
-    /// <summary>
-    /// Get bulk items to add - only returns items that were found in dictionary
-    /// </summary>
-    public List<ExpirationItem> GetBulkItems()
+    public List<ExpirationItem> BuildItems()
     {
         var items = new List<ExpirationItem>();
-        if (!BulkVerified || BulkVerificationResults.Count == 0) return items;
+        var expiryDate = new DateTime(ExpiryYear, ExpiryMonth, 1);
+        var location = SelectedStore?.Code ?? "";
 
-        var expiryDate = new DateTime(BulkExpiryYear, BulkExpiryMonth, 1);
-        var location = BulkSelectedStore?.Code;
-
-        // Only add items that were found in the dictionary
-        foreach (var result in BulkVerificationResults.Where(r => r.Found))
+        foreach (var parsed in ParsedItems)
         {
             items.Add(new ExpirationItem
             {
-                Id = Guid.NewGuid(),
-                ItemNumber = result.ItemNumber,  // Use the actual item number from dictionary
-                Description = result.Description,
-                Location = string.IsNullOrWhiteSpace(location) ? null : location,
-                Units = BulkUnits,
-                ExpiryDate = expiryDate
+                Id = IsEditMode && EditItemId.HasValue ? EditItemId.Value : Guid.NewGuid(),
+                ItemNumber = parsed.ItemNumber,
+                Description = parsed.Description != "Not in database" ? parsed.Description : parsed.InputSku,
+                Units = parsed.Units,
+                ExpiryDate = expiryDate,
+                Location = location,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             });
         }
 
@@ -762,88 +321,184 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Get the list of SKUs that were not found in the dictionary
+    /// Check if the dialog can be submitted
     /// </summary>
-    public List<string> GetNotFoundSkus()
+    public bool CanSubmit => IsVerified && ParsedItems.Count > 0;
+
+    #region Add to Dictionary
+
+    [RelayCommand]
+    private void StartAddToDict(ParsedSkuEntry item)
     {
-        return BulkVerificationResults
-            .Where(r => !r.Found)
-            .Select(r => r.Sku)
-            .ToList();
+        if (item == null || item.Found) return;
+        
+        ItemToAddToDict = item;
+        NewDictItemNumber = string.Empty;
+        NewDictDescription = string.Empty;
+        DictSuggestions.Clear();
+        ShowDictSuggestions = false;
+        ShowAddToDictionaryPanel = true;
     }
 
-    /// <summary>
-    /// Check if bulk input is ready to save (verified and has found items)
-    /// </summary>
-    public bool CanSaveBulk => BulkVerified && BulkFoundCount > 0;
-
-    /// <summary>
-    /// Check if in bulk mode
-    /// </summary>
-    public bool IsBulkMode => SelectedTabIndex == 1;
-
-    /// <summary>
-    /// Check if in single item mode
-    /// </summary>
-    public bool IsSingleItemMode => SelectedTabIndex == 0;
-
-    /// <summary>
-    /// Validate the form
-    /// </summary>
-    public bool IsValid()
+    [RelayCommand]
+    private void CancelAddToDict()
     {
-        return GetValidationErrors().Count == 0;
+        ShowAddToDictionaryPanel = false;
+        ItemToAddToDict = null;
     }
 
-    /// <summary>
-    /// Gets a list of validation errors
-    /// </summary>
-    public List<string> GetValidationErrors()
+    partial void OnNewDictItemNumberChanged(string value)
     {
-        var errors = new List<string>();
-
-        // Item Number validation
-        if (string.IsNullOrWhiteSpace(ItemNumber))
-            errors.Add("Item Number is required");
-        else if (ItemNumber.Length > MaxItemNumberLength)
-            errors.Add($"Item Number must be {MaxItemNumberLength} characters or less");
-
-        // Description validation
-        if (string.IsNullOrWhiteSpace(Description))
-            errors.Add("Description is required");
-        else if (Description.Length > MaxDescriptionLength)
-            errors.Add($"Description must be {MaxDescriptionLength} characters or less");
-
-        // Units validation
-        if (Units < 0)
-            errors.Add("Units cannot be negative");
-        else if (Units > MaxUnits)
-            errors.Add($"Units cannot exceed {MaxUnits:N0}");
-
-        // Notes validation (optional but has max length)
-        if (!string.IsNullOrEmpty(Notes) && Notes.Length > MaxNotesLength)
-            errors.Add($"Notes must be {MaxNotesLength} characters or less");
-
-        // Expiry date validation
-        if (ExpiryYear < DateTime.Today.Year - 1)
-            errors.Add("Expiry year is too far in the past");
-        else if (ExpiryYear > DateTime.Today.Year + 10)
-            errors.Add("Expiry year is too far in the future");
-
-        return errors;
+        SearchDictSuggestions(value);
     }
 
-    /// <summary>
-    /// Gets the first validation error message, or null if valid
-    /// </summary>
-    public string? ValidationError
+    private void SearchDictSuggestions(string search)
     {
-        get
+        DictSuggestions.Clear();
+        if (string.IsNullOrWhiteSpace(search) || search.Length < 2)
         {
-            var errors = GetValidationErrors();
-            return errors.Count > 0 ? errors[0] : null;
+            ShowDictSuggestions = false;
+            return;
         }
+
+        var results = InternalItemDictionary.SearchByDescription(search, 5);
+        foreach (var item in results)
+        {
+            DictSuggestions.Add(item);
+        }
+
+        var byNumber = InternalItemDictionary.FindByNumber(search);
+        if (byNumber != null && !DictSuggestions.Any(d => d.Number == byNumber.Number))
+        {
+            DictSuggestions.Insert(0, byNumber);
+        }
+
+        ShowDictSuggestions = DictSuggestions.Count > 0;
     }
+
+    [RelayCommand]
+    private void SelectDictSuggestion(DictionaryItem item)
+    {
+        if (item == null || ItemToAddToDict == null) return;
+
+        // Link the SKU to the existing item
+        var skus = item.Skus?.ToList() ?? new List<string>();
+        if (!skus.Contains(ItemToAddToDict.InputSku, StringComparer.OrdinalIgnoreCase))
+        {
+            skus.Add(ItemToAddToDict.InputSku);
+            item.Skus = skus;
+            InternalItemDictionary.UpsertItem(item);
+        }
+
+        // Update the parsed entry
+        ItemToAddToDict.ItemNumber = item.Number;
+        ItemToAddToDict.Description = item.Description;
+        ItemToAddToDict.Found = true;
+        ItemToAddToDict.CanAddSkuToItem = false;
+
+        // Refresh counts
+        RefreshCounts();
+        
+        ShowAddToDictionaryPanel = false;
+        ShowDictSuggestions = false;
+    }
+
+    [RelayCommand]
+    private void SaveNewDictItem()
+    {
+        if (ItemToAddToDict == null) return;
+        if (string.IsNullOrWhiteSpace(NewDictItemNumber) || string.IsNullOrWhiteSpace(NewDictDescription))
+            return;
+
+        var newItem = new DictionaryItem
+        {
+            Number = NewDictItemNumber,
+            Description = NewDictDescription,
+            Skus = new List<string> { ItemToAddToDict.InputSku }
+        };
+
+        InternalItemDictionary.UpsertItem(newItem);
+
+        // Update parsed entry
+        ItemToAddToDict.ItemNumber = NewDictItemNumber;
+        ItemToAddToDict.Description = NewDictDescription;
+        ItemToAddToDict.Found = true;
+
+        RefreshCounts();
+        ShowAddToDictionaryPanel = false;
+    }
+
+    [RelayCommand]
+    private void AddSkuToItem(ParsedSkuEntry entry)
+    {
+        if (entry == null || !entry.Found || !entry.CanAddSkuToItem) return;
+
+        var existingItem = InternalItemDictionary.FindByNumber(entry.ItemNumber);
+        if (existingItem == null) return;
+
+        var skus = existingItem.Skus?.ToList() ?? new List<string>();
+        if (!skus.Contains(entry.InputSku, StringComparer.OrdinalIgnoreCase))
+        {
+            skus.Add(entry.InputSku);
+            existingItem.Skus = skus;
+            InternalItemDictionary.UpsertItem(existingItem);
+        }
+
+        entry.CanAddSkuToItem = false;
+        entry.SkuWasAdded = true;
+    }
+
+    private void RefreshCounts()
+    {
+        FoundCount = ParsedItems.Count(p => p.Found);
+        NotFoundCount = ParsedItems.Count(p => !p.Found);
+
+        if (NotFoundCount == 0)
+            StatusMessage = $"✓ All {FoundCount} items found in database";
+        else if (FoundCount == 0)
+            StatusMessage = $"⚠ {NotFoundCount} items not found";
+        else
+            StatusMessage = $"✓ {FoundCount} found, ⚠ {NotFoundCount} not found";
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Represents a parsed SKU entry from input
+/// </summary>
+public partial class ParsedSkuEntry : ObservableObject
+{
+    [ObservableProperty]
+    private string _inputSku = string.Empty;
+
+    [ObservableProperty]
+    private string _itemNumber = string.Empty;
+
+    [ObservableProperty]
+    private string _description = string.Empty;
+
+    [ObservableProperty]
+    private int _units = 1;
+
+    [ObservableProperty]
+    private bool _found;
+
+    [ObservableProperty]
+    private bool _canAddSkuToItem;
+
+    [ObservableProperty]
+    private bool _skuWasAdded;
+}
+
+/// <summary>
+/// Simple store option for dropdown
+/// </summary>
+public class StoreOption
+{
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Display => string.IsNullOrEmpty(Name) ? Code : $"{Code} - {Name}";
 }
 
 /// <summary>
@@ -859,23 +514,4 @@ public class MonthOption
         Value = value;
         Name = name;
     }
-}
-
-/// <summary>
-/// Result of a bulk SKU verification
-/// </summary>
-public class BulkSkuResult
-{
-    public string Sku { get; set; } = string.Empty;
-    public string ItemNumber { get; set; } = string.Empty;
-    public bool Found { get; set; }
-    public string Description { get; set; } = string.Empty;
-    /// <summary>
-    /// True if the SKU was found via item number but isn't registered as a SKU for that item
-    /// </summary>
-    public bool SkuCanBeAdded { get; set; }
-    /// <summary>
-    /// True if SKU has been added to the item
-    /// </summary>
-    public bool SkuWasAdded { get; set; }
 }

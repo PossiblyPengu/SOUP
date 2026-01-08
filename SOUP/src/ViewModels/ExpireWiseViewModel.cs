@@ -209,6 +209,63 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     #endregion
 
+    #region Quick Add Properties
+
+    /// <summary>
+    /// Gets or sets the SKU/item number for quick add.
+    /// </summary>
+    [ObservableProperty]
+    private string _quickAddSku = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the quick add status message.
+    /// </summary>
+    [ObservableProperty]
+    private string _quickAddStatus = string.Empty;
+
+    /// <summary>
+    /// Gets or sets whether the quick add panel is expanded.
+    /// </summary>
+    [ObservableProperty]
+    private bool _quickAddExpanded = false;
+
+    /// <summary>
+    /// Gets or sets the month for quick add (defaults to next month).
+    /// </summary>
+    [ObservableProperty]
+    private int _quickAddMonth = DateTime.Today.AddMonths(1).Month;
+
+    /// <summary>
+    /// Gets or sets the year for quick add.
+    /// </summary>
+    [ObservableProperty]
+    private int _quickAddYear = DateTime.Today.AddMonths(1).Year;
+
+    /// <summary>
+    /// Gets or sets the units for quick add.
+    /// </summary>
+    [ObservableProperty]
+    private int _quickAddUnits = 1;
+
+    /// <summary>
+    /// Available months for quick add dropdown.
+    /// </summary>
+    public ObservableCollection<MonthOption> QuickAddMonths { get; } = new()
+    {
+        new(1, "Jan"), new(2, "Feb"), new(3, "Mar"),
+        new(4, "Apr"), new(5, "May"), new(6, "Jun"),
+        new(7, "Jul"), new(8, "Aug"), new(9, "Sep"),
+        new(10, "Oct"), new(11, "Nov"), new(12, "Dec")
+    };
+
+    /// <summary>
+    /// Available years for quick add dropdown.
+    /// </summary>
+    public ObservableCollection<int> QuickAddYears { get; } = new(
+        Enumerable.Range(DateTime.Today.Year, 6));
+
+    #endregion
+
     #region Constructor
 
     /// <summary>

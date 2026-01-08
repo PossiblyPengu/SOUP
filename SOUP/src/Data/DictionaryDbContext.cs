@@ -31,8 +31,8 @@ public sealed class DictionaryDbContext : IDisposable
     {
         Directory.CreateDirectory(Core.AppPaths.SharedDir);
 
-        // InitialSize reduces disk fragmentation for dictionary data
-        var connectionString = $"Filename={DatabasePath};Connection=Direct;InitialSize=2MB";
+        // Shared connection mode supports multi-threaded access across STA threads (widget, main window)
+        var connectionString = $"Filename={DatabasePath};Connection=Shared;InitialSize=2MB";
         _database = new LiteDatabase(connectionString);
         
         // Ensure indexes for fast lookups
