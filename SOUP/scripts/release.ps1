@@ -9,6 +9,7 @@
 #   .\scripts\release.ps1 -Version 5.0.0   # Set specific version
 #   .\scripts\release.ps1 -DryRun          # Preview without making changes
 #   .\scripts\release.ps1 -SkipGit         # Build only, don't commit/tag/push
+#   .\scripts\release.ps1 -Notes "note"    # Single-line release note
 # ============================================================================
 
 param(
@@ -17,7 +18,8 @@ param(
     [switch]$Major,
     [string]$Version,
     [switch]$DryRun,
-    [switch]$SkipGit
+    [switch]$SkipGit,
+    [string]$Notes
 )
 
 $ErrorActionPreference = "Stop"
@@ -86,6 +88,21 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
     Write-Host "New version: v$newVersion" -ForegroundColor Green
     $tagName = "v$newVersion"
     
+    # Get release notes
+    $releaseNotes = @()
+    if ($Notes) {
+        $releaseNotes = @($Notes)
+    } else {
+        Write-Host ""
+        Write-Host "[Patch Notes] Enter changes (empty line to finish):" -ForegroundColor Yellow
+        Write-Host "  Tip: Start with emoji like * bug fix" -ForegroundColor DarkGray
+        while ($true) {
+            $line = Read-Host "  >"
+            if ([string]::IsNullOrWhiteSpace($line)) { break }
+            $releaseNotes += $line
+        }
+    }
+    
     # Check if tag already exists
     if (-not $SkipGit) {
         $existingTag = git -C $rootDir tag -l $tagName
@@ -118,9 +135,11 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
         $appVersionFile = Join-Path $srcDir "Core\AppVersion.cs"
         if (Test-Path $appVersionFile) {
             $appVersionContent = Get-Content $appVersionFile -Raw
-            $appVersionContent = $appVersionContent -replace 'public const string Version = "[^"]+";', "public const string Version = `"$newVersion`";"
+            $versionPattern = 'public const string Version = "[^"]+";'
+            $appVersionContent = $appVersionContent -replace $versionPattern, "public const string Version = `"$newVersion`";"
             $today = Get-Date -Format "yyyy-MM-dd"
-            $appVersionContent = $appVersionContent -replace 'public const string BuildDate = "[^"]+";', "public const string BuildDate = `"$today`";"
+            $datePattern = 'public const string BuildDate = "[^"]+";'
+            $appVersionContent = $appVersionContent -replace $datePattern, "public const string BuildDate = `"$today`";"
             Set-Content $appVersionFile $appVersionContent -NoNewline
         }
         
@@ -152,8 +171,21 @@ Write-Host ""
 if (-not $SkipGit) {
     Write-Host "[Git] Committing and tagging..." -ForegroundColor Yellow
     
+    # Create release notes body for GitHub
+    $notesBody = ""
+    if ($releaseNotes.Count -gt 0) {
+        $notesBody = ($releaseNotes | ForEach-Object { "- $_" }) -join "`n"
+    }
+    
     git -C $rootDir add -A
-    git -C $rootDir commit -m "Release v$newVersion"
+    
+    # Commit with notes in message if provided
+    if ($releaseNotes.Count -gt 0) {
+        $commitMsg = "Release v$newVersion`n`n$notesBody"
+        git -C $rootDir commit -m $commitMsg
+    } else {
+        git -C $rootDir commit -m "Release v$newVersion"
+    }
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  Nothing to commit" -ForegroundColor Yellow
@@ -163,7 +195,12 @@ if (-not $SkipGit) {
     git -C $rootDir push
     
     Write-Host "  Creating tag $tagName..." -ForegroundColor Gray
-    git -C $rootDir tag -a $tagName -m "Release $tagName"
+    if ($releaseNotes.Count -gt 0) {
+        $tagMsg = "Release $tagName`n`n$notesBody"
+        git -C $rootDir tag -a $tagName -m $tagMsg
+    } else {
+        git -C $rootDir tag -a $tagName -m "Release $tagName"
+    }
     git -C $rootDir push origin $tagName
     
     Write-Host ""

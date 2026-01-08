@@ -64,6 +64,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
                     <!-- Title -->
@@ -73,8 +74,36 @@
                                    Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     
+                    <!-- Update Available Banner -->
+                    <Border Grid.Column="1" Background="#2D7D46" CornerRadius="4" Padding="10,4" Margin="8,0"
+                            VerticalAlignment="Center" Cursor="Hand"
+                            Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisibility}}">
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftClick" Command="{Binding ShowUpdateCommand}"/>
+                        </Border.InputBindings>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center" FontFamily="Segoe UI Emoji"/>
+                            <TextBlock Text="Update available: v" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding UpdateVersion}" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <Button Content="✕" FontSize="10" Margin="10,0,0,0" Padding="4,2" VerticalAlignment="Center"
+                                    Background="Transparent" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                    Command="{Binding DismissUpdateCommand}" ToolTip="Dismiss">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Opacity" Value="0.7"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Opacity" Value="1"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                    
                     <!-- Window Controls -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,0">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
                         <!-- Minimize -->
                         <Button Click="MinimizeButton_Click" ToolTip="Minimize"
                                 Width="36" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand">

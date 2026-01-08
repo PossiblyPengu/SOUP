@@ -1,6 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +24,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly ILogger<MainWindowViewModel>? _logger;
     private readonly ThemeService _themeService;
     private readonly NavOrderService _navOrderService;
+    private readonly UpdateService _updateService;
+    private readonly Timer _updateCheckTimer;
     private bool _disposed;
 
     [ObservableProperty]
@@ -31,6 +36,15 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     private NavItem? _selectedNavItem;
+
+    [ObservableProperty]
+    private bool _isUpdateAvailable;
+
+    [ObservableProperty]
+    private string _updateVersion = "";
+
+    [ObservableProperty]
+    private UpdateInfo? _availableUpdate;
 
     partial void OnSelectedNavItemChanged(NavItem? value)
     {
@@ -51,6 +65,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         NavigationService navigationService,
         ThemeService themeService,
         NavOrderService navOrderService,
+        UpdateService updateService,
         IServiceProvider serviceProvider,
         ILogger<MainWindowViewModel>? logger = null)
     {
@@ -58,6 +73,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         NavigationService = navigationService;
         _themeService = themeService;
         _navOrderService = navOrderService;
+        _updateService = updateService;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -70,6 +86,39 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
         // Update title when navigating to modules
         NavigationService.ModuleChanged += OnModuleChanged;
+
+        // Start periodic update checking (check every 30 minutes, initial check after 5 seconds)
+        _updateCheckTimer = new Timer(async _ => await CheckForUpdatesAsync(), null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var updateInfo = await _updateService.CheckForUpdatesAsync();
+            
+            // Update on UI thread
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                if (updateInfo != null)
+                {
+                    AvailableUpdate = updateInfo;
+                    UpdateVersion = updateInfo.Version;
+                    IsUpdateAvailable = true;
+                    _logger?.LogInformation("Update available: v{Version}", updateInfo.Version);
+                }
+                else
+                {
+                    IsUpdateAvailable = false;
+                    AvailableUpdate = null;
+                    UpdateVersion = "";
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to check for updates");
+        }
     }
 
     private void InitializeNavItems()
@@ -246,6 +295,24 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Opens the About dialog to show update details.
+    /// </summary>
+    [RelayCommand]
+    private void ShowUpdate()
+    {
+        ShowAbout();
+    }
+
+    /// <summary>
+    /// Dismisses the update notification banner.
+    /// </summary>
+    [RelayCommand]
+    private void DismissUpdate()
+    {
+        IsUpdateAvailable = false;
+    }
+
     [RelayCommand]
     private void OpenSettings()
     {
@@ -286,6 +353,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             if (disposing)
             {
+                // Stop update checking timer
+                _updateCheckTimer?.Dispose();
+                
                 // Unsubscribe from events to prevent memory leaks
                 NavigationService.ModuleChanged -= OnModuleChanged;
                 _themeService.ThemeChanged -= OnThemeChanged;

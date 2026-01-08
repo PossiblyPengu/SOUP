@@ -5965,6 +5965,8 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="P:SOUP.ViewModels.MainWindowViewModel.SaveNavOrderAction">
             <summary>
@@ -5986,6 +5988,16 @@
             Shows the About dialog with version and module information (F1 shortcut).
             </summary>
         </member>
+        <member name="M:SOUP.ViewModels.MainWindowViewModel.ShowUpdate">
+            <summary>
+            Opens the About dialog to show update details.
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.MainWindowViewModel.DismissUpdate">
+            <summary>
+            Dismisses the update notification banner.
+            </summary>
+        </member>
         <member name="P:SOUP.ViewModels.MainWindowViewModel.Title">
             <inheritdoc cref="F:SOUP.ViewModels.MainWindowViewModel._title"/>
         </member>
@@ -5994,6 +6006,15 @@
         </member>
         <member name="P:SOUP.ViewModels.MainWindowViewModel.SelectedNavItem">
             <inheritdoc cref="F:SOUP.ViewModels.MainWindowViewModel._selectedNavItem"/>
+        </member>
+        <member name="P:SOUP.ViewModels.MainWindowViewModel.IsUpdateAvailable">
+            <inheritdoc cref="F:SOUP.ViewModels.MainWindowViewModel._isUpdateAvailable"/>
+        </member>
+        <member name="P:SOUP.ViewModels.MainWindowViewModel.UpdateVersion">
+            <inheritdoc cref="F:SOUP.ViewModels.MainWindowViewModel._updateVersion"/>
+        </member>
+        <member name="P:SOUP.ViewModels.MainWindowViewModel.AvailableUpdate">
+            <inheritdoc cref="F:SOUP.ViewModels.MainWindowViewModel._availableUpdate"/>
         </member>
         <member name="M:SOUP.ViewModels.MainWindowViewModel.OnSelectedNavItemChanged(SOUP.Models.NavItem)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.MainWindowViewModel.SelectedNavItem"/> just changed.</summary>
@@ -6011,6 +6032,18 @@
         </member>
         <member name="P:SOUP.ViewModels.MainWindowViewModel.ShowAboutCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.MainWindowViewModel.ShowAbout"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.MainWindowViewModel.showUpdateCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.MainWindowViewModel.ShowUpdateCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.MainWindowViewModel.ShowUpdateCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.MainWindowViewModel.ShowUpdate"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.MainWindowViewModel.dismissUpdateCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.MainWindowViewModel.DismissUpdateCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.MainWindowViewModel.DismissUpdateCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.MainWindowViewModel.DismissUpdate"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.MainWindowViewModel.openSettingsCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.MainWindowViewModel.OpenSettingsCommand"/>.</summary>
@@ -7060,6 +7093,15 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedNavItem">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedNavItem" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsUpdateAvailable">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsUpdateAvailable" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UpdateVersion">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UpdateVersion" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AvailableUpdate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AvailableUpdate" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedLocation">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedLocation" generated properties.</summary>
         </member>
@@ -7635,6 +7677,15 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedNavItem">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedNavItem" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsUpdateAvailable">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsUpdateAvailable" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UpdateVersion">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UpdateVersion" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AvailableUpdate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AvailableUpdate" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedLocation">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedLocation" generated properties.</summary>
