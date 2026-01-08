@@ -84,18 +84,47 @@ public sealed class UpdateService : IDisposable
             // Parse as array since we're fetching all releases
             var releases = await response.Content.ReadFromJsonAsync<GitHubRelease[]>(cancellationToken: cancellationToken);
             
-            // Get the first release (latest by published date)
-            var release = releases?.FirstOrDefault();
-            
-            if (release == null)
+            if (releases == null || releases.Length == 0)
             {
                 _logger?.LogWarning("No releases found on GitHub");
                 LastCheckError = "No releases found";
                 return null;
             }
 
-            // Parse version from tag (remove 'v' prefix if present)
-            var latestVersion = release.TagName?.TrimStart('v') ?? "";
+            // Find the release with the highest version that has a portable zip asset
+            GitHubRelease? bestRelease = null;
+            Version? bestVersion = null;
+            
+            foreach (var rel in releases)
+            {
+                var tagVersion = rel.TagName?.TrimStart('v') ?? "";
+                if (!Version.TryParse(tagVersion, out var ver))
+                    continue;
+                    
+                // Check if this release has a portable zip
+                var hasPortableZip = rel.Assets?.Any(a => 
+                    a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true && 
+                    a.Name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true) ?? false;
+                
+                if (!hasPortableZip)
+                    continue;
+                    
+                // Check if this is a newer version than what we've found
+                if (bestVersion == null || ver > bestVersion)
+                {
+                    bestVersion = ver;
+                    bestRelease = rel;
+                }
+            }
+            
+            if (bestRelease == null || bestVersion == null)
+            {
+                _logger?.LogWarning("No releases with downloadable assets found");
+                LastCheckError = "No downloadable releases found";
+                return null;
+            }
+
+            var latestVersion = bestVersion.ToString();
             
             if (!IsNewerVersion(latestVersion, _currentVersion))
             {
@@ -107,17 +136,17 @@ public sealed class UpdateService : IDisposable
             _logger?.LogInformation("Update available: {Version}", latestVersion);
 
             // Find the portable zip asset
-            var zipAsset = release.Assets?.FirstOrDefault(a => 
+            var zipAsset = bestRelease.Assets?.FirstOrDefault(a => 
                 a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true && 
                 a.Name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
 
             return new UpdateInfo
             {
                 Version = latestVersion,
-                ReleaseNotes = release.Body ?? "",
+                ReleaseNotes = bestRelease.Body ?? "",
                 DownloadUrl = zipAsset?.BrowserDownloadUrl,
-                PublishedAt = release.PublishedAt,
-                HtmlUrl = release.HtmlUrl,
+                PublishedAt = bestRelease.PublishedAt,
+                HtmlUrl = bestRelease.HtmlUrl,
                 AssetName = zipAsset?.Name,
                 AssetSize = zipAsset?.Size ?? 0
             };
