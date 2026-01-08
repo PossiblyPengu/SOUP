@@ -34,6 +34,7 @@ public partial class OrderLogWidgetWindow : Window
     // Update checking
     private Timer? _updateCheckTimer;
     private UpdateInfo? _availableUpdate;
+    private CancellationTokenSource? _updateCheckCts;
 
     #region Windows API Imports
     
@@ -190,6 +191,7 @@ public partial class OrderLogWidgetWindow : Window
             await _viewModel.InitializeAsync();
             
             // Start update check timer (check every 30 minutes, first check after 5 seconds)
+            _updateCheckCts = new CancellationTokenSource();
             _updateCheckTimer = new Timer(CheckForUpdatesCallback, null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
         }
         catch (Exception ex)
@@ -202,10 +204,18 @@ public partial class OrderLogWidgetWindow : Window
     {
         try
         {
+            // Check if we should cancel
+            if (_updateCheckCts?.IsCancellationRequested == true)
+                return;
+                
             var updateService = _serviceProvider.GetService<UpdateService>();
             if (updateService == null) return;
             
-            var updateInfo = await updateService.CheckForUpdatesAsync();
+            var updateInfo = await updateService.CheckForUpdatesAsync(_updateCheckCts?.Token ?? CancellationToken.None);
+            
+            // Check again after async operation
+            if (_updateCheckCts?.IsCancellationRequested == true)
+                return;
             
             // Update UI on the dispatcher thread
             await Dispatcher.InvokeAsync(() =>
@@ -222,6 +232,10 @@ public partial class OrderLogWidgetWindow : Window
                 }
             });
         }
+        catch (OperationCanceledException)
+        {
+            // Expected during shutdown
+        }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check for updates in widget");
@@ -230,9 +244,18 @@ public partial class OrderLogWidgetWindow : Window
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
-        // Stop update check timer
+        // Cancel and stop update check timer first
+        _updateCheckCts?.Cancel();
         _updateCheckTimer?.Dispose();
         _updateCheckTimer = null;
+        _updateCheckCts?.Dispose();
+        _updateCheckCts = null;
+        
+        // Mark thread as background immediately so it won't block process exit
+        if (_isRunningOnSeparateThread && Thread.CurrentThread.IsAlive)
+        {
+            Thread.CurrentThread.IsBackground = true;
+        }
         
         // Unregister AppBar before closing
         if (_isAppBarRegistered)

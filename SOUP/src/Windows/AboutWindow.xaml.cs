@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SOUP.Core;
 using SOUP.Services;
@@ -282,6 +283,22 @@ public partial class AboutWindow : Window
             UpdateStatusText.Text = "Applying update...";
             UpdateProgressBar.IsIndeterminate = true;
 
+            // Close the widget first so the update can replace files
+            try
+            {
+                var widgetService = App.GetService<WidgetThreadService>();
+                if (widgetService?.IsWidgetOpen == true)
+                {
+                    UpdateStatusText.Text = "Closing widget...";
+                    widgetService.Dispose();
+                    await Task.Delay(500); // Give it time to close
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error closing widget before update");
+            }
+
             // Apply the update
             if (updateService.ApplyUpdate(zipPath))
             {
@@ -289,7 +306,9 @@ public partial class AboutWindow : Window
                 
                 // Close the application - the updater script will restart it
                 await Task.Delay(500);
-                Application.Current.Shutdown();
+                
+                // Force exit to ensure all threads terminate
+                Environment.Exit(0);
             }
             else
             {

@@ -158,20 +158,20 @@ public class WidgetThreadService : IDisposable
         if (_disposed) return;
         _disposed = true;
 
+        // Mark thread as background FIRST so it won't block process exit
+        if (_widgetThread != null && _widgetThread.IsAlive)
+        {
+            _widgetThread.IsBackground = true;
+        }
+
         CloseWidget();
         
-        // Mark thread as background so it doesn't block process exit
+        // Wait briefly for graceful shutdown
         if (_widgetThread != null && _widgetThread.IsAlive)
         {
             try
             {
-                // Try to wait briefly for graceful shutdown
-                if (!_widgetThread.Join(TimeSpan.FromMilliseconds(500)))
-                {
-                    // Thread didn't exit in time, mark as background so it won't block
-                    _widgetThread.IsBackground = true;
-                    Log.Warning("Widget thread didn't exit gracefully, marked as background");
-                }
+                _widgetThread.Join(TimeSpan.FromMilliseconds(300));
             }
             catch (Exception ex)
             {
