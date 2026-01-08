@@ -284,7 +284,7 @@ goto waitloop
 
 :docopy
 echo Copying new files...
-xcopy /E /Y /Q ""{extractPath}\*"" ""{appDir}\""
+xcopy /E /Y /Q ""{extractPath}\*"" ""{appDir}\"" >nul
 if errorlevel 1 (
     echo Failed to copy files!
     pause
@@ -292,17 +292,19 @@ if errorlevel 1 (
 )
 
 echo.
-echo Update complete! Restarting SOUP...
+echo Update complete! Starting SOUP...
 timeout /t 1 /nobreak >nul
 
-:: Restart the application
-start """" ""{appPath}""
-
-:: Cleanup
+:: Cleanup temp files first
 rmdir /s /q ""{extractPath}"" 2>nul
 del ""{zipPath}"" 2>nul
-del ""%~f0"" 2>nul
-exit
+
+:: Restart the application
+cd /d ""{appDir}""
+start """" ""SOUP.exe""
+
+:: Delete this script
+(goto) 2>nul & del ""%~f0""
 ";
 
             File.WriteAllText(updaterScript, batchContent);
