@@ -249,7 +249,7 @@ if (-not $SkipGit) {
     Write-Host "Running security check..." -ForegroundColor Yellow
     $securityScript = Join-Path $rootDir "scripts\security-check.ps1"
     if (Test-Path $securityScript) {
-        $securityResult = & $securityScript
+        & $securityScript
         if (-not $?) {
             Write-Host "ERROR: Security check failed!" -ForegroundColor Red
             exit 1

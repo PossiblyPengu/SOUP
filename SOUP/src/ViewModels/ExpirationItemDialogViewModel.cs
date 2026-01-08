@@ -39,7 +39,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     private int _defaultUnits = 1;
 
     [ObservableProperty]
-    private int _expiryMonth = DateTime.Today.AddMonths(1).Month;
+    private int _expiryMonth = DateTime.Today.Month;
 
     [ObservableProperty]
     private int _expiryYear = DateTime.Today.AddMonths(1).Year;
