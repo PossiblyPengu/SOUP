@@ -156,24 +156,20 @@ public class DialogService
     {
         var tcs = new TaskCompletionSource<T>();
 
-        // Get the background color from the current theme
-        var backgroundColor = ThemeService.Instance.IsDarkMode
-            ? System.Windows.Media.Color.FromRgb(30, 30, 46)   // Dark theme surface color
-            : System.Windows.Media.Color.FromRgb(255, 255, 255); // Light theme
-
         var dialog = new Window
         {
             Content = content,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             SizeToContent = SizeToContent.WidthAndHeight,
-            WindowStyle = WindowStyle.SingleBorderWindow,
-            ResizeMode = ResizeMode.CanResizeWithGrip,
+            WindowStyle = WindowStyle.None,
+            AllowsTransparency = true,
+            ResizeMode = ResizeMode.NoResize,
             MinWidth = 450,
             MinHeight = 350,
             MaxWidth = 1000,
             MaxHeight = 900,
             ShowInTaskbar = false,
-            Background = new System.Windows.Media.SolidColorBrush(backgroundColor)
+            Background = System.Windows.Media.Brushes.Transparent
         };
         
         // Set owner only when MainWindow is visible (don't block other windows like widget)
@@ -181,9 +177,6 @@ public class DialogService
         {
             dialog.Owner = mainWindow;
         }
-
-        // Apply dark title bar when in dark mode
-        dialog.SourceInitialized += (s, e) => ApplyDarkTitleBar(dialog);
 
         // Store the result handler
         content.Tag = new Action<T>(result =>

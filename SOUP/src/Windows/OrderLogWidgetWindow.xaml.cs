@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -28,6 +30,10 @@ public partial class OrderLogWidgetWindow : Window
     
     // Default width for the docked appbar
     private readonly int _dockedWidth = 380;
+    
+    // Update checking
+    private Timer? _updateCheckTimer;
+    private UpdateInfo? _availableUpdate;
 
     #region Windows API Imports
     
@@ -182,15 +188,52 @@ public partial class OrderLogWidgetWindow : Window
         try
         {
             await _viewModel.InitializeAsync();
+            
+            // Start update check timer (check every 30 minutes, first check after 5 seconds)
+            _updateCheckTimer = new Timer(CheckForUpdatesCallback, null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to initialize OrderLog widget");
         }
     }
+    
+    private async void CheckForUpdatesCallback(object? state)
+    {
+        try
+        {
+            var updateService = _serviceProvider.GetService<UpdateService>();
+            if (updateService == null) return;
+            
+            var updateInfo = await updateService.CheckForUpdatesAsync();
+            
+            // Update UI on the dispatcher thread
+            await Dispatcher.InvokeAsync(() =>
+            {
+                _availableUpdate = updateInfo;
+                if (updateInfo != null)
+                {
+                    UpdateVersionText.Text = $"v{updateInfo.Version}";
+                    UpdateBadge.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    UpdateBadge.Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to check for updates in widget");
+        }
+    }
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        // Stop update check timer
+        _updateCheckTimer?.Dispose();
+        _updateCheckTimer = null;
+        
         // Unregister AppBar before closing
         if (_isAppBarRegistered)
         {
@@ -557,6 +600,29 @@ public partial class OrderLogWidgetWindow : Window
         {
             Serilog.Log.Error(ex, "Failed to open launcher from widget");
         }
+    }
+    
+    /// <summary>
+    /// Handles click on the update badge - opens the release page
+    /// </summary>
+    private void UpdateBadge_Click(object sender, MouseButtonEventArgs e)
+    {
+        try
+        {
+            if (_availableUpdate?.HtmlUrl != null)
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _availableUpdate.HtmlUrl,
+                    UseShellExecute = true
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to open update URL");
+        }
+        e.Handled = true;
     }
 
     #endregion

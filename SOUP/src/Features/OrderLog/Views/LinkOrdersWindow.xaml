@@ -6,9 +6,10 @@
         WindowStartupLocation="CenterOwner" 
         ResizeMode="CanResize" 
         MinHeight="400" MinWidth="600"
-        Background="{DynamicResource BackgroundBrush}"
+        Background="Transparent"
         WindowStyle="None"
-        AllowsTransparency="True">
+        AllowsTransparency="True"
+        ShowInTaskbar="False">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -91,6 +92,9 @@
             BorderBrush="{DynamicResource BorderBrush}" 
             BorderThickness="1" 
             CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#000000"/>
+        </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

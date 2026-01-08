@@ -6,7 +6,14 @@
              mc:Ignorable="d"
              MinWidth="400">
 
-    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="24">
+    <Border Background="{DynamicResource BackgroundBrush}" 
+            CornerRadius="12" 
+            Padding="24"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#000000"/>
+        </Border.Effect>
         <StackPanel>
             <!-- Header -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,20">

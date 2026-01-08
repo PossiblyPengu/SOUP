@@ -5994,9 +5994,9 @@
             Shows the About dialog with version and module information (F1 shortcut).
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.MainWindowViewModel.ShowUpdate">
+        <member name="M:SOUP.ViewModels.MainWindowViewModel.ShowUpdateAsync">
             <summary>
-            Opens the About dialog to show update details.
+            Opens the About dialog and triggers an update check.
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.MainWindowViewModel.DismissUpdate">
@@ -6043,7 +6043,7 @@
             <summary>The backing field for <see cref="P:SOUP.ViewModels.MainWindowViewModel.ShowUpdateCommand"/>.</summary>
         </member>
         <member name="P:SOUP.ViewModels.MainWindowViewModel.ShowUpdateCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.MainWindowViewModel.ShowUpdate"/>.</summary>
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.MainWindowViewModel.ShowUpdateAsync"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.MainWindowViewModel.dismissUpdateCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.MainWindowViewModel.DismissUpdateCommand"/>.</summary>
@@ -6530,6 +6530,11 @@
         <member name="M:SOUP.Windows.OrderLogWidgetWindow.OpenLauncher">
             <summary>
             Opens the main S.O.U.P launcher window
+            </summary>
+        </member>
+        <member name="M:SOUP.Windows.OrderLogWidgetWindow.UpdateBadge_Click(System.Object,System.Windows.Input.MouseButtonEventArgs)">
+            <summary>
+            Handles click on the update badge - opens the release page
             </summary>
         </member>
         <member name="M:SOUP.Windows.OrderLogWidgetWindow.InitializeComponent">

@@ -74,34 +74,6 @@
                                    Foreground="{DynamicResource TitleBarTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     
-                    <!-- Update Available Banner -->
-                    <Border Grid.Column="1" Background="#2D7D46" CornerRadius="4" Padding="10,4" Margin="8,0"
-                            VerticalAlignment="Center" Cursor="Hand"
-                            Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisibility}}">
-                        <Border.InputBindings>
-                            <MouseBinding MouseAction="LeftClick" Command="{Binding ShowUpdateCommand}"/>
-                        </Border.InputBindings>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🔄" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center" FontFamily="Segoe UI Emoji"/>
-                            <TextBlock Text="Update available: v" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding UpdateVersion}" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                            <Button Content="✕" FontSize="10" Margin="10,0,0,0" Padding="4,2" VerticalAlignment="Center"
-                                    Background="Transparent" Foreground="White" BorderThickness="0" Cursor="Hand"
-                                    Command="{Binding DismissUpdateCommand}" ToolTip="Dismiss">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Opacity" Value="0.7"/>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="1"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                        </StackPanel>
-                    </Border>
-                    
                     <!-- Window Controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
                         <!-- Minimize -->
@@ -199,13 +171,43 @@
                             </StackPanel>
                         </StackPanel>
                         
-                        <!-- Version Badge -->
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}" Padding="12,8" HorizontalAlignment="Left">
+                        <!-- Version Badge - Shows Stable (green) or Update Available (yellow) -->
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="{DynamicResource SmallCornerRadius}" Padding="12,8" HorizontalAlignment="Left"
+                                Cursor="Hand" ToolTip="Click to view About and check for updates">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding ShowUpdateCommand}"/>
+                            </Border.InputBindings>
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{DynamicResource StatusOnlineBrush}"/>
+                                <!-- Status indicator - green when up to date, yellow when update available -->
+                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="{DynamicResource StatusOnlineBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                    <Setter Property="Fill" Value="#EAB308"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
                                 <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" FontFamily="Segoe UI Emoji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" FontWeight="Medium"/>
                                 <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
-                                <TextBlock Text="{x:Static core:AppVersion.Channel}" Foreground="{DynamicResource StatusOnlineBrush}" FontSize="12" FontWeight="Medium"/>
+                                <!-- Status text - Stable or Update Available -->
+                                <TextBlock FontSize="12" FontWeight="Medium">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="{x:Static core:AppVersion.Channel}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource StatusOnlineBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                    <Setter Property="Text" Value="Update Available"/>
+                                                    <Setter Property="Foreground" Value="#EAB308"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                         </Border>
                     </StackPanel>

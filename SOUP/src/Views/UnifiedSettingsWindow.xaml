@@ -18,6 +18,7 @@
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"
         Background="Transparent"
+        ShowInTaskbar="False"
         d:DataContext="{d:DesignInstance Type=vm:UnifiedSettingsViewModel}">
 
     <Window.Resources>
