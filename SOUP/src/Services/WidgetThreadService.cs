@@ -86,6 +86,11 @@ public class WidgetThreadService : IDisposable
                 {
                     _widgetWindow = null;
                 }
+                // Mark thread as background so it doesn't block process exit
+                if (Thread.CurrentThread == _widgetThread)
+                {
+                    Thread.CurrentThread.IsBackground = true;
+                }
                 Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
             };
             
@@ -155,8 +160,24 @@ public class WidgetThreadService : IDisposable
 
         CloseWidget();
         
-        // Give the thread time to shut down
-        _widgetThread?.Join(TimeSpan.FromSeconds(2));
+        // Mark thread as background so it doesn't block process exit
+        if (_widgetThread != null && _widgetThread.IsAlive)
+        {
+            try
+            {
+                // Try to wait briefly for graceful shutdown
+                if (!_widgetThread.Join(TimeSpan.FromMilliseconds(500)))
+                {
+                    // Thread didn't exit in time, mark as background so it won't block
+                    _widgetThread.IsBackground = true;
+                    Log.Warning("Widget thread didn't exit gracefully, marked as background");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error waiting for widget thread to exit");
+            }
+        }
         
         GC.SuppressFinalize(this);
     }

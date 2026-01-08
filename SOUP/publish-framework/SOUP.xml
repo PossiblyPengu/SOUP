@@ -12,6 +12,11 @@
             App
             </summary>
         </member>
+        <member name="M:SOUP.App.OnWidgetClosedCheckShutdown">
+            <summary>
+            Called when the widget closes in normal mode - check if app should shut down
+            </summary>
+        </member>
         <member name="M:SOUP.App.InitializeComponent">
             <summary>
             InitializeComponent

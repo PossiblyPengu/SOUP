@@ -383,10 +383,17 @@ public partial class App : Application
                     var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                     mainWindow.Show();
                     
+                    // Subscribe to widget closed event to check if app should shut down
+                    // (widget might be opened later from the launcher)
+                    var widgetService = _host.Services.GetService<WidgetThreadService>();
+                    if (widgetService != null)
+                    {
+                        widgetService.WidgetClosed += OnWidgetClosedCheckShutdown;
+                    }
+                    
                     // Also launch widget if configured
                     if (launchWidget)
                     {
-                        var widgetService = _host.Services.GetService<WidgetThreadService>();
                         widgetService?.ShowOrderLogWidget();
                         Log.Information("Widget launched on startup (settings)");
                     }
@@ -401,6 +408,33 @@ public partial class App : Application
             MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
+    }
+
+    /// <summary>
+    /// Called when the widget closes in normal mode - check if app should shut down
+    /// </summary>
+    private void OnWidgetClosedCheckShutdown()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            // Check if main window is still visible
+            var mainWindowVisible = MainWindow?.IsVisible == true;
+            
+            // Check tray settings
+            var trayService = _host.Services.GetService<TrayIconService>();
+            var closeToTray = trayService?.CloseToTray == true;
+            
+            // If main window is hidden (not visible) and close-to-tray is disabled, shut down
+            if (!mainWindowVisible && !closeToTray)
+            {
+                Log.Information("Widget closed and main window not visible - shutting down application");
+                Shutdown();
+            }
+            else
+            {
+                Log.Information("Widget closed but main window visible or close-to-tray enabled - app stays running");
+            }
+        });
     }
 
     protected override async void OnExit(ExitEventArgs e)
