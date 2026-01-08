@@ -12,6 +12,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v4.6.12)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -23,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -39,8 +47,10 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}".TrimStart('v')
+          $tagName = "${{ inputs.tag || github.ref_name }}"
+          $version = $tagName.TrimStart('v')
           echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "TAG=$tagName" >> $env:GITHUB_OUTPUT
 
       - name: Publish Framework-Dependent
         run: |
@@ -71,6 +81,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.version.outputs.TAG }}
           name: SOUP v${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: false
