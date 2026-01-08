@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.6.10";
+    public const string Version = "4.6.11";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.6.11", "2026-01-08", "Release Update", new[]
+        {
+            "add item update"
+        }),
         new("4.6.7", "2026-01-07", "Release Update", new[]
         {
             "Add PowerShell script for local HTTP server to serve SOUP updates"

@@ -4929,14 +4929,10 @@
         <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.OpenSettingsCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.EssentialsBuddyViewModel.OpenSettings"/>.</summary>
         </member>
-        <member name="T:SOUP.ViewModels.StoreOption">
-            <summary>
-            Simple store option for the location dropdown
-            </summary>
-        </member>
         <member name="T:SOUP.ViewModels.ExpirationItemDialogViewModel">
             <summary>
-            ViewModel for Add/Edit Expiration Item dialog with dictionary autocomplete
+            Unified ViewModel for Add/Edit Expiration Item dialog.
+            Supports single items, bulk paste, and Excel paste (SKU + Quantity tab-separated).
             </summary>
             <inheritdoc/>
             <inheritdoc/>
@@ -4945,42 +4941,16 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.VerifyBulkSkus">
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel._skuInput">
             <summary>
-            Verify all bulk SKUs against the dictionary
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictionary(SOUP.ViewModels.BulkSkuResult)">
-            <summary>
-            Start adding a missing item to the dictionary
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToExistingItem(SOUP.ViewModels.BulkSkuResult)">
-            <summary>
-            Add SKU to an existing item in the dictionary
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictionary">
-            <summary>
-            Cancel adding item to dictionary
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectAddItemSuggestion(SOUP.Infrastructure.Services.Parsers.DictionaryItem)">
-            <summary>
-            Select an existing item to add the SKU to
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ConfirmAddToDictionary">
-            <summary>
-            Confirm adding item to dictionary
+            Main input field - supports single SKU or multiple lines.
+            Accepts formats: "SKU" or "SKU[tab]Qty" per line.
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.InitializeForAdd">
             <summary>
-            Initialize for adding a new item
+            Initialize for adding new items
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.InitializeForEdit(SOUP.Core.Entities.ExpireWise.ExpirationItem)">
@@ -4988,74 +4958,28 @@
             Initialize for editing an existing item
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SearchDictionary(System.String)">
+        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseInputLines">
             <summary>
-            Search the dictionary for matching items
+            Parse input lines, handling tab-separated SKU+Qty from Excel
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectSuggestion(SOUP.Infrastructure.Services.Parsers.DictionaryItem)">
+        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerify">
             <summary>
-            Command to select a suggestion from the list
+            Verify all SKUs against the dictionary
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ClearForm">
+        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.BuildItems">
             <summary>
-            Command to clear the form and start fresh
+            Build the final list of ExpirationItems to add
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ToEntity">
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CanSubmit">
             <summary>
-            Create or update the entity from the form data
+            Check if the dialog can be submitted
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.GetBulkItems">
-            <summary>
-            Get bulk items to add - only returns items that were found in dictionary
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.GetNotFoundSkus">
-            <summary>
-            Get the list of SKUs that were not found in the dictionary
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CanSaveBulk">
-            <summary>
-            Check if bulk input is ready to save (verified and has found items)
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.IsBulkMode">
-            <summary>
-            Check if in bulk mode
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.IsSingleItemMode">
-            <summary>
-            Check if in single item mode
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.IsValid">
-            <summary>
-            Validate the form
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.GetValidationErrors">
-            <summary>
-            Gets a list of validation errors
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ValidationError">
-            <summary>
-            Gets the first validation error message, or null if valid
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ItemNumber">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._itemNumber"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.Description">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._description"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.Location">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._location"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SkuInput">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._skuInput"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedStore">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._selectedStore"/>
@@ -5063,11 +4987,8 @@
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AvailableStores">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._availableStores"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.Units">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._units"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryDate">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._expiryDate"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.DefaultUnits">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._defaultUnits"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryMonth">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._expiryMonth"/>
@@ -5075,191 +4996,132 @@
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryYear">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._expiryYear"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.Notes">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._notes"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ParsedItems">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._parsedItems"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedTabIndex">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._selectedTabIndex"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.TotalItemCount">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._totalItemCount"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkSkuInput">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkSkuInput"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.FoundCount">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._foundCount"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkSelectedStore">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkSelectedStore"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NotFoundCount">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._notFoundCount"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkExpiryMonth">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkExpiryMonth"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StatusMessage">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._statusMessage"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkExpiryYear">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkExpiryYear"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowResults">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showResults"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkUnits">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkUnits"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkItemCount">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkItemCount"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkLookupStatus">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkLookupStatus"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkVerified">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkVerified"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkVerificationResults">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkVerificationResults"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkFoundCount">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkFoundCount"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkNotFoundCount">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._bulkNotFoundCount"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowVerificationResults">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showVerificationResults"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedNotFoundItem">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._selectedNotFoundItem"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewItemNumber">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newItemNumber"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewItemDescription">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newItemDescription"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewItemSku">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newItemSku"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowAddItemPanel">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showAddItemPanel"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddItemSuggestions">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._addItemSuggestions"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowAddItemSuggestions">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showAddItemSuggestions"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.DialogTitle">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._dialogTitle"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.IsVerified">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._isVerified"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.IsEditMode">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._isEditMode"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.Suggestions">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._suggestions"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.DialogTitle">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._dialogTitle"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedSuggestion">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._selectedSuggestion"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowAddToDictionaryPanel">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showAddToDictionaryPanel"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowSuggestions">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showSuggestions"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ItemToAddToDict">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._itemToAddToDict"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.LookupStatus">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._lookupStatus"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictItemNumber">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newDictItemNumber"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ItemFoundInDictionary">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._itemFoundInDictionary"/>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictDescription">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newDictDescription"/>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnItemNumberChanged(System.String)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ItemNumber"/> just changed.</summary>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.DictSuggestions">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._dictSuggestions"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowDictSuggestions">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showDictSuggestions"/>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnSkuInputChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SkuInput"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ItemNumber"/> is changed.</remarks>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SkuInput"/> is changed.</remarks>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnSelectedStoreChanged(SOUP.ViewModels.StoreOption)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedStore"/> just changed.</summary>
+        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnNewDictItemNumberChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictItemNumber"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedStore"/> is changed.</remarks>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictItemNumber"/> is changed.</remarks>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnExpiryMonthChanged(System.Int32)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryMonth"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryMonth"/> is changed.</remarks>
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.parseAndVerifyCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerifyCommand"/>.</summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnExpiryYearChanged(System.Int32)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryYear"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryYear"/> is changed.</remarks>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerifyCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerify"/>.</summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnBulkSkuInputChanged(System.String)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkSkuInput"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.BulkSkuInput"/> is changed.</remarks>
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.startAddToDictCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictCommand"/>.</summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnNewItemNumberChanged(System.String)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewItemNumber"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewItemNumber"/> is changed.</remarks>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDict(SOUP.ViewModels.ParsedSkuEntry)"/>.</summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnSelectedSuggestionChanged(SOUP.Infrastructure.Services.Parsers.DictionaryItem)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedSuggestion"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectedSuggestion"/> is changed.</remarks>
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.cancelAddToDictCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictCommand"/>.</summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.verifyBulkSkusCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.VerifyBulkSkusCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDict"/>.</summary>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.VerifyBulkSkusCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.VerifyBulkSkus"/>.</summary>
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.selectDictSuggestionCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectDictSuggestionCommand"/>.</summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.startAddToDictionaryCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictionaryCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectDictSuggestionCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectDictSuggestion(SOUP.Infrastructure.Services.Parsers.DictionaryItem)"/>.</summary>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictionaryCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictionary(SOUP.ViewModels.BulkSkuResult)"/>.</summary>
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.saveNewDictItemCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SaveNewDictItemCommand"/>.</summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.addSkuToExistingItemCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToExistingItemCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SaveNewDictItemCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SaveNewDictItem"/>.</summary>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToExistingItemCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToExistingItem(SOUP.ViewModels.BulkSkuResult)"/>.</summary>
+        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.addSkuToItemCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToItemCommand"/>.</summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.cancelAddToDictionaryCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictionaryCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToItemCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToItem(SOUP.ViewModels.ParsedSkuEntry)"/>.</summary>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictionaryCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictionary"/>.</summary>
+        <member name="T:SOUP.ViewModels.ParsedSkuEntry">
+            <summary>
+            Represents a parsed SKU entry from input
+            </summary>
+            <inheritdoc/>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.selectAddItemSuggestionCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectAddItemSuggestionCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.InputSku">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._inputSku"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectAddItemSuggestionCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectAddItemSuggestion(SOUP.Infrastructure.Services.Parsers.DictionaryItem)"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.ItemNumber">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._itemNumber"/>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.confirmAddToDictionaryCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ConfirmAddToDictionaryCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.Description">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._description"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ConfirmAddToDictionaryCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ConfirmAddToDictionary"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.Units">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._units"/>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.selectSuggestionCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectSuggestionCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.Found">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._found"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectSuggestionCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectSuggestion(SOUP.Infrastructure.Services.Parsers.DictionaryItem)"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.CanAddSkuToItem">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._canAddSkuToItem"/>
         </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.clearFormCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ClearFormCommand"/>.</summary>
+        <member name="P:SOUP.ViewModels.ParsedSkuEntry.SkuWasAdded">
+            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._skuWasAdded"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ClearFormCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ClearForm"/>.</summary>
+        <member name="T:SOUP.ViewModels.StoreOption">
+            <summary>
+            Simple store option for dropdown
+            </summary>
         </member>
         <member name="T:SOUP.ViewModels.MonthOption">
             <summary>
             Month option for dropdown
-            </summary>
-        </member>
-        <member name="T:SOUP.ViewModels.BulkSkuResult">
-            <summary>
-            Result of a bulk SKU verification
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.BulkSkuResult.SkuCanBeAdded">
-            <summary>
-            True if the SKU was found via item number but isn't registered as a SKU for that item
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.BulkSkuResult.SkuWasAdded">
-            <summary>
-            True if SKU has been added to the item
             </summary>
         </member>
         <member name="T:SOUP.ViewModels.ExpireWiseAnalyticsViewModel">
@@ -5547,6 +5409,46 @@
             Gets or sets the analytics ViewModel for the analytics dashboard.
             </summary>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddSku">
+            <summary>
+            Gets or sets the SKU/item number for quick add.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddStatus">
+            <summary>
+            Gets or sets the quick add status message.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddExpanded">
+            <summary>
+            Gets or sets whether the quick add panel is expanded.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddMonth">
+            <summary>
+            Gets or sets the month for quick add (defaults to next month).
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddYear">
+            <summary>
+            Gets or sets the year for quick add.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddUnits">
+            <summary>
+            Gets or sets the units for quick add.
+            </summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddMonths">
+            <summary>
+            Available months for quick add dropdown.
+            </summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddYears">
+            <summary>
+            Available years for quick add dropdown.
+            </summary>
+        </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.#ctor(SOUP.Core.Interfaces.IExpireWiseRepository,SOUP.Core.Interfaces.IFileImportExportService,SOUP.Services.DialogService,System.IServiceProvider,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.ExpireWiseViewModel})">
             <summary>
             Initializes a new instance of the <see cref="T:SOUP.ViewModels.ExpireWiseViewModel"/> class.
@@ -5668,6 +5570,24 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Analytics">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._analytics"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddSku">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddSku"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddStatus">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddStatus"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddExpanded">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddExpanded"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddMonth">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddMonth"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddYear">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddYear"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddUnits">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddUnits"/>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnSearchTextChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.SearchText"/> just changed.</summary>
@@ -6915,17 +6835,14 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LowStockCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LowStockCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Location">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Location" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SkuInput">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SkuInput" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AvailableStores">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AvailableStores" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Units">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Units" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ExpiryDate">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ExpiryDate" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultUnits">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultUnits" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ExpiryMonth">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ExpiryMonth" generated properties.</summary>
@@ -6933,89 +6850,65 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ExpiryYear">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ExpiryYear" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Notes">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Notes" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ParsedItems">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ParsedItems" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedTabIndex">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedTabIndex" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CanSubmit">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CanSubmit" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsSingleItemMode">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsSingleItemMode" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalItemCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalItemCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsBulkMode">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsBulkMode" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.FoundCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "FoundCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkSkuInput">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkSkuInput" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotFoundCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotFoundCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkSelectedStore">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkSelectedStore" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowResults">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowResults" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkExpiryMonth">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkExpiryMonth" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkExpiryYear">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkExpiryYear" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkUnits">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkUnits" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkItemCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkItemCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkLookupStatus">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkLookupStatus" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkVerified">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkVerified" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkVerificationResults">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkVerificationResults" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkFoundCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkFoundCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BulkNotFoundCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BulkNotFoundCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowVerificationResults">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowVerificationResults" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedNotFoundItem">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedNotFoundItem" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewItemSku">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewItemSku" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowAddItemPanel">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowAddItemPanel" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AddItemSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AddItemSuggestions" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowAddItemSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowAddItemSuggestions" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DialogTitle">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DialogTitle" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVerified">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVerified" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsEditMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsEditMode" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Suggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Suggestions" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DialogTitle">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DialogTitle" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedSuggestion">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedSuggestion" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowAddToDictionaryPanel">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowAddToDictionaryPanel" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowSuggestions" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ItemToAddToDict">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ItemToAddToDict" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LookupStatus">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LookupStatus" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewDictItemNumber">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewDictItemNumber" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ItemFoundInDictionary">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ItemFoundInDictionary" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewDictDescription">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewDictDescription" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DictSuggestions">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DictSuggestions" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowDictSuggestions">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowDictSuggestions" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InputSku">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InputSku" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Units">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Units" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Found">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Found" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CanAddSkuToItem">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CanAddSkuToItem" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SkuWasAdded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SkuWasAdded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.MonthlyData">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "MonthlyData" generated properties.</summary>
@@ -7068,9 +6961,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DateDisplayFormat">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DateDisplayFormat" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalItemCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalItemCount" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AvailableMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AvailableMonths" generated properties.</summary>
         </member>
@@ -7101,11 +6991,32 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LastSavedDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LastSavedDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedTabIndex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedTabIndex" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.GroupByStore">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Analytics">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Analytics" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddSku">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddSku" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddStatus">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddStatus" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddMonth">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddMonth" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddYear">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddYear" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddUnits">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddUnits" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Config">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Config" generated properties.</summary>
@@ -7500,17 +7411,14 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LowStockCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LowStockCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Location">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Location" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SkuInput">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SkuInput" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AvailableStores">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AvailableStores" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Units">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Units" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ExpiryDate">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ExpiryDate" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultUnits">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultUnits" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ExpiryMonth">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ExpiryMonth" generated properties.</summary>
@@ -7518,89 +7426,65 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ExpiryYear">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ExpiryYear" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Notes">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Notes" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ParsedItems">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ParsedItems" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedTabIndex">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedTabIndex" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CanSubmit">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CanSubmit" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsSingleItemMode">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsSingleItemMode" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalItemCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalItemCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsBulkMode">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsBulkMode" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.FoundCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "FoundCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkSkuInput">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkSkuInput" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotFoundCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotFoundCount" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkSelectedStore">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkSelectedStore" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowResults">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowResults" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkExpiryMonth">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkExpiryMonth" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkExpiryYear">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkExpiryYear" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkUnits">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkUnits" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkItemCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkItemCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkLookupStatus">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkLookupStatus" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkVerified">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkVerified" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkVerificationResults">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkVerificationResults" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkFoundCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkFoundCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BulkNotFoundCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BulkNotFoundCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowVerificationResults">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowVerificationResults" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedNotFoundItem">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedNotFoundItem" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewItemSku">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewItemSku" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowAddItemPanel">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowAddItemPanel" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AddItemSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AddItemSuggestions" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowAddItemSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowAddItemSuggestions" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DialogTitle">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DialogTitle" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVerified">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVerified" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsEditMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsEditMode" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Suggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Suggestions" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DialogTitle">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DialogTitle" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedSuggestion">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedSuggestion" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowAddToDictionaryPanel">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowAddToDictionaryPanel" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowSuggestions" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ItemToAddToDict">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ItemToAddToDict" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LookupStatus">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LookupStatus" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewDictItemNumber">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewDictItemNumber" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ItemFoundInDictionary">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ItemFoundInDictionary" generated properties.</summary>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewDictDescription">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewDictDescription" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DictSuggestions">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DictSuggestions" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowDictSuggestions">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowDictSuggestions" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InputSku">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InputSku" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Units">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Units" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Found">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Found" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CanAddSkuToItem">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CanAddSkuToItem" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SkuWasAdded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SkuWasAdded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.MonthlyData">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "MonthlyData" generated properties.</summary>
@@ -7653,9 +7537,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DateDisplayFormat">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DateDisplayFormat" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalItemCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalItemCount" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AvailableMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AvailableMonths" generated properties.</summary>
         </member>
@@ -7686,11 +7567,32 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LastSavedDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LastSavedDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedTabIndex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedTabIndex" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.GroupByStore">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Analytics">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Analytics" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddSku">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddSku" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddStatus">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddStatus" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddMonth">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddMonth" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddYear">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddYear" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddUnits">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddUnits" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Config">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Config" generated properties.</summary>
