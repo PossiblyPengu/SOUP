@@ -3430,7 +3430,7 @@
         </member>
         <member name="T:SOUP.Services.UpdateService">
             <summary>
-            Service for checking and downloading updates from a local/network server.
+            Service for checking and downloading updates from GitHub releases.
             </summary>
         </member>
         <member name="P:SOUP.Services.UpdateService.CurrentVersion">
@@ -3445,13 +3445,25 @@
         </member>
         <member name="M:SOUP.Services.UpdateService.CheckForUpdatesAsync(System.Threading.CancellationToken)">
             <summary>
-            Checks for updates from the local update server.
+            Checks for updates from GitHub releases.
             </summary>
             <returns>Update info if available, null otherwise.</returns>
         </member>
         <member name="M:SOUP.Services.UpdateService.DownloadUpdateAsync(SOUP.Services.UpdateInfo,System.IProgress{System.Double},System.Threading.CancellationToken)">
             <summary>
             Downloads an update to a temporary location.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.UpdateService.ApplyUpdate(System.String)">
+            <summary>
+            Applies a downloaded update by extracting it and restarting the application.
+            </summary>
+            <param name="zipPath">Path to the downloaded zip file</param>
+            <returns>True if update was initiated successfully</returns>
+        </member>
+        <member name="M:SOUP.Services.UpdateService.DownloadAndApplyUpdateAsync(SOUP.Services.UpdateInfo,System.IProgress{System.Double},System.Threading.CancellationToken)">
+            <summary>
+            Downloads and applies an update, then restarts the application.
             </summary>
         </member>
         <member name="M:SOUP.Services.UpdateService.OpenReleasePage(SOUP.Services.UpdateInfo)">
@@ -3469,10 +3481,14 @@
             Information about an available update.
             </summary>
         </member>
-        <member name="T:SOUP.Services.UpdateManifest">
+        <member name="T:SOUP.Services.GitHubRelease">
             <summary>
-            Update manifest model for local/network update server.
-            Place this JSON file on your update server.
+            GitHub release API response model.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.GitHubAsset">
+            <summary>
+            GitHub release asset model.
             </summary>
         </member>
         <member name="T:SOUP.Services.WidgetThreadService">

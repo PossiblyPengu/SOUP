@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 namespace SOUP.Services;
 
 /// <summary>
-/// Service for checking and downloading updates from a local/network server.
+/// Service for checking and downloading updates from GitHub releases.
 /// </summary>
 public sealed class UpdateService : IDisposable
 {
@@ -18,16 +18,17 @@ public sealed class UpdateService : IDisposable
     private readonly string _currentVersion;
     private bool _disposed;
 
-    // Local update server URL - run .\scripts\serve-updates.ps1 to start the server
-    // Or change to your network server address for other machines
-    private const string UpdateManifestUrl = "http://localhost:8080/version.json";
+    private const string GitHubOwner = "PossiblyPengu";
+    private const string GitHubRepo = "SOUP";
+    private const string GitHubApiUrl = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest";
 
     public UpdateService(ILogger<UpdateService>? logger = null)
     {
         _logger = logger;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "SOUP-Updater");
-        _httpClient.Timeout = TimeSpan.FromSeconds(10);
+        _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+        _httpClient.Timeout = TimeSpan.FromSeconds(15);
 
         // Get current version from assembly
         var assembly = Assembly.GetExecutingAssembly();
@@ -46,65 +47,80 @@ public sealed class UpdateService : IDisposable
     public string? LastCheckError { get; private set; }
 
     /// <summary>
-    /// Checks for updates from the local update server.
+    /// Checks for updates from GitHub releases.
     /// </summary>
     /// <returns>Update info if available, null otherwise.</returns>
     public async Task<UpdateInfo?> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger?.LogInformation("Checking for updates. Current version: {Version}", _currentVersion);
+            _logger?.LogInformation("Checking for updates on GitHub. Current version: {Version}", _currentVersion);
             LastCheckError = null;
 
-            var response = await _httpClient.GetAsync(UpdateManifestUrl, cancellationToken);
+            var response = await _httpClient.GetAsync(GitHubApiUrl, cancellationToken);
             
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                _logger?.LogWarning("Update manifest not found at {Url}", UpdateManifestUrl);
-                LastCheckError = "Update server not configured";
+                _logger?.LogWarning("No releases found on GitHub");
+                LastCheckError = "No releases found";
+                return null;
+            }
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _logger?.LogWarning("GitHub API rate limit exceeded");
+                LastCheckError = "GitHub rate limit exceeded. Try again later.";
                 return null;
             }
             
             if (!response.IsSuccessStatusCode)
             {
                 _logger?.LogWarning("Failed to check for updates. Status: {StatusCode}", response.StatusCode);
-                LastCheckError = $"Update server error: {response.StatusCode}";
+                LastCheckError = $"GitHub API error: {response.StatusCode}";
                 return null;
             }
 
-            var manifest = await response.Content.ReadFromJsonAsync<UpdateManifest>(cancellationToken: cancellationToken);
+            var release = await response.Content.ReadFromJsonAsync<GitHubRelease>(cancellationToken: cancellationToken);
             
-            if (manifest == null)
+            if (release == null)
             {
-                _logger?.LogWarning("Failed to parse update manifest");
-                LastCheckError = "Invalid update manifest";
+                _logger?.LogWarning("Failed to parse GitHub release");
+                LastCheckError = "Invalid release data";
                 return null;
             }
 
-            if (!IsNewerVersion(manifest.Version, _currentVersion))
+            // Parse version from tag (remove 'v' prefix if present)
+            var latestVersion = release.TagName?.TrimStart('v') ?? "";
+            
+            if (!IsNewerVersion(latestVersion, _currentVersion))
             {
                 _logger?.LogInformation("No update available. Latest: {Latest}, Current: {Current}", 
-                    manifest.Version, _currentVersion);
+                    latestVersion, _currentVersion);
                 return null;
             }
 
-            _logger?.LogInformation("Update available: {Version}", manifest.Version);
+            _logger?.LogInformation("Update available: {Version}", latestVersion);
+
+            // Find the portable zip asset
+            var zipAsset = release.Assets?.FirstOrDefault(a => 
+                a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true && 
+                a.Name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
 
             return new UpdateInfo
             {
-                Version = manifest.Version,
-                ReleaseNotes = manifest.ReleaseNotes ?? "",
-                DownloadUrl = manifest.DownloadUrl,
-                PublishedAt = manifest.PublishedAt,
-                HtmlUrl = manifest.DownloadUrl,
-                AssetName = manifest.AssetName,
-                AssetSize = manifest.AssetSize
+                Version = latestVersion,
+                ReleaseNotes = release.Body ?? "",
+                DownloadUrl = zipAsset?.BrowserDownloadUrl,
+                PublishedAt = release.PublishedAt,
+                HtmlUrl = release.HtmlUrl,
+                AssetName = zipAsset?.Name,
+                AssetSize = zipAsset?.Size ?? 0
             };
         }
         catch (HttpRequestException ex)
         {
-            _logger?.LogWarning(ex, "Cannot reach update server");
-            LastCheckError = "Cannot reach update server";
+            _logger?.LogWarning(ex, "Cannot reach GitHub");
+            LastCheckError = "Cannot reach GitHub. Check your internet connection.";
             return null;
         }
         catch (TaskCanceledException)
@@ -357,26 +373,40 @@ public class UpdateInfo
 }
 
 /// <summary>
-/// Update manifest model for local/network update server.
-/// Place this JSON file on your update server.
+/// GitHub release API response model.
 /// </summary>
-internal class UpdateManifest
+internal class GitHubRelease
 {
-    [JsonPropertyName("version")]
-    public string Version { get; set; } = "";
+    [JsonPropertyName("tag_name")]
+    public string? TagName { get; set; }
 
-    [JsonPropertyName("downloadUrl")]
-    public string? DownloadUrl { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 
-    [JsonPropertyName("releaseNotes")]
-    public string? ReleaseNotes { get; set; }
+    [JsonPropertyName("body")]
+    public string? Body { get; set; }
 
-    [JsonPropertyName("publishedAt")]
+    [JsonPropertyName("html_url")]
+    public string? HtmlUrl { get; set; }
+
+    [JsonPropertyName("published_at")]
     public DateTime? PublishedAt { get; set; }
 
-    [JsonPropertyName("assetName")]
-    public string? AssetName { get; set; }
+    [JsonPropertyName("assets")]
+    public List<GitHubAsset>? Assets { get; set; }
+}
 
-    [JsonPropertyName("assetSize")]
-    public long AssetSize { get; set; }
+/// <summary>
+/// GitHub release asset model.
+/// </summary>
+internal class GitHubAsset
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("browser_download_url")]
+    public string? BrowserDownloadUrl { get; set; }
+
+    [JsonPropertyName("size")]
+    public long Size { get; set; }
 }

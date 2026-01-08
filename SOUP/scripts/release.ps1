@@ -31,6 +31,7 @@ if (Test-Path $localSDKPath) {
 
 # Configuration
 $rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$srcDir = Join-Path $rootDir "src"
 $csprojFile = Join-Path $rootDir "src\SOUP.csproj"
 $issFile = Join-Path $rootDir "installer\SOUP.iss"
 
