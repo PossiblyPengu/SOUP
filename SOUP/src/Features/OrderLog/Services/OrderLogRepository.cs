@@ -16,7 +16,7 @@ namespace SOUP.Features.OrderLog.Services;
 /// </summary>
 public sealed class OrderLogRepository : IOrderLogService
 {
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
     private static OrderLogRepository? _instance;
     private static int _refCount;
     

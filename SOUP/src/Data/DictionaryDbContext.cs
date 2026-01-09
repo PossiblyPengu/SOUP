@@ -13,7 +13,7 @@ namespace SOUP.Data;
 public sealed class DictionaryDbContext : IDisposable
 {
     private static readonly Lazy<DictionaryDbContext> _instance = new(() => new DictionaryDbContext());
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
     private readonly LiteDatabase _database;
     private bool _disposed;
 

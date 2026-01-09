@@ -180,7 +180,7 @@ public partial class ExternalDataSettingsView : UserControl
         
         var credui = new CREDUI_INFO
         {
-            cbSize = Marshal.SizeOf(typeof(CREDUI_INFO)),
+            cbSize = Marshal.SizeOf<CREDUI_INFO>(),
             hwndParent = IntPtr.Zero,
             pszCaptionText = "Administrator Authorization Required",
             pszMessageText = "Enter administrator credentials to access External Data settings.\nThis protects sensitive connection information."

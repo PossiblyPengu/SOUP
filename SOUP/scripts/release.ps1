@@ -140,6 +140,27 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
             $today = Get-Date -Format "yyyy-MM-dd"
             $datePattern = 'public const string BuildDate = "[^"]+";'
             $appVersionContent = $appVersionContent -replace $datePattern, "public const string BuildDate = `"$today`";"
+            
+            # Add changelog entry if we have release notes
+            if ($releaseNotes.Count -gt 0) {
+                # Build the changelog entry
+                $changelogLines = ($releaseNotes | ForEach-Object { "            `"$_`"" }) -join ",`n"
+                $releaseTitle = if ($Major) { "Major Release" } elseif ($Minor) { "Feature Update" } else { "Release Update" }
+                
+                $newChangelogEntry = @"
+        new("$newVersion", "$today", "$releaseTitle", new[]
+        {
+$changelogLines
+        }),
+"@
+                # Insert after "new List<ChangelogEntry>" opening
+                $changelogInsertPattern = '(public static IReadOnlyList<ChangelogEntry> Changelog \{ get; \} = new List<ChangelogEntry>\s*\{)\s*\n'
+                if ($appVersionContent -match $changelogInsertPattern) {
+                    $appVersionContent = $appVersionContent -replace $changelogInsertPattern, "`$1`n$newChangelogEntry`n"
+                    Write-Host "  Added changelog entry" -ForegroundColor Green
+                }
+            }
+            
             Set-Content $appVersionFile $appVersionContent -NoNewline
         }
         

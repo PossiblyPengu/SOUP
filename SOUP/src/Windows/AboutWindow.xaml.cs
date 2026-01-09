@@ -65,13 +65,32 @@ public partial class AboutWindow : Window
         try
         {
             var latest = AppVersion.LatestChanges;
-            ChangelogVersionText.Text = $"v{latest.Version}";
-            ChangelogTitleText.Text = latest.Title;
-            ChangelogItems.ItemsSource = latest.Changes;
+            
+            // Check if changelog matches current version
+            if (latest.Version == AppVersion.Version)
+            {
+                ChangelogVersionText.Text = $"v{latest.Version}";
+                ChangelogTitleText.Text = latest.Title;
+                ChangelogItems.ItemsSource = latest.Changes;
+            }
+            else
+            {
+                // Changelog not yet updated for current version - show current version with note
+                ChangelogVersionText.Text = AppVersion.DisplayVersion;
+                ChangelogTitleText.Text = "Latest Release";
+                ChangelogItems.ItemsSource = new[] 
+                { 
+                    $"See previous: v{latest.Version} - {latest.Title}",
+                    "Changelog will be updated in the next release."
+                };
+            }
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to load changelog");
+            ChangelogVersionText.Text = AppVersion.DisplayVersion;
+            ChangelogTitleText.Text = "Release";
+            ChangelogItems.ItemsSource = Array.Empty<string>();
         }
     }
 
@@ -255,15 +274,14 @@ public partial class AboutWindow : Window
             UpdateStatusText.Text = "Applying update...";
             UpdateProgressBar.IsIndeterminate = true;
 
-            // Close the widget first so the update can replace files
+            // Close the widget process first so the update can replace files
             try
             {
-                var widgetService = App.GetService<WidgetThreadService>();
+                var widgetService = App.GetService<WidgetProcessService>();
                 if (widgetService?.IsWidgetOpen == true)
                 {
                     UpdateStatusText.Text = "Closing widget...";
-                    widgetService.Dispose();
-                    await Task.Delay(500); // Give it time to close
+                    await widgetService.CloseWidgetAsync();
                 }
             }
             catch (Exception ex)

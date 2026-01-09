@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.9.0";
+    public const string Version = "4.10.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,18 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.10.0", "2026-01-09", "Release Update", new[]
+        {
+            "Update to .NET 9.0 and enhance widget management"
+        }),
+        new("4.9.0", "2026-01-09", "Cleanup Release", new[]
+        {
+            "🎨 Added missing AccentBrush to theme files for consistency",
+            "🧹 Removed FriendshipDungeonMG project",
+            "🧹 Removed WPF DungeonCrawler easter egg",
+            "🔧 Fixed About window changelog display",
+            "📝 Release script now auto-updates changelog"
+        }),
         new("4.6.13", "2026-01-08", "Release Update", new[]
         {
             "workflow fixes"
@@ -124,8 +136,10 @@ public static class AppVersion
 
     /// <summary>
     /// Gets the latest changelog entry.
+    /// Returns the entry matching the current Version, or the first entry if no match.
     /// </summary>
-    public static ChangelogEntry LatestChanges => Changelog[0];
+    public static ChangelogEntry LatestChanges => 
+        Changelog.FirstOrDefault(c => c.Version == Version) ?? Changelog[0];
 }
 
 /// <summary>

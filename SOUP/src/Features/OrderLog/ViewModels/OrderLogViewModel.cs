@@ -34,7 +34,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private List<(Guid id, bool wasArchived)> _lastArchiveChanges = new();
 
     // Lock for thread-safe access to HashSets
-    private readonly object _collectionLock = new();
+    private readonly Lock _collectionLock = new();
 
     // HashSets for O(1) membership checks instead of O(n) Contains on ObservableCollection
     private readonly HashSet<Guid> _itemIds = new();
@@ -228,34 +228,43 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task LoadAsync()
     {
+        // Capture dispatcher BEFORE any await - this ensures we post back to the calling thread
+        var dispatcher = Dispatcher.CurrentDispatcher;
+        
         IsLoading = true;
         StatusMessage = "Loading orders...";
 
         try
         {
             var items = await _orderLogService.LoadAsync();
-            Items.Clear();
-            ArchivedItems.Clear();
-            _itemIds.Clear();
-            _archivedItemIds.Clear();
             
-            foreach (var item in items)
+            // Must update collections on UI thread that owns them
+            await dispatcher.InvokeAsync(() =>
             {
-                if (item.IsArchived)
+                Items.Clear();
+                ArchivedItems.Clear();
+                _itemIds.Clear();
+                _archivedItemIds.Clear();
+                
+                foreach (var item in items)
                 {
-                    ArchivedItems.Add(item);
-                    _archivedItemIds.Add(item.Id);
+                    if (item.IsArchived)
+                    {
+                        ArchivedItems.Add(item);
+                        _archivedItemIds.Add(item.Id);
+                    }
+                    else
+                    {
+                        Items.Add(item);
+                        _itemIds.Add(item.Id);
+                    }
                 }
-                else
-                {
-                    Items.Add(item);
-                    _itemIds.Add(item.Id);
-                }
-            }
+                
+                RefreshDisplayItems();
+                RefreshArchivedDisplayItems();
+            });
             
             StatusMessage = $"Loaded {Items.Count} orders ({ArchivedItems.Count} archived)";
-            RefreshDisplayItems();
-            RefreshArchivedDisplayItems();
             _logger?.LogInformation("Loaded {Count} orders into view", items.Count);
         }
         catch (Exception ex)

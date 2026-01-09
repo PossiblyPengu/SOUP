@@ -20,7 +20,7 @@ public class WidgetThreadService : IDisposable
     private Thread? _widgetThread;
     private Dispatcher? _widgetDispatcher;
     private OrderLogWidgetWindow? _widgetWindow;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private bool _disposed;
     
     /// <summary>
@@ -127,14 +127,50 @@ public class WidgetThreadService : IDisposable
     /// </summary>
     public void CloseWidget()
     {
+        Dispatcher? dispatcher;
+        OrderLogWidgetWindow? window;
+        
         lock (_lock)
         {
-            if (_widgetWindow != null && _widgetDispatcher != null)
+            dispatcher = _widgetDispatcher;
+            window = _widgetWindow;
+        }
+        
+        if (window != null && dispatcher != null)
+        {
+            try
             {
-                _widgetDispatcher.Invoke(() =>
+                // Use BeginInvoke for async close, then wait with timeout
+                var operation = dispatcher.BeginInvoke(DispatcherPriority.Send, new Action(() =>
                 {
-                    _widgetWindow?.Close();
-                });
+                    try
+                    {
+                        window.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Error closing widget window");
+                    }
+                }));
+                
+                // Wait for close with timeout
+                operation.Wait(TimeSpan.FromMilliseconds(500));
+                
+                // If the window didn't close gracefully, force shutdown the dispatcher
+                if (!operation.Status.HasFlag(DispatcherOperationStatus.Completed))
+                {
+                    Log.Warning("Widget close timed out, forcing dispatcher shutdown");
+                    dispatcher.BeginInvokeShutdown(DispatcherPriority.Send);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error during widget close, forcing dispatcher shutdown");
+                try
+                {
+                    dispatcher.BeginInvokeShutdown(DispatcherPriority.Send);
+                }
+                catch { /* Ignore - dispatcher might already be shut down */ }
             }
         }
     }
@@ -171,7 +207,16 @@ public class WidgetThreadService : IDisposable
         {
             try
             {
-                _widgetThread.Join(TimeSpan.FromMilliseconds(300));
+                if (!_widgetThread.Join(TimeSpan.FromMilliseconds(500)))
+                {
+                    Log.Warning("Widget thread did not exit gracefully, forcing dispatcher shutdown");
+                    // Force dispatcher shutdown if thread is still alive
+                    try
+                    {
+                        _widgetDispatcher?.BeginInvokeShutdown(DispatcherPriority.Send);
+                    }
+                    catch { /* Ignore */ }
+                }
             }
             catch (Exception ex)
             {

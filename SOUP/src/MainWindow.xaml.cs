@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using SOUP.Services;
 using SOUP.ViewModels;
 
@@ -14,18 +16,67 @@ namespace SOUP;
 public partial class MainWindow : Window
 {
     private const string WindowKey = "MainWindow";
-    private readonly WidgetThreadService? _widgetThreadService;
+    private readonly WidgetProcessService? _widgetProcessService;
     private readonly TrayIconService? _trayIconService;
     private bool _hasBeenShownOnce;
 
+    #region Win32 Interop for WorkArea-aware maximize
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+    private const uint MONITOR_DEFAULTTONEAREST = 2;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MONITORINFO
+    {
+        public int cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MINMAXINFO
+    {
+        public POINT ptReserved;
+        public POINT ptMaxSize;
+        public POINT ptMaxPosition;
+        public POINT ptMinTrackSize;
+        public POINT ptMaxTrackSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
+    private const int WM_GETMINMAXINFO = 0x0024;
+
+    #endregion
+
     public MainWindow(
         MainWindowViewModel viewModel, 
-        WidgetThreadService? widgetThreadService = null,
+        WidgetProcessService? widgetProcessService = null,
         TrayIconService? trayIconService = null)
     {
         InitializeComponent();
         DataContext = viewModel;
-        _widgetThreadService = widgetThreadService;
+        _widgetProcessService = widgetProcessService;
         _trayIconService = trayIconService;
 
         // Attach window position/size persistence
@@ -36,6 +87,9 @@ public partial class MainWindow : Window
         
         // Handle visibility changes to refresh bindings when window is shown again
         IsVisibleChanged += MainWindow_IsVisibleChanged;
+        
+        // Hook into WM_GETMINMAXINFO to respect WorkArea when maximized
+        SourceInitialized += MainWindow_SourceInitialized;
 
         // Setup tray icon events
         if (_trayIconService != null)
@@ -43,6 +97,45 @@ public partial class MainWindow : Window
             _trayIconService.ShowRequested += OnTrayShowRequested;
             _trayIconService.ExitRequested += OnTrayExitRequested;
         }
+    }
+
+    private void MainWindow_SourceInitialized(object? sender, EventArgs e)
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        var source = HwndSource.FromHwnd(hwnd);
+        source?.AddHook(WndProc);
+    }
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == WM_GETMINMAXINFO)
+        {
+            // Get current monitor's work area (excludes taskbar and AppBars)
+            var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (monitor != IntPtr.Zero)
+            {
+                var monitorInfo = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+                if (GetMonitorInfo(monitor, ref monitorInfo))
+                {
+                    var workArea = monitorInfo.rcWork;
+                    var monitorArea = monitorInfo.rcMonitor;
+
+                    var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+                    
+                    // Set max size to work area size
+                    mmi.ptMaxSize.X = workArea.Right - workArea.Left;
+                    mmi.ptMaxSize.Y = workArea.Bottom - workArea.Top;
+                    
+                    // Set max position to work area top-left (relative to monitor)
+                    mmi.ptMaxPosition.X = workArea.Left - monitorArea.Left;
+                    mmi.ptMaxPosition.Y = workArea.Top - monitorArea.Top;
+
+                    Marshal.StructureToPtr(mmi, lParam, true);
+                }
+            }
+            handled = true;
+        }
+        return IntPtr.Zero;
     }
 
     private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -105,16 +198,8 @@ public partial class MainWindow : Window
         var confirmBeforeExit = _trayIconService?.ConfirmBeforeExit == true;
         var keepWidgetRunning = _trayIconService?.KeepWidgetRunning ?? true;
         
-        // Check if the Order Log widget is still open (runs on separate thread)
-        var widgetOpen = _widgetThreadService?.IsWidgetOpen == true;
-        
-        // Also check same-thread widgets as fallback
-        if (!widgetOpen)
-        {
-            widgetOpen = Application.Current.Windows
-                .OfType<Windows.OrderLogWidgetWindow>()
-                .Any(w => w != null && w.IsVisible);
-        }
+        // Check if the Order Log widget is still open (runs as separate process)
+        var widgetOpen = _widgetProcessService?.IsWidgetOpen == true;
         
         // If close-to-tray enabled, or widget is open and we want to keep it running, hide instead of close
         if (closeToTray || (widgetOpen && keepWidgetRunning))

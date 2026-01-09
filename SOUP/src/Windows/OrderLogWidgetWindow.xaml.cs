@@ -6,6 +6,9 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
@@ -179,9 +182,66 @@ public partial class OrderLogWidgetWindow : Window
     {
         // Start docked to right edge by default
         DockToEdge(AppBarEdge.Right);
+        
+        // Add a "+" overlay badge to the taskbar icon to differentiate from main app
+        ApplyTaskbarOverlay();
 
         // Initialize asynchronously without blocking
         InitializeWidgetAsync();
+    }
+    
+    /// <summary>
+    /// Applies a "+" overlay badge to the taskbar icon to differentiate the widget from the main app.
+    /// </summary>
+    private void ApplyTaskbarOverlay()
+    {
+        try
+        {
+            // Create a simple "+" badge using DrawingImage
+            var drawing = new GeometryDrawing
+            {
+                Brush = Brushes.White,
+                Pen = new Pen(Brushes.Black, 0.5),
+                Geometry = new GeometryGroup
+                {
+                    Children =
+                    {
+                        // Circle background
+                        new EllipseGeometry(new Point(8, 8), 7.5, 7.5),
+                    }
+                }
+            };
+            
+            var plusDrawing = new GeometryDrawing
+            {
+                Brush = new SolidColorBrush(Color.FromRgb(139, 92, 246)), // Accent purple
+                Geometry = new GeometryGroup
+                {
+                    Children =
+                    {
+                        // Horizontal bar of +
+                        new RectangleGeometry(new Rect(4, 6.5, 8, 3)),
+                        // Vertical bar of +
+                        new RectangleGeometry(new Rect(6.5, 4, 3, 8)),
+                    }
+                }
+            };
+            
+            var drawingGroup = new DrawingGroup();
+            drawingGroup.Children.Add(drawing);
+            drawingGroup.Children.Add(plusDrawing);
+            
+            var drawingImage = new DrawingImage(drawingGroup);
+            drawingImage.Freeze();
+            
+            TaskbarItemInfo ??= new TaskbarItemInfo();
+            TaskbarItemInfo.Overlay = drawingImage;
+            TaskbarItemInfo.Description = "Order Log Widget";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to apply taskbar overlay");
+        }
     }
 
     private async void InitializeWidgetAsync()
@@ -333,7 +393,7 @@ public partial class OrderLogWidgetWindow : Window
         var hwnd = new WindowInteropHelper(this).Handle;
         var data = new APPBARDATA
         {
-            cbSize = (uint)Marshal.SizeOf(typeof(APPBARDATA)),
+            cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
             hWnd = hwnd,
             uCallbackMessage = (uint)_appBarCallbackId
         };
@@ -351,7 +411,7 @@ public partial class OrderLogWidgetWindow : Window
         var hwnd = new WindowInteropHelper(this).Handle;
         var data = new APPBARDATA
         {
-            cbSize = (uint)Marshal.SizeOf(typeof(APPBARDATA)),
+            cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
             hWnd = hwnd
         };
 
@@ -373,7 +433,7 @@ public partial class OrderLogWidgetWindow : Window
 
         var data = new APPBARDATA
         {
-            cbSize = (uint)Marshal.SizeOf(typeof(APPBARDATA)),
+            cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
             hWnd = hwnd,
             uEdge = _currentEdge switch
             {

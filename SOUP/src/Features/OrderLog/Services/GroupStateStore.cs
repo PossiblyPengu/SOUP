@@ -17,7 +17,7 @@ public sealed class GroupStateStore : IDisposable
     private readonly ILogger<GroupStateStore>? _logger;
     private Dictionary<string, bool> _states = new(StringComparer.OrdinalIgnoreCase);
     private Timer? _saveTimer;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private bool _disposed;
 
     public GroupStateStore(ILogger<GroupStateStore>? logger = null)

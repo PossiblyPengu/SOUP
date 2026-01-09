@@ -226,7 +226,8 @@ public partial class App : Application
         if (moduleConfig.OrderLogEnabled)
         {
             services.AddTransient<Windows.OrderLogWidgetWindow>();
-            services.AddSingleton<WidgetThreadService>();
+            services.AddSingleton<WidgetThreadService>();  // Legacy thread-based (for --widget mode)
+            services.AddSingleton<WidgetProcessService>(); // New process-based (for launching from main app)
         }
     }
 
