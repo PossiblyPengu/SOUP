@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.10.0";
+    public const string Version = "4.10.1";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.10.1", "2026-01-09", "Release Update", new[]
+        {
+            "Update to .NET 9.0 and enhance widget management- Changed target framework from net8.0 to net9.0 in project files.- Updated Microsoft.Extensions packages to version 9.0.0.- Introduced WidgetProcessService for managing the widget as a separate process, improving isolation and stability.- Updated release script to automatically add changelog entries.- Enhanced About window to display current version and changelog status.- Refactored various services to use the new WidgetProcessService."
+        }),
         new("4.10.0", "2026-01-09", "Release Update", new[]
         {
             "Update to .NET 9.0 and enhance widget management"
