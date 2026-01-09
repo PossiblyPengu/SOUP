@@ -478,27 +478,22 @@ public partial class OrderLogWidgetView : UserControl
                 ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
                 : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
 
-            // Find and remove old theme dictionaries, keep widget theme
-            var widgetTheme = Resources.MergedDictionaries
-                .FirstOrDefault(d => d.Source?.ToString().Contains("OrderLogWidgetTheme") == true);
-
             Resources.MergedDictionaries.Clear();
             
-            // Add theme colors first
+            // Add ModernStyles first (base styles including SurfaceBrush fallback)
+            Resources.MergedDictionaries.Add(new ResourceDictionary 
+            { 
+                Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml") 
+            });
+            
+            // Add theme colors
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
             
-            // Re-add widget theme (which references theme colors via DynamicResource)
-            if (widgetTheme != null)
-            {
-                Resources.MergedDictionaries.Add(widgetTheme);
-            }
-            else
-            {
-                Resources.MergedDictionaries.Add(new ResourceDictionary 
-                { 
-                    Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml") 
-                });
-            }
+            // Add widget theme last (references theme colors via DynamicResource)
+            Resources.MergedDictionaries.Add(new ResourceDictionary 
+            { 
+                Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml") 
+            });
         }
         catch (Exception ex)
         {

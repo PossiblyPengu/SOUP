@@ -98,6 +98,12 @@
     <SolidColorBrush x:Key="WidgetStatusInProgressBrush" Color="{StaticResource WidgetStatusInProgressColor}"/>
     <SolidColorBrush x:Key="WidgetStatusDoneBrush" Color="{StaticResource WidgetStatusDoneColor}"/>
     
+    <!-- Status Background Brushes -->
+    <SolidColorBrush x:Key="WidgetStatusNotReadyBgBrush" Color="{StaticResource WidgetStatusNotReadyBgColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusOnDeckBgBrush" Color="{StaticResource WidgetStatusOnDeckBgColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusInProgressBgBrush" Color="{StaticResource WidgetStatusInProgressBgColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusDoneBgBrush" Color="{StaticResource WidgetStatusDoneBgColor}"/>
+    
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
     <!-- ELEVATION & SHADOWS                                                          -->
     <!-- Subtle depth cues for card hierarchy                                        -->
@@ -172,7 +178,7 @@
     
     <Style x:Key="WidgetTabButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="Foreground" Value="#a1a1aa"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="Medium"/>
@@ -189,7 +195,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            <Setter TargetName="TabBorder" Property="Background" Value="#27272a"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -198,8 +204,8 @@
     </Style>
     
     <Style x:Key="WidgetTabButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource WidgetTabButtonStyle}">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="#18181b"/>
+        <Setter Property="Foreground" Value="#fafafa"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
     
@@ -218,19 +224,19 @@
     </Style>
     
     <Style x:Key="WidgetStatusNotReadyBadgeStyle" TargetType="Border" BasedOn="{StaticResource WidgetStatusBadgeBaseStyle}">
-        <Setter Property="Background" Value="{StaticResource WidgetStatusNotReadyBgColor}"/>
+        <Setter Property="Background" Value="{StaticResource WidgetStatusNotReadyBgBrush}"/>
     </Style>
     
     <Style x:Key="WidgetStatusOnDeckBadgeStyle" TargetType="Border" BasedOn="{StaticResource WidgetStatusBadgeBaseStyle}">
-        <Setter Property="Background" Value="{StaticResource WidgetStatusOnDeckBgColor}"/>
+        <Setter Property="Background" Value="{StaticResource WidgetStatusOnDeckBgBrush}"/>
     </Style>
     
     <Style x:Key="WidgetStatusInProgressBadgeStyle" TargetType="Border" BasedOn="{StaticResource WidgetStatusBadgeBaseStyle}">
-        <Setter Property="Background" Value="{StaticResource WidgetStatusInProgressBgColor}"/>
+        <Setter Property="Background" Value="{StaticResource WidgetStatusInProgressBgBrush}"/>
     </Style>
     
     <Style x:Key="WidgetStatusDoneBadgeStyle" TargetType="Border" BasedOn="{StaticResource WidgetStatusBadgeBaseStyle}">
-        <Setter Property="Background" Value="{StaticResource WidgetStatusDoneBgColor}"/>
+        <Setter Property="Background" Value="{StaticResource WidgetStatusDoneBgBrush}"/>
     </Style>
     
     <!-- ─────────────────────────────────────────────────────────────────────────── -->

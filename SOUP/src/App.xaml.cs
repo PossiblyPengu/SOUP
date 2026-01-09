@@ -9,11 +9,13 @@ using Serilog;
 using Serilog.Events;
 using SOUP.Core.Interfaces;
 using SOUP.Data;
+using SOUP.Features.OrderLog.ViewModels;
 using SOUP.Infrastructure.Data;
 using SOUP.Infrastructure.Repositories;
 using SOUP.Infrastructure.Services;
 using SOUP.Services;
 using SOUP.ViewModels;
+using SOUP.Windows;
 
 namespace SOUP;
 
@@ -228,8 +230,7 @@ public partial class App : Application
         if (moduleConfig.OrderLogEnabled)
         {
             services.AddTransient<Windows.OrderLogWidgetWindow>();
-            services.AddSingleton<WidgetThreadService>();  // Legacy thread-based (for --widget mode)
-            services.AddSingleton<WidgetProcessService>(); // New process-based (for launching from main app)
+            services.AddSingleton<WidgetProcessService>(); // Widget always runs as separate process
         }
     }
 
@@ -325,20 +326,24 @@ public partial class App : Application
             {
                 if (moduleConfig.OrderLogEnabled)
                 {
-                    // Launch widget on its own thread - completely independent
-                    var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
+                    // Load themes into Application resources (widget process runs standalone)
+                    var themeService = _host.Services.GetRequiredService<ThemeService>();
+                    themeService.Initialize();
+                    
+                    // Launch widget window directly on main thread
+                    var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
+                    var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
                     
                     // When widget closes, shut down the app
-                    widgetService.WidgetClosed += () =>
+                    widgetWindow.Closed += (s, args) =>
                     {
                         Log.Information("Widget closed, shutting down application");
-                        Dispatcher.Invoke(() => Shutdown());
+                        Shutdown();
                     };
                     
-                    widgetService.ShowOrderLogWidget();
+                    widgetWindow.Show();
                     
-                    // Don't show main window - just run the widget
-                    Log.Information("Running in widget-only mode (command line)");
+                    Log.Information("Running in widget-only mode (command line) - separate process");
                 }
                 else
                 {
@@ -355,18 +360,18 @@ public partial class App : Application
                 
                 if (widgetOnlyMode)
                 {
-                    // Widget-only mode: launch widget, skip main window
-                    var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
+                    // Widget-only mode: launch widget as separate process, skip main window
+                    var widgetProcessService = _host.Services.GetRequiredService<WidgetProcessService>();
                     
-                    // When widget closes in widget-only mode, shut down the app
-                    widgetService.WidgetClosed += () =>
+                    // When widget process closes in widget-only mode, shut down the main app
+                    widgetProcessService.WidgetClosed += () =>
                     {
                         Log.Information("Widget closed in widget-only mode, shutting down application");
                         Dispatcher.Invoke(() => Shutdown());
                     };
                     
-                    widgetService.ShowOrderLogWidget();
-                    Log.Information("Running in widget-only mode (settings)");
+                    widgetProcessService.ShowWidget();
+                    Log.Information("Running in widget-only mode (settings) - widget is separate process");
                 }
                 else
                 {
@@ -398,10 +403,6 @@ public partial class App : Application
     {
         try
         {
-            // Close widget thread if running
-            var widgetService = _host.Services.GetService<WidgetThreadService>();
-            widgetService?.Dispose();
-            
             // Save all app data before closing
             try
             {

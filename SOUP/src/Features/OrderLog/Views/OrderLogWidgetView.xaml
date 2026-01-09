@@ -13,8 +13,10 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
-            <!-- Merge the modern widget theme -->
+            <!-- Merge themes: base styles first, then colors, then widget-specific -->
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/ModernStyles.xaml"/>
+                <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
                 <ResourceDictionary Source="../Themes/OrderLogWidgetTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             
@@ -64,7 +66,7 @@
 
         <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource CardBorderStyle}">
+            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Width="280" Margin="6" Padding="16,12">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Set Status">
@@ -291,7 +293,7 @@
 
         <!-- Template for archived Order cards -->
         <DataTemplate x:Key="ArchivedOrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{DynamicResource WidgetElevatedCardStyle}">
+            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
@@ -372,7 +374,7 @@
         <!-- Template for archived Sticky Note cards -->
         <!-- Template for archived Sticky Note - fluid body-only design -->
         <DataTemplate x:Key="ArchivedStickyNoteTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource CardBorderStyle}" Padding="0" Opacity="0.7">
+            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0" Opacity="0.7">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
@@ -697,7 +699,7 @@
 
         <!-- Template for ARCHIVED merged order cards (no status dropdown, has restore button) -->
         <DataTemplate x:Key="ArchivedOrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{DynamicResource WidgetElevatedCardStyle}">
+            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                 <Border.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Restore All" Click="UnarchiveGroup_Click"/>
@@ -966,7 +968,7 @@
                                                     <ContentControl Content="{Binding First}">
                                                         <ContentControl.ContentTemplate>
                                                                 <DataTemplate>
-                                                                <Border Style="{DynamicResource WidgetElevatedCardStyle}">
+                                                                <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                                 <!-- Dynamic context menu based on NoteType -->
                                 <Border.ContextMenu>
                                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -1433,8 +1435,18 @@
             </Grid>
         </ScrollViewer>
             
+            <!-- Top fade/shadow overlay -->
+            <Border VerticalAlignment="Top" Height="24" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#AA000000" Offset="0"/>
+                        <GradientStop Color="#00000000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            
             <!-- Bottom fade/shadow overlay -->
-            <Border VerticalAlignment="Bottom" Height="48" IsHitTestVisible="False">
+            <Border VerticalAlignment="Bottom" Height="24" IsHitTestVisible="False">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="#00000000" Offset="0"/>

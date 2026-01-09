@@ -76,25 +76,39 @@ public class StatusToColorConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts OrderItem.OrderStatus to a card background brush resource.
+/// Converts OrderItem.OrderStatus to a card background brush.
+/// Uses cached brushes that match the theme colors for card backgrounds.
 /// </summary>
 public class StatusToCardBrushConverter : IValueConverter
 {
+    // Cache brushes - dark theme card colors
+    private static readonly Brush NotReadyBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x1b));    // #18181b zinc-900
+    private static readonly Brush OnDeckBrush = new SolidColorBrush(Color.FromRgb(0x1c, 0x1c, 0x22));      // #1c1c22 slightly lighter
+    private static readonly Brush InProgressBrush = new SolidColorBrush(Color.FromRgb(0x14, 0x53, 0x2d));  // #14532d green-900
+    private static readonly Brush DoneBrush = new SolidColorBrush(Color.FromRgb(0x27, 0x27, 0x2a));        // #27272a zinc-800
+
+    static StatusToCardBrushConverter()
+    {
+        // Freeze brushes for performance
+        NotReadyBrush.Freeze();
+        OnDeckBrush.Freeze();
+        InProgressBrush.Freeze();
+        DoneBrush.Freeze();
+    }
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not OrderItem.OrderStatus status)
             return DependencyProperty.UnsetValue;
 
-        var resourceKey = status switch
+        return status switch
         {
-            OrderItem.OrderStatus.NotReady => "OrderLogCardNotReadyBrush",
-            OrderItem.OrderStatus.OnDeck => "OrderLogCardOnDeckBrush",
-            OrderItem.OrderStatus.InProgress => "OrderLogCardInProgressBrush",
-            OrderItem.OrderStatus.Done => "OrderLogCardDoneBrush",
-            _ => "OrderLogCardNotReadyBrush"
+            OrderItem.OrderStatus.NotReady => NotReadyBrush,
+            OrderItem.OrderStatus.OnDeck => OnDeckBrush,
+            OrderItem.OrderStatus.InProgress => InProgressBrush,
+            OrderItem.OrderStatus.Done => DoneBrush,
+            _ => NotReadyBrush
         };
-
-        return Application.Current.TryFindResource(resourceKey) ?? DependencyProperty.UnsetValue;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
