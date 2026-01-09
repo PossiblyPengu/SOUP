@@ -12,6 +12,7 @@ using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.Constants;
 using SOUP.Features.OrderLog.Services;
 using SOUP.Infrastructure.Services;
+using SOUP.Services;
 
 namespace SOUP.Features.OrderLog.ViewModels;
 
@@ -20,15 +21,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     // Constants for configurable timeouts
     private const int TimerIntervalSeconds = 1;
     private const int DefaultUndoTimeoutSeconds = 5;
+    private const int StatusClearSeconds = 3;
     private const double DefaultCardFontSize = 13.0;
 
     private readonly IOrderLogService _orderLogService;
     private readonly GroupStateStore _groupStateStore;
     private readonly SettingsService _settingsService;
+    private readonly DialogService _dialogService;
     private readonly ILogger<OrderLogViewModel>? _logger;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
     private DispatcherTimer? _undoTimer;
+    private DispatcherTimer? _statusClearTimer;
     private System.Threading.CancellationTokenSource? _saveDebounceCts;
     private List<(Guid id, OrderItem.OrderStatus previous)> _lastStatusChanges = new();
     private List<(Guid id, bool wasArchived)> _lastArchiveChanges = new();
@@ -64,6 +68,25 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    partial void OnStatusMessageChanged(string value)
+    {
+        // Auto-clear status message after timeout (unless it's empty)
+        if (!string.IsNullOrEmpty(value))
+        {
+            _statusClearTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(StatusClearSeconds) };
+            _statusClearTimer.Stop();
+            _statusClearTimer.Tick -= OnStatusClearTimerTick;
+            _statusClearTimer.Tick += OnStatusClearTimerTick;
+            _statusClearTimer.Start();
+        }
+    }
+
+    private void OnStatusClearTimerTick(object? sender, EventArgs e)
+    {
+        _statusClearTimer?.Stop();
+        StatusMessage = string.Empty;
+    }
+
     [ObservableProperty]
     private bool _isLoading;
 
@@ -94,11 +117,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         IOrderLogService orderLogService,
         GroupStateStore groupStateStore,
         SettingsService settingsService,
+        DialogService dialogService,
         ILogger<OrderLogViewModel>? logger = null)
     {
         _orderLogService = orderLogService;
         _groupStateStore = groupStateStore;
         _settingsService = settingsService;
+        _dialogService = dialogService;
         _logger = logger;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
@@ -893,20 +918,42 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         try
         {
+            var itemsToExport = ShowArchived ? ArchivedItems : Items;
+            if (itemsToExport.Count == 0)
+            {
+                StatusMessage = "No items to export";
+                return;
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var defaultFileName = $"OrderLog_Export_{timestamp}.csv";
+            
+            var filePath = await _dialogService.ShowSaveFileDialogAsync(
+                "Export to CSV",
+                defaultFileName,
+                "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
+
             IsLoading = true;
             StatusMessage = "Exporting to CSV...";
 
             var exportService = new Services.OrderLogExportService();
-            var itemsToExport = ShowArchived ? ArchivedItems : Items;
-            var filePath = await exportService.ExportToCsvAsync(itemsToExport);
+            await exportService.ExportToCsvAsync(itemsToExport, filePath);
 
             var fileName = System.IO.Path.GetFileName(filePath);
-            StatusMessage = $"Exported {itemsToExport.Count} item(s) to {fileName}";
+            StatusMessage = $"Exported {itemsToExport.Count} item(s)";
+            _dialogService.ShowExportSuccessDialog(fileName, filePath, itemsToExport.Count);
         }
         catch (Exception ex)
         {
             StatusMessage = $"Export error: {ex.Message}";
             _logger?.LogError(ex, "Failed to export to CSV");
+            _dialogService.ShowExportErrorDialog(ex.Message);
         }
         finally
         {

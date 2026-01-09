@@ -653,30 +653,50 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         try
         {
-            IsLoading = true;
-            StatusMessage = "Exporting to Excel...";
+            if (Items.Count == 0)
+            {
+                StatusMessage = "No items to export";
+                return;
+            }
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var fileName = $"EssentialsBuddy_Export_{timestamp}.xlsx";
-            var filePath = System.IO.Path.Combine(Core.AppPaths.Desktop, fileName);
+            var defaultFileName = $"EssentialsBuddy_Export_{timestamp}.xlsx";
+            
+            var filePath = await _dialogService.ShowSaveFileDialogAsync(
+                "Export to Excel",
+                defaultFileName,
+                "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
+
+            IsLoading = true;
+            StatusMessage = "Exporting to Excel...";
 
             var result = await _fileService.ExportToExcelAsync(Items.ToList(), filePath);
 
             if (result.IsSuccess)
             {
-                StatusMessage = $"Exported to {fileName}";
+                var fileName = System.IO.Path.GetFileName(filePath);
+                StatusMessage = $"Exported {Items.Count} item(s)";
                 _logger?.LogInformation("Exported {Count} items to Excel", Items.Count);
+                _dialogService.ShowExportSuccessDialog(fileName, filePath, Items.Count);
             }
             else
             {
                 StatusMessage = $"Export failed: {result.ErrorMessage}";
                 _logger?.LogError("Failed to export to Excel: {Error}", result.ErrorMessage);
+                _dialogService.ShowExportErrorDialog(result.ErrorMessage ?? "Unknown error");
             }
         }
         catch (Exception ex)
         {
             StatusMessage = $"Export error: {ex.Message}";
             _logger?.LogError(ex, "Exception during Excel export");
+            _dialogService.ShowExportErrorDialog(ex.Message);
         }
         finally
         {
@@ -689,30 +709,50 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         try
         {
-            IsLoading = true;
-            StatusMessage = "Exporting to CSV...";
+            if (Items.Count == 0)
+            {
+                StatusMessage = "No items to export";
+                return;
+            }
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var fileName = $"EssentialsBuddy_Export_{timestamp}.csv";
-            var filePath = System.IO.Path.Combine(Core.AppPaths.Desktop, fileName);
+            var defaultFileName = $"EssentialsBuddy_Export_{timestamp}.csv";
+            
+            var filePath = await _dialogService.ShowSaveFileDialogAsync(
+                "Export to CSV",
+                defaultFileName,
+                "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
+
+            IsLoading = true;
+            StatusMessage = "Exporting to CSV...";
 
             var result = await _fileService.ExportToCsvAsync(Items.ToList(), filePath);
 
             if (result.IsSuccess)
             {
-                StatusMessage = $"Exported to {fileName}";
+                var fileName = System.IO.Path.GetFileName(filePath);
+                StatusMessage = $"Exported {Items.Count} item(s)";
                 _logger?.LogInformation("Exported {Count} items to CSV", Items.Count);
+                _dialogService.ShowExportSuccessDialog(fileName, filePath, Items.Count);
             }
             else
             {
                 StatusMessage = $"Export failed: {result.ErrorMessage}";
                 _logger?.LogError("Failed to export to CSV: {Error}", result.ErrorMessage);
+                _dialogService.ShowExportErrorDialog(result.ErrorMessage ?? "Unknown error");
             }
         }
         catch (Exception ex)
         {
             StatusMessage = $"Export error: {ex.Message}";
             _logger?.LogError(ex, "Exception during CSV export");
+            _dialogService.ShowExportErrorDialog(ex.Message);
         }
         finally
         {

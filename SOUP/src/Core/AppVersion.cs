@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.11.0";
+    public const string Version = "4.12.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,11 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.12.0", "2026-01-09", "Release Update", new[]
+        {
+            "Refactor export functionality to improve user experience and error handling",
+            "refactored widget update pipeline"
+        }),
         new("4.11.0", "2026-01-09", "Release Update", new[]
         {
             "Refactor widget handling and improve UI consistency with new message dialog"

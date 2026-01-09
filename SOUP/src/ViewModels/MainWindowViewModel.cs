@@ -299,9 +299,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     /// Opens the About dialog and triggers an update check.
     /// </summary>
     [RelayCommand]
-    private async Task ShowUpdateAsync()
+    private void ShowUpdate()
     {
-        // Trigger update check in background (don't await - let it run while showing dialog)
+        // Trigger update check in background (fire-and-forget)
         _ = CheckForUpdatesAsync();
         ShowAbout();
     }

@@ -728,26 +728,77 @@ public partial class OrderLogWidgetWindow : Window
     private const int SW_RESTORE = 9;
     
     /// <summary>
-    /// Handles click on the update badge - opens the release page
+    /// Handles click on the update badge - performs in-app update
     /// </summary>
-    private void UpdateBadge_Click(object sender, MouseButtonEventArgs e)
+    private async void UpdateBadge_Click(object sender, MouseButtonEventArgs e)
     {
+        e.Handled = true;
+        
+        if (_availableUpdate == null) return;
+
         try
         {
-            if (_availableUpdate?.HtmlUrl != null)
+            using var updateService = new UpdateService();
+            
+            var shouldUpdate = MessageDialog.Show(
+                this,
+                $"A new version is available!\n\n" +
+                $"Current: v{updateService.CurrentVersion}\n" +
+                $"Latest: v{_availableUpdate.Version}\n\n" +
+                $"{_availableUpdate.ReleaseNotes}\n\n" +
+                $"Would you like to download and install it now?",
+                "Update Available",
+                DialogType.Information,
+                DialogButtons.YesNo);
+
+            if (!shouldUpdate) return;
+
+            // Hide badge and show downloading status
+            UpdateBadge.Visibility = Visibility.Collapsed;
+            _viewModel.StatusMessage = "Downloading update...";
+
+            var progress = new Progress<double>(percent =>
             {
-                Process.Start(new ProcessStartInfo
+                Dispatcher.Invoke(() =>
                 {
-                    FileName = _availableUpdate.HtmlUrl,
-                    UseShellExecute = true
+                    _viewModel.StatusMessage = $"Downloading... {percent:F0}%";
                 });
+            });
+
+            var zipPath = await updateService.DownloadUpdateAsync(_availableUpdate, progress);
+
+            if (string.IsNullOrEmpty(zipPath))
+            {
+                MessageDialog.ShowWarning(this, "Failed to download update. Please try again later.", "Download Failed");
+                UpdateBadge.Visibility = Visibility.Visible;
+                return;
+            }
+
+            _viewModel.StatusMessage = "Applying update...";
+
+            // Apply the update
+            if (updateService.ApplyUpdate(zipPath))
+            {
+                _viewModel.StatusMessage = "Update ready! Restarting...";
+                
+                // Close the application - the updater script will restart it
+                await System.Threading.Tasks.Task.Delay(500);
+                
+                // Force exit to ensure all threads terminate
+                Environment.Exit(0);
+            }
+            else
+            {
+                MessageDialog.ShowWarning(this, "Failed to apply update. Please try downloading manually.", "Update Failed");
+                UpdateBadge.Visibility = Visibility.Visible;
             }
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to open update URL");
+            Log.Error(ex, "Failed to update from widget");
+            MessageDialog.ShowWarning(this, $"Failed to update: {ex.Message}", "Update Error");
+            UpdateBadge.Visibility = Visibility.Visible;
         }
-        e.Handled = true;
     }
 
     #endregion

@@ -14,7 +14,7 @@ namespace SOUP.Features.OrderLog.Services;
 /// </summary>
 public interface IOrderLogExportService
 {
-    Task<string> ExportToCsvAsync(IEnumerable<OrderItem> items, string? fileName = null);
+    Task ExportToCsvAsync(IEnumerable<OrderItem> items, string filePath);
 }
 
 public class OrderLogExportService : IOrderLogExportService
@@ -30,23 +30,17 @@ public class OrderLogExportService : IOrderLogExportService
     /// Exports order items to CSV format.
     /// </summary>
     /// <param name="items">Items to export</param>
-    /// <param name="fileName">Optional custom file name. If null, generates a timestamped name.</param>
-    /// <returns>Full path to the exported file</returns>
-    public async Task<string> ExportToCsvAsync(IEnumerable<OrderItem> items, string? fileName = null)
+    /// <param name="filePath">Full path to save the file</param>
+    public async Task ExportToCsvAsync(IEnumerable<OrderItem> items, string filePath)
     {
         try
         {
-            fileName ??= $"OrderLog_Export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-            var filePath = Path.Combine(Core.AppPaths.Desktop, fileName);
-
             var itemsList = items.ToList();
             var csvContent = BuildCsvContent(itemsList);
 
             await File.WriteAllTextAsync(filePath, csvContent);
 
             _logger?.LogInformation("Exported {Count} orders to CSV: {FilePath}", itemsList.Count, filePath);
-
-            return filePath;
         }
         catch (Exception ex)
         {

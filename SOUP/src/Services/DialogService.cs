@@ -1,10 +1,12 @@
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
+using SOUP.Windows;
 
 namespace SOUP.Services;
 
@@ -194,5 +196,47 @@ public class DialogService
         }
 
         return tcs.Task;
+    }
+
+    /// <summary>
+    /// Shows a themed export success dialog with option to open the file location.
+    /// </summary>
+    /// <param name="fileName">The name of the exported file.</param>
+    /// <param name="filePath">The full path to the exported file.</param>
+    /// <param name="itemCount">The number of items exported.</param>
+    /// <returns>True if user chose to open the file location.</returns>
+    public bool ShowExportSuccessDialog(string fileName, string filePath, int itemCount)
+    {
+        var message = $"Successfully exported {itemCount} item(s) to:\n\n{fileName}\n\nWould you like to open the folder?";
+        var openFolder = MessageDialog.Show(message, "Export Complete", DialogType.Information, DialogButtons.YesNo);
+        
+        if (openFolder)
+        {
+            try
+            {
+                // Open folder and select the file
+                Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+            }
+            catch
+            {
+                // Fallback: just open the folder
+                var folder = System.IO.Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(folder))
+                {
+                    Process.Start("explorer.exe", folder);
+                }
+            }
+        }
+        
+        return openFolder;
+    }
+
+    /// <summary>
+    /// Shows a themed export error dialog.
+    /// </summary>
+    /// <param name="errorMessage">The error message to display.</param>
+    public void ShowExportErrorDialog(string errorMessage)
+    {
+        MessageDialog.ShowWarning(null!, $"Export failed:\n\n{errorMessage}", "Export Error");
     }
 }

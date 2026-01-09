@@ -1351,19 +1351,29 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         }
     }
 
-    private Task ExportToExcelAsync()
+    private async Task ExportToExcelAsync()
     {
         try
         {
             if (LocationAllocations.Count == 0)
             {
                 StatusMessage = "No data to export";
-                return Task.CompletedTask;
+                return;
             }
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var fileName = $"AllocationBuddy_Export_{timestamp}.xlsx";
-            var filePath = Path.Combine(Core.AppPaths.Desktop, fileName);
+            var defaultFileName = $"AllocationBuddy_Export_{timestamp}.xlsx";
+            
+            var filePath = await _dialogService.ShowSaveFileDialogAsync(
+                "Export to Excel",
+                defaultFileName,
+                "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
 
             // Create Excel file using ClosedXML
             using var workbook = new ClosedXML.Excel.XLWorkbook();
@@ -1384,6 +1394,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             // Data
             int row = 2;
+            int itemCount = 0;
             foreach (var location in LocationAllocations)
             {
                 foreach (var item in location.Items)
@@ -1395,6 +1406,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     worksheet.Cell(row, 5).Value = item.Quantity;
                     worksheet.Cell(row, 6).Value = item.SKU ?? "";
                     row++;
+                    itemCount++;
                 }
             }
 
@@ -1403,15 +1415,17 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             workbook.SaveAs(filePath);
 
-            StatusMessage = $"Exported to {fileName}";
+            var fileName = Path.GetFileName(filePath);
+            StatusMessage = $"Exported {itemCount} item(s)";
             _logger?.LogInformation("Exported allocations to Excel: {FilePath}", filePath);
+            _dialogService.ShowExportSuccessDialog(fileName, filePath, itemCount);
         }
         catch (Exception ex)
         {
             StatusMessage = $"Export failed: {ex.Message}";
             _logger?.LogError(ex, "Failed to export allocations to Excel");
+            _dialogService.ShowExportErrorDialog(ex.Message);
         }
-        return Task.CompletedTask;
     }
 
     private async Task ExportToCsvAsync()
@@ -1425,8 +1439,18 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var fileName = $"AllocationBuddy_Export_{timestamp}.csv";
-            var filePath = Path.Combine(Core.AppPaths.Desktop, fileName);
+            var defaultFileName = $"AllocationBuddy_Export_{timestamp}.csv";
+            
+            var filePath = await _dialogService.ShowSaveFileDialogAsync(
+                "Export to CSV",
+                defaultFileName,
+                "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
 
             using var writer = new StreamWriter(filePath);
             
@@ -1434,6 +1458,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             await writer.WriteLineAsync("Location,Location Name,Item Number,Description,Quantity,SKU");
 
             // Data
+            int itemCount = 0;
             foreach (var location in LocationAllocations)
             {
                 foreach (var item in location.Items)
@@ -1442,16 +1467,20 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     var description = EscapeCsvField(item.Description);
                     var sku = EscapeCsvField(item.SKU ?? "");
                     await writer.WriteLineAsync($"{location.Location},{locationName},{item.ItemNumber},{description},{item.Quantity},{sku}");
+                    itemCount++;
                 }
             }
 
-            StatusMessage = $"Exported to {fileName}";
+            var fileName = Path.GetFileName(filePath);
+            StatusMessage = $"Exported {itemCount} item(s)";
             _logger?.LogInformation("Exported allocations to CSV: {FilePath}", filePath);
+            _dialogService.ShowExportSuccessDialog(fileName, filePath, itemCount);
         }
         catch (Exception ex)
         {
             StatusMessage = $"Export failed: {ex.Message}";
             _logger?.LogError(ex, "Failed to export allocations to CSV");
+            _dialogService.ShowExportErrorDialog(ex.Message);
         }
     }
 
