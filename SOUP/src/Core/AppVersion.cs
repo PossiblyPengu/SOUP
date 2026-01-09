@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.12.0";
+    public const string Version = "4.13.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.13.0", "2026-01-09", "Release Update", new[]
+        {
+            "Refactor database integration from LiteDB to SQLite- Updated AllocationBuddyParser to reflect SQLite usage in comments.- Replaced LiteDB package reference with Microsoft.Data.Sqlite in project file.- Modified DictionarySyncService to batch upsert operations for items and stores.- Changed DictionaryManagementViewModel to log and manage data using SQLite.- Updated ExpirationItemDialogViewModel to retrieve stores from SQLite.- Implemented SqliteDbContext for managing SQLite connections and database initialization.- Created SqliteUnitOfWork for handling unit of work pattern with SQLite.- Developed SqliteRepository for CRUD operations with JSON serialization for entities.- Added migration tool to convert existing LiteDB databases to SQLite format."
+        }),
         new("4.12.0", "2026-01-09", "Release Update", new[]
         {
             "Refactor export functionality to improve user experience and error handling",
@@ -140,7 +144,7 @@ public static class AppVersion
             "📋 EssentialsBuddy - Essential items inventory tracking",
             "🏷️ SwiftLabel - Quick label generation",
             "🌙 Dark and Light theme support with persistence",
-            "💾 LiteDB database for data persistence",
+            "💾 SQLite database for data persistence",
             "📤 Excel import/export support",
             "🗃️ Archive system for session management",
             "🔧 Modular installer with component selection"

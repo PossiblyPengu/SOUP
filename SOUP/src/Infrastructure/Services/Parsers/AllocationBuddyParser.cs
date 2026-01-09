@@ -63,7 +63,7 @@ public class AllocationBuddyParser
     }
 
     /// <summary>
-    /// Smart column detection by analyzing actual data against LiteDB dictionaries
+    /// Smart column detection by analyzing actual data against SQLite dictionaries
     /// </summary>
     private ColumnMap DetectColumnsByData(List<IXLRow> dataRows, List<string> headers)
     {

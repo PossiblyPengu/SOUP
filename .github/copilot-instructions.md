@@ -41,10 +41,13 @@ Use `{DynamicResource BrushName}` for theme-aware colors. Key brushes in [DarkTh
 
 ### Data Storage
 
-- **Main DB**: `%APPDATA%\SOUP\Data\SOUP.db` via `LiteDbContext`
+- **Main DB**: `%APPDATA%\SOUP\Data\SOUP.db` via `SqliteDbContext`
 - **Shared dictionaries**: `%APPDATA%\SOUP\Shared\dictionaries.db` via `DictionaryDbContext.Instance`
+- **OrderLog DB**: `%APPDATA%\SOUP\OrderLog\orders.db` via `OrderLogRepository`
 - **Settings**: JSON files in `%APPDATA%\SOUP\`
 - **Logs**: `%APPDATA%\SOUP\Logs\` (Serilog, 7-day retention)
+
+All SQLite databases use WAL mode for multi-process concurrent access.
 
 ## Development Workflow
 

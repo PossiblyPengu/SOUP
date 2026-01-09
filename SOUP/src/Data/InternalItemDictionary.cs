@@ -7,7 +7,7 @@ using SOUP.Infrastructure.Services.Parsers;
 namespace SOUP.Data;
 
 /// <summary>
-/// Shared item dictionary using LiteDB for fast indexed lookups.
+/// Shared item dictionary using SQLite for fast indexed lookups.
 /// Items are stored in a shared database. Use the ImportDictionary tool to populate.
 /// </summary>
 public static class InternalItemDictionary
@@ -18,13 +18,13 @@ public static class InternalItemDictionary
     public static List<DictionaryItem> GetItems()
     {
         var db = DictionaryDbContext.Instance;
-        return db.Items.FindAll()
+        return db.GetAllItems()
             .Select(e => new DictionaryItem
             {
                 Number = e.Number,
                 Description = e.Description,
                 Skus = e.Skus,
-                Tags = e.Tags ?? new List<string>(),
+                Tags = e.Tags ?? [],
                 IsEssential = e.IsEssential,
                 IsPrivateLabel = e.IsPrivateLabel
             })
@@ -36,7 +36,7 @@ public static class InternalItemDictionary
     /// </summary>
     public static int GetItemCount()
     {
-        return DictionaryDbContext.Instance.Items.Count();
+        return DictionaryDbContext.Instance.GetItemCount();
     }
 
     /// <summary>
@@ -45,21 +45,16 @@ public static class InternalItemDictionary
     public static void SaveItems(List<DictionaryItem> items)
     {
         var db = DictionaryDbContext.Instance;
-        var collection = db.Items;
-
-        foreach (var item in items)
+        var entities = items.Select(item => new DictionaryItemEntity
         {
-            var entity = new DictionaryItemEntity
-            {
-                Number = item.Number,
-                Description = item.Description,
-                Skus = item.Skus,
-                Tags = item.Tags ?? new List<string>(),
-                IsEssential = item.IsEssential,
-                IsPrivateLabel = item.IsPrivateLabel
-            };
-            collection.Upsert(entity);
-        }
+            Number = item.Number,
+            Description = item.Description,
+            Skus = item.Skus,
+            Tags = item.Tags ?? [],
+            IsEssential = item.IsEssential,
+            IsPrivateLabel = item.IsPrivateLabel
+        });
+        db.UpsertItems(entities);
     }
 
     /// <summary>
@@ -72,11 +67,11 @@ public static class InternalItemDictionary
             Number = item.Number,
             Description = item.Description,
             Skus = item.Skus,
-            Tags = item.Tags ?? new List<string>(),
+            Tags = item.Tags ?? [],
             IsEssential = item.IsEssential,
             IsPrivateLabel = item.IsPrivateLabel
         };
-        DictionaryDbContext.Instance.Items.Upsert(entity);
+        DictionaryDbContext.Instance.UpsertItem(entity);
     }
 
     /// <summary>
@@ -84,7 +79,7 @@ public static class InternalItemDictionary
     /// </summary>
     public static bool DeleteItem(string number)
     {
-        return DictionaryDbContext.Instance.Items.Delete(number);
+        return DictionaryDbContext.Instance.DeleteItem(number);
     }
 
     /// <summary>
@@ -92,7 +87,7 @@ public static class InternalItemDictionary
     /// </summary>
     public static void ClearAll()
     {
-        DictionaryDbContext.Instance.Items.DeleteAll();
+        DictionaryDbContext.Instance.DeleteAllItems();
     }
 
     /// <summary>
@@ -107,7 +102,7 @@ public static class InternalItemDictionary
     {
         if (string.IsNullOrWhiteSpace(number)) return null;
 
-        var entity = DictionaryDbContext.Instance.Items.FindById(number.Trim());
+        var entity = DictionaryDbContext.Instance.GetItem(number.Trim());
         if (entity == null) return null;
 
         return new DictionaryItem
@@ -115,7 +110,7 @@ public static class InternalItemDictionary
             Number = entity.Number,
             Description = entity.Description,
             Skus = entity.Skus,
-            Tags = entity.Tags ?? new List<string>(),
+            Tags = entity.Tags ?? [],
             IsEssential = entity.IsEssential,
             IsPrivateLabel = entity.IsPrivateLabel
         };
@@ -129,9 +124,11 @@ public static class InternalItemDictionary
         if (string.IsNullOrWhiteSpace(sku)) return null;
 
         var term = sku.Trim();
-        var entity = DictionaryDbContext.Instance.Items
-            .FindOne(x => x.Skus.Contains(term));
+        var entities = DictionaryDbContext.Instance.FindItems(
+            x => x.Skus.Contains(term), 
+            maxResults: 1);
 
+        var entity = entities.FirstOrDefault();
         if (entity == null) return null;
 
         return new DictionaryItem
@@ -139,7 +136,7 @@ public static class InternalItemDictionary
             Number = entity.Number,
             Description = entity.Description,
             Skus = entity.Skus,
-            Tags = entity.Tags ?? new List<string>(),
+            Tags = entity.Tags ?? [],
             IsEssential = entity.IsEssential,
             IsPrivateLabel = entity.IsPrivateLabel
         };
@@ -165,7 +162,8 @@ public static class InternalItemDictionary
 
         // Partial number match (starts with)
         var db = DictionaryDbContext.Instance;
-        var entity = db.Items.FindOne(x => x.Number.StartsWith(term));
+        var entities = db.FindItems(x => x.Number.StartsWith(term, StringComparison.OrdinalIgnoreCase), maxResults: 1);
+        var entity = entities.FirstOrDefault();
         if (entity != null)
         {
             return new DictionaryItem
@@ -173,7 +171,7 @@ public static class InternalItemDictionary
                 Number = entity.Number,
                 Description = entity.Description,
                 Skus = entity.Skus,
-                Tags = entity.Tags ?? new List<string>(),
+                Tags = entity.Tags ?? [],
                 IsEssential = entity.IsEssential,
                 IsPrivateLabel = entity.IsPrivateLabel
             };
@@ -188,19 +186,18 @@ public static class InternalItemDictionary
     public static List<DictionaryItem> SearchByDescription(string searchTerm, int maxResults = 50)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
-            return new List<DictionaryItem>();
+            return [];
 
         var term = searchTerm.Trim();
 
-        return DictionaryDbContext.Instance.Items
-            .Find(x => x.Description.Contains(term, StringComparison.OrdinalIgnoreCase))
-            .Take(maxResults)
+        return DictionaryDbContext.Instance
+            .FindItems(x => x.Description.Contains(term, StringComparison.OrdinalIgnoreCase), maxResults)
             .Select(e => new DictionaryItem
             {
                 Number = e.Number,
                 Description = e.Description,
                 Skus = e.Skus,
-                Tags = e.Tags ?? new List<string>(),
+                Tags = e.Tags ?? [],
                 IsEssential = e.IsEssential,
                 IsPrivateLabel = e.IsPrivateLabel
             })
@@ -221,9 +218,7 @@ public static class InternalItemDictionary
     /// </summary>
     public static List<DictionaryItemEntity> GetEssentialItems()
     {
-        return DictionaryDbContext.Instance.Items
-            .Find(x => x.IsEssential)
-            .ToList();
+        return DictionaryDbContext.Instance.FindItems(x => x.IsEssential);
     }
 
     /// <summary>
@@ -231,14 +226,14 @@ public static class InternalItemDictionary
     /// </summary>
     public static List<DictionaryItem> GetAllEssentialItems()
     {
-        return DictionaryDbContext.Instance.Items
-            .Find(x => x.IsEssential)
+        return DictionaryDbContext.Instance
+            .FindItems(x => x.IsEssential)
             .Select(e => new DictionaryItem
             {
                 Number = e.Number,
                 Description = e.Description,
                 Skus = e.Skus,
-                Tags = e.Tags ?? new List<string>(),
+                Tags = e.Tags ?? [],
                 IsEssential = e.IsEssential,
                 IsPrivateLabel = e.IsPrivateLabel
             })
@@ -251,8 +246,8 @@ public static class InternalItemDictionary
     public static bool IsItemEssential(string itemNumber)
     {
         if (string.IsNullOrWhiteSpace(itemNumber)) return false;
-        
-        var entity = DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+
+        var entity = DictionaryDbContext.Instance.GetItem(itemNumber.Trim());
         return entity?.IsEssential ?? false;
     }
 
@@ -262,8 +257,8 @@ public static class InternalItemDictionary
     public static bool IsPrivateLabel(string itemNumber)
     {
         if (string.IsNullOrWhiteSpace(itemNumber)) return false;
-        
-        var entity = DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+
+        var entity = DictionaryDbContext.Instance.GetItem(itemNumber.Trim());
         return entity?.IsPrivateLabel ?? false;
     }
 
@@ -273,7 +268,7 @@ public static class InternalItemDictionary
     public static DictionaryItemEntity? GetEntity(string itemNumber)
     {
         if (string.IsNullOrWhiteSpace(itemNumber)) return null;
-        return DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+        return DictionaryDbContext.Instance.GetItem(itemNumber.Trim());
     }
 
     /// <summary>
@@ -281,11 +276,11 @@ public static class InternalItemDictionary
     /// </summary>
     public static void SetEssential(string itemNumber, bool isEssential)
     {
-        var entity = DictionaryDbContext.Instance.Items.FindById(itemNumber.Trim());
+        var entity = DictionaryDbContext.Instance.GetItem(itemNumber.Trim());
         if (entity != null)
         {
             entity.IsEssential = isEssential;
-            DictionaryDbContext.Instance.Items.Update(entity);
+            DictionaryDbContext.Instance.UpsertItem(entity);
         }
     }
 
@@ -295,14 +290,21 @@ public static class InternalItemDictionary
     public static void SetEssentialBulk(IEnumerable<string> itemNumbers, bool isEssential)
     {
         var db = DictionaryDbContext.Instance;
+        var toUpdate = new List<DictionaryItemEntity>();
+
         foreach (var number in itemNumbers)
         {
-            var entity = db.Items.FindById(number.Trim());
+            var entity = db.GetItem(number.Trim());
             if (entity != null)
             {
                 entity.IsEssential = isEssential;
-                db.Items.Update(entity);
+                toUpdate.Add(entity);
             }
+        }
+
+        if (toUpdate.Count > 0)
+        {
+            db.UpsertItems(toUpdate);
         }
     }
 
@@ -311,6 +313,6 @@ public static class InternalItemDictionary
     /// </summary>
     public static int GetEssentialCount()
     {
-        return DictionaryDbContext.Instance.Items.Count(x => x.IsEssential);
+        return DictionaryDbContext.Instance.FindItems(x => x.IsEssential).Count;
     }
 }

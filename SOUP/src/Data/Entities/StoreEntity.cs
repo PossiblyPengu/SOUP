@@ -1,13 +1,13 @@
-using LiteDB;
-
 namespace SOUP.Data.Entities;
 
 /// <summary>
-/// LiteDB entity for store entries (store code to name/rank mapping)
+/// Entity for store entries (store code to name/rank mapping)
 /// </summary>
 public class StoreEntity
 {
-    [BsonId]
+    /// <summary>
+    /// Primary key - store code
+    /// </summary>
     public string Code { get; set; } = "";
     
     public string Name { get; set; } = "";

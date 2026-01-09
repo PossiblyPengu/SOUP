@@ -22,9 +22,9 @@
   <!-- Version Information                            -->
   <!-- ============================================== -->
   <PropertyGroup>
-    <Version>4.12.0</Version>
-    <AssemblyVersion>4.12.0.0</AssemblyVersion>
-    <FileVersion>4.12.0.0</FileVersion>
+    <Version>4.13.0</Version>
+    <AssemblyVersion>4.13.0.0</AssemblyVersion>
+    <FileVersion>4.13.0.0</FileVersion>
     <Description>Allocation Buddy, Essentials Buddy, and ExpireWise inventory management tools</Description>
   </PropertyGroup>
 
@@ -55,7 +55,7 @@
     <PackageReference Include="DocumentFormat.OpenXml" />
     
     <!-- Database -->
-    <PackageReference Include="LiteDB" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="MySql.Data" />
     
     <!-- Dependency Injection & Hosting -->

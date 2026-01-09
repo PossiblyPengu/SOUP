@@ -117,16 +117,18 @@ public partial class App : Application
         // Ensure all app directories exist
         Core.AppPaths.EnsureDirectoriesExist();
 
-        // Infrastructure services
-        services.AddSingleton(sp => new LiteDbContext(Core.AppPaths.MainDbPath));
-        services.AddSingleton<IUnitOfWork, LiteDbUnitOfWork>();
+        // Infrastructure services - SQLite database
+        services.AddSingleton(sp => new SqliteDbContext(
+            Core.AppPaths.MainDbPath,
+            sp.GetService<ILogger<SqliteDbContext>>()));
+        services.AddSingleton<IUnitOfWork, SqliteUnitOfWork>();
 
         // Shared dictionary database (items and stores for matching across modules)
         services.AddSingleton(_ => DictionaryDbContext.Instance);
 
         // Repositories - Singletons to match ViewModel lifetimes (prevents captive dependency)
         // Only register repositories for enabled modules
-        services.AddSingleton(typeof(IRepository<>), typeof(LiteDbRepository<>));
+        services.AddSingleton(typeof(IRepository<>), typeof(SqliteRepository<>));
         
         var moduleConfig = ModuleConfiguration.Instance;
         
@@ -183,7 +185,7 @@ public partial class App : Application
             services.AddTransient<ExpireWiseSettingsViewModel>();
         }
 
-        // ViewModels - OrderLog (persist with LiteDB, using singleton factory)
+        // ViewModels - OrderLog (persist with SQLite, using singleton factory)
         if (moduleConfig.OrderLogEnabled)
         {
             services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService>(sp =>
@@ -258,8 +260,8 @@ public partial class App : Application
             try
             {
                 var dictDb = DictionaryDbContext.Instance;
-                var itemCount = dictDb.Items.Count();
-                var storeCount = dictDb.Stores.Count();
+                var itemCount = dictDb.GetItemCount();
+                var storeCount = dictDb.GetStoreCount();
                 Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
                 
                 if (itemCount == 0)

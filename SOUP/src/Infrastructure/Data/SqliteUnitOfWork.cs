@@ -5,19 +5,19 @@ using SOUP.Core.Interfaces;
 namespace SOUP.Infrastructure.Data;
 
 /// <summary>
-/// Unit of Work implementation for LiteDB
+/// Unit of Work implementation for SQLite
 /// </summary>
-public class LiteDbUnitOfWork : IUnitOfWork
+public class SqliteUnitOfWork : IUnitOfWork
 {
-    private readonly LiteDbContext _context;
+    private readonly SqliteDbContext _context;
     private bool _disposed;
 
     public IAllocationBuddyRepository AllocationBuddy { get; }
     public IEssentialsBuddyRepository EssentialsBuddy { get; }
     public IExpireWiseRepository ExpireWise { get; }
 
-    public LiteDbUnitOfWork(
-        LiteDbContext context,
+    public SqliteUnitOfWork(
+        SqliteDbContext context,
         IAllocationBuddyRepository allocationBuddyRepository,
         IEssentialsBuddyRepository essentialsBuddyRepository,
         IExpireWiseRepository expireWiseRepository)
@@ -30,7 +30,7 @@ public class LiteDbUnitOfWork : IUnitOfWork
 
     public Task<int> SaveChangesAsync()
     {
-        // LiteDB auto-saves on each operation, so this is a no-op
+        // SQLite with our repository pattern auto-saves on each operation
         // Return 1 to indicate success
         return Task.FromResult(1);
     }

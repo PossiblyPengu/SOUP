@@ -136,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Core Features
 
 - Dark and Light theme support with persistence
-- LiteDB database for data persistence
+- SQLite database for data persistence with WAL mode
 - Modular installer with component selection
 - Keyboard shortcuts for module navigation (Alt+1-4)
 

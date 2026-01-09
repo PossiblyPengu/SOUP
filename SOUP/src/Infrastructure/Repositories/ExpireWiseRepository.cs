@@ -12,22 +12,19 @@ namespace SOUP.Infrastructure.Repositories;
 /// <summary>
 /// ExpireWise repository implementation
 /// </summary>
-public class ExpireWiseRepository : LiteDbRepository<ExpirationItem>, IExpireWiseRepository
+public class ExpireWiseRepository : SqliteRepository<ExpirationItem>, IExpireWiseRepository
 {
-    public ExpireWiseRepository(LiteDbContext context, ILogger<ExpireWiseRepository>? logger = null)
+    public ExpireWiseRepository(SqliteDbContext context, ILogger<ExpireWiseRepository>? logger = null)
         : base(context, logger)
     {
     }
 
-    public Task<IEnumerable<ExpirationItem>> GetExpiredItemsAsync()
+    public async Task<IEnumerable<ExpirationItem>> GetExpiredItemsAsync()
     {
         try
         {
-            var results = Collection
-                .Query()
-                .Where(x => !x.IsDeleted && x.ExpiryDate < DateTime.UtcNow)
-                .ToList();
-            return Task.FromResult<IEnumerable<ExpirationItem>>(results);
+            var results = await FindAsync(x => !x.IsDeleted && x.ExpiryDate < DateTime.UtcNow);
+            return results;
         }
         catch (Exception ex)
         {
@@ -36,16 +33,13 @@ public class ExpireWiseRepository : LiteDbRepository<ExpirationItem>, IExpireWis
         }
     }
 
-    public Task<IEnumerable<ExpirationItem>> GetExpiringSoonAsync(int days = 7)
+    public async Task<IEnumerable<ExpirationItem>> GetExpiringSoonAsync(int days = 7)
     {
         try
         {
             var threshold = DateTime.UtcNow.AddDays(days);
-            var results = Collection
-                .Query()
-                .Where(x => !x.IsDeleted && x.ExpiryDate <= threshold && x.ExpiryDate >= DateTime.UtcNow)
-                .ToList();
-            return Task.FromResult<IEnumerable<ExpirationItem>>(results);
+            var results = await FindAsync(x => !x.IsDeleted && x.ExpiryDate <= threshold && x.ExpiryDate >= DateTime.UtcNow);
+            return results;
         }
         catch (Exception ex)
         {
@@ -54,15 +48,12 @@ public class ExpireWiseRepository : LiteDbRepository<ExpirationItem>, IExpireWis
         }
     }
 
-    public Task<IEnumerable<ExpirationItem>> GetByDateRangeAsync(DateTime start, DateTime end)
+    public async Task<IEnumerable<ExpirationItem>> GetByDateRangeAsync(DateTime start, DateTime end)
     {
         try
         {
-            var results = Collection
-                .Query()
-                .Where(x => !x.IsDeleted && x.ExpiryDate >= start && x.ExpiryDate <= end)
-                .ToList();
-            return Task.FromResult<IEnumerable<ExpirationItem>>(results);
+            var results = await FindAsync(x => !x.IsDeleted && x.ExpiryDate >= start && x.ExpiryDate <= end);
+            return results;
         }
         catch (Exception ex)
         {

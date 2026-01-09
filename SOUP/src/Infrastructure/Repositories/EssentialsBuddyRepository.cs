@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-using LiteDB;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using SOUP.Core.Entities.EssentialsBuddy;
 using SOUP.Core.Interfaces;
@@ -12,14 +14,21 @@ namespace SOUP.Infrastructure.Repositories;
 /// <summary>
 /// Repository implementation for Essentials Buddy inventory items
 /// </summary>
-public class EssentialsBuddyRepository : LiteDbRepository<InventoryItem>, IEssentialsBuddyRepository
+public class EssentialsBuddyRepository : SqliteRepository<InventoryItem>, IEssentialsBuddyRepository
 {
-    private readonly ILiteCollection<MasterListItem> _masterListCollection;
+    private const string MasterListTableName = "MasterListItem";
 
-    public EssentialsBuddyRepository(LiteDbContext context, ILogger<LiteDbRepository<InventoryItem>>? logger = null)
+    private static readonly JsonSerializerOptions MasterListJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = false
+    };
+
+    public EssentialsBuddyRepository(SqliteDbContext context, ILogger<SqliteRepository<InventoryItem>>? logger = null)
         : base(context, logger)
     {
-        _masterListCollection = context.GetCollection<MasterListItem>();
+        // Ensure master list table exists
+        Context.EnsureTable<MasterListItem>(MasterListTableName);
     }
 
     public async Task<IEnumerable<InventoryItem>> GetItemsBelowThresholdAsync()
@@ -30,24 +39,62 @@ public class EssentialsBuddyRepository : LiteDbRepository<InventoryItem>, IEssen
 
     public Task<IEnumerable<MasterListItem>> GetMasterListAsync()
     {
-        var items = _masterListCollection.Query().Where(i => !i.IsDeleted).ToList();
+        using var connection = Context.CreateConnection();
+        connection.Open();
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT Data FROM [{MasterListTableName}] WHERE IsDeleted = 0";
+
+        var items = new List<MasterListItem>();
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var json = reader.GetString(0);
+            var item = JsonSerializer.Deserialize<MasterListItem>(json, MasterListJsonOptions);
+            if (item is not null)
+            {
+                items.Add(item);
+            }
+        }
+
         return Task.FromResult<IEnumerable<MasterListItem>>(items);
     }
 
     public Task UpdateMasterListAsync(IEnumerable<MasterListItem> items)
     {
-        foreach (var item in items)
+        using var connection = Context.CreateConnection();
+        connection.Open();
+
+        using var transaction = connection.BeginTransaction();
+        try
         {
-            var existing = _masterListCollection.FindById(item.Id);
-            if (existing != null)
+            foreach (var item in items)
             {
-                _masterListCollection.Update(item);
+                using var cmd = connection.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = $@"
+                    INSERT INTO [{MasterListTableName}] (Id, CreatedAt, UpdatedAt, IsDeleted, Data)
+                    VALUES (@Id, @CreatedAt, @UpdatedAt, @IsDeleted, @Data)
+                    ON CONFLICT(Id) DO UPDATE SET
+                        UpdatedAt = excluded.UpdatedAt,
+                        IsDeleted = excluded.IsDeleted,
+                        Data = excluded.Data
+                ";
+                cmd.Parameters.AddWithValue("@Id", item.Id.ToString());
+                cmd.Parameters.AddWithValue("@CreatedAt", item.CreatedAt.ToString("O"));
+                cmd.Parameters.AddWithValue("@UpdatedAt", item.UpdatedAt?.ToString("O") ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@IsDeleted", item.IsDeleted ? 1 : 0);
+                cmd.Parameters.AddWithValue("@Data", JsonSerializer.Serialize(item, MasterListJsonOptions));
+                cmd.ExecuteNonQuery();
             }
-            else
-            {
-                _masterListCollection.Insert(item);
-            }
+            transaction.Commit();
         }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+
         return Task.CompletedTask;
     }
 }

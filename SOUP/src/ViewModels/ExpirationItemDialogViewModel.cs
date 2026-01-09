@@ -131,7 +131,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
 
         try
         {
-            var stores = DictionaryDbContext.Instance.Stores.FindAll();
+            var stores = DictionaryDbContext.Instance.GetAllStores();
             foreach (var store in stores.OrderBy(s => s.Code))
             {
                 AvailableStores.Add(new StoreOption { Code = store.Code, Name = store.Name });

@@ -1,14 +1,15 @@
 using System.Collections.Generic;
-using LiteDB;
 
 namespace SOUP.Data.Entities;
 
 /// <summary>
-/// LiteDB entity for dictionary items (item number to description mapping)
+/// Entity for dictionary items (item number to description mapping)
 /// </summary>
 public class DictionaryItemEntity
 {
-    [BsonId]
+    /// <summary>
+    /// Primary key - item number
+    /// </summary>
     public string Number { get; set; } = "";
     
     public string Description { get; set; } = "";

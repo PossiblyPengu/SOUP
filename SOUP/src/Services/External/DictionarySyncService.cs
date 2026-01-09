@@ -198,8 +198,8 @@ public class DictionarySyncService
     private int UpdateItemsFromMySql(List<MySqlItem> items, Dictionary<string, List<string>> skuMap)
     {
         var db = DictionaryDbContext.Instance;
-        var collection = db.Items;
         int count = 0;
+        var entities = new List<DictionaryItemEntity>();
 
         foreach (var item in items)
         {
@@ -230,18 +230,19 @@ public class DictionarySyncService
             if (!string.IsNullOrWhiteSpace(item.Category))
                 entity.Tags.Add(item.Category);
 
-            collection.Upsert(entity);
+            entities.Add(entity);
             count++;
         }
 
+        db.UpsertItems(entities);
         return count;
     }
 
     private int UpdateStoresFromMySql(List<MySqlStore> stores)
     {
         var db = DictionaryDbContext.Instance;
-        var collection = db.Stores;
         int count = 0;
+        var entities = new List<StoreEntity>();
 
         foreach (var store in stores)
         {
@@ -252,18 +253,19 @@ public class DictionarySyncService
                 Rank = store.Tier
             };
 
-            collection.Upsert(entity);
+            entities.Add(entity);
             count++;
         }
 
+        db.UpsertStores(entities);
         return count;
     }
 
     private int UpdateItemsFromBc(List<BcItem> items, List<BcItemVendor> itemVendors)
     {
         var db = DictionaryDbContext.Instance;
-        var collection = db.Items;
         int count = 0;
+        var entities = new List<DictionaryItemEntity>();
 
         // Build vendor item number lookup
         var vendorSkuMap = itemVendors
@@ -275,7 +277,7 @@ public class DictionarySyncService
 
         foreach (var item in items.Where(i => !i.Blocked))
         {
-            var existing = collection.FindById(item.Number);
+            var existing = db.GetItem(item.Number);
             
             var entity = existing ?? new DictionaryItemEntity { Number = item.Number };
             entity.Description = item.DisplayName;
@@ -286,30 +288,32 @@ public class DictionarySyncService
                 entity.Skus = entity.Skus.Union(vendorSkus).Distinct().ToList();
             }
 
-            collection.Upsert(entity);
+            entities.Add(entity);
             count++;
         }
 
+        db.UpsertItems(entities);
         return count;
     }
 
     private int UpdateStoresFromBc(List<BcLocation> locations)
     {
         var db = DictionaryDbContext.Instance;
-        var collection = db.Stores;
         int count = 0;
+        var entities = new List<StoreEntity>();
 
         foreach (var location in locations)
         {
-            var existing = collection.FindOne(s => s.Code == location.Code);
+            var existing = db.GetStore(location.Code);
             
             var entity = existing ?? new StoreEntity { Code = location.Code };
             entity.Name = location.DisplayName;
 
-            collection.Upsert(entity);
+            entities.Add(entity);
             count++;
         }
 
+        db.UpsertStores(entities);
         return count;
     }
 

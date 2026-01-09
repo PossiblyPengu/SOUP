@@ -16,7 +16,7 @@ using SOUP.Services.External;
 namespace SOUP.ViewModels;
 
 /// <summary>
-/// ViewModel for managing dictionary items and stores (using LiteDB)
+/// ViewModel for managing dictionary items and stores (using SQLite)
 /// </summary>
 public partial class DictionaryManagementViewModel : ObservableObject, IDisposable
 {
@@ -236,7 +236,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
         {
             IsLoading = true;
             StatusMessage = "Loading dictionary data from database...";
-            _logger?.LogInformation("DictionaryManagement: Starting LoadDictionaryAsync from LiteDB");
+            _logger?.LogInformation("DictionaryManagement: Starting LoadDictionaryAsync from SQLite");
 
             // Run database I/O and sorting on background thread to avoid blocking UI
             var (sortedItems, sortedStores) = await Task.Run(() =>
@@ -249,7 +249,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 return (sorted, sortedS);
             }).ConfigureAwait(false);
 
-            _logger?.LogInformation("DictionaryManagement: Loaded {ItemCount} items, {StoreCount} stores from LiteDB", sortedItems.Count, sortedStores.Count);
+            _logger?.LogInformation("DictionaryManagement: Loaded {ItemCount} items, {StoreCount} stores from SQLite", sortedItems.Count, sortedStores.Count);
 
             // Store in backing lists (fast, not bound to UI)
             _allItems = sortedItems;
@@ -291,7 +291,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
         catch (Exception ex)
         {
             StatusMessage = $"Error loading dictionary: {ex.Message}";
-            _logger?.LogError(ex, "Failed to load dictionary from LiteDB");
+            _logger?.LogError(ex, "Failed to load dictionary from SQLite");
         }
         finally
         {
@@ -309,20 +309,20 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
             await Task.Run(() =>
             {
-                // Save items to LiteDB
+                // Save items to SQLite
                 InternalItemDictionary.SaveItems(_allItems);
                 
-                // Save stores to LiteDB
+                // Save stores to SQLite
                 InternalStoreDictionary.SaveStores(_allStores);
             }).ConfigureAwait(false);
 
             StatusMessage = $"Saved {_allItems.Count} items and {_allStores.Count} stores to database";
-            _logger?.LogInformation("Saved dictionary to LiteDB: {ItemCount} items, {StoreCount} stores", _allItems.Count, _allStores.Count);
+            _logger?.LogInformation("Saved dictionary to SQLite: {ItemCount} items, {StoreCount} stores", _allItems.Count, _allStores.Count);
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error saving dictionary: {ex.Message}";
-            _logger?.LogError(ex, "Failed to save dictionary to LiteDB");
+            _logger?.LogError(ex, "Failed to save dictionary to SQLite");
         }
         finally
         {
@@ -377,7 +377,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 IsPrivateLabel = NewItemIsPrivateLabel
             };
 
-            // Save to LiteDB immediately
+            // Save to SQLite immediately
             InternalItemDictionary.UpsertItem(newItem);
 
             _allItems.Add(newItem);
@@ -386,7 +386,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             UpdateDisplayedItems();
 
             StatusMessage = $"Added item {newItem.Number} (saved to database)";
-            _logger?.LogInformation("Added item {Number} to LiteDB", newItem.Number);
+            _logger?.LogInformation("Added item {Number} to SQLite", newItem.Number);
 
             // Clear input fields
             NewItemNumber = string.Empty;
@@ -459,12 +459,12 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             SelectedItem.IsEssential = NewItemIsEssential;
             SelectedItem.IsPrivateLabel = NewItemIsPrivateLabel;
 
-            // Save to LiteDB immediately
+            // Save to SQLite immediately
             InternalItemDictionary.UpsertItem(SelectedItem);
 
             UpdateDisplayedItems();
             StatusMessage = $"Updated item {SelectedItem.Number} (saved to database)";
-            _logger?.LogInformation("Updated item {Number} in LiteDB", SelectedItem.Number);
+            _logger?.LogInformation("Updated item {Number} in SQLite", SelectedItem.Number);
 
             // Clear input fields
             NewItemNumber = string.Empty;
@@ -505,7 +505,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             if (result != System.Windows.MessageBoxResult.Yes)
                 return;
             
-            // Delete from LiteDB immediately
+            // Delete from SQLite immediately
             InternalItemDictionary.DeleteItem(itemNumber);
             
             _allItems.RemoveAll(i => i.Number == itemNumber);
@@ -513,7 +513,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             UpdateDisplayedItems();
 
             StatusMessage = $"Deleted item {itemNumber} (removed from database)";
-            _logger?.LogInformation("Deleted item {Number} from LiteDB", itemNumber);
+            _logger?.LogInformation("Deleted item {Number} from SQLite", itemNumber);
 
             ClearItemForm();
         }
@@ -568,7 +568,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 Rank = NewStoreRank
             };
 
-            // Save to LiteDB immediately
+            // Save to SQLite immediately
             InternalStoreDictionary.UpsertStore(newStore);
 
             _allStores.Add(newStore);
@@ -577,7 +577,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             ApplyStoreFilters();
 
             StatusMessage = $"Added store {newStore.Code} - {newStore.Name} (saved to database)";
-            _logger?.LogInformation("Added store {Code} to LiteDB", newStore.Code);
+            _logger?.LogInformation("Added store {Code} to SQLite", newStore.Code);
 
             // Clear input fields
             NewStoreId = string.Empty;
@@ -628,12 +628,12 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             SelectedStore.Name = NewStoreName.Trim();
             SelectedStore.Rank = NewStoreRank;
 
-            // Save to LiteDB immediately
+            // Save to SQLite immediately
             InternalStoreDictionary.UpsertStore(SelectedStore);
 
             ApplyStoreFilters();
             StatusMessage = $"Updated store {SelectedStore.Code} (saved to database)";
-            _logger?.LogInformation("Updated store {Code} in LiteDB", SelectedStore.Code);
+            _logger?.LogInformation("Updated store {Code} in SQLite", SelectedStore.Code);
 
             // Clear input fields
             NewStoreId = string.Empty;
@@ -661,7 +661,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
             var storeCode = SelectedStore.Code;
             
-            // Delete from LiteDB immediately
+            // Delete from SQLite immediately
             InternalStoreDictionary.DeleteStore(storeCode);
             
             _allStores.RemoveAll(s => s.Code == storeCode);
@@ -669,7 +669,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             ApplyStoreFilters();
 
             StatusMessage = $"Deleted store {storeCode} (removed from database)";
-            _logger?.LogInformation("Deleted store {Code} from LiteDB", storeCode);
+            _logger?.LogInformation("Deleted store {Code} from SQLite", storeCode);
 
             ClearStoreForm();
         }
