@@ -318,41 +318,28 @@ public partial class App : Application
             var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
 
             // Check for command-line arguments to launch specific windows
-            if (e.Args.Length > 0)
+            if (e.Args.Length > 0 && e.Args[0].Equals("--widget", StringComparison.OrdinalIgnoreCase))
             {
-                if (e.Args[0].Equals("--dungeon", StringComparison.OrdinalIgnoreCase))
+                if (moduleConfig.OrderLogEnabled)
                 {
-                    var dungeonWindow = new Windows.DungeonCrawler();
-                    dungeonWindow.Show();
-                }
-                else if (e.Args[0].Equals("--widget", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (moduleConfig.OrderLogEnabled)
+                    // Launch widget on its own thread - completely independent
+                    var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
+                    
+                    // When widget closes, shut down the app
+                    widgetService.WidgetClosed += () =>
                     {
-                        // Launch widget on its own thread - completely independent
-                        var widgetService = _host.Services.GetRequiredService<WidgetThreadService>();
-                        
-                        // When widget closes, shut down the app
-                        widgetService.WidgetClosed += () =>
-                        {
-                            Log.Information("Widget closed, shutting down application");
-                            Dispatcher.Invoke(() => Shutdown());
-                        };
-                        
-                        widgetService.ShowOrderLogWidget();
-                        
-                        // Don't show main window - just run the widget
-                        Log.Information("Running in widget-only mode (command line)");
-                    }
-                    else
-                    {
-                        Log.Warning("OrderLog widget requested but module is disabled");
-                        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                        mainWindow.Show();
-                    }
+                        Log.Information("Widget closed, shutting down application");
+                        Dispatcher.Invoke(() => Shutdown());
+                    };
+                    
+                    widgetService.ShowOrderLogWidget();
+                    
+                    // Don't show main window - just run the widget
+                    Log.Information("Running in widget-only mode (command line)");
                 }
                 else
                 {
+                    Log.Warning("OrderLog widget requested but module is disabled");
                     var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                     mainWindow.Show();
                 }

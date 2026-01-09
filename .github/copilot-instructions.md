@@ -1,6 +1,6 @@
 # Copilot Instructions for Cshp Workspace
 
-Two C# projects: **SOUP** (WPF inventory suite) and **FriendshipDungeonMG** (MonoGame dungeon crawler).
+**SOUP** - WPF inventory suite for retail store operations.
 
 ## SOUP Architecture
 
@@ -62,9 +62,3 @@ Use `{DynamicResource BrushName}` for theme-aware colors. Key brushes in [DarkTh
 - **Global usings** in [GlobalUsings.cs](SOUP/src/GlobalUsings.cs) - no need to import `System.Collections.Generic`, `CommunityToolkit.Mvvm.*`, `Microsoft.Extensions.Logging`
 - **Central package versions** in [Directory.Packages.props](SOUP/Directory.Packages.props)
 - **Suppressed warnings** documented in [Directory.Build.props](SOUP/Directory.Build.props) - don't re-enable CA1848, MA0004, etc.
-
-## FriendshipDungeonMG
-
-MonoGame raycasting crawler. Run: `.\play-dungeon.ps1`
-
-Game state organized in `#region` blocks in [Game1.cs](FriendshipDungeonMG/Game1.cs). Grid-based movement with smooth interpolation (`_posX/Y` → `_targetX/Y`).

@@ -16,9 +16,6 @@ namespace SOUP.Windows;
 /// </summary>
 public partial class AboutWindow : Window
 {
-    private int _iconClickCount = 0;
-    private DateTime _lastIconClick = DateTime.MinValue;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="AboutWindow"/> class.
     /// </summary>
@@ -152,31 +149,6 @@ public partial class AboutWindow : Window
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         DragMove();
-    }
-
-    /// <summary>
-    /// Handles clicks on the app icon for doom easter egg activation.
-    /// </summary>
-    private void AppIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        // Check if Fun Stuff is enabled
-        if (!SOUP.Services.ModuleConfiguration.Instance.FunStuffEnabled)
-            return;
-            
-        var now = DateTime.Now;
-
-        if ((now - _lastIconClick).TotalSeconds > 2)
-            _iconClickCount = 0;
-
-        _lastIconClick = now;
-        _iconClickCount++;
-
-        if (_iconClickCount >= 5)
-        {
-            _iconClickCount = 0;
-            var dungeon = new DungeonCrawler { Owner = this };
-            dungeon.ShowDialog();
-        }
     }
 
     /// <summary>

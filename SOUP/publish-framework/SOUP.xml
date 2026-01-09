@@ -6417,11 +6417,6 @@
             Handles title bar dragging.
             </summary>
         </member>
-        <member name="M:SOUP.Windows.AboutWindow.AppIcon_MouseLeftButtonDown(System.Object,System.Windows.Input.MouseButtonEventArgs)">
-            <summary>
-            Handles clicks on the app icon for doom easter egg activation.
-            </summary>
-        </member>
         <member name="M:SOUP.Windows.AboutWindow.CloseButton_Click(System.Object,System.Windows.RoutedEventArgs)">
             <summary>
             Closes the dialog.
@@ -6461,20 +6456,6 @@
             </summary>
         </member>
         <member name="M:SOUP.Windows.ConfirmExitDialog.InitializeComponent">
-            <summary>
-            InitializeComponent
-            </summary>
-        </member>
-        <member name="T:SOUP.Windows.DungeonCrawler">
-            <summary>
-            A first-person, turn-based dungeon crawler in the style of Legend of Grimrock.
-            Grid-based movement with single character.
-            </summary>
-            <summary>
-            DungeonCrawler
-            </summary>
-        </member>
-        <member name="M:SOUP.Windows.DungeonCrawler.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>

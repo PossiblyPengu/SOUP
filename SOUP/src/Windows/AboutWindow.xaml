@@ -51,8 +51,7 @@
                 <StackPanel>
                     <!-- App Icon and Name -->
                     <Border Width="88" Height="88" CornerRadius="20"
-                            HorizontalAlignment="Center" Margin="0,0,0,20" Cursor="Hand"
-                            MouseLeftButtonDown="AppIcon_MouseLeftButtonDown"
+                            HorizontalAlignment="Center" Margin="0,0,0,20"
                             Background="{DynamicResource DialogTitleBarGradient}">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.4" Color="{DynamicResource DialogTitleBarShadowColor}"/>

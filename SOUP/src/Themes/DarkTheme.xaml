@@ -337,6 +337,11 @@
     <SolidColorBrush x:Key="SecondaryLightBrush" Color="#a78bfa"/>
     <SolidColorBrush x:Key="SecondaryDarkBrush" Color="#7c3aed"/>
     <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="#2e1065"/>
+    
+    <!-- Accent (Purple - alias for Secondary, used for selections/highlights) -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#8b5cf6"/>
+    <SolidColorBrush x:Key="AccentLightBrush" Color="#a78bfa"/>
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="#7c3aed"/>
 
     <!-- Overlay Brushes -->
     <SolidColorBrush x:Key="OverlayLightBrush" Color="#33FFFFFF"/>
