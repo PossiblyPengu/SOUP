@@ -68,7 +68,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="#ffffff22" Margin="0,0,16,0">
+                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="{DynamicResource OverlayWhiteSubtleBrush}" Margin="0,0,16,0">
                         <TextBlock Text="📊" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">

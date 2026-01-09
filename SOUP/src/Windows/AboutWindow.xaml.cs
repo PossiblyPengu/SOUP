@@ -193,17 +193,18 @@ public partial class AboutWindow : Window
 
             if (updateInfo != null)
             {
-                var result = MessageBox.Show(
+                var shouldUpdate = MessageDialog.Show(
+                    this,
                     $"A new version is available!\n\n" +
                     $"Current: v{updateService.CurrentVersion}\n" +
                     $"Latest: v{updateInfo.Version}\n\n" +
                     $"{updateInfo.ReleaseNotes}\n\n" +
                     $"Would you like to download and install it now?",
                     "Update Available",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
+                    DialogType.Information,
+                    DialogButtons.YesNo);
 
-                if (result == MessageBoxResult.Yes)
+                if (shouldUpdate)
                 {
                     await DownloadAndApplyUpdate(updateService, updateInfo);
                 }
@@ -217,21 +218,13 @@ public partial class AboutWindow : Window
                               $"Current version: v{updateService.CurrentVersion}";
                 }
                 
-                MessageBox.Show(
-                    message,
-                    "Update Check",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                MessageDialog.ShowInfo(this, message, "Update Check");
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to check for updates");
-            MessageBox.Show(
-                "Failed to check for updates. Please try again later.",
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+            MessageDialog.ShowWarning(this, "Failed to check for updates. Please try again later.", "Error");
         }
         finally
         {
@@ -263,11 +256,7 @@ public partial class AboutWindow : Window
 
             if (string.IsNullOrEmpty(zipPath))
             {
-                MessageBox.Show(
-                    "Failed to download update. Please try again later.",
-                    "Download Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                MessageDialog.ShowWarning(this, "Failed to download update. Please try again later.", "Download Failed");
                 return;
             }
 
@@ -302,21 +291,13 @@ public partial class AboutWindow : Window
             }
             else
             {
-                MessageBox.Show(
-                    "Failed to apply update. Please try downloading manually.",
-                    "Update Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                MessageDialog.ShowWarning(this, "Failed to apply update. Please try downloading manually.", "Update Failed");
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to download/apply update");
-            MessageBox.Show(
-                $"Failed to update: {ex.Message}",
-                "Update Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+            MessageDialog.ShowWarning(this, $"Failed to update: {ex.Message}", "Update Error");
         }
         finally
         {

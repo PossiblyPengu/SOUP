@@ -298,7 +298,7 @@
         </ScrollViewer>
         
         <!-- Admin Lock Overlay -->
-        <Grid x:Name="LockOverlay" Background="#80000000">
+        <Grid x:Name="LockOverlay" Background="{DynamicResource OverlayDarkBrush}">
             <Border Background="{DynamicResource SurfaceBrush}"
                     CornerRadius="16"
                     Padding="32"

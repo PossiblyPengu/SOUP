@@ -654,36 +654,78 @@ public partial class OrderLogWidgetWindow : Window
     }
 
     /// <summary>
-    /// Opens the main S.O.U.P launcher window
+    /// Opens the main S.O.U.P launcher window.
+    /// When running as separate process, launches a new instance without --widget flag.
     /// </summary>
     public void OpenLauncher()
     {
         try
         {
-            // Widget runs on separate thread, so we must invoke on the main app dispatcher
-            Application.Current.Dispatcher.Invoke(() =>
+            if (_isRunningOnSeparateThread)
             {
-                var mainWindow = Application.Current.Windows
-                    .OfType<MainWindow>()
-                    .FirstOrDefault();
+                // Running on separate thread within same process - use dispatcher
+                Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    var mainWindow = Application.Current?.Windows
+                        .OfType<MainWindow>()
+                        .FirstOrDefault();
 
-                if (mainWindow != null)
+                    if (mainWindow != null)
+                    {
+                        mainWindow.Show();
+                        mainWindow.WindowState = WindowState.Normal;
+                        mainWindow.Activate();
+                    }
+                });
+            }
+            else
+            {
+                // Running as separate process (--widget mode) - launch main app
+                var exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
+                if (!string.IsNullOrEmpty(exePath))
                 {
-                    mainWindow.Show();
-                    mainWindow.WindowState = WindowState.Normal;
-                    mainWindow.Activate();
+                    // Check if main app is already running (look for SOUP process without --widget)
+                    var currentPid = Environment.ProcessId;
+                    var soupProcesses = Process.GetProcessesByName("SOUP")
+                        .Where(p => p.Id != currentPid)
+                        .ToList();
+                    
+                    if (soupProcesses.Count != 0)
+                    {
+                        // Activate existing main window
+                        var mainProcess = soupProcesses.First();
+                        var handle = mainProcess.MainWindowHandle;
+                        if (handle != IntPtr.Zero)
+                        {
+                            ShowWindow(handle, SW_RESTORE);
+                            SetForegroundWindow(handle);
+                        }
+                    }
+                    else
+                    {
+                        // Launch new main app instance
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = exePath,
+                            UseShellExecute = false
+                        });
+                    }
                 }
-                else
-                {
-                    Serilog.Log.Warning("MainWindow not found in Application.Current.Windows");
-                }
-            });
+            }
         }
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "Failed to open launcher from widget");
         }
     }
+    
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private const int SW_RESTORE = 9;
     
     /// <summary>
     /// Handles click on the update badge - opens the release page

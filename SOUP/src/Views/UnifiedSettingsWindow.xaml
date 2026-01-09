@@ -55,8 +55,8 @@
             <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}"/>
         </Style>
 
-        <!-- Settings CheckBox Style -->
-        <Style x:Key="SettingsCheckBox" TargetType="CheckBox">
+        <!-- Settings CheckBox Style - inherits from ModernCheckBoxStyle -->
+        <Style x:Key="SettingsCheckBox" TargetType="CheckBox" BasedOn="{StaticResource ModernCheckBoxStyle}">
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
@@ -387,21 +387,21 @@
                                     <CheckBox Content="Launch widget on startup"
                                               IsChecked="{Binding LaunchWidgetOnStartup}"
                                               Style="{StaticResource SettingsCheckBox}"/>
-                                    <TextBlock Text="Automatically open the Order Log widget when S.O.U.P starts"
+                                    <TextBlock Text="Open the Order Log widget as a separate window when S.O.U.P starts"
                                                Style="{StaticResource HelperText}"
                                                Margin="24,4,0,16"/>
 
                                     <CheckBox Content="Widget-only mode"
                                               IsChecked="{Binding WidgetOnlyMode}"
                                               Style="{StaticResource SettingsCheckBox}"/>
-                                    <TextBlock Text="Only launch the widget on startup, skip the main window entirely"
+                                    <TextBlock Text="Start with just the widget — main window won't open until you click the home icon"
                                                Style="{StaticResource HelperText}"
                                                Margin="24,4,0,16"/>
 
                                     <CheckBox Content="Keep widget running when main window closes"
                                               IsChecked="{Binding KeepWidgetRunning}"
                                               Style="{StaticResource SettingsCheckBox}"/>
-                                    <TextBlock Text="The widget stays open even after closing the main S.O.U.P window"
+                                    <TextBlock Text="Widget continues running independently — closing main window won't close the widget"
                                                Style="{StaticResource HelperText}"
                                                Margin="24,4,0,0"/>
                                 </StackPanel>
@@ -426,7 +426,7 @@
                                               IsChecked="{Binding CloseToTray}"
                                               IsEnabled="{Binding ShowTrayIcon}"
                                               Style="{StaticResource SettingsCheckBox}"/>
-                                    <TextBlock Text="When closing the main window, minimize to system tray instead of exiting. The Order Log widget will continue to work regardless of this setting."
+                                    <TextBlock Text="Minimize to tray when closing main window. Widget runs independently regardless of this setting."
                                                Style="{StaticResource HelperText}"
                                                TextWrapping="Wrap"
                                                Margin="24,4,0,0"/>

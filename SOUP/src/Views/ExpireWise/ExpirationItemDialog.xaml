@@ -238,7 +238,7 @@
 
             <!-- Add to Dictionary Overlay -->
             <Border Grid.RowSpan="7" Visibility="{Binding ShowAddToDictionaryPanel, Converter={StaticResource BoolToVisibilityConverter}}"
-                    Background="#80000000" CornerRadius="12">
+                    Background="{DynamicResource OverlayDarkBrush}" CornerRadius="12">
                 <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" 
                         Padding="20" MaxWidth="360" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <StackPanel>

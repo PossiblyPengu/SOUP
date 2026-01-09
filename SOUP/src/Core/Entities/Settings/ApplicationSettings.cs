@@ -33,17 +33,17 @@ public class ApplicationSettings
     // ===== Widget Behavior =====
     
     /// <summary>
-    /// When true, automatically launch the Order Log widget when the application starts
+    /// When true, launch the Order Log widget as a separate window when the application starts
     /// </summary>
     public bool LaunchWidgetOnStartup { get; set; }
 
     /// <summary>
-    /// When true, only launch the widget (skip the main window) on startup
+    /// When true, start with just the widget - main window won't open until explicitly requested
     /// </summary>
     public bool WidgetOnlyMode { get; set; }
 
     /// <summary>
-    /// When true, keep the widget running even when the main window closes
+    /// When true, widget continues running independently when the main window closes
     /// </summary>
     public bool KeepWidgetRunning { get; set; } = true;
 

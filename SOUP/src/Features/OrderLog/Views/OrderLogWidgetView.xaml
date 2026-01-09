@@ -1459,7 +1459,7 @@
                     <Grid>
                         <!-- Album Art Background - uses width binding for square aspect -->
                         <Border CornerRadius="0" 
-                                Background="#1a1a1a"
+                                Background="{DynamicResource SurfaceColor}"
                                 MinHeight="180"
                                 MaxHeight="280">
                             <Grid>
@@ -1513,7 +1513,7 @@
                                     <TextBlock x:Name="ArtistNameText"
                                                Text=""
                                                FontSize="{DynamicResource CardFontSize}"
-                                               Foreground="#CCFFFFFF"
+                                               Foreground="{DynamicResource TextOnOverlayBrush}"
                                                TextTrimming="CharacterEllipsis"
                                                Margin="0,2,0,0">
                                         <TextBlock.Effect>
@@ -1526,7 +1526,7 @@
                                 <Border x:Name="ControlBar"
                                         VerticalAlignment="Center"
                                         HorizontalAlignment="Center"
-                                        Background="#99000000"
+                                        Background="{DynamicResource OverlayMediumBrush}"
                                         CornerRadius="25"
                                         Padding="8,4"
                                         Opacity="0">
@@ -1571,7 +1571,7 @@
                                                 Content="▶"
                                                 Click="PlayPause_Click"
                                                 Background="White"
-                                                Foreground="#1a1a1a"
+                                                Foreground="{DynamicResource SurfaceColor}"
                                                 BorderThickness="0"
                                                 FontSize="22"
                                                 Width="50"
@@ -1778,7 +1778,7 @@
                 
                 <!-- Countdown indicator -->
                 <TextBlock Text="(5s)"
-                           Foreground="#FFFFFF80"
+                           Foreground="{DynamicResource TextOnOverlayDimBrush}"
                            FontSize="10"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"/>

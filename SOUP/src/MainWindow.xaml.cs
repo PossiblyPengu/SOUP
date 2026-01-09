@@ -229,7 +229,13 @@ public partial class MainWindow : Window
                 }
             }
             
-            // No widget open and no close-to-tray, shut down the application
+            // Close widget if it's running and KeepWidgetRunning is false
+            if (widgetOpen && !keepWidgetRunning)
+            {
+                _widgetProcessService?.KillWidget();
+            }
+            
+            // Shut down the application
             _trayIconService?.Dispose();
             Application.Current.Shutdown();
         }

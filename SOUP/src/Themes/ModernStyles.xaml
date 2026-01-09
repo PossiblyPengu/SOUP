@@ -87,6 +87,16 @@
     <Color x:Key="InStockColor">#022c22</Color>
     <Color x:Key="InStockTextColor">#34d399</Color>
     
+    <!-- Overlay Colors (for modal backgrounds, media player overlays) -->
+    <Color x:Key="OverlayDarkColor">#80000000</Color>
+    <Color x:Key="OverlayMediumColor">#99000000</Color>
+    <Color x:Key="OverlayLightColor">#55000000</Color>
+    <Color x:Key="OverlayWhiteSubtleColor">#22FFFFFF</Color>
+    <Color x:Key="OverlayWhiteLightColor">#33FFFFFF</Color>
+    <Color x:Key="OverlayWhiteMediumColor">#55FFFFFF</Color>
+    <Color x:Key="TextOnOverlayColor">#CCFFFFFF</Color>
+    <Color x:Key="TextOnOverlayDimColor">#80FFFFFF</Color>
+    
     <!-- ============================= -->
     <!-- SOLID COLOR BRUSHES           -->
     <!-- ============================= -->
@@ -160,6 +170,16 @@
     <SolidColorBrush x:Key="OverstockedTextBrush" Color="{StaticResource OverstockedTextColor}"/>
     <SolidColorBrush x:Key="InStockBrush" Color="{StaticResource InStockColor}"/>
     <SolidColorBrush x:Key="InStockTextBrush" Color="{StaticResource InStockTextColor}"/>
+    
+    <!-- Overlay Brushes (for modal backgrounds, media player overlays) -->
+    <SolidColorBrush x:Key="OverlayDarkBrush" Color="{StaticResource OverlayDarkColor}"/>
+    <SolidColorBrush x:Key="OverlayMediumBrush" Color="{StaticResource OverlayMediumColor}"/>
+    <SolidColorBrush x:Key="OverlayLightBrush" Color="{StaticResource OverlayLightColor}"/>
+    <SolidColorBrush x:Key="OverlayWhiteSubtleBrush" Color="{StaticResource OverlayWhiteSubtleColor}"/>
+    <SolidColorBrush x:Key="OverlayWhiteLightBrush" Color="{StaticResource OverlayWhiteLightColor}"/>
+    <SolidColorBrush x:Key="OverlayWhiteMediumBrush" Color="{StaticResource OverlayWhiteMediumColor}"/>
+    <SolidColorBrush x:Key="TextOnOverlayBrush" Color="{StaticResource TextOnOverlayColor}"/>
+    <SolidColorBrush x:Key="TextOnOverlayDimBrush" Color="{StaticResource TextOnOverlayDimColor}"/>
     
     <!-- Light Mode Brushes (for future theme switching) -->
     <SolidColorBrush x:Key="LightBackgroundBrush" Color="{StaticResource LightBackgroundColor}"/>
@@ -368,6 +388,9 @@
     <!-- Alias for ModernButton (used in views) -->
     <Style x:Key="ModernButton" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}"/>
     
+    <!-- Default Button style -->
+    <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}"/>
+    
     <!-- Success Button -->
     <Style x:Key="SuccessButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
         <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
@@ -466,6 +489,9 @@
     
     <!-- Alias for ModernTextBox (used in views) -->
     <Style x:Key="ModernTextBox" TargetType="TextBox" BasedOn="{StaticResource ModernTextBoxStyle}"/>
+    
+    <!-- Default TextBox style -->
+    <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBoxStyle}"/>
     
     <!-- ============================= -->
     <!-- MODERN COMBOBOX STYLE         -->
@@ -1244,6 +1270,9 @@
         </Setter>
     </Style>
     
+    <!-- Default ProgressBar style -->
+    <Style TargetType="ProgressBar" BasedOn="{StaticResource ModernProgressBarStyle}"/>
+    
     <!-- ============================= -->
     <!-- TOOLTIP STYLES                -->
     <!-- ============================= -->
@@ -1268,6 +1297,9 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <!-- Default ToolTip style -->
+    <Style TargetType="ToolTip" BasedOn="{StaticResource ModernToolTipStyle}"/>
     
     <!-- ============================= -->
     <!-- BADGE/TAG STYLES              -->
