@@ -1471,7 +1471,7 @@
                     <Grid>
                         <!-- Album Art Background - uses width binding for square aspect -->
                         <Border CornerRadius="0" 
-                                Background="{DynamicResource SurfaceColor}"
+                                Background="#18181b"
                                 MinHeight="180"
                                 MaxHeight="280">
                             <Grid>
@@ -1583,7 +1583,7 @@
                                                 Content="▶"
                                                 Click="PlayPause_Click"
                                                 Background="White"
-                                                Foreground="{DynamicResource SurfaceColor}"
+                                                Foreground="#18181b"
                                                 BorderThickness="0"
                                                 FontSize="22"
                                                 Width="50"

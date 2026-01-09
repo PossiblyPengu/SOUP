@@ -70,8 +70,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     partial void OnStatusMessageChanged(string value)
     {
-        // Auto-clear status message after timeout (unless it's empty)
-        if (!string.IsNullOrEmpty(value))
+        // Auto-clear status message after timeout (unless it's empty or the default count message)
+        if (!string.IsNullOrEmpty(value) && !IsDefaultStatusMessage(value))
         {
             _statusClearTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(StatusClearSeconds) };
             _statusClearTimer.Stop();
@@ -81,10 +81,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
     }
 
+    private bool IsDefaultStatusMessage(string message)
+    {
+        // Default status shows counts like "5 active · 3 archived"
+        return message.Contains(" active") && message.Contains(" archived");
+    }
+
+    private void UpdateDefaultStatus()
+    {
+        StatusMessage = $"{Items.Count} active · {ArchivedItems.Count} archived";
+    }
+
     private void OnStatusClearTimerTick(object? sender, EventArgs e)
     {
         _statusClearTimer?.Stop();
-        StatusMessage = string.Empty;
+        UpdateDefaultStatus();
     }
 
     [ObservableProperty]
@@ -289,7 +300,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 RefreshArchivedDisplayItems();
             });
             
-            StatusMessage = $"Loaded {Items.Count} orders ({ArchivedItems.Count} archived)";
+            UpdateDefaultStatus();
             _logger?.LogInformation("Loaded {Count} orders into view", items.Count);
         }
         catch (Exception ex)
