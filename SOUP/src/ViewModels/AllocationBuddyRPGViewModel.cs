@@ -135,6 +135,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    partial void OnSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredLocationAllocations));
+        OnPropertyChanged(nameof(FilteredItemAllocations));
+    }
+
     /// <summary>
     /// Gets or sets the text pasted by the user for import from the welcome screen.
     /// </summary>
@@ -294,6 +300,99 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         }
         
         OnPropertyChanged(nameof(ItemTotals));
+
+        // Refresh item allocations if in item view mode
+        if (ViewMode == "items")
+        {
+            RefreshItemAllocations();
+        }
+    }
+
+    #endregion
+
+    #region View Mode
+
+    /// <summary>
+    /// Gets or sets the current view mode: "stores" (by store) or "items" (by item).
+    /// </summary>
+    [ObservableProperty]
+    private string _viewMode = "stores";
+
+    partial void OnViewModeChanged(string value)
+    {
+        if (value == "items")
+        {
+            RefreshItemAllocations();
+        }
+        OnPropertyChanged(nameof(IsStoreView));
+        OnPropertyChanged(nameof(IsItemView));
+    }
+
+    /// <summary>True when viewing by store (default view).</summary>
+    public bool IsStoreView => ViewMode == "stores";
+
+    /// <summary>True when viewing by item.</summary>
+    public bool IsItemView => ViewMode == "items";
+
+    /// <summary>
+    /// Gets the collection of item allocations, each containing stores that have this item.
+    /// </summary>
+    public ObservableCollection<ItemAllocationView> ItemAllocations { get; } = new();
+
+    /// <summary>
+    /// Gets items filtered by the current search text (for item view mode).
+    /// </summary>
+    public IEnumerable<ItemAllocationView> FilteredItemAllocations
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+                return ItemAllocations;
+
+            var search = SearchText.Trim();
+            return ItemAllocations.Where(item =>
+                item.ItemNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (item.Description?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                item.StoreAllocations.Any(s =>
+                    s.StoreCode.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    (s.StoreName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)));
+        }
+    }
+
+    /// <summary>
+    /// Recalculates the ItemAllocations collection from all locations.
+    /// </summary>
+    private void RefreshItemAllocations()
+    {
+        // Get all items from all locations
+        var allItems = LocationAllocations
+            .SelectMany(loc => loc.Items.Select(item => new { Location = loc, Item = item }))
+            .GroupBy(x => x.Item.ItemNumber, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new ItemAllocationView
+            {
+                ItemNumber = g.Key,
+                Description = g.First().Item.Description ?? "",
+                TotalQuantity = g.Sum(x => x.Item.Quantity),
+                StoreAllocations = new ObservableCollection<StoreAllocationEntry>(
+                    g.Select(x => new StoreAllocationEntry
+                    {
+                        StoreCode = x.Location.Location,
+                        StoreName = x.Location.LocationName,
+                        Quantity = x.Item.Quantity,
+                        Item = x.Item  // Reference to actual ItemAllocation for commands
+                    }).OrderBy(s => s.StoreCode)
+                )
+            })
+            .OrderBy(i => i.ItemNumber)
+            .ToList();
+
+        ItemAllocations.Clear();
+        foreach (var item in allItems)
+        {
+            ItemAllocations.Add(item);
+        }
+        
+        OnPropertyChanged(nameof(FilteredItemAllocations));
     }
 
     #endregion
@@ -347,6 +446,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     
     /// <summary>Command to sort item totals by the specified mode.</summary>
     public IRelayCommand<string> SortItemTotalsCommand { get; private set; } = null!;
+    
+    /// <summary>Command to set the view mode (stores or items).</summary>
+    public IRelayCommand<string> SetViewModeCommand { get; private set; } = null!;
     
     /// <summary>Command to open the settings window to the Allocation tab.</summary>
     public IRelayCommand OpenSettingsCommand { get; }
@@ -414,6 +516,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
         CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
         SortItemTotalsCommand = new RelayCommand<string>(mode => { if (mode != null) ItemTotalsSortMode = mode; });
+        SetViewModeCommand = new RelayCommand<string>(mode => { if (mode != null) ViewMode = mode; });
         ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
         ExportToCsvCommand = new AsyncRelayCommand(ExportToCsvAsync);
         
@@ -713,43 +816,58 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Paste allocation data from clipboard (copied from Excel or other spreadsheet).
-    /// Expects tab or comma separated data with Store, Item, Quantity columns.
+    /// Opens a dialog to paste and import allocation data.
     /// </summary>
     private void PasteFromClipboard()
     {
         try
         {
-            if (!System.Windows.Clipboard.ContainsText())
+            // Show paste dialog
+            var dialog = new Views.AllocationBuddy.PasteDataDialog();
+            var dialogWindow = new System.Windows.Window
             {
-                StatusMessage = "Clipboard is empty";
+                Content = dialog,
+                Title = "Paste Data",
+                SizeToContent = System.Windows.SizeToContent.WidthAndHeight,
+                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
+                Owner = System.Windows.Application.Current.MainWindow,
+                WindowStyle = System.Windows.WindowStyle.None,
+                AllowsTransparency = true,
+                Background = System.Windows.Media.Brushes.Transparent,
+                ResizeMode = System.Windows.ResizeMode.NoResize,
+                ShowInTaskbar = false
+            };
+
+            var result = dialogWindow.ShowDialog();
+            if (result != true || string.IsNullOrWhiteSpace(dialog.PastedText))
+            {
                 return;
             }
 
-            var clipboardText = System.Windows.Clipboard.GetText();
+            var pastedText = dialog.PastedText;
 
-            // Validate clipboard text length to prevent DoS
-            if (clipboardText.Length > MaxClipboardTextLength)
+            // Validate text length to prevent DoS
+            if (pastedText.Length > MaxClipboardTextLength)
             {
-                StatusMessage = $"Clipboard content too large (max {MaxClipboardTextLength / 1_000_000}MB)";
-                _logger?.LogWarning("Clipboard text rejected: {Length} bytes exceeds maximum", clipboardText.Length);
+                StatusMessage = $"Pasted content too large (max {MaxClipboardTextLength / 1_000_000}MB)";
+                _logger?.LogWarning("Pasted text rejected: {Length} bytes exceeds maximum", pastedText.Length);
                 return;
             }
 
-            var result = _parser.ParseFromClipboardText(clipboardText);
+            var parseResult = _parser.ParseFromClipboardText(pastedText);
 
-            if (!result.IsSuccess || result.Value == null)
+            if (!parseResult.IsSuccess || parseResult.Value == null)
             {
-                StatusMessage = $"Paste failed: {result.ErrorMessage}";
+                StatusMessage = $"Import failed: {parseResult.ErrorMessage}";
                 return;
             }
 
             // Auto-archive is async, but for paste we'll fire-and-forget
             _ = AutoArchiveIfNeededAsync();
             
-            PopulateFromEntries(result.Value);
+            PopulateFromEntries(parseResult.Value);
             MarkAsModified();
-            StatusMessage = $"Pasted {result.Value.Count} entries from clipboard";
+            StatusMessage = $"Imported {parseResult.Value.Count} entries";
             OnPropertyChanged(nameof(LocationsCount));
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(TotalEntries));
@@ -758,8 +876,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Paste failed: {ex.Message}";
-            _logger?.LogError(ex, "Failed to paste from clipboard");
+            StatusMessage = $"Import failed: {ex.Message}";
+            _logger?.LogError(ex, "Failed to import pasted data");
         }
     }
 
@@ -2018,6 +2136,40 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public int AllocatedQuantity => TotalQuantity - PoolQuantity;
         /// <summary>Whether this item has any remaining in the pool.</summary>
         public bool HasPoolItems => PoolQuantity > 0;
+    }
+
+    /// <summary>
+    /// View model for an item with its store allocations (item-sorted view).
+    /// </summary>
+    public class ItemAllocationView
+    {
+        public string ItemNumber { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int TotalQuantity { get; set; }
+        public ObservableCollection<StoreAllocationEntry> StoreAllocations { get; set; } = new();
+
+        public string DisplayItem => string.IsNullOrWhiteSpace(Description)
+            ? ItemNumber
+            : $"{ItemNumber} - {Description}";
+
+        public int StoreCount => StoreAllocations.Count;
+    }
+
+    /// <summary>
+    /// Represents a store's allocation for a specific item (used in item-sorted view).
+    /// </summary>
+    public class StoreAllocationEntry
+    {
+        public string StoreCode { get; set; } = string.Empty;
+        public string? StoreName { get; set; }
+        public int Quantity { get; set; }
+
+        /// <summary>Reference to the actual ItemAllocation object for commands.</summary>
+        public ItemAllocation? Item { get; set; }
+
+        public string DisplayStore => string.IsNullOrWhiteSpace(StoreName)
+            ? StoreCode
+            : $"{StoreCode} - {StoreName}";
     }
 
     #endregion

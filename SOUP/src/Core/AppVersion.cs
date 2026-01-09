@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.14.2";
+    public const string Version = "4.15.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.15.0", "2026-01-09", "Release Update", new[]
+        {
+            "Update .NET SDK version in scripts and enhance AllocationBuddyRPGView with item view mode"
+        }),
         new("4.14.2", "2026-01-09", "Release Update", new[]
         {
             "Enhance status message handling and update UI colors in OrderLog"
