@@ -438,6 +438,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// <summary>Command to copy a location's data to the clipboard.</summary>
     public IRelayCommand<LocationAllocation> CopyLocationToClipboardCommand { get; }
     
+    /// <summary>Command to copy an item's redistribution data (all location allocations) to the clipboard.</summary>
+    public IRelayCommand<ItemAllocationView> CopyItemRedistributionCommand { get; }
+    
     /// <summary>Command to export allocation data to an Excel file.</summary>
     public IAsyncRelayCommand ExportToExcelCommand { get; }
     
@@ -515,6 +518,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
         ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
         CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
+        CopyItemRedistributionCommand = new RelayCommand<ItemAllocationView>(CopyItemRedistribution);
         SortItemTotalsCommand = new RelayCommand<string>(mode => { if (mode != null) ItemTotalsSortMode = mode; });
         SetViewModeCommand = new RelayCommand<string>(mode => { if (mode != null) ViewMode = mode; });
         ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
@@ -680,6 +684,39 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             System.Windows.Clipboard.SetText(sb.ToString());
             StatusMessage = $"Copied {loc.Items.Count} items for '{loc.Location}' to clipboard";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to copy: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Copies an item's redistribution data (all location allocations) to the clipboard.
+    /// Format: Quantity, Location for each store allocation.
+    /// Suitable for pasting into Business Central for redistribution/transfer orders.
+    /// </summary>
+    private void CopyItemRedistribution(ItemAllocationView? item)
+    {
+        if (item == null || item.StoreAllocations.Count == 0)
+        {
+            StatusMessage = "No allocations to copy";
+            return;
+        }
+
+        var separator = _clipboardFormat == "CommaSeparated" ? "," : "\t";
+        var sb = new System.Text.StringBuilder();
+        
+        // Add each store allocation
+        foreach (var allocation in item.StoreAllocations)
+        {
+            sb.AppendLine($"{allocation.Quantity}{separator}{allocation.StoreCode}");
+        }
+
+        try
+        {
+            System.Windows.Clipboard.SetText(sb.ToString());
+            StatusMessage = $"Copied {item.ItemNumber} redistribution to {item.StoreAllocations.Count} locations";
         }
         catch (Exception ex)
         {

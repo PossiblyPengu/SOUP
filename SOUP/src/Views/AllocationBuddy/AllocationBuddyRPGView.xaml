@@ -1057,6 +1057,17 @@
                                                 </StackPanel>
 
                                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <Button Command="{Binding DataContext.CopyItemRedistributionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource SecondaryButton}"
+                                                            Padding="8,4"
+                                                            Margin="0,0,8,0"
+                                                            ToolTip="Copy item redistribution for Business Central transfer orders">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="📋" FontSize="12" Margin="0,0,4,0"/>
+                                                            <TextBlock Text="Copy for Redistribution" FontSize="11"/>
+                                                        </StackPanel>
+                                                    </Button>
                                                     <Border Background="{StaticResource AllocationAccentBrush}" CornerRadius="8" Padding="10,4" Margin="0,0,8,0">
                                                         <TextBlock Text="{Binding TotalQuantity, StringFormat='Total: {0}'}"
                                                                    Foreground="{DynamicResource TextOnPrimaryBrush}"
