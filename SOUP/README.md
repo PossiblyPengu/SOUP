@@ -28,7 +28,7 @@ Track and manage orders with drag-and-drop organization.
 
 ### Prerequisites
 
-- .NET 8 SDK
+- .NET SDK 8.0 or later ([Download](https://dotnet.microsoft.com/download/dotnet))
 - Windows 10/11
 
 ### Running the Application

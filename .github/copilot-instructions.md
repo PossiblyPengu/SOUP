@@ -2,6 +2,11 @@
 
 **SOUP** - WPF inventory suite for retail store operations.
 
+## Prerequisites
+
+- .NET SDK 8.0 or later required ([Download](https://dotnet.microsoft.com/download/dotnet))
+- Windows 10/11
+
 ## SOUP Architecture
 
 ### Core Patterns
