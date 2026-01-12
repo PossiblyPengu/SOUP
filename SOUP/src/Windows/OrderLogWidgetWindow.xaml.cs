@@ -784,7 +784,8 @@ public partial class OrderLogWidgetWindow : Window
                 // Set global flag to bypass closing confirmations
                 App.IsUpdating = true;
                 
-                await System.Threading.Tasks.Task.Delay(500);
+                // Give the updater script time to start
+                await System.Threading.Tasks.Task.Delay(1000);
                 
                 // Shutdown the entire application immediately
                 await Dispatcher.InvokeAsync(() =>
@@ -801,8 +802,8 @@ public partial class OrderLogWidgetWindow : Window
                     catch { }
                 });
                 
-                // Short delay to let shutdown occur
-                await System.Threading.Tasks.Task.Delay(300);
+                // Give shutdown time to complete
+                await System.Threading.Tasks.Task.Delay(500);
                 
                 // Force exit to ensure all threads terminate
                 Environment.Exit(0);

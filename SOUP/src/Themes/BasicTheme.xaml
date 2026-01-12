@@ -1,0 +1,99 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================= -->
+    <!-- BASIC THEME - Windows Default -->
+    <!-- ============================= -->
+    <!-- Maps all custom brushes to system colors for basic Windows look -->
+    
+    <!-- Background & Surface Colors -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{x:Static SystemColors.WindowColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{x:Static SystemColors.ControlLightLightColor}"/>
+    
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
+    
+    <!-- Border & Accent -->
+    <SolidColorBrush x:Key="BorderBrush" Color="{x:Static SystemColors.ActiveBorderColor}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#28a745"/>
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="#d4edda"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#ffc107"/>
+    <SolidColorBrush x:Key="WarningLightBrush" Color="#fff3cd"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#dc3545"/>
+    <SolidColorBrush x:Key="DangerLightBrush" Color="#f8d7da"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    
+    <!-- Title Bar -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ActiveCaptionColor}"/>
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#e81123"/>
+    <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="White"/>
+    
+    <!-- Sidebar -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    
+    <!-- Corner Radius - Set to 0 for classic Windows look -->
+    <CornerRadius x:Key="XSmallCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="MediumCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="LargeCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="TitleBarCornerRadius">0,0,0,0</CornerRadius>
+    <CornerRadius x:Key="SidebarCornerRadius">0</CornerRadius>
+    
+    <!-- Basic Styles - Use default Windows styles -->
+    <Style x:Key="ModernButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+    
+    <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+    
+    <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    
+    <Style x:Key="ModernCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    
+    <Style x:Key="ModernListBoxStyle" TargetType="ListBox">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    
+    <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="GridLinesVisibility" Value="All"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
+    </Style>
+
+</ResourceDictionary>

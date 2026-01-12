@@ -286,7 +286,8 @@ public partial class AboutWindow : Window
                 // Set global flag to bypass closing confirmations
                 App.IsUpdating = true;
                 
-                await Task.Delay(500);
+                // Give the updater script time to start
+                await Task.Delay(1000);
                 
                 // Shutdown the entire application immediately
                 await Dispatcher.InvokeAsync(() =>
@@ -303,8 +304,8 @@ public partial class AboutWindow : Window
                     catch { }
                 });
                 
-                // Short delay to let shutdown occur
-                await Task.Delay(300);
+                // Give shutdown time to complete
+                await Task.Delay(500);
                 
                 // Force exit to ensure all threads terminate
                 Environment.Exit(0);

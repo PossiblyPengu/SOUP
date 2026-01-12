@@ -312,13 +312,12 @@ timeout /t 1 /nobreak >nul
 
             File.WriteAllText(updaterScript, batchContent);
 
-            // Start the updater script (hidden window)
+            // Start the updater script
             var startInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = $"/c \"{updaterScript}\"",
+                FileName = updaterScript,
+                UseShellExecute = true,
                 CreateNoWindow = true,
-                UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 

@@ -113,11 +113,16 @@ public partial class ThemeService : ObservableObject
             app.Resources.MergedDictionaries.Clear();
             Serilog.Log.Debug("ApplyTheme: Cleared merged dictionaries");
 
-            // If basic theme is enabled, don't load any custom themes
+            // If basic theme is enabled, load minimal Windows-style theme
             if (UseBasicTheme)
             {
-                Serilog.Log.Debug("ApplyTheme: Using basic Windows theme (no custom styles)");
-                // Don't add any theme dictionaries - use default Windows styling
+                Serilog.Log.Debug("ApplyTheme: Using basic Windows theme");
+                var basicTheme = new ResourceDictionary
+                {
+                    Source = new Uri("pack://application:,,,/Themes/BasicTheme.xaml", UriKind.Absolute)
+                };
+                app.Resources.MergedDictionaries.Add(basicTheme);
+                Serilog.Log.Debug("ApplyTheme: Added BasicTheme.xaml");
             }
             else
             {
