@@ -743,7 +743,7 @@ public partial class OrderLogWidgetWindow : Window
     {
         try
         {
-            var lifecycleService = ((App)Application.Current)?.GetService<AppLifecycleService>();
+            var lifecycleService = App.GetService<AppLifecycleService>();
             lifecycleService?.OpenMainWindow();
         }
         catch (Exception ex)
@@ -815,7 +815,7 @@ public partial class OrderLogWidgetWindow : Window
                 await System.Threading.Tasks.Task.Delay(1000);
                 
                 // Get lifecycle service to force close all processes
-                var lifecycleService = ((App)Application.Current)?.GetService<AppLifecycleService>();
+                var lifecycleService = App.GetService<AppLifecycleService>();
                 if (lifecycleService != null)
                 {
                     await lifecycleService.ForceCloseAllProcessesAsync();

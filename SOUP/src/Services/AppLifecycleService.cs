@@ -97,7 +97,9 @@ public sealed class AppLifecycleService
         }
 
         var widgetOpen = IsWidgetRunning;
-        var keepWidgetRunning = true; // TODO: Get from settings
+        // Get KeepWidgetRunning setting from TrayIconService
+        var trayService = App.GetService<TrayIconService>();
+        var keepWidgetRunning = trayService?.KeepWidgetRunning ?? true;
 
         // If close-to-tray or widget is running and should be kept alive, hide instead
         if (closeToTray || (widgetOpen && keepWidgetRunning))
