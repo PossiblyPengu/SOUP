@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.18.3";
+    public const string Version = "4.18.4";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.18.4", "2026-01-12", "Release Update", new[]
+        {
+            "Improve album art handling and add follow-up polling after media key actions"
+        }),
         new("4.18.3", "2026-01-12", "Release Update", new[]
         {
             "feat: Implement themed splash screen with animations and status updates during application startup- Added a new SplashWindow to display during application startup.- Integrated fade-in and fade-out animations for the splash screen.- Included logo scaling effect and progress animation.- Updated App.xaml.cs to show splash screen and update status during initialization.- Enhanced AppVersion to reflect the new version 4.18.2 and added changelog entries.- Modified OrderLogWidgetWindow to clear taskbar overlay on closing.- Added error handling for build and publish processes in release.ps1."

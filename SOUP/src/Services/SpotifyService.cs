@@ -255,10 +255,18 @@ public class SpotifyService : INotifyPropertyChanged
                     ArtistName = artist ?? "";
                     IsPlaying = isPlaying;
                     
-                    // Always update album art when track changes, or when we have new art
-                    if (trackChanged || albumArt != null)
+                    // Prefer not to clear existing album art immediately if fetch fails.
+                    // Only replace when we successfully retrieve new art. If thumbnail
+                    // is not available yet but the track changed, keep the previous
+                    // AlbumArt until a new one can be fetched on subsequent polls.
+                    if (albumArt != null)
                     {
-                        AlbumArt = albumArt; // Will be null if fetch failed, clearing stale art
+                        AlbumArt = albumArt;
+                    }
+                    else if (trackChanged)
+                    {
+                        // Log for diagnostics but do not clear the previous art.
+                        Log.Debug("Album art not available yet for track {Track}; keeping existing art.", title);
                     }
                 }
                 else
@@ -318,6 +326,8 @@ public class SpotifyService : INotifyPropertyChanged
     {
         _lastUserAction = DateTime.Now;
         SendMediaKey(VK_MEDIA_NEXT_TRACK);
+        // Schedule a couple of follow-up polls to ensure media session updates are observed
+        _ = PostUserActionPollsAsync();
         return Task.CompletedTask;
     }
 
@@ -325,7 +335,27 @@ public class SpotifyService : INotifyPropertyChanged
     {
         _lastUserAction = DateTime.Now;
         SendMediaKey(VK_MEDIA_PREV_TRACK);
+        // Schedule follow-up polls similar to NextTrack
+        _ = PostUserActionPollsAsync();
         return Task.CompletedTask;
+    }
+
+    private async Task PostUserActionPollsAsync()
+    {
+        try
+        {
+            // Wait briefly to allow the media session to update, then poll.
+            await Task.Delay(700);
+            await UpdateMediaInfoAsync();
+
+            // Second attempt a bit later in case the session is slow to update.
+            await Task.Delay(1200);
+            await UpdateMediaInfoAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Post-user-action media poll failed");
+        }
     }
 
     private void SendMediaKey(byte keyCode)
