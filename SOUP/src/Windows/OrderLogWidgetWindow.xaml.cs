@@ -772,18 +772,44 @@ public partial class OrderLogWidgetWindow : Window
                         .Where(p => p.Id != currentPid)
                         .ToList();
                     
+                    bool mainAppFound = false;
+                    
                     if (soupProcesses.Count != 0)
                     {
-                        // Activate existing main window
-                        var mainProcess = soupProcesses.First();
-                        var handle = mainProcess.MainWindowHandle;
-                        if (handle != IntPtr.Zero)
+                        // Check if any process has a visible main window
+                        foreach (var mainProcess in soupProcesses)
                         {
-                            ShowWindow(handle, SW_RESTORE);
-                            SetForegroundWindow(handle);
+                            try
+                            {
+                                var handle = mainProcess.MainWindowHandle;
+                                if (handle != IntPtr.Zero)
+                                {
+                                    // Activate existing main window
+                                    ShowWindow(handle, SW_RESTORE);
+                                    SetForegroundWindow(handle);
+                                    mainAppFound = true;
+                                    break;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, "Failed to activate process {ProcessId}", mainProcess.Id);
+                            }
+                            finally
+                            {
+                                mainProcess.Dispose();
+                            }
+                        }
+                        
+                        // Clean up any remaining process handles
+                        foreach (var p in soupProcesses)
+                        {
+                            p.Dispose();
                         }
                     }
-                    else
+                    
+                    // If no main window found, launch new instance
+                    if (!mainAppFound)
                     {
                         // Launch new main app instance with --no-widget flag to prevent duplicate widget
                         Process.Start(new ProcessStartInfo
