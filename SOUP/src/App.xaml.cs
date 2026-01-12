@@ -351,73 +351,101 @@ public partial class App : Application
             splash?.SetStatus("Starting application...");
 
             // Check command-line arguments
-            if (AppLifecycleService.IsWidgetProcess)
+                        // Determine what to show after initialization. Do not display main UI
+                        // until the splash has finished so the splash is visible for its full duration.
+                        bool showMainWindow = false;
+                        bool showWidgetProcess = false;
+                        bool widgetOnlyMode = false;
+                        bool launchWidget = false;
+                        OrderLogWidgetWindow? widgetWindowInstance = null;
+
+                        if (AppLifecycleService.IsWidgetProcess)
+                        {
+                            // Running as separate widget process (--widget flag) - show widget immediately
+                            if (moduleConfig.OrderLogEnabled)
+                            {
+                                var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
+                                var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
+
+                                widgetWindow.Closed += (s, args) =>
+                                {
+                                    Log.Information("Widget closed, shutting down");
+                                    Shutdown();
+                                };
+
+                                widgetWindow.Show();
+                                Log.Information("Running in widget-only mode (--widget flag)");
+                            }
+                            else
+                            {
+                                Log.Warning("OrderLog widget requested but module is disabled");
+                                // For safety show main window if widget is disabled
+                                showMainWindow = true;
+                            }
+                        }
+                        else
+                        {
+                            // Normal startup (no --widget flag) - determine what to show after splash
+                            widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
+                            launchWidget = !AppLifecycleService.HasNoWidgetFlag &&
+                                           appSettings.LaunchWidgetOnStartup &&
+                                           moduleConfig.OrderLogEnabled;
+
+                            if (widgetOnlyMode)
+                            {
+                                // Widget-only mode: show widget process after splash
+                                showWidgetProcess = true;
+                                Log.Information("Running in widget-only mode (settings)");
+                            }
+                            else
+                            {
+                                // Normal mode - show main window after splash
+                                showMainWindow = true;
+                                if (launchWidget)
+                                {
+                                    showWidgetProcess = true;
+                                }
+                            }
+                        }
+            
+            // Close splash screen with animation (only if shown)
+            if (splash != null)
             {
-                // Running as separate widget process (--widget flag)
-                if (moduleConfig.OrderLogEnabled)
+                await splash.CloseAsync();
+
+                // After splash is closed, show any UI we deferred
+                if (showMainWindow)
                 {
-                    var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
-                    var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
-                    
-                    widgetWindow.Closed += (s, args) =>
-                    {
-                        Log.Information("Widget closed, shutting down");
-                        Shutdown();
-                    };
-                    
-                    widgetWindow.Show();
-                    Log.Information("Running in widget-only mode (--widget flag)");
-                }
-                else
-                {
-                    Log.Warning("OrderLog widget requested but module is disabled");
                     var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                     mainWindow.Show();
                 }
-            }
-            else
-            {
-                // Normal startup (no --widget flag)
-                var widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
-                var launchWidget = !AppLifecycleService.HasNoWidgetFlag && 
-                                   appSettings.LaunchWidgetOnStartup && 
-                                   moduleConfig.OrderLogEnabled;
 
-                if (widgetOnlyMode)
+                if (showWidgetProcess)
                 {
-                    // Widget-only mode
                     var widgetProcessService = _host.Services.GetService<WidgetProcessService>();
-                    if (widgetProcessService != null)
+                    if (widgetOnlyMode && widgetProcessService != null)
                     {
                         widgetProcessService.WidgetClosed += () =>
                         {
                             Log.Information("Widget closed in widget-only mode, shutting down");
                             Dispatcher.Invoke(() => Shutdown());
                         };
-                        widgetProcessService.ShowWidget();
                     }
-                    Log.Information("Running in widget-only mode (settings)");
-                }
-                else
-                {
-                    // Normal mode - show main window
-                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                    mainWindow.Show();
-                    
-                    // Launch widget if configured
+                    widgetProcessService?.ShowWidget();
                     if (launchWidget)
                     {
-                        var widgetProcessService = _host.Services.GetService<WidgetProcessService>();
-                        widgetProcessService?.ShowWidget();
                         Log.Information("Widget launched on startup");
                     }
                 }
             }
-            
-            // Close splash screen with animation (only if shown)
-            if (splash != null)
+            else
             {
-                await splash.CloseAsync();
+                // No splash shown (widget process), if we deferred main/window display earlier, show now
+                if (showMainWindow)
+                {
+                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                    mainWindow.Show();
+                }
             }
 
             base.OnStartup(e);

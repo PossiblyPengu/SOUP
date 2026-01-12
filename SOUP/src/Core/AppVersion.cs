@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.19.1";
+    public const string Version = "4.20.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.20.0", "2026-01-12", "Release Update", new[]
+        {
+            "Refactor application startup logic to improve widget handling and splash screen management"
+        }),
         new("4.19.1", "2026-01-12", "Release Update", new[]
         {
             "Enhance splash screen handling to only display for main app, ensuring proper status updates and closing behavior."
