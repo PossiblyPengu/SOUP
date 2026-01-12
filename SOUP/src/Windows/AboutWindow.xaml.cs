@@ -283,8 +283,35 @@ public partial class AboutWindow : Window
             {
                 UpdateStatusText.Text = "Update ready! Restarting...";
                 
+                // Set global flag to bypass closing confirmations
+                App.IsUpdating = true;
+                
                 // Close the application - the updater script will restart it
                 await Task.Delay(500);
+                
+                // Close all windows (confirmations will be bypassed due to IsUpdating flag)
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        var windows = Application.Current?.Windows.Cast<Window>().ToList();
+                        if (windows != null)
+                        {
+                            foreach (var window in windows)
+                            {
+                                try
+                                {
+                                    window.Close();
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                    catch { }
+                });
+                
+                // Short delay to let windows close
+                await Task.Delay(300);
                 
                 // Force exit to ensure all threads terminate
                 Environment.Exit(0);

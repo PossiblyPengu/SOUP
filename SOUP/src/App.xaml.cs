@@ -26,6 +26,12 @@ public partial class App : Application
 {
     private readonly IHost _host;
 
+    /// <summary>
+    /// Gets or sets whether the application is currently applying an update.
+    /// When true, all closing confirmations and events are bypassed.
+    /// </summary>
+    public static bool IsUpdating { get; set; }
+
     public App()
     {
         // Configure Serilog

@@ -12,6 +12,12 @@
             App
             </summary>
         </member>
+        <member name="P:SOUP.App.IsUpdating">
+            <summary>
+            Gets or sets whether the application is currently applying an update.
+            When true, all closing confirmations and events are bypassed.
+            </summary>
+        </member>
         <member name="M:SOUP.App.InitializeComponent">
             <summary>
             InitializeComponent

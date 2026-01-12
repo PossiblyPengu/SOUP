@@ -193,6 +193,12 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        // If updating, bypass all closing logic
+        if (App.IsUpdating)
+        {
+            return;
+        }
+
         // Check settings
         var closeToTray = _trayIconService?.CloseToTray == true;
         var confirmBeforeExit = _trayIconService?.ConfirmBeforeExit == true;
