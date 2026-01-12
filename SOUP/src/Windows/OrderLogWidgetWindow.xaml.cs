@@ -785,10 +785,11 @@ public partial class OrderLogWidgetWindow : Window
                     }
                     else
                     {
-                        // Launch new main app instance
+                        // Launch new main app instance with --no-widget flag to prevent duplicate widget
                         Process.Start(new ProcessStartInfo
                         {
                             FileName = exePath,
+                            Arguments = "--no-widget",
                             UseShellExecute = false
                         });
                     }

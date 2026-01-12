@@ -689,17 +689,22 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Search Box -->
-                        <Border Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="12,0" MaxWidth="500" HorizontalAlignment="Left">
+                        <Border Grid.Column="0" Background="{DynamicResource BackgroundBrush}" 
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="10" Padding="12,8" MinWidth="300" MaxWidth="500" 
+                                HorizontalAlignment="Left" Height="40">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         VerticalAlignment="Center" Padding="0,8" FontSize="14"
-                                         CaretBrush="{DynamicResource TextPrimaryBrush}">
+                                         VerticalAlignment="Center" FontSize="14"
+                                         CaretBrush="{DynamicResource TextPrimaryBrush}"
+                                         FocusVisualStyle="{x:Null}">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Style.Triggers>

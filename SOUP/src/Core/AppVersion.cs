@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.17.7";
+    public const string Version = "4.17.8";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.17.8", "2026-01-12", "Release Update", new[]
+        {
+            "Enhance command-line argument handling for widget launch and update UI styles"
+        }),
         new("4.17.7", "2026-01-12", "Release Update", new[]
         {
             "Add widget process handling to manage SOUP application lifecycle"

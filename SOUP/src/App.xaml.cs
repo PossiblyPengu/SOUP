@@ -328,7 +328,10 @@ public partial class App : Application
             var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
 
             // Check for command-line arguments to launch specific windows
-            if (e.Args.Length > 0 && e.Args[0].Equals("--widget", StringComparison.OrdinalIgnoreCase))
+            var hasWidgetArg = e.Args.Any(arg => arg.Equals("--widget", StringComparison.OrdinalIgnoreCase));
+            var hasNoWidgetArg = e.Args.Any(arg => arg.Equals("--no-widget", StringComparison.OrdinalIgnoreCase));
+            
+            if (hasWidgetArg)
             {
                 if (moduleConfig.OrderLogEnabled)
                 {
@@ -360,9 +363,10 @@ public partial class App : Application
             }
             else
             {
-                // No command-line args - use settings to determine startup behavior
+                // No --widget arg - use settings to determine startup behavior
                 var widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
-                var launchWidget = appSettings.LaunchWidgetOnStartup && moduleConfig.OrderLogEnabled;
+                // Skip auto-launching widget if --no-widget flag is present (opened from widget)
+                var launchWidget = !hasNoWidgetArg && appSettings.LaunchWidgetOnStartup && moduleConfig.OrderLogEnabled;
                 
                 if (widgetOnlyMode)
                 {
