@@ -791,25 +791,38 @@ public partial class OrderLogWidgetWindow : Window
                 // Give the updater script time to start
                 await System.Threading.Tasks.Task.Delay(1000);
                 
-                // Shutdown the entire application immediately
-                await Dispatcher.InvokeAsync(() =>
+                // Kill all SOUP processes (main app and widget if running as separate process)
+                try
                 {
-                    try
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    var allSoupProcesses = System.Diagnostics.Process.GetProcessesByName("SOUP");
+                    
+                    foreach (var process in allSoupProcesses)
                     {
-                        // Dispose tray icon to remove it from system tray
-                        var trayService = _serviceProvider.GetService<TrayIconService>();
-                        trayService?.Dispose();
-                        
-                        // Shutdown the application
-                        Application.Current?.Shutdown();
+                        if (process.Id != currentProcess.Id)
+                        {
+                            try
+                            {
+                                Log.Information("Killing SOUP process {ProcessId} for update", process.Id);
+                                process.Kill();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, "Failed to kill process {ProcessId}", process.Id);
+                            }
+                        }
+                        process.Dispose();
                     }
-                    catch { }
-                });
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Error killing SOUP processes");
+                }
                 
-                // Give shutdown time to complete
+                // Give processes time to terminate
                 await System.Threading.Tasks.Task.Delay(500);
                 
-                // Force exit to ensure all threads terminate
+                // Force exit this process
                 Environment.Exit(0);
             }
             else
