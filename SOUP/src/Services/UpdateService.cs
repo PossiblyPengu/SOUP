@@ -268,21 +268,26 @@ title SOUP Updater
 echo Updating SOUP...
 echo.
 
-:: Wait for the application to close (up to 10 seconds)
+:: Wait for the application to close (up to 15 seconds)
 set attempts=0
 :waitloop
 tasklist /fi ""imagename eq SOUP.exe"" 2>nul | find /i ""SOUP.exe"" >nul
 if errorlevel 1 goto docopy
 set /a attempts+=1
-if %attempts% gtr 20 (
-    echo Timeout waiting for SOUP to close.
-    pause
-    exit /b 1
+if %attempts% gtr 30 (
+    echo SOUP processes still running. Forcing termination...
+    taskkill /f /im SOUP.exe 2>nul
+    timeout /t 2 /nobreak >nul
+    goto docopy
 )
 timeout /t 1 /nobreak >nul
 goto waitloop
 
 :docopy
+:: Double-check all processes are gone
+taskkill /f /im SOUP.exe 2>nul
+timeout /t 1 /nobreak >nul
+
 echo Copying new files...
 
 :: Use robocopy for more reliable file replacement

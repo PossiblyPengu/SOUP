@@ -870,7 +870,7 @@ public partial class OrderLogWidgetWindow : Window
                 // Give the updater script time to start
                 await System.Threading.Tasks.Task.Delay(1000);
                 
-                // Kill all SOUP processes (main app and widget if running as separate process)
+                // Kill all OTHER SOUP processes first (main app if running)
                 try
                 {
                     var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
@@ -884,6 +884,7 @@ public partial class OrderLogWidgetWindow : Window
                             {
                                 Log.Information("Killing SOUP process {ProcessId} for update", process.Id);
                                 process.Kill();
+                                process.WaitForExit(2000); // Wait up to 2 seconds for process to exit
                             }
                             catch (Exception ex)
                             {
@@ -898,10 +899,26 @@ public partial class OrderLogWidgetWindow : Window
                     Log.Warning(ex, "Error killing SOUP processes");
                 }
                 
-                // Give processes time to terminate
+                // Give processes time to fully terminate
+                await System.Threading.Tasks.Task.Delay(500);
+                
+                // Shutdown this process gracefully if possible, then force exit
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        Application.Current?.Shutdown();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to shutdown application gracefully");
+                    }
+                });
+                
                 await System.Threading.Tasks.Task.Delay(500);
                 
                 // Force exit this process
+                Log.Information("Force exiting for update");
                 Environment.Exit(0);
             }
             else
