@@ -284,8 +284,10 @@ goto waitloop
 
 :docopy
 echo Copying new files...
-xcopy /E /Y /Q ""{extractPath}\*"" ""{appDir}\"" >nul
-if errorlevel 1 (
+
+:: Use robocopy for more reliable file replacement
+robocopy ""{extractPath}"" ""{appDir}"" /E /IS /IT /IM /R:2 /W:1 /NP /NFL /NDL
+if %errorlevel% geq 8 (
     echo Failed to copy files!
     pause
     exit /b 1
@@ -293,7 +295,7 @@ if errorlevel 1 (
 
 echo.
 echo Update complete! Starting SOUP...
-timeout /t 1 /nobreak >nul
+timeout /t 2 /nobreak >nul
 
 :: Cleanup temp files first
 rmdir /s /q ""{extractPath}"" 2>nul
@@ -304,6 +306,7 @@ cd /d ""{appDir}""
 start """" ""SOUP.exe""
 
 :: Delete this script
+timeout /t 1 /nobreak >nul
 (goto) 2>nul & del ""%~f0""
 ";
 
