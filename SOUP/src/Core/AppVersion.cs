@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.17.2";
+    public const string Version = "4.17.3";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.17.3", "2026-01-12", "Release Update", new[]
+        {
+            "Refactor application shutdown process in AboutWindow and OrderLogWidgetWindow"
+        }),
         new("4.17.2", "2026-01-12", "Release Update", new[]
         {
             "Implement update handling by bypassing closing confirmations during application updates"

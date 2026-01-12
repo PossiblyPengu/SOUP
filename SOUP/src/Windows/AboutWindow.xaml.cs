@@ -286,31 +286,24 @@ public partial class AboutWindow : Window
                 // Set global flag to bypass closing confirmations
                 App.IsUpdating = true;
                 
-                // Close the application - the updater script will restart it
                 await Task.Delay(500);
                 
-                // Close all windows (confirmations will be bypassed due to IsUpdating flag)
+                // Shutdown the entire application immediately
                 await Dispatcher.InvokeAsync(() =>
                 {
                     try
                     {
-                        var windows = Application.Current?.Windows.Cast<Window>().ToList();
-                        if (windows != null)
-                        {
-                            foreach (var window in windows)
-                            {
-                                try
-                                {
-                                    window.Close();
-                                }
-                                catch { }
-                            }
-                        }
+                        // Dispose tray icon to remove it from system tray
+                        var trayService = App.GetService<TrayIconService>();
+                        trayService?.Dispose();
+                        
+                        // Shutdown the application
+                        Application.Current?.Shutdown();
                     }
                     catch { }
                 });
                 
-                // Short delay to let windows close
+                // Short delay to let shutdown occur
                 await Task.Delay(300);
                 
                 // Force exit to ensure all threads terminate
