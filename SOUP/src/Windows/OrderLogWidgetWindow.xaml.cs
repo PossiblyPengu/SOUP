@@ -244,6 +244,24 @@ public partial class OrderLogWidgetWindow : Window
         }
     }
 
+    /// <summary>
+    /// Clears the taskbar overlay badge.
+    /// </summary>
+    private void ClearTaskbarOverlay()
+    {
+        try
+        {
+            if (TaskbarItemInfo != null)
+            {
+                TaskbarItemInfo.Overlay = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to clear taskbar overlay");
+        }
+    }
+
     private async void InitializeWidgetAsync()
     {
         try
@@ -304,6 +322,9 @@ public partial class OrderLogWidgetWindow : Window
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        // Clear taskbar overlay immediately
+        ClearTaskbarOverlay();
+        
         // Cancel and stop update check timer first
         _updateCheckCts?.Cancel();
         _updateCheckTimer?.Dispose();

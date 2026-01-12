@@ -120,6 +120,30 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
         exit 0
     }
     
+    # Prepare backups so we can roll back if build/publish fail
+    $originalCsprojContent = $csprojContent
+    $appVersionFile = Join-Path $srcDir "Core\AppVersion.cs"
+    $appVersionFileExists = Test-Path $appVersionFile
+    if ($appVersionFileExists) {
+        $originalAppVersionContent = Get-Content $appVersionFile -Raw
+    } else {
+        $originalAppVersionContent = $null
+    }
+
+    function Restore-OriginalFiles {
+        if ($null -ne $originalCsprojContent) {
+            Write-Host "Restoring original csproj content..." -ForegroundColor Yellow
+            Set-Content $csprojFile $originalCsprojContent -NoNewline
+        }
+        if ($appVersionFileExists -and $null -ne $originalAppVersionContent) {
+            Write-Host "Restoring original AppVersion.cs..." -ForegroundColor Yellow
+            Set-Content $appVersionFile $originalAppVersionContent -NoNewline
+        }
+        Write-Host "Rolled back version changes due to failure." -ForegroundColor Red
+    }
+
+    $versionUpdated = $false
+
     # Update version in files
     if ($newVersion -ne $currentVersion) {
         Write-Host ""
@@ -165,6 +189,7 @@ $changelogLines
         }
         
         Write-Host "  Updated to v$newVersion" -ForegroundColor Green
+            $versionUpdated = $true
     }
 } else {
     Write-Host "Could not parse version from csproj" -ForegroundColor Red
@@ -180,6 +205,7 @@ Write-Host "[Build] Building release..." -ForegroundColor Yellow
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "ERROR: Build failed!" -ForegroundColor Red
+    if ($versionUpdated) { Restore-OriginalFiles }
     exit 1
 }
 
@@ -190,6 +216,7 @@ Write-Host "[Publish] Creating portable build..." -ForegroundColor Yellow
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "ERROR: Publish failed!" -ForegroundColor Red
+    if ($versionUpdated) { Restore-OriginalFiles }
     exit 1
 }
 

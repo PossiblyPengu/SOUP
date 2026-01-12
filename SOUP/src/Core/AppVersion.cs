@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.17.14";
+    public const string Version = "4.18.3";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,22 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.18.3", "2026-01-12", "Release Update", new[]
+        {
+            "feat: Implement themed splash screen with animations and status updates during application startup- Added a new SplashWindow to display during application startup.- Integrated fade-in and fade-out animations for the splash screen.- Included logo scaling effect and progress animation.- Updated App.xaml.cs to show splash screen and update status during initialization.- Enhanced AppVersion to reflect the new version 4.18.2 and added changelog entries.- Modified OrderLogWidgetWindow to clear taskbar overlay on closing.- Added error handling for build and publish processes in release.ps1."
+        }),
+        new("4.18.2", "2026-01-12", "Release Update", new[]
+        {
+            "feat: Implement themed splash screen with animations and status updates during application startup- Added a new SplashWindow to display during application startup.- Integrated fade-in and fade-out animations for the splash screen.- Included logo scaling effect and progress animation.- Updated App.xaml.cs to show splash screen and update status during initialization.- Enhanced AppVersion to reflect the new version 4.18.1 and added changelog entries.- Modified OrderLogWidgetWindow to clear taskbar overlay on closing."
+        }),
+        new("4.18.1", "2026-01-12", "Release Update", new[]
+        {
+            "feat: Add splash screen with animations and status updates during application startup- Implemented a themed splash screen that displays during startup, showing status updates for various initialization steps.- Updated application version to 4.18.0.- Enhanced the OrderLogWidgetWindow to clear the taskbar overlay on closing.- Added fade-in and fade-out animations for the splash screen, along with a logo scaling effect.- Updated changelog to reflect the new splash screen feature."
+        }),
+        new("4.18.0", "2026-01-12", "Release Update", new[]
+        {
+            "Add splash screen with animations and status updates during application startup"
+        }),
         new("4.17.14", "2026-01-12", "Release Update", new[]
         {
             "Enhance theme management and error handling in release scripts- Added error handling for build and publish processes in release.ps1.- Updated ThemeService to load ModernStyles before applying the basic theme.- Extended BasicTheme.xaml with module icons and additional color definitions.- Modified OrderLogWidgetWindow to support basic theme selection in ApplyThemeResources method."

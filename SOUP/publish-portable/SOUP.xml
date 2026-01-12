@@ -6845,6 +6845,11 @@
             Applies a "+" overlay badge to the taskbar icon to differentiate the widget from the main app.
             </summary>
         </member>
+        <member name="M:SOUP.Windows.OrderLogWidgetWindow.ClearTaskbarOverlay">
+            <summary>
+            Clears the taskbar overlay badge.
+            </summary>
+        </member>
         <member name="E:SOUP.Windows.OrderLogWidgetWindow.OnWidgetClosed">
             <summary>
             Event raised when widget is closed (for separate thread mode)
@@ -6877,6 +6882,30 @@
             </summary>
         </member>
         <member name="M:SOUP.Windows.OrderLogWidgetWindow.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Windows.SplashWindow">
+            <summary>
+            Themed splash screen that displays during startup and after updates.
+            Respects dark/light mode and basic theme settings.
+            </summary>
+            <summary>
+            SplashWindow
+            </summary>
+        </member>
+        <member name="M:SOUP.Windows.SplashWindow.SetStatus(System.String)">
+            <summary>
+            Updates the status message displayed on the splash screen.
+            </summary>
+        </member>
+        <member name="M:SOUP.Windows.SplashWindow.CloseAsync">
+            <summary>
+            Closes the splash screen with fade-out animation.
+            </summary>
+        </member>
+        <member name="M:SOUP.Windows.SplashWindow.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
