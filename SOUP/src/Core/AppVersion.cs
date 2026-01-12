@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.17.13";
+    public const string Version = "4.17.14";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.17.14", "2026-01-12", "Release Update", new[]
+        {
+            "Enhance theme management and error handling in release scripts- Added error handling for build and publish processes in release.ps1.- Updated ThemeService to load ModernStyles before applying the basic theme.- Extended BasicTheme.xaml with module icons and additional color definitions.- Modified OrderLogWidgetWindow to support basic theme selection in ApplyThemeResources method."
+        }),
         new("4.17.11", "2026-01-12", "Release Update", new[]
         {
             "Add AppLifecycleService for centralized application lifecycle management"

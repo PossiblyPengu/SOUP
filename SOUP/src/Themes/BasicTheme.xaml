@@ -1,22 +1,42 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <!-- ============================= -->
     <!-- BASIC THEME - Windows Default -->
     <!-- ============================= -->
     <!-- Maps all custom brushes to system colors for basic Windows look -->
     
+    <!-- Module Icons -->
+    <sys:String x:Key="AppLogoIcon">⚡</sys:String>
+    <sys:String x:Key="ExpireWiseIcon">📦</sys:String>
+    <sys:String x:Key="ExpireWiseSplashIcon">📦</sys:String>
+    <sys:String x:Key="AllocationBuddyIcon">📊</sys:String>
+    <sys:String x:Key="AllocationBuddySplashIcon">📊</sys:String>
+    <sys:String x:Key="EssentialsBuddyIcon">📋</sys:String>
+    <sys:String x:Key="EssentialsBuddySplashIcon">📋</sys:String>
+    <sys:String x:Key="SwiftLabelIcon">🏷️</sys:String>
+    <sys:String x:Key="SwiftLabelSplashIcon">🏷️</sys:String>
+    <sys:String x:Key="OrderLogIcon">🗒️</sys:String>
+    <sys:String x:Key="OrderLogSplashIcon">📓</sys:String>
+    
+    <!-- OrderLog Settings -->
+    <sys:Boolean x:Key="OrderLogCardUseFullColor">False</sys:Boolean>
+    
     <!-- Background & Surface Colors -->
     <SolidColorBrush x:Key="BackgroundBrush" Color="{x:Static SystemColors.WindowColor}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{x:Static SystemColors.ControlColor}"/>
     <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
     <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{x:Static SystemColors.ControlLightLightColor}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{x:Static SystemColors.ControlColor}"/>
     
     <!-- Text Colors -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
     <SolidColorBrush x:Key="TextTertiaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
     <SolidColorBrush x:Key="TextDisabledBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="White"/>
+    <SolidColorBrush x:Key="TextLinkBrush" Color="{x:Static SystemColors.HotTrackColor}"/>
     
     <!-- Border & Accent -->
     <SolidColorBrush x:Key="BorderBrush" Color="{x:Static SystemColors.ActiveBorderColor}"/>
@@ -32,6 +52,13 @@
     <SolidColorBrush x:Key="DangerLightBrush" Color="#f8d7da"/>
     <SolidColorBrush x:Key="InfoBrush" Color="{x:Static SystemColors.InfoColor}"/>
     
+    <!-- OrderLog Card Colors -->
+    <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    
     <!-- Title Bar -->
     <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ActiveCaptionColor}"/>
     <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
@@ -40,6 +67,12 @@
     
     <!-- Sidebar -->
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    
+    <!-- Module Colors -->
+    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="#fff3cd"/>
+    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="#e8daff"/>
+    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="#d4edda"/>
+    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="#f8d7da"/>
     
     <!-- Corner Radius - Set to 0 for classic Windows look -->
     <CornerRadius x:Key="XSmallCornerRadius">0</CornerRadius>

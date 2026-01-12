@@ -625,7 +625,7 @@ public partial class OrderLogWidgetWindow : Window
             var themeService = _serviceProvider.GetService<ThemeService>();
             if (themeService != null)
             {
-                ApplyThemeResources(themeService.IsDarkMode);
+                ApplyThemeResources(themeService.IsDarkMode, themeService.UseBasicTheme);
                 themeService.ThemeChanged += OnThemeChanged;
             }
         }
@@ -635,12 +635,8 @@ public partial class OrderLogWidgetWindow : Window
         }
     }
 
-    private void ApplyThemeResources(bool isDarkMode)
+    private void ApplyThemeResources(bool isDarkMode, bool useBasicTheme)
     {
-        var themePath = isDarkMode
-            ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
-            : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
-
         Resources.MergedDictionaries.Clear();
         
         // Add ModernStyles first (base styles)
@@ -649,8 +645,22 @@ public partial class OrderLogWidgetWindow : Window
             Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml") 
         });
         
-        // Then add color theme
-        Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+        // Then add color theme (basic or modern)
+        if (useBasicTheme)
+        {
+            Resources.MergedDictionaries.Add(new ResourceDictionary 
+            { 
+                Source = new Uri("pack://application:,,,/SOUP;component/Themes/BasicTheme.xaml") 
+            });
+        }
+        else
+        {
+            var themePath = isDarkMode
+                ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
+                : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
+            
+            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+        }
         
         // Re-apply CardFontSize from ViewModel after theme resources are loaded
         if (_viewModel.CardFontSize > 0)
@@ -665,9 +675,10 @@ public partial class OrderLogWidgetWindow : Window
         {
             try
             {
+                var themeService = _serviceProvider.GetService<ThemeService>();
                 // Invalidate converter caches before applying new theme
                 Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache();
-                ApplyThemeResources(isDarkMode);
+                ApplyThemeResources(isDarkMode, themeService?.UseBasicTheme ?? false);
             }
             catch (Exception ex)
             {

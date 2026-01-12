@@ -117,6 +117,16 @@ public partial class ThemeService : ObservableObject
             if (UseBasicTheme)
             {
                 Serilog.Log.Debug("ApplyTheme: Using basic Windows theme");
+                
+                // Load ModernStyles first for all the control styles
+                var modernStyles = new ResourceDictionary
+                {
+                    Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
+                };
+                app.Resources.MergedDictionaries.Add(modernStyles);
+                Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
+                
+                // Then override with basic theme colors
                 var basicTheme = new ResourceDictionary
                 {
                     Source = new Uri("pack://application:,,,/Themes/BasicTheme.xaml", UriKind.Absolute)

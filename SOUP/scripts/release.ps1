@@ -177,9 +177,21 @@ Write-Host "[Build] Building release..." -ForegroundColor Yellow
 & "$rootDir\scripts\clean.ps1" -All 2>$null
 & "$rootDir\scripts\build.ps1" -Release -Clean -Restore
 
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "ERROR: Build failed!" -ForegroundColor Red
+    exit 1
+}
+
 Write-Host ""
 Write-Host "[Publish] Creating portable build..." -ForegroundColor Yellow
 & "$rootDir\scripts\publish.ps1"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "ERROR: Publish failed!" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
