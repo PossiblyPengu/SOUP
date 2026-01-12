@@ -32,6 +32,11 @@ public partial class App : Application
     /// </summary>
     public static bool IsUpdating { get; set; }
 
+    /// <summary>
+    /// Gets a service from the dependency injection container.
+    /// </summary>
+    public T? GetService<T>() where T : class => _host?.Services?.GetService(typeof(T)) as T;
+
     public App()
     {
         // Configure Serilog
@@ -230,13 +235,19 @@ public partial class App : Application
 
         // Services - Navigation
         services.AddSingleton<NavOrderService>();
+        
+        // Services - App Lifecycle
+        if (moduleConfig.OrderLogEnabled)
+        {
+            services.AddSingleton<WidgetProcessService>();
+        }
+        services.AddSingleton<AppLifecycleService>();
 
         // Windows
         services.AddSingleton<MainWindow>();
         if (moduleConfig.OrderLogEnabled)
         {
             services.AddTransient<Windows.OrderLogWidgetWindow>();
-            services.AddSingleton<WidgetProcessService>(); // Widget always runs as separate process
         }
     }
 
@@ -326,33 +337,25 @@ public partial class App : Application
             // Load application settings for startup behavior
             var settingsService = _host.Services.GetRequiredService<Infrastructure.Services.SettingsService>();
             var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
+            var lifecycleService = _host.Services.GetRequiredService<AppLifecycleService>();
 
-            // Check for command-line arguments to launch specific windows
-            var hasWidgetArg = e.Args.Any(arg => arg.Equals("--widget", StringComparison.OrdinalIgnoreCase));
-            var hasNoWidgetArg = e.Args.Any(arg => arg.Equals("--no-widget", StringComparison.OrdinalIgnoreCase));
-            
-            if (hasWidgetArg)
+            // Check command-line arguments
+            if (AppLifecycleService.IsWidgetProcess)
             {
+                // Running as separate widget process (--widget flag)
                 if (moduleConfig.OrderLogEnabled)
                 {
-                    // Load themes into Application resources (widget process runs standalone)
-                    var themeService = _host.Services.GetRequiredService<ThemeService>();
-                    themeService.Initialize();
-                    
-                    // Launch widget window directly on main thread
                     var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
                     var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
                     
-                    // When widget closes, shut down the app
                     widgetWindow.Closed += (s, args) =>
                     {
-                        Log.Information("Widget closed, shutting down application");
+                        Log.Information("Widget closed, shutting down");
                         Shutdown();
                     };
                     
                     widgetWindow.Show();
-                    
-                    Log.Information("Running in widget-only mode (command line) - separate process");
+                    Log.Information("Running in widget-only mode (--widget flag)");
                 }
                 else
                 {
@@ -363,38 +366,39 @@ public partial class App : Application
             }
             else
             {
-                // No --widget arg - use settings to determine startup behavior
+                // Normal startup (no --widget flag)
                 var widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
-                // Skip auto-launching widget if --no-widget flag is present (opened from widget)
-                var launchWidget = !hasNoWidgetArg && appSettings.LaunchWidgetOnStartup && moduleConfig.OrderLogEnabled;
-                
+                var launchWidget = !AppLifecycleService.HasNoWidgetFlag && 
+                                   appSettings.LaunchWidgetOnStartup && 
+                                   moduleConfig.OrderLogEnabled;
+
                 if (widgetOnlyMode)
                 {
-                    // Widget-only mode: launch widget as separate process, skip main window
-                    var widgetProcessService = _host.Services.GetRequiredService<WidgetProcessService>();
-                    
-                    // When widget process closes in widget-only mode, shut down the main app
-                    widgetProcessService.WidgetClosed += () =>
+                    // Widget-only mode
+                    var widgetProcessService = _host.Services.GetService<WidgetProcessService>();
+                    if (widgetProcessService != null)
                     {
-                        Log.Information("Widget closed in widget-only mode, shutting down application");
-                        Dispatcher.Invoke(() => Shutdown());
-                    };
-                    
-                    widgetProcessService.ShowWidget();
-                    Log.Information("Running in widget-only mode (settings) - widget is separate process");
+                        widgetProcessService.WidgetClosed += () =>
+                        {
+                            Log.Information("Widget closed in widget-only mode, shutting down");
+                            Dispatcher.Invoke(() => Shutdown());
+                        };
+                        widgetProcessService.ShowWidget();
+                    }
+                    Log.Information("Running in widget-only mode (settings)");
                 }
                 else
                 {
-                    // Normal startup - show main window
+                    // Normal mode - show main window
                     var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                     mainWindow.Show();
                     
-                    // Also launch widget as separate process if configured
+                    // Launch widget if configured
                     if (launchWidget)
                     {
                         var widgetProcessService = _host.Services.GetService<WidgetProcessService>();
                         widgetProcessService?.ShowWidget();
-                        Log.Information("Widget launched on startup as separate process (settings)");
+                        Log.Information("Widget launched on startup");
                     }
                 }
             }

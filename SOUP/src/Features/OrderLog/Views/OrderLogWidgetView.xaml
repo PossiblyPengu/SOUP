@@ -66,7 +66,7 @@
 
         <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Width="280" Margin="6" Padding="16,12">
+            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="0,0,0,16" Padding="16,12">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Set Status">

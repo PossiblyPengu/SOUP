@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.17.10";
+    public const string Version = "4.17.11";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.17.11", "2026-01-12", "Release Update", new[]
+        {
+            "Add AppLifecycleService for centralized application lifecycle management"
+        }),
         new("4.17.9", "2026-01-12", "Release Update", new[]
         {
             "Increase timeout for application closure and improve process termination handling in updater script"

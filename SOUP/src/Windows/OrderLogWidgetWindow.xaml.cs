@@ -743,96 +743,14 @@ public partial class OrderLogWidgetWindow : Window
     {
         try
         {
-            if (_isRunningOnSeparateThread)
-            {
-                // Running on separate thread within same process - use dispatcher
-                Application.Current?.Dispatcher?.Invoke(() =>
-                {
-                    var mainWindow = Application.Current?.Windows
-                        .OfType<MainWindow>()
-                        .FirstOrDefault();
-
-                    if (mainWindow != null)
-                    {
-                        mainWindow.Show();
-                        mainWindow.WindowState = WindowState.Normal;
-                        mainWindow.Activate();
-                    }
-                });
-            }
-            else
-            {
-                // Running as separate process (--widget mode) - launch main app
-                var exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
-                if (!string.IsNullOrEmpty(exePath))
-                {
-                    // Check if main app is already running (look for SOUP process without --widget)
-                    var currentPid = Environment.ProcessId;
-                    var soupProcesses = Process.GetProcessesByName("SOUP")
-                        .Where(p => p.Id != currentPid)
-                        .ToList();
-                    
-                    bool mainAppFound = false;
-                    
-                    if (soupProcesses.Count != 0)
-                    {
-                        // Check if any process has a visible main window
-                        foreach (var mainProcess in soupProcesses)
-                        {
-                            try
-                            {
-                                var handle = mainProcess.MainWindowHandle;
-                                if (handle != IntPtr.Zero)
-                                {
-                                    // Activate existing main window
-                                    ShowWindow(handle, SW_RESTORE);
-                                    SetForegroundWindow(handle);
-                                    mainAppFound = true;
-                                    break;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Warning(ex, "Failed to activate process {ProcessId}", mainProcess.Id);
-                            }
-                            finally
-                            {
-                                mainProcess.Dispose();
-                            }
-                        }
-                        
-                        // Clean up any remaining process handles
-                        foreach (var p in soupProcesses)
-                        {
-                            p.Dispose();
-                        }
-                    }
-                    
-                    // If no main window found, launch new instance
-                    if (!mainAppFound)
-                    {
-                        // Launch new main app instance with --no-widget flag to prevent duplicate widget
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = exePath,
-                            Arguments = "--no-widget",
-                            UseShellExecute = false
-                        });
-                    }
-                }
-            }
+            var lifecycleService = ((App)Application.Current)?.GetService<AppLifecycleService>();
+            lifecycleService?.OpenMainWindow();
         }
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "Failed to open launcher from widget");
         }
     }
-    
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     private const int SW_RESTORE = 9;
     
@@ -896,39 +814,17 @@ public partial class OrderLogWidgetWindow : Window
                 // Give the updater script time to start
                 await System.Threading.Tasks.Task.Delay(1000);
                 
-                // Kill all OTHER SOUP processes first (main app if running)
-                try
+                // Get lifecycle service to force close all processes
+                var lifecycleService = ((App)Application.Current)?.GetService<AppLifecycleService>();
+                if (lifecycleService != null)
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-                    var allSoupProcesses = System.Diagnostics.Process.GetProcessesByName("SOUP");
-                    
-                    foreach (var process in allSoupProcesses)
-                    {
-                        if (process.Id != currentProcess.Id)
-                        {
-                            try
-                            {
-                                Log.Information("Killing SOUP process {ProcessId} for update", process.Id);
-                                process.Kill();
-                                process.WaitForExit(2000); // Wait up to 2 seconds for process to exit
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Warning(ex, "Failed to kill process {ProcessId}", process.Id);
-                            }
-                        }
-                        process.Dispose();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Error killing SOUP processes");
+                    await lifecycleService.ForceCloseAllProcessesAsync();
                 }
                 
                 // Give processes time to fully terminate
                 await System.Threading.Tasks.Task.Delay(500);
                 
-                // Shutdown this process gracefully if possible, then force exit
+                // Shutdown this process gracefully, then force exit
                 await Dispatcher.InvokeAsync(() =>
                 {
                     try
