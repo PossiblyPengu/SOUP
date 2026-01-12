@@ -32,11 +32,6 @@ public partial class App : Application
     /// </summary>
     public static bool IsUpdating { get; set; }
 
-    /// <summary>
-    /// Gets a service from the dependency injection container.
-    /// </summary>
-    public T? GetService<T>() where T : class => _host?.Services?.GetService(typeof(T)) as T;
-
     public App()
     {
         // Configure Serilog
