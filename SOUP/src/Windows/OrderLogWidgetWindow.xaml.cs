@@ -346,6 +346,10 @@ public partial class OrderLogWidgetWindow : Window
             
             if (!mainWindowVisible)
             {
+                // Dispose tray icon before shutdown since both windows are closed
+                var trayService = _serviceProvider.GetService<TrayIconService>();
+                trayService?.Dispose();
+                
                 Application.Current?.Shutdown();
             }
         }

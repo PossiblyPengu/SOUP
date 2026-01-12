@@ -222,6 +222,13 @@ public partial class MainWindow : Window
                     System.Windows.Forms.ToolTipIcon.Info,
                     2000);
             }
+            
+            // If widget is not open and we're hiding, we should dispose tray if ShowTrayIcon is false
+            // This handles the case where user disabled tray icon in settings
+            if (!widgetOpen && _trayIconService?.ShowTrayIcon == false)
+            {
+                _trayIconService?.Dispose();
+            }
         }
         else
         {

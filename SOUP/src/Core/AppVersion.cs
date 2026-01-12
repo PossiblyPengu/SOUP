@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.17.4";
+    public const string Version = "4.17.5";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.17.5", "2026-01-12", "Release Update", new[]
+        {
+            "Dispose tray icon service when hiding widget and before application shutdown"
+        }),
         new("4.17.4", "2026-01-12", "Release Update", new[]
         {
             "Add Basic Windows theme and update theme application logic"
