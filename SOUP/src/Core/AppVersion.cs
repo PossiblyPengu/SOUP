@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.18.4";
+    public const string Version = "4.19.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.19.0", "2026-01-12", "Release Update", new[]
+        {
+            "Add VendorNameGroupComparerConverter and update OrderLogWidgetView for visibility binding"
+        }),
         new("4.18.4", "2026-01-12", "Release Update", new[]
         {
             "Improve album art handling and add follow-up polling after media key actions"

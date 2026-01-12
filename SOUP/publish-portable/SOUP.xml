@@ -1937,6 +1937,14 @@
             Uses cached brushes that match the theme colors for card backgrounds.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.VendorNameGroupComparerConverter">
+            <summary>
+            Compares a member's VendorName with the group's first VendorName and
+            returns Visibility.Collapsed when they are equal or the member name
+            is empty; otherwise returns Visibility.Visible.
+            Used to avoid repeating the same vendor name inside merged cards.
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Helpers.TextFormattingHelper">
             <summary>
             Helper class for text formatting operations on note content TextBoxes.

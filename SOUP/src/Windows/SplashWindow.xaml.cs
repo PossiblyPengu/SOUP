@@ -15,6 +15,8 @@ public partial class SplashWindow : Window
     private Storyboard? _fadeOutAnimation;
     private Storyboard? _logoAnimation;
     private Storyboard? _progressAnimation;
+    private DateTime _shownAt;
+    private const int MinDisplayMilliseconds = 5000; // ensure splash is visible at least this long
 
     public SplashWindow()
     {
@@ -23,7 +25,11 @@ public partial class SplashWindow : Window
         // Set version text
         VersionText.Text = $"v{Core.AppVersion.Version}";
         
-        Loaded += (s, e) => StartAnimations();
+        Loaded += (s, e) =>
+        {
+            _shownAt = DateTime.UtcNow;
+            StartAnimations();
+        };
     }
 
     private void StartAnimations()
@@ -65,7 +71,13 @@ public partial class SplashWindow : Window
             _logoAnimation?.Stop(this);
             
             _fadeOutAnimation = Resources["FadeOutAnimation"] as Storyboard;
-            
+            // Ensure minimum display time so the splash is visible even on fast startups
+            var elapsed = (DateTime.UtcNow - _shownAt).TotalMilliseconds;
+            if (elapsed < MinDisplayMilliseconds)
+            {
+                await Task.Delay(MinDisplayMilliseconds - (int)elapsed);
+            }
+
             if (_fadeOutAnimation != null)
             {
                 _fadeOutAnimation.Completed += (s, e) =>

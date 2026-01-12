@@ -28,6 +28,7 @@
         <converters:ShowForNotesConverter x:Key="ShowForNotesConverter"/>
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
+        <converters:VendorNameGroupComparerConverter x:Key="VendorNameGroupComparer"/>
         
         <!-- Small Copy Button Style -->
         <Style x:Key="FieldCopyButtonStyle" TargetType="Button">
@@ -539,7 +540,8 @@
                                             <TextBlock Grid.Column="0" Text="{Binding VendorName, TargetNullValue='Order'}"
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                                       Visibility="{Binding DataContext.IsGroup, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBoolToVis}}"/>
 
                                             <!-- Drag Handle (unified style) -->
                                             <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" HorizontalAlignment="Right"/>
