@@ -250,10 +250,14 @@ public partial class App : Application
     {
         try
         {
-            // Show splash screen immediately
-            var splash = new Windows.SplashWindow();
-            splash.Show();
-            splash.SetStatus("Initializing services...");
+            // Show splash screen immediately for main app only (not for widget process)
+            Windows.SplashWindow? splash = null;
+            if (!AppLifecycleService.IsWidgetProcess)
+            {
+                splash = new Windows.SplashWindow();
+                splash.Show();
+                splash.SetStatus("Initializing services...");
+            }
             
             await _host.StartAsync();
 
@@ -262,7 +266,7 @@ public partial class App : Application
             {
                 var themeService = _host.Services.GetRequiredService<ThemeService>();
                 themeService.Initialize();
-                splash.SetStatus("Applying theme...");
+                splash?.SetStatus("Applying theme...");
                 Log.Information("Theme initialized: {Theme}", themeService.IsDarkMode ? "Dark" : "Light");
             });
 
@@ -271,7 +275,7 @@ public partial class App : Application
             {
                 var trayService = _host.Services.GetRequiredService<TrayIconService>();
                 trayService.Initialize();
-                splash.SetStatus("Initializing UI...");
+                splash?.SetStatus("Initializing UI...");
                 Log.Information("Tray icon initialized");
             });
 
@@ -281,7 +285,7 @@ public partial class App : Application
                 var dictDb = DictionaryDbContext.Instance;
                 var itemCount = dictDb.GetItemCount();
                 var storeCount = dictDb.GetStoreCount();
-                splash.SetStatus("Loading dictionaries...");
+                splash?.SetStatus("Loading dictionaries...");
                 Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
                 
                 if (itemCount == 0)
@@ -303,7 +307,7 @@ public partial class App : Application
                     var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
                     if (essentialsViewModel != null)
                     {
-                        splash.SetStatus("Loading EssentialsBuddy...");
+                        splash?.SetStatus("Loading EssentialsBuddy...");
                         await essentialsViewModel.LoadPersistedDataAsync();
                         Log.Information("EssentialsBuddy data loaded");
                     }
@@ -314,7 +318,7 @@ public partial class App : Application
                     var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
                     if (expireWiseViewModel != null)
                     {
-                        splash.SetStatus("Loading ExpireWise...");
+                        splash?.SetStatus("Loading ExpireWise...");
                         await expireWiseViewModel.LoadPersistedDataAsync();
                         Log.Information("ExpireWise data loaded");
                     }
@@ -326,7 +330,7 @@ public partial class App : Application
                     var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
                     if (allocationViewModel != null)
                     {
-                        splash.SetStatus("Loading AllocationBuddy...");
+                        splash?.SetStatus("Loading AllocationBuddy...");
                         await allocationViewModel.LoadMostRecentArchiveAsync();
                         Log.Information("AllocationBuddy data loaded");
                     }
@@ -344,7 +348,7 @@ public partial class App : Application
             var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
             var lifecycleService = _host.Services.GetRequiredService<AppLifecycleService>();
 
-            splash.SetStatus("Starting application...");
+            splash?.SetStatus("Starting application...");
 
             // Check command-line arguments
             if (AppLifecycleService.IsWidgetProcess)
@@ -410,8 +414,11 @@ public partial class App : Application
                 }
             }
             
-            // Close splash screen with animation
-            await splash.CloseAsync();
+            // Close splash screen with animation (only if shown)
+            if (splash != null)
+            {
+                await splash.CloseAsync();
+            }
 
             base.OnStartup(e);
         }
