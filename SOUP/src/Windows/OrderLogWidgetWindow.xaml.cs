@@ -337,7 +337,85 @@ public partial class OrderLogWidgetWindow : Window
             return;
         }
         
-        // Legacy: Check if MainWindow is visible - if not, shut down the app
+        // Check if we're running as a separate process (launched with --widget)
+        var isWidgetProcess = Environment.GetCommandLineArgs().Any(arg => 
+            arg.Equals("--widget", StringComparison.OrdinalIgnoreCase));
+        
+        if (isWidgetProcess)
+        {
+            // We're a separate widget process - check if main app is still running
+            try
+            {
+                var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                var allSoupProcesses = System.Diagnostics.Process.GetProcessesByName("SOUP");
+                var otherProcesses = allSoupProcesses.Where(p => p.Id != currentProcess.Id).ToList();
+                
+                // If there are other SOUP processes, check if any have visible windows
+                bool mainAppVisible = false;
+                foreach (var process in otherProcesses)
+                {
+                    try
+                    {
+                        // If the process has a main window that's visible, the main app is running
+                        if (process.MainWindowHandle != IntPtr.Zero)
+                        {
+                            mainAppVisible = true;
+                            break;
+                        }
+                    }
+                    catch { }
+                    finally
+                    {
+                        process.Dispose();
+                    }
+                }
+                
+                // If no main app window is visible, kill all other SOUP processes
+                if (!mainAppVisible && otherProcesses.Count > 0)
+                {
+                    Log.Information("Widget closing and main window not visible, terminating all SOUP processes");
+                    foreach (var process in allSoupProcesses)
+                    {
+                        if (process.Id != currentProcess.Id)
+                        {
+                            try
+                            {
+                                process.Kill();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, "Failed to kill process {ProcessId}", process.Id);
+                            }
+                        }
+                        process.Dispose();
+                    }
+                }
+                else
+                {
+                    // Clean up disposed processes
+                    foreach (var p in allSoupProcesses)
+                    {
+                        p.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error checking for other SOUP processes");
+            }
+            
+            // Dispose tray icon if we're the last one
+            try
+            {
+                var trayService = _serviceProvider.GetService<TrayIconService>();
+                trayService?.Dispose();
+            }
+            catch { }
+            
+            return;
+        }
+        
+        // Legacy: Same-process mode - check if MainWindow is visible
         try
         {
             var mainWindowVisible = Application.Current?.Windows
