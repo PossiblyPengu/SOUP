@@ -3471,6 +3471,11 @@
             and global media keys for control.
             </summary>
         </member>
+        <member name="M:SOUP.Services.SpotifyService.RetryFetchAlbumArtAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retry loop to fetch album art for a specific track key. Cancels if the track changes.
+            </summary>
+        </member>
         <member name="T:SOUP.Services.ThemeService">
             <summary>
             Service for managing application theme (light/dark mode) in WPF.

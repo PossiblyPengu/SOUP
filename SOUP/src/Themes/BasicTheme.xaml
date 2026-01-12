@@ -84,6 +84,55 @@
     <CornerRadius x:Key="TitleBarCornerRadius">0,0,0,0</CornerRadius>
     <CornerRadius x:Key="SidebarCornerRadius">0</CornerRadius>
     
+    <!-- Additional common tokens used across the app -->
+    <sys:Double x:Key="CardFontSize">12</sys:Double>
+    <sys:Double x:Key="SmallFontSize">11</sys:Double>
+
+    <!-- Overlay / popup brushes -->
+    <SolidColorBrush x:Key="OverlayMediumBrush" Color="#AA000000"/>
+    <SolidColorBrush x:Key="TextOnOverlayBrush" Color="White"/>
+    <SolidColorBrush x:Key="TextOnOverlayDimBrush" Color="#CCFFFFFF"/>
+
+    <!-- Border variants -->
+    <SolidColorBrush x:Key="BorderLightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="BorderDarkBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
+
+    <!-- Dialog / Title gradients and shadows -->
+    <LinearGradientBrush x:Key="DialogTitleBarGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{Binding Source={StaticResource TitleBarBackgroundBrush}, Path=Color}" Offset="0"/>
+        <GradientStop Color="{x:Static SystemColors.ActiveCaptionColor}" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="DialogTitleBarShadowColor">#40000000</Color>
+
+    <!-- Section / heading brushes -->
+    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
+
+    <!-- Window corner radius fallback -->
+    <CornerRadius x:Key="WindowCornerRadius">0</CornerRadius>
+
+    <!-- Danger / Warning dark variants -->
+    <SolidColorBrush x:Key="DangerDarkBrush" Color="#b02a37"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="#e0a800"/>
+    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#f8d7da"/>
+
+    <!-- Elevated widget/card style used by widgets — basic fallback -->
+    <Style x:Key="WidgetElevatedCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <!-- Ghost / subtle button style -->
+    <Style x:Key="GhostButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="6,4"/>
+    </Style>
+    
     <!-- Basic Styles - Use default Windows styles -->
     <Style x:Key="ModernButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>

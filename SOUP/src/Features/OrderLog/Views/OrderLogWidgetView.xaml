@@ -67,7 +67,7 @@
 
         <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="0,0,0,16" Padding="16,12">
+            <Border Style="{StaticResource WidgetElevatedCardStyle}" Margin="6" >
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Set Status">
@@ -88,15 +88,15 @@
 
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Cursor="Hand" MouseLeftButtonDown="ColorBar_Click" Height="{StaticResource CardColorBarHeight}" Margin="-16,-12,-16,0"
-                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                    <Border Grid.Row="0" Height="{StaticResource CardColorBarHeight}" CornerRadius="8,8,0,0"
+                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}" MouseLeftButtonDown="ColorBar_Click"/>
 
-                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="-16,0,-16,0" MinHeight="36" Panel.ZIndex="50">
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10" Margin="0" MinHeight="36" Panel.ZIndex="50">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -172,7 +172,7 @@
                         </Grid>
                     </Border>
 
-                    <StackPanel Grid.Row="2" Margin="14,10">
+                    <StackPanel Grid.Row="2" Margin="16,12">
                         <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>

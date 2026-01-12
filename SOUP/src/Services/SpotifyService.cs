@@ -41,6 +41,7 @@ public class SpotifyService : INotifyPropertyChanged
     private readonly System.Timers.Timer _pollTimer;
     private DateTime _lastUserAction = DateTime.MinValue;
     private const int UserActionCooldownMs = 3000;
+    private System.Threading.CancellationTokenSource? _artRetryCts;
     
     private GlobalSystemMediaTransportControlsSessionManager? _sessionManager;
     private GlobalSystemMediaTransportControlsSession? _currentSession;
@@ -261,12 +262,20 @@ public class SpotifyService : INotifyPropertyChanged
                     // AlbumArt until a new one can be fetched on subsequent polls.
                     if (albumArt != null)
                     {
+                        // Cancel any pending retry for album art when we successfully fetch it
+                        try { _artRetryCts?.Cancel(); } catch { }
                         AlbumArt = albumArt;
                     }
                     else if (trackChanged)
                     {
-                        // Log for diagnostics but do not clear the previous art.
-                        Log.Debug("Album art not available yet for track {Track}; keeping existing art.", title);
+                        // New track started but thumbnail not available yet.
+                        // Clear the previous art so UI reflects the change and start retries
+                        AlbumArt = null;
+
+                        // Cancel any previous retry loop and start a new one for this track
+                        try { _artRetryCts?.Cancel(); } catch { }
+                        _artRetryCts = new System.Threading.CancellationTokenSource();
+                        _ = RetryFetchAlbumArtAsync(currentTrackKey, _artRetryCts.Token);
                     }
                 }
                 else
@@ -355,6 +364,70 @@ public class SpotifyService : INotifyPropertyChanged
         catch (Exception ex)
         {
             Log.Debug(ex, "Post-user-action media poll failed");
+        }
+    }
+
+    /// <summary>
+    /// Retry loop to fetch album art for a specific track key. Cancels if the track changes.
+    /// </summary>
+    private async Task RetryFetchAlbumArtAsync(string expectedTrackKey, System.Threading.CancellationToken token)
+    {
+        try
+        {
+            // Retry schedule in ms
+            var delays = new[] { 300, 700, 1200, 2000, 3000 };
+
+            foreach (var d in delays)
+            {
+                if (token.IsCancellationRequested) return;
+                await Task.Delay(d, token);
+
+                if (token.IsCancellationRequested) return;
+
+                try
+                {
+                    if (_currentSession == null) continue;
+                    var mediaProps = await _currentSession.TryGetMediaPropertiesAsync();
+                    var title = mediaProps?.Title ?? "";
+                    var artist = mediaProps?.Artist ?? "";
+                    var key = $"{title}|{artist}";
+
+                    // If the session moved on, stop
+                    if (!string.Equals(key, expectedTrackKey, StringComparison.Ordinal))
+                    {
+                        return;
+                    }
+
+                    if (mediaProps?.Thumbnail != null)
+                    {
+                        using var stream = await mediaProps.Thumbnail.OpenReadAsync();
+                        var img = await ConvertToBitmapImageAsync(stream);
+                        if (img != null)
+                        {
+                            try { _artRetryCts?.Cancel(); } catch { }
+                            System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => AlbumArt = img);
+                            return;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(ex, "RetryFetchAlbumArtAsync attempt failed");
+                }
+            }
+        }
+        finally
+        {
+            // allow cancellation token to be GC'd if it's the current one
+            if (_artRetryCts != null && _artRetryCts.IsCancellationRequested)
+            {
+                try { _artRetryCts.Dispose(); } catch { }
+                _artRetryCts = null;
+            }
         }
     }
 

@@ -431,6 +431,32 @@ public partial class App : Application
                             Dispatcher.Invoke(() => Shutdown());
                         };
                     }
+                    else if (widgetProcessService != null)
+                    {
+                        // When launched from the main app, ensure we handle widget close
+                        // so the app doesn't remain hidden in the tray when both
+                        // the widget and main window are closed.
+                        widgetProcessService.WidgetClosed += () =>
+                        {
+                            Log.Information("Widget closed (launched from main). Checking for visible windows...");
+                            Dispatcher.Invoke(() =>
+                            {
+                                try
+                                {
+                                    var anyVisible = Current?.Windows != null && System.Linq.Enumerable.Cast<System.Windows.Window>(Current.Windows).Any(w => w.IsVisible);
+                                    if (!anyVisible)
+                                    {
+                                        Log.Information("No visible windows remain after widget closed — shutting down");
+                                        Shutdown();
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Warning(ex, "Error while handling WidgetClosed event");
+                                }
+                            });
+                        };
+                    }
                     widgetProcessService?.ShowWidget();
                     if (launchWidget)
                     {
