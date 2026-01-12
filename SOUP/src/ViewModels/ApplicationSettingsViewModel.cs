@@ -23,6 +23,9 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDarkMode = true;
 
+    [ObservableProperty]
+    private bool _useBasicTheme = false;
+
     // ===== Startup =====
     
     [ObservableProperty]
@@ -111,6 +114,16 @@ public partial class ApplicationSettingsViewModel : ObservableObject
         if (!_isLoading)
         {
             _themeService.SetTheme(value);
+            _ = SaveSettingsAsync();
+        }
+    }
+
+    partial void OnUseBasicThemeChanged(bool value)
+    {
+        if (!_isLoading)
+        {
+            _themeService.UseBasicTheme = value;
+            _themeService.Initialize();
             _ = SaveSettingsAsync();
         }
     }
@@ -228,6 +241,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
             
             // Appearance
             IsDarkMode = settings.IsDarkMode;
+            UseBasicTheme = settings.UseBasicTheme;
             
             // Startup
             DefaultModule = settings.DefaultModule;
@@ -252,6 +266,11 @@ public partial class ApplicationSettingsViewModel : ObservableObject
             {
                 _themeService.SetTheme(IsDarkMode);
             }
+            if (_themeService.UseBasicTheme != UseBasicTheme)
+            {
+                _themeService.UseBasicTheme = UseBasicTheme;
+                _themeService.Initialize();
+            }
         }
         catch (Exception ex)
         {
@@ -272,6 +291,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
             {
                 // Appearance
                 IsDarkMode = IsDarkMode,
+                UseBasicTheme = UseBasicTheme,
                 
                 // Startup
                 DefaultModule = DefaultModule,
