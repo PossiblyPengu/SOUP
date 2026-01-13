@@ -26,7 +26,7 @@ namespace SOUP.Services;
 public class DialogService
 {
     // Windows DWM API for dark title bar
-    [DllImport("dwmapi.dll", PreserveSig = true)]
+    [DllImport("dwmapi.dll", PreserveSig = true, SetLastError = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
     private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
@@ -40,7 +40,18 @@ public class DialogService
 
         var hwnd = new WindowInteropHelper(window).EnsureHandle();
         int useImmersiveDarkMode = 1;
-        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useImmersiveDarkMode, sizeof(int));
+        try
+        {
+            var hr = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useImmersiveDarkMode, sizeof(int));
+            if (hr != 0)
+            {
+                Serilog.Log.Debug("DwmSetWindowAttribute failed (hr={Hr}) when applying dark title bar", hr);
+            }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Debug(ex, "Exception calling DwmSetWindowAttribute");
+        }
     }
 
     /// <summary>

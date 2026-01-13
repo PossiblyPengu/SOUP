@@ -22,7 +22,7 @@ public class SpotifyService : INotifyPropertyChanged
     public static SpotifyService Instance => _instance ??= new SpotifyService();
 
     // Windows API for sending key events
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
     // Virtual key codes for media keys

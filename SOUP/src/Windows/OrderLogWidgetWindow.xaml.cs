@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SOUP.Features.OrderLog.ViewModels;
 using SOUP.Services;
+using SOUP.Helpers;
 
 namespace SOUP.Windows;
 
@@ -41,20 +42,16 @@ public partial class OrderLogWidgetWindow : Window
 
     #region Windows API Imports
 
-    [DllImport("shell32.dll", CallingConvention = CallingConvention.StdCall)]
+    [DllImport("shell32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
     private static extern uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     private static extern int RegisterWindowMessage(string msg);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    // Use pointer-size safe wrappers in NativeMethods
 
     private const int GWL_EXSTYLE = -20;
     private const int WS_EX_NOACTIVATE = 0x08000000;
@@ -136,8 +133,8 @@ public partial class OrderLogWidgetWindow : Window
 
         // Make the widget window not participate in modal dialog blocking
         // WS_EX_TOOLWINDOW prevents it from being disabled when modal dialogs open
-        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();
+        NativeMethods.SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(exStyle | WS_EX_TOOLWINDOW));
 
         // Register callback message
         _appBarCallbackId = RegisterWindowMessage("OrderLogAppBarCallback");

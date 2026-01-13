@@ -22,10 +22,10 @@ public partial class MainWindow : Window
 
     #region Win32 Interop for WorkArea-aware maximize
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
     private const uint MONITOR_DEFAULTTONEAREST = 2;

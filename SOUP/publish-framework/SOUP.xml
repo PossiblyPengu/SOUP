@@ -3048,16 +3048,6 @@
             Creates a new BusinessCentralService with a pre-configured HttpClient (for DI)
             </summary>
         </member>
-        <member name="M:SOUP.Services.External.BusinessCentralService.#ctor(Microsoft.Extensions.Logging.ILogger{SOUP.Services.External.BusinessCentralService})">
-            <summary>
-            Creates a new BusinessCentralService (legacy constructor for backwards compatibility)
-            </summary>
-        </member>
-        <member name="M:SOUP.Services.External.BusinessCentralService.CreateConfiguredHttpClient">
-            <summary>
-            Creates a properly configured HttpClient
-            </summary>
-        </member>
         <member name="M:SOUP.Services.External.BusinessCentralService.TestConnectionAsync(SOUP.Services.External.ExternalConnectionConfig)">
             <summary>
             Test connection and authentication to Business Central

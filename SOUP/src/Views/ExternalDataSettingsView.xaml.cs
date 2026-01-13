@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Security;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,36 @@ public partial class ExternalDataSettingsView : UserControl
 
         // Check if already running as admin - auto-unlock
         CheckInitialAdminState();
+    }
+
+    private void MySqlPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is ExternalDataViewModel vm && sender is PasswordBox pb)
+        {
+            try
+            {
+                vm.Config.MySqlPassword = pb.Password;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Failed to set MySQL password from PasswordBox");
+            }
+        }
+    }
+
+    private void BcClientSecretBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is ExternalDataViewModel vm && sender is PasswordBox pb)
+        {
+            try
+            {
+                vm.Config.BcClientSecret = pb.Password;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Failed to set BC client secret from PasswordBox");
+            }
+        }
     }
 
     private void CheckInitialAdminState()
@@ -88,23 +119,13 @@ public partial class ExternalDataSettingsView : UserControl
             {
                 // Prompt for admin credentials using Windows Credential UI
                 var credResult = PromptForWindowsCredentials();
-                if (!credResult.Success)
+                if (credResult.Cancelled)
                 {
                     Serilog.Log.Information("User cancelled admin credential prompt");
                     return false;
                 }
 
-                // Validate credentials belong to an admin
-                bool isAdmin = ValidateAdminCredentials(credResult.Username, credResult.Password, credResult.Domain);
-
-                // Clear password from memory
-                credResult.Password = null;
-
-                if (isAdmin)
-                {
-                    Serilog.Log.Information("Admin credentials validated successfully for External Data access");
-                }
-                else
+                if (!credResult.Success)
                 {
                     Serilog.Log.Warning("Provided credentials are not for an administrator account");
                     Dispatcher.Invoke(() => MessageBox.Show(
@@ -113,9 +134,11 @@ public partial class ExternalDataSettingsView : UserControl
                         "Access Denied",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning));
+                    return false;
                 }
 
-                return isAdmin;
+                Serilog.Log.Information("Admin credentials validated successfully for External Data access");
+                return true;
             }
             catch (Exception ex)
             {
@@ -170,8 +193,8 @@ public partial class ExternalDataSettingsView : UserControl
     {
         public bool Success { get; set; }
         public string? Username { get; set; }
-        public string? Password { get; set; }
         public string? Domain { get; set; }
+        public bool Cancelled { get; set; }
     }
 
     private CredentialResult PromptForWindowsCredentials()
@@ -202,7 +225,9 @@ public partial class ExternalDataSettingsView : UserControl
 
         if (credResult != 0)
         {
-            return result; // User cancelled or error
+            // User cancelled or error
+            result.Cancelled = true;
+            return result;
         }
 
         var usernameBuf = new System.Text.StringBuilder(256);
@@ -210,33 +235,59 @@ public partial class ExternalDataSettingsView : UserControl
         var passwordBuf = new System.Text.StringBuilder(256);
         uint usernameLen = 256, domainLen = 256, passwordLen = 256;
 
-        if (CredUnPackAuthenticationBuffer(0, outCredBuffer, outCredSize,
-            usernameBuf, ref usernameLen,
-            domainBuf, ref domainLen,
-            passwordBuf, ref passwordLen))
+        try
         {
-            result.Success = true;
-            result.Username = usernameBuf.ToString();
-            result.Domain = domainBuf.ToString();
-            result.Password = passwordBuf.ToString();
+            if (CredUnPackAuthenticationBuffer(0, outCredBuffer, outCredSize,
+                usernameBuf, ref usernameLen,
+                domainBuf, ref domainLen,
+                passwordBuf, ref passwordLen))
+            {
+                var username = usernameBuf.ToString();
+                var domain = domainBuf.ToString();
+
+                var securePwd = new SecureString();
+                for (int i = 0; i < (int)passwordLen && i < passwordBuf.Length; i++)
+                {
+                    securePwd.AppendChar(passwordBuf[i]);
+                }
+                securePwd.MakeReadOnly();
+
+                bool isAdmin = ValidateAdminCredentialsSecure(username, securePwd, domain);
+                securePwd.Dispose();
+
+                if (isAdmin)
+                {
+                    result.Success = true;
+                    result.Username = username;
+                    result.Domain = domain;
+                }
+            }
+        }
+        finally
+        {
+            if (passwordBuf.Length > 0) passwordBuf.Clear();
+            if (usernameBuf.Length > 0) usernameBuf.Clear();
+            if (domainBuf.Length > 0) domainBuf.Clear();
+            CoTaskMemFree(outCredBuffer);
         }
 
-        CoTaskMemFree(outCredBuffer);
         return result;
     }
 
-    private bool ValidateAdminCredentials(string? username, string? password, string? domain)
+    private bool ValidateAdminCredentialsSecure(string username, SecureString password, string domain)
     {
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(username) || password == null || password.Length == 0)
             return false;
 
+        IntPtr passwordPtr = IntPtr.Zero;
         try
         {
-            // Use LogonUser to validate credentials
+            passwordPtr = Marshal.SecureStringToGlobalAllocUnicode(password);
+
             bool logonSuccess = LogonUser(
                 username,
                 string.IsNullOrEmpty(domain) ? "." : domain,
-                password,
+                passwordPtr,
                 LOGON32_LOGON_NETWORK,
                 LOGON32_PROVIDER_DEFAULT,
                 out IntPtr token);
@@ -249,7 +300,6 @@ public partial class ExternalDataSettingsView : UserControl
 
             try
             {
-                // Check if the user is in the Administrators group
                 using var identity = new WindowsIdentity(token);
                 var principal = new WindowsPrincipal(identity);
                 return principal.IsInRole(WindowsBuiltInRole.Administrator);
@@ -264,13 +314,18 @@ public partial class ExternalDataSettingsView : UserControl
             Serilog.Log.Error(ex, "Error validating admin credentials");
             return false;
         }
+        finally
+        {
+            if (passwordPtr != IntPtr.Zero)
+                Marshal.ZeroFreeGlobalAllocUnicode(passwordPtr);
+        }
     }
 
-    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "LogonUserW")]
     private static extern bool LogonUser(
         string lpszUsername,
         string lpszDomain,
-        string lpszPassword,
+        IntPtr lpszPassword,
         int dwLogonType,
         int dwLogonProvider,
         out IntPtr phToken);

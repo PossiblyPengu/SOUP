@@ -18,9 +18,11 @@ public class ExternalConnectionConfig
         "external_config.json"
     );
 
-    // In-memory (decrypted) values - not serialized
-    private string _mySqlPasswordDecrypted = "";
-    private string _bcClientSecretDecrypted = "";
+    // In-memory secure values - not serialized
+    [JsonIgnore]
+    private System.Security.SecureString? _mySqlPasswordSecure;
+    [JsonIgnore]
+    private System.Security.SecureString? _bcClientSecretSecure;
 
     #region MySQL Configuration
 
@@ -50,11 +52,32 @@ public class ExternalConnectionConfig
     [JsonIgnore]
     public string MySqlPassword
     {
-        get => _mySqlPasswordDecrypted;
+        get
+        {
+            if (_mySqlPasswordSecure == null) return string.Empty;
+            var ptr = IntPtr.Zero;
+            try
+            {
+                ptr = System.Runtime.InteropServices.Marshal.SecureStringToGlobalAllocUnicode(_mySqlPasswordSecure);
+                return System.Runtime.InteropServices.Marshal.PtrToStringUni(ptr) ?? string.Empty;
+            }
+            finally
+            {
+                if (ptr != IntPtr.Zero)
+                    System.Runtime.InteropServices.Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+            }
+        }
         set
         {
-            _mySqlPasswordDecrypted = value;
-            MySqlPasswordEncrypted = EncryptString(value);
+            // Store securely and update encrypted storage
+            _mySqlPasswordSecure = new System.Security.SecureString();
+            if (!string.IsNullOrEmpty(value))
+            {
+                foreach (var c in value)
+                    _mySqlPasswordSecure.AppendChar(c);
+                _mySqlPasswordSecure.MakeReadOnly();
+            }
+            MySqlPasswordEncrypted = EncryptString(value ?? string.Empty);
         }
     }
 
@@ -64,6 +87,32 @@ public class ExternalConnectionConfig
     public int MySqlPort { get; set; } = 3306;
 
     #endregion
+
+    private static System.Security.SecureString StringToSecureString(string? plain)
+    {
+        var ss = new System.Security.SecureString();
+        if (string.IsNullOrEmpty(plain)) return ss;
+        foreach (var c in plain)
+            ss.AppendChar(c);
+        ss.MakeReadOnly();
+        return ss;
+    }
+
+    private static string SecureStringToString(System.Security.SecureString? ss)
+    {
+        if (ss == null || ss.Length == 0) return string.Empty;
+        var ptr = IntPtr.Zero;
+        try
+        {
+            ptr = System.Runtime.InteropServices.Marshal.SecureStringToGlobalAllocUnicode(ss);
+            return System.Runtime.InteropServices.Marshal.PtrToStringUni(ptr) ?? string.Empty;
+        }
+        finally
+        {
+            if (ptr != IntPtr.Zero)
+                System.Runtime.InteropServices.Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+        }
+    }
 
     #region Business Central Configuration
 
@@ -88,11 +137,31 @@ public class ExternalConnectionConfig
     [JsonIgnore]
     public string BcClientSecret
     {
-        get => _bcClientSecretDecrypted;
+        get
+        {
+            if (_bcClientSecretSecure == null) return string.Empty;
+            var ptr = IntPtr.Zero;
+            try
+            {
+                ptr = System.Runtime.InteropServices.Marshal.SecureStringToGlobalAllocUnicode(_bcClientSecretSecure);
+                return System.Runtime.InteropServices.Marshal.PtrToStringUni(ptr) ?? string.Empty;
+            }
+            finally
+            {
+                if (ptr != IntPtr.Zero)
+                    System.Runtime.InteropServices.Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+            }
+        }
         set
         {
-            _bcClientSecretDecrypted = value;
-            BcClientSecretEncrypted = EncryptString(value);
+            _bcClientSecretSecure = new System.Security.SecureString();
+            if (!string.IsNullOrEmpty(value))
+            {
+                foreach (var c in value)
+                    _bcClientSecretSecure.AppendChar(c);
+                _bcClientSecretSecure.MakeReadOnly();
+            }
+            BcClientSecretEncrypted = EncryptString(value ?? string.Empty);
         }
     }
 
@@ -137,7 +206,8 @@ public class ExternalConnectionConfig
     /// </summary>
     public string GetMySqlConnectionString()
     {
-        return $"Server={MySqlServer};Port={MySqlPort};Database={MySqlDatabase};User={MySqlUser};Password={MySqlPassword};";
+        var pwd = MySqlPassword; // transient
+        return $"Server={MySqlServer};Port={MySqlPort};Database={MySqlDatabase};User={MySqlUser};Password={pwd};";
     }
 
     /// <summary>
@@ -214,9 +284,24 @@ public class ExternalConnectionConfig
                 var json = File.ReadAllText(ConfigPath);
                 var config = JsonSerializer.Deserialize<ExternalConnectionConfig>(json) ?? new();
 
-                // Decrypt sensitive fields after loading
-                config._mySqlPasswordDecrypted = DecryptString(config.MySqlPasswordEncrypted);
-                config._bcClientSecretDecrypted = DecryptString(config.BcClientSecretEncrypted);
+                // Decrypt sensitive fields into SecureString after loading (avoid long-lived plaintext)
+                var mypwd = DecryptString(config.MySqlPasswordEncrypted);
+                if (!string.IsNullOrEmpty(mypwd))
+                {
+                    config._mySqlPasswordSecure = new System.Security.SecureString();
+                    foreach (var c in mypwd)
+                        config._mySqlPasswordSecure.AppendChar(c);
+                    config._mySqlPasswordSecure.MakeReadOnly();
+                }
+
+                var bcsecret = DecryptString(config.BcClientSecretEncrypted);
+                if (!string.IsNullOrEmpty(bcsecret))
+                {
+                    config._bcClientSecretSecure = new System.Security.SecureString();
+                    foreach (var c in bcsecret)
+                        config._bcClientSecretSecure.AppendChar(c);
+                    config._bcClientSecretSecure.MakeReadOnly();
+                }
 
                 // Migration: if old plaintext fields exist, encrypt them
                 MigrateOldConfig(config, json);

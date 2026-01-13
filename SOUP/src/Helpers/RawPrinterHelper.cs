@@ -59,27 +59,68 @@ public static class RawPrinterHelper
 
         bool success = false;
 
-        if (OpenPrinter(printerName.Normalize(), out hPrinter, IntPtr.Zero))
+        if (string.IsNullOrWhiteSpace(printerName))
         {
-            if (StartDocPrinter(hPrinter, 1, di))
+            Serilog.Log.Warning("SendBytesToPrinter called with empty printer name");
+            return false;
+        }
+
+        if (bytes == null || bytes.Length == 0)
+        {
+            Serilog.Log.Warning("SendBytesToPrinter called with empty payload");
+            return false;
+        }
+
+        try
+        {
+            if (!OpenPrinter(printerName.Normalize(), out hPrinter, IntPtr.Zero))
             {
-                if (StartPagePrinter(hPrinter))
-                {
-                    IntPtr pUnmanagedBytes = Marshal.AllocCoTaskMem(bytes.Length);
-                    try
-                    {
-                        Marshal.Copy(bytes, 0, pUnmanagedBytes, bytes.Length);
-                        success = WritePrinter(hPrinter, pUnmanagedBytes, bytes.Length, out _);
-                    }
-                    finally
-                    {
-                        Marshal.FreeCoTaskMem(pUnmanagedBytes);
-                    }
-                    EndPagePrinter(hPrinter);
-                }
-                EndDocPrinter(hPrinter);
+                Serilog.Log.Warning("OpenPrinter failed for {Printer} (err={Err})", printerName, Marshal.GetLastWin32Error());
+                return false;
             }
-            ClosePrinter(hPrinter);
+
+            if (!StartDocPrinter(hPrinter, 1, di))
+            {
+                Serilog.Log.Warning("StartDocPrinter failed (err={Err})", Marshal.GetLastWin32Error());
+                return false;
+            }
+
+            if (!StartPagePrinter(hPrinter))
+            {
+                Serilog.Log.Warning("StartPagePrinter failed (err={Err})", Marshal.GetLastWin32Error());
+                EndDocPrinter(hPrinter);
+                return false;
+            }
+
+            IntPtr pUnmanagedBytes = Marshal.AllocCoTaskMem(bytes.Length);
+            try
+            {
+                Marshal.Copy(bytes, 0, pUnmanagedBytes, bytes.Length);
+                success = WritePrinter(hPrinter, pUnmanagedBytes, bytes.Length, out int written);
+                if (!success)
+                {
+                    Serilog.Log.Warning("WritePrinter failed (err={Err})", Marshal.GetLastWin32Error());
+                }
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(pUnmanagedBytes);
+            }
+
+            EndPagePrinter(hPrinter);
+            EndDocPrinter(hPrinter);
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Exception while sending bytes to printer {Printer}", printerName);
+            success = false;
+        }
+        finally
+        {
+            if (hPrinter != IntPtr.Zero)
+            {
+                ClosePrinter(hPrinter);
+            }
         }
 
         return success;

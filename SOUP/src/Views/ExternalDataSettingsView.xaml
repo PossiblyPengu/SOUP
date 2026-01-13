@@ -105,8 +105,8 @@
                         
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Password" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding Config.MySqlPassword, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ConfigTextBox}"/>
+                            <PasswordBox x:Name="MySqlPasswordBox" PasswordChanged="MySqlPasswordBox_PasswordChanged"
+                                         Style="{StaticResource ConfigPasswordBox}"/>
                         </StackPanel>
                     </Grid>
                     
@@ -164,8 +164,8 @@
                         
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Client Secret" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding Config.BcClientSecret, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ConfigTextBox}"/>
+                            <PasswordBox x:Name="BcClientSecretBox" PasswordChanged="BcClientSecretBox_PasswordChanged"
+                                         Style="{StaticResource ConfigPasswordBox}"/>
                         </StackPanel>
                     </Grid>
                     
