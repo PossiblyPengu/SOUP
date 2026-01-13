@@ -22,69 +22,69 @@ namespace SOUP.Services;
 public class ModuleConfiguration
 {
     private static readonly Lazy<ModuleConfiguration> _instance = new(() => new ModuleConfiguration());
-    
+
     /// <summary>
     /// Gets the singleton instance of the module configuration service.
     /// </summary>
     public static ModuleConfiguration Instance => _instance.Value;
-    
+
     /// <summary>
     /// Gets whether the AllocationBuddy module is enabled.
     /// </summary>
     public bool AllocationBuddyEnabled { get; private set; } = true;
-    
+
     /// <summary>
     /// Gets whether the EssentialsBuddy module is enabled.
     /// </summary>
     public bool EssentialsBuddyEnabled { get; private set; } = true;
-    
+
     /// <summary>
     /// Gets whether the ExpireWise module is enabled.
     /// </summary>
     public bool ExpireWiseEnabled { get; private set; } = true;
-    
+
     /// <summary>
     /// Gets whether the SwiftLabel module is enabled.
     /// </summary>
     public bool SwiftLabelEnabled { get; private set; } = true;
-    
+
     /// <summary>
     /// Gets whether the OrderLog module is enabled.
     /// </summary>
     public bool OrderLogEnabled { get; private set; } = true;
-    
+
     /// <summary>
     /// Gets whether Fun Stuff (Easter eggs) are enabled.
     /// </summary>
     public bool FunStuffEnabled { get; private set; } = true;
-    
+
     /// <summary>
     /// Gets the installed version from the configuration.
     /// </summary>
     public string? InstalledVersion { get; private set; }
-    
+
     /// <summary>
     /// Gets the installation date from the configuration.
     /// </summary>
     public string? InstallDate { get; private set; }
-    
+
     private readonly string _iniConfigPath;
     private readonly string _jsonConfigPath;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ModuleConfiguration"/> class.
     /// </summary>
     private ModuleConfiguration()
     {
         _iniConfigPath = Path.Combine(Core.AppPaths.AppData, "modules.ini");
-        
+
         // JSON config is in the app directory (created by installer)
         var appDir = AppDomain.CurrentDomain.BaseDirectory;
         _jsonConfigPath = Path.Combine(appDir, "module_config.json");
-        
+
         LoadConfiguration();
     }
-    
+
     /// <summary>
     /// Loads the configuration, preferring JSON format from installer.
     /// </summary>
@@ -103,7 +103,7 @@ public class ModuleConfiguration
                 Log.Warning(ex, "Failed to load JSON module configuration, trying INI format");
             }
         }
-        
+
         // Fall back to INI config
         if (File.Exists(_iniConfigPath))
         {
@@ -111,7 +111,7 @@ public class ModuleConfiguration
         }
         // else: No config file = all modules enabled (development mode)
     }
-    
+
     /// <summary>
     /// Loads configuration from JSON format (installer-created).
     /// </summary>
@@ -120,41 +120,41 @@ public class ModuleConfiguration
         var json = File.ReadAllText(_jsonConfigPath);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
-        
+
         if (root.TryGetProperty("version", out var versionProp))
         {
             InstalledVersion = versionProp.GetString();
         }
-        
+
         if (root.TryGetProperty("modules", out var modulesProp))
         {
             if (modulesProp.TryGetProperty("allocationBuddy", out var ab))
                 AllocationBuddyEnabled = ab.GetBoolean();
-                
+
             if (modulesProp.TryGetProperty("essentialsBuddy", out var eb))
                 EssentialsBuddyEnabled = eb.GetBoolean();
-                
+
             if (modulesProp.TryGetProperty("expireWise", out var ew))
                 ExpireWiseEnabled = ew.GetBoolean();
-                
+
             if (modulesProp.TryGetProperty("swiftLabel", out var sl))
                 SwiftLabelEnabled = sl.GetBoolean();
-                
+
             if (modulesProp.TryGetProperty("orderLog", out var ol))
                 OrderLogEnabled = ol.GetBoolean();
-                
+
             // Check both old and new key names for Easter egg
             if (modulesProp.TryGetProperty("sapNukem", out var sn))
                 FunStuffEnabled = sn.GetBoolean();
             else if (modulesProp.TryGetProperty("funStuff", out var fs))
                 FunStuffEnabled = fs.GetBoolean();
         }
-        
+
         Log.Information("Loaded module config (JSON): AB={AB}, EB={EB}, EW={EW}, SL={SL}, OL={OL}, Fun={Fun}",
-            AllocationBuddyEnabled, EssentialsBuddyEnabled, ExpireWiseEnabled, 
+            AllocationBuddyEnabled, EssentialsBuddyEnabled, ExpireWiseEnabled,
             SwiftLabelEnabled, OrderLogEnabled, FunStuffEnabled);
     }
-    
+
     /// <summary>
     /// Loads the configuration from INI format (legacy).
     /// </summary>
@@ -164,34 +164,34 @@ public class ModuleConfiguration
         {
             return;
         }
-        
+
         try
         {
             var lines = File.ReadAllLines(_iniConfigPath);
             string? currentSection = null;
-            
+
             foreach (var line in lines)
             {
                 var trimmed = line.Trim();
-                
+
                 // Skip empty lines and comments
                 if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith(";") || trimmed.StartsWith("#"))
                     continue;
-                
+
                 // Section header
                 if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
                 {
                     currentSection = trimmed[1..^1];
                     continue;
                 }
-                
+
                 // Key=Value
                 var equalIndex = trimmed.IndexOf('=');
                 if (equalIndex > 0)
                 {
                     var key = trimmed[..equalIndex].Trim();
                     var value = trimmed[(equalIndex + 1)..].Trim();
-                    
+
                     if (currentSection == "Modules")
                     {
                         switch (key)
@@ -243,7 +243,7 @@ public class ModuleConfiguration
             FunStuffEnabled = true;
         }
     }
-    
+
     /// <summary>
     /// Parses a boolean value from a string with flexible format support.
     /// </summary>
@@ -259,7 +259,7 @@ public class ModuleConfiguration
             _ => defaultValue
         };
     }
-    
+
     /// <summary>
     /// Reloads the configuration from disk.
     /// </summary>
@@ -267,7 +267,7 @@ public class ModuleConfiguration
     {
         LoadConfiguration();
     }
-    
+
     /// <summary>
     /// Saves the current configuration to disk.
     /// </summary>
@@ -280,7 +280,7 @@ public class ModuleConfiguration
             {
                 Directory.CreateDirectory(directory);
             }
-            
+
             var lines = new[]
             {
                 "[Modules]",
@@ -295,7 +295,7 @@ public class ModuleConfiguration
                 $"InstalledVersion={InstalledVersion ?? "unknown"}",
                 $"InstallDate={InstallDate ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}"
             };
-            
+
             File.WriteAllLines(_iniConfigPath, lines);
         }
         catch (Exception ex)
@@ -304,7 +304,7 @@ public class ModuleConfiguration
             Log.Warning(ex, "Failed to save module configuration to {Path}", _iniConfigPath);
         }
     }
-    
+
     /// <summary>
     /// Enables or disables a module by name.
     /// </summary>

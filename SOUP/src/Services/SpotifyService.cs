@@ -6,9 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Serilog;
 using Windows.Media.Control;
 using Windows.Storage.Streams;
-using Serilog;
 
 namespace SOUP.Services;
 
@@ -42,7 +42,7 @@ public class SpotifyService : INotifyPropertyChanged
     private DateTime _lastUserAction = DateTime.MinValue;
     private const int UserActionCooldownMs = 3000;
     private System.Threading.CancellationTokenSource? _artRetryCts;
-    
+
     private GlobalSystemMediaTransportControlsSessionManager? _sessionManager;
     private GlobalSystemMediaTransportControlsSession? _currentSession;
 
@@ -86,19 +86,19 @@ public class SpotifyService : INotifyPropertyChanged
     {
         _pollTimer?.Stop();
         _pollTimer?.Dispose();
-        
+
         if (_sessionManager != null)
         {
             _sessionManager.CurrentSessionChanged -= OnCurrentSessionChanged;
             _sessionManager.SessionsChanged -= OnSessionsChanged;
         }
-        
+
         if (_currentSession != null)
         {
             _currentSession.MediaPropertiesChanged -= OnMediaPropertiesChanged;
             _currentSession.PlaybackInfoChanged -= OnPlaybackInfoChanged;
         }
-        
+
         Log.Information("SpotifyService disposed");
     }
 
@@ -109,14 +109,14 @@ public class SpotifyService : INotifyPropertyChanged
             _sessionManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
             _sessionManager.CurrentSessionChanged += OnCurrentSessionChanged;
             _sessionManager.SessionsChanged += OnSessionsChanged;
-            
+
             await UpdateCurrentSessionAsync();
-            
+
             if (!_pollTimer.Enabled)
             {
                 _pollTimer.Start();
             }
-            
+
             Log.Information("SpotifyService initialized with Windows Media Session API");
         }
         catch (Exception ex)
@@ -152,7 +152,7 @@ public class SpotifyService : INotifyPropertyChanged
             // Try to find Spotify session first
             var sessions = _sessionManager?.GetSessions();
             _currentSession = null;
-            
+
             if (sessions != null)
             {
                 foreach (var session in sessions)
@@ -163,7 +163,7 @@ public class SpotifyService : INotifyPropertyChanged
                         break;
                     }
                 }
-                
+
                 // If no Spotify, use current session
                 _currentSession ??= _sessionManager?.GetCurrentSession();
             }
@@ -255,7 +255,7 @@ public class SpotifyService : INotifyPropertyChanged
                     TrackTitle = title;
                     ArtistName = artist ?? "";
                     IsPlaying = isPlaying;
-                    
+
                     // Prefer not to clear existing album art immediately if fetch fails.
                     // Only replace when we successfully retrieve new art. If thumbnail
                     // is not available yet but the track changed, keep the previous
@@ -313,7 +313,7 @@ public class SpotifyService : INotifyPropertyChanged
                 bitmap.EndInit();
                 bitmap.Freeze();
             });
-            
+
             return bitmap;
         }
         catch (Exception ex)

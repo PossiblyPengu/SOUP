@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 
 namespace SOUP.Services.External;
 
@@ -87,7 +87,7 @@ public sealed class MySqlDataService : IDisposable
     public async Task<List<MySqlItem>> GetItemsAsync()
     {
         var items = new List<MySqlItem>();
-        
+
         await using var connection = await CreateConnectionAsync();
         if (connection == null) return items;
 
@@ -109,7 +109,7 @@ public sealed class MySqlDataService : IDisposable
 
             await using var cmd = new MySqlCommand(sql, connection);
             await using var reader = await cmd.ExecuteReaderAsync();
-            
+
             while (await reader.ReadAsync())
             {
                 var itemNoOrd = reader.GetOrdinal("item_no");
@@ -120,7 +120,7 @@ public sealed class MySqlDataService : IDisposable
                 var isEssentialOrd = reader.GetOrdinal("is_essential");
                 var isPrivateLabelOrd = reader.GetOrdinal("is_private_label");
                 var categoryOrd = reader.GetOrdinal("category");
-                
+
                 items.Add(new MySqlItem
                 {
                     ItemNo = reader.GetString(itemNoOrd),
@@ -150,7 +150,7 @@ public sealed class MySqlDataService : IDisposable
     public async Task<List<MySqlStore>> GetStoresAsync()
     {
         var stores = new List<MySqlStore>();
-        
+
         await using var connection = await CreateConnectionAsync();
         if (connection == null) return stores;
 
@@ -169,7 +169,7 @@ public sealed class MySqlDataService : IDisposable
 
             await using var cmd = new MySqlCommand(sql, connection);
             await using var reader = await cmd.ExecuteReaderAsync();
-            
+
             while (await reader.ReadAsync())
             {
                 var codeOrd = reader.GetOrdinal("store_code");
@@ -177,7 +177,7 @@ public sealed class MySqlDataService : IDisposable
                 var tierOrd = reader.GetOrdinal("tier");
                 var regionOrd = reader.GetOrdinal("region");
                 var isActiveOrd = reader.GetOrdinal("is_active");
-                
+
                 stores.Add(new MySqlStore
                 {
                     Code = reader.GetString(codeOrd),
@@ -204,7 +204,7 @@ public sealed class MySqlDataService : IDisposable
     public async Task<Dictionary<string, List<string>>> GetItemSkusAsync()
     {
         var skuMap = new Dictionary<string, List<string>>();
-        
+
         await using var connection = await CreateConnectionAsync();
         if (connection == null) return skuMap;
 
@@ -217,17 +217,17 @@ public sealed class MySqlDataService : IDisposable
 
             await using var cmd = new MySqlCommand(sql, connection);
             await using var reader = await cmd.ExecuteReaderAsync();
-            
+
             while (await reader.ReadAsync())
             {
                 var itemNoOrd = reader.GetOrdinal("item_no");
                 var skuOrd = reader.GetOrdinal("sku");
                 var itemNo = reader.GetString(itemNoOrd);
                 var sku = reader.GetString(skuOrd);
-                
+
                 if (!skuMap.ContainsKey(itemNo))
                     skuMap[itemNo] = new List<string>();
-                
+
                 skuMap[itemNo].Add(sku);
             }
 

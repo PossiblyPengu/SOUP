@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using SOUP.Data;
 using SOUP.Helpers;
 using SOUP.Infrastructure.Services.Parsers;
@@ -59,18 +59,18 @@ public partial class SwiftLabelViewModel : ObservableObject
     private bool _isGenerating;
 
     // Preview text properties
-    public string StorePreviewText => SelectedStore != null 
-        ? $"{SelectedStore.Code} - {SelectedStore.Name}" 
+    public string StorePreviewText => SelectedStore != null
+        ? $"{SelectedStore.Code} - {SelectedStore.Name}"
         : "--- - Select Store";
-    
-    public string TransferPreviewText => string.IsNullOrWhiteSpace(TransferNumber) 
-        ? "Transfer: TO-XXXXX" 
+
+    public string TransferPreviewText => string.IsNullOrWhiteSpace(TransferNumber)
+        ? "Transfer: TO-XXXXX"
         : $"Transfer: {TransferNumber}";
-    
+
     public string BoxPreviewText => $"Box 1 of {TotalBoxes}";
-    
+
     public string DatePreviewText => $"Date: {DateTime.Now:MMM dd, yyyy}";
-    
+
     // Print settings info for main view
     public string PrintFormatInfo
     {
@@ -81,8 +81,8 @@ public partial class SwiftLabelViewModel : ObservableObject
             return $"{format} • {size}";
         }
     }
-    
-    private bool IsZebraPrinter => SelectedPrinter != null && 
+
+    private bool IsZebraPrinter => SelectedPrinter != null &&
         (SelectedPrinter.Contains("Zebra", StringComparison.OrdinalIgnoreCase) ||
          SelectedPrinter.Contains("ZDesigner", StringComparison.OrdinalIgnoreCase));
 
@@ -110,14 +110,14 @@ public partial class SwiftLabelViewModel : ObservableObject
     private void LoadMarginPresets()
     {
         AvailableMarginPresets.Clear();
-        
+
         AvailableMarginPresets.Add(new MarginPreset("none", "None (0mm)", 0));
         AvailableMarginPresets.Add(new MarginPreset("minimal", "Minimal (1mm)", 1));
         AvailableMarginPresets.Add(new MarginPreset("small", "Small (2mm)", 2));
         AvailableMarginPresets.Add(new MarginPreset("medium", "Medium (3mm)", 3));
         AvailableMarginPresets.Add(new MarginPreset("large", "Large (5mm)", 5));
         AvailableMarginPresets.Add(new MarginPreset("xlarge", "Extra Large (8mm)", 8));
-        
+
         // Default to medium margins
         SelectedMarginPreset = AvailableMarginPresets[3];
     }
@@ -125,7 +125,7 @@ public partial class SwiftLabelViewModel : ObservableObject
     private void LoadPaperSizes()
     {
         AvailablePaperSizes.Clear();
-        
+
         // Zebra label sizes (common thermal label sizes)
         AvailablePaperSizes.Add(new PaperSizeOption("60x30mm", "6 × 3 cm", 2.36, 1.18, true));
         AvailablePaperSizes.Add(new PaperSizeOption("35x20mm", "3.5 × 2 cm", 1.38, 0.79, true));
@@ -133,12 +133,12 @@ public partial class SwiftLabelViewModel : ObservableObject
         AvailablePaperSizes.Add(new PaperSizeOption("60x40mm", "6 × 4 cm", 2.36, 1.57, true));
         AvailablePaperSizes.Add(new PaperSizeOption("100x50mm", "10 × 5 cm", 3.94, 1.97, true));
         AvailablePaperSizes.Add(new PaperSizeOption("100x150mm", "10 × 15 cm (4×6\")", 3.94, 5.91, true));
-        
+
         // Standard paper sizes
         AvailablePaperSizes.Add(new PaperSizeOption("Letter", "Letter (8.5\" × 11\")", 8.5, 11, false));
         AvailablePaperSizes.Add(new PaperSizeOption("A4", "A4 (210 × 297mm)", 8.27, 11.69, false));
         AvailablePaperSizes.Add(new PaperSizeOption("A5", "A5 (148 × 210mm)", 5.83, 8.27, false));
-        
+
         // Default to 6x3cm Zebra label
         SelectedPaperSize = AvailablePaperSizes[0];
     }
@@ -154,10 +154,10 @@ public partial class SwiftLabelViewModel : ObservableObject
             }
 
             // Try to auto-select a Zebra printer if available
-            var zebraPrinter = AvailablePrinters.FirstOrDefault(p => 
+            var zebraPrinter = AvailablePrinters.FirstOrDefault(p =>
                 p.Contains("Zebra", StringComparison.OrdinalIgnoreCase) ||
                 p.Contains("ZDesigner", StringComparison.OrdinalIgnoreCase));
-            
+
             if (zebraPrinter != null)
             {
                 SelectedPrinter = zebraPrinter;
@@ -166,8 +166,8 @@ public partial class SwiftLabelViewModel : ObservableObject
             {
                 // Fall back to default printer
                 var defaultPrinter = new PrinterSettings().PrinterName;
-                SelectedPrinter = AvailablePrinters.Contains(defaultPrinter) 
-                    ? defaultPrinter 
+                SelectedPrinter = AvailablePrinters.Contains(defaultPrinter)
+                    ? defaultPrinter
                     : AvailablePrinters.FirstOrDefault();
             }
             else
@@ -176,7 +176,7 @@ public partial class SwiftLabelViewModel : ObservableObject
                 _logger?.LogWarning("No printers available on system");
             }
 
-            _logger?.LogInformation("Loaded {Count} printers, selected: {Printer}", 
+            _logger?.LogInformation("Loaded {Count} printers, selected: {Printer}",
                 AvailablePrinters.Count, SelectedPrinter);
         }
         catch (Exception ex)
@@ -230,7 +230,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         PrintLabelsCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(PrintFormatInfo));
         RefreshPreviewLabels();
-        
+
         // Auto-select appropriate paper size based on printer type
         if (IsZebraPrinter && SelectedPaperSize != null && !SelectedPaperSize.IsLabel)
         {
@@ -265,36 +265,36 @@ public partial class SwiftLabelViewModel : ObservableObject
         OnPropertyChanged(nameof(TransferPreviewText));
         RefreshPreviewLabels();
     }
-    
+
     private void RefreshPreviewLabels()
     {
         PreviewLabels.Clear();
-        
+
         var store = SelectedStore;
         if (store == null || TotalBoxes <= 0)
             return;
-            
+
         var transfer = string.IsNullOrWhiteSpace(TransferNumber) ? "TO-XXXXX" : TransferNumber;
         var dateStr = $"Date: {DateTime.Now:MMM dd, yyyy}";
-        
+
         // Calculate preview dimensions based on paper size
         // Scale: 96 DPI preview, so inches * 96 gives pixels, then scale down for preview
         var paper = SelectedPaperSize;
         double previewScale = 80; // pixels per inch for preview
         double labelWidth = paper != null ? paper.WidthInches * previewScale : 260;
         double labelHeight = paper != null ? paper.HeightInches * previewScale : 120;
-        
+
         // Clamp to reasonable preview sizes
         labelWidth = Math.Clamp(labelWidth, 100, 300);
         labelHeight = Math.Clamp(labelHeight, 60, 250);
-        
+
         // Scale fonts based on label height
         double fontScale = labelHeight / 100.0;
         double storeFontSize = Math.Clamp(11 * fontScale, 8, 14);
         double transferFontSize = Math.Clamp(10 * fontScale, 7, 12);
         double boxFontSize = Math.Clamp(18 * fontScale, 12, 28);
         double dateFontSize = Math.Clamp(9 * fontScale, 6, 11);
-        
+
         for (int i = 1; i <= TotalBoxes; i++)
         {
             PreviewLabels.Add(new LabelPreviewItem
@@ -383,7 +383,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         try
         {
             IsGenerating = true;
-            
+
             var storeCode = store.Code;
             var storeName = store.Name;
             var boxCount = TotalBoxes;
@@ -398,18 +398,18 @@ public partial class SwiftLabelViewModel : ObservableObject
             {
                 // Use ZPL for Zebra printers
                 StatusMessage = $"Printing {boxCount} ZPL labels to {printerName}...";
-                
+
                 // Get paper dimensions
                 var paperSize = SelectedPaperSize;
                 double widthInches = paperSize?.WidthInches ?? 2.36; // Default 6cm
                 double heightInches = paperSize?.HeightInches ?? 1.18; // Default 3cm
-                
+
                 // Get margin values
                 double marginT = MarginTop;
                 double marginB = MarginBottom;
                 double marginL = MarginLeft;
                 double marginR = MarginRight;
-                
+
                 var success = await Task.Run(() =>
                 {
                     var zpl = GenerateZplLabels(storeCode, storeName, boxCount, transfer, widthInches, heightInches, marginT, marginB, marginL, marginR);
@@ -432,9 +432,9 @@ public partial class SwiftLabelViewModel : ObservableObject
             {
                 // Use Word document for standard printers
                 StatusMessage = $"Generating labels for {printerName}...";
-                
+
                 var tempPath = Path.Combine(Path.GetTempPath(), $"Labels_{storeCode}_{transfer}_{DateTime.Now:yyyyMMdd_HHmmss}.docx");
-                
+
                 await Task.Run(() => CreateLabelDocument(tempPath, storeCode, storeName, boxCount, transfer)).ConfigureAwait(false);
 
                 // Print to specific printer using PrintDocument
@@ -449,7 +449,7 @@ public partial class SwiftLabelViewModel : ObservableObject
                         CreateNoWindow = true,
                         WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
                     };
-                    
+
                     using var process = System.Diagnostics.Process.Start(printInfo);
                     process?.WaitForExit(30000); // Wait up to 30 seconds
                 }).ConfigureAwait(false);
@@ -473,33 +473,33 @@ public partial class SwiftLabelViewModel : ObservableObject
     /// <summary>
     /// Generate ZPL (Zebra Programming Language) for all labels
     /// </summary>
-    private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber, 
+    private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber,
         double widthInches, double heightInches, double marginTopMm, double marginBottomMm, double marginLeftMm, double marginRightMm)
     {
         var sb = new StringBuilder();
         var dateStr = DateTime.Now.ToString("MMM dd, yyyy");
-        
+
         // Convert inches to dots (203 DPI for standard Zebra printers)
         int dpi = 203;
         int widthDots = (int)(widthInches * dpi);
         int heightDots = (int)(heightInches * dpi);
-        
+
         // Convert mm margins to dots (1 inch = 25.4mm)
         int marginLeft = (int)(marginLeftMm / 25.4 * dpi);
         int marginRight = (int)(marginRightMm / 25.4 * dpi);
         int marginTop = (int)(marginTopMm / 25.4 * dpi);
         int marginBottom = (int)(marginBottomMm / 25.4 * dpi);
-        
+
         // Calculate content area
         int contentWidth = widthDots - marginLeft - marginRight;
         int contentHeight = heightDots - marginTop - marginBottom;
-        
+
         // Calculate font sizes relative to content area
         int largeFontH = Math.Max(20, contentHeight / 5);  // Store name
         int medFontH = Math.Max(15, contentHeight / 8);    // Transfer
         int xlFontH = Math.Max(25, contentHeight / 3);     // Box number  
         int smallFontH = Math.Max(12, contentHeight / 10); // Date
-        
+
         // Calculate vertical positions within content area
         int y1 = marginTop + (contentHeight / 20);       // Store name
         int y2 = y1 + largeFontH + 5;                    // Line
@@ -704,7 +704,7 @@ public class LabelPreviewItem
     public string TransferLine { get; set; } = string.Empty;
     public string BoxLine { get; set; } = string.Empty;
     public string DateLine { get; set; } = string.Empty;
-    
+
     // Size properties for preview scaling
     public double LabelWidth { get; set; } = 260;
     public double LabelHeight { get; set; } = 120;
@@ -724,7 +724,7 @@ public class PaperSizeOption
     public double WidthInches { get; }
     public double HeightInches { get; }
     public bool IsLabel { get; }
-    
+
     public PaperSizeOption(string name, string displayName, double widthInches, double heightInches, bool isLabel)
     {
         Name = name;
@@ -733,7 +733,7 @@ public class PaperSizeOption
         HeightInches = heightInches;
         IsLabel = isLabel;
     }
-    
+
     public override string ToString() => DisplayName;
 }
 
@@ -748,7 +748,7 @@ public class MarginPreset
     public double Bottom { get; }
     public double Left { get; }
     public double Right { get; }
-    
+
     public MarginPreset(string name, string displayName, double top, double bottom, double left, double right)
     {
         Name = name;
@@ -758,8 +758,8 @@ public class MarginPreset
         Left = left;
         Right = right;
     }
-    
+
     public MarginPreset(string name, string displayName, double all) : this(name, displayName, all, all, all, all) { }
-    
+
     public override string ToString() => DisplayName;
 }

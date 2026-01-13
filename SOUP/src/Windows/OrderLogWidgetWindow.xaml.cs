@@ -23,24 +23,24 @@ public partial class OrderLogWidgetWindow : Window
 {
     private readonly OrderLogViewModel _viewModel;
     private readonly IServiceProvider _serviceProvider;
-    
+
     // AppBar state
     private bool _isAppBarRegistered;
     private AppBarEdge _currentEdge = AppBarEdge.None;
     private AppBarEdge _edgeBeforeMinimize = AppBarEdge.None;
     private int _appBarCallbackId;
     private HwndSource? _hwndSource;
-    
+
     // Default width for the docked appbar
     private readonly int _dockedWidth = 380;
-    
+
     // Update checking
     private Timer? _updateCheckTimer;
     private UpdateInfo? _availableUpdate;
     private CancellationTokenSource? _updateCheckCts;
 
     #region Windows API Imports
-    
+
     [DllImport("shell32.dll", CallingConvention = CallingConvention.StdCall)]
     private static extern uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
@@ -117,14 +117,14 @@ public partial class OrderLogWidgetWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         _serviceProvider = serviceProvider;
-        
+
         WidgetView.DataContext = _viewModel;
-        
+
         Loaded += OnLoaded;
         Closing += OnClosing;
         SourceInitialized += OnSourceInitialized;
         StateChanged += OnStateChanged;
-        
+
         ApplyTheme();
     }
 
@@ -133,12 +133,12 @@ public partial class OrderLogWidgetWindow : Window
         var hwnd = new WindowInteropHelper(this).Handle;
         _hwndSource = HwndSource.FromHwnd(hwnd);
         _hwndSource?.AddHook(WndProc);
-        
+
         // Make the widget window not participate in modal dialog blocking
         // WS_EX_TOOLWINDOW prevents it from being disabled when modal dialogs open
         var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
-        
+
         // Register callback message
         _appBarCallbackId = RegisterWindowMessage("OrderLogAppBarCallback");
     }
@@ -157,7 +157,7 @@ public partial class OrderLogWidgetWindow : Window
                     }
                     handled = true;
                     break;
-                    
+
                 case (int)ABN_FULLSCREENAPP:
                     // A fullscreen app is opening/closing
                     if (lParam.ToInt32() != 0)
@@ -174,7 +174,7 @@ public partial class OrderLogWidgetWindow : Window
                     break;
             }
         }
-        
+
         return IntPtr.Zero;
     }
 
@@ -182,14 +182,14 @@ public partial class OrderLogWidgetWindow : Window
     {
         // Start docked to right edge by default
         DockToEdge(AppBarEdge.Right);
-        
+
         // Add a "+" overlay badge to the taskbar icon to differentiate from main app
         ApplyTaskbarOverlay();
 
         // Initialize asynchronously without blocking
         InitializeWidgetAsync();
     }
-    
+
     /// <summary>
     /// Applies a "+" overlay badge to the taskbar icon to differentiate the widget from the main app.
     /// </summary>
@@ -211,7 +211,7 @@ public partial class OrderLogWidgetWindow : Window
                     }
                 }
             };
-            
+
             var plusDrawing = new GeometryDrawing
             {
                 Brush = new SolidColorBrush(Color.FromRgb(139, 92, 246)), // Accent purple
@@ -226,14 +226,14 @@ public partial class OrderLogWidgetWindow : Window
                     }
                 }
             };
-            
+
             var drawingGroup = new DrawingGroup();
             drawingGroup.Children.Add(drawing);
             drawingGroup.Children.Add(plusDrawing);
-            
+
             var drawingImage = new DrawingImage(drawingGroup);
             drawingImage.Freeze();
-            
+
             TaskbarItemInfo ??= new TaskbarItemInfo();
             TaskbarItemInfo.Overlay = drawingImage;
             TaskbarItemInfo.Description = "Order Log Widget";
@@ -267,7 +267,7 @@ public partial class OrderLogWidgetWindow : Window
         try
         {
             await _viewModel.InitializeAsync();
-            
+
             // Start update check timer (check every 30 minutes, first check after 5 seconds)
             _updateCheckCts = new();
             _updateCheckTimer = new Timer(CheckForUpdatesCallback, null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
@@ -277,7 +277,7 @@ public partial class OrderLogWidgetWindow : Window
             Log.Warning(ex, "Failed to initialize OrderLog widget");
         }
     }
-    
+
     private async void CheckForUpdatesCallback(object? state)
     {
         try
@@ -285,16 +285,16 @@ public partial class OrderLogWidgetWindow : Window
             // Check if we should cancel
             if (_updateCheckCts?.IsCancellationRequested == true)
                 return;
-                
+
             var updateService = _serviceProvider.GetService<UpdateService>();
             if (updateService == null) return;
-            
+
             var updateInfo = await updateService.CheckForUpdatesAsync(_updateCheckCts?.Token ?? CancellationToken.None);
-            
+
             // Check again after async operation
             if (_updateCheckCts?.IsCancellationRequested == true)
                 return;
-            
+
             // Update UI on the dispatcher thread
             await Dispatcher.InvokeAsync(() =>
             {
@@ -324,32 +324,32 @@ public partial class OrderLogWidgetWindow : Window
     {
         // Clear taskbar overlay immediately
         ClearTaskbarOverlay();
-        
+
         // Cancel and stop update check timer first
         _updateCheckCts?.Cancel();
         _updateCheckTimer?.Dispose();
         _updateCheckTimer = null;
         _updateCheckCts?.Dispose();
         _updateCheckCts = null;
-        
+
         // Mark thread as background immediately so it won't block process exit
         if (_isRunningOnSeparateThread && Thread.CurrentThread.IsAlive)
         {
             Thread.CurrentThread.IsBackground = true;
         }
-        
+
         // Unregister AppBar before closing
         if (_isAppBarRegistered)
         {
             UnregisterAppBar();
         }
-        
+
         if (_hwndSource != null)
         {
             _hwndSource.RemoveHook(WndProc);
             _hwndSource = null;
         }
-        
+
         // If running on separate thread, just close - don't touch Application.Current
         // The OnWidgetClosed event will handle app shutdown if needed
         if (_isRunningOnSeparateThread)
@@ -357,11 +357,11 @@ public partial class OrderLogWidgetWindow : Window
             OnWidgetClosed?.Invoke();
             return;
         }
-        
+
         // Check if we're running as a separate process (launched with --widget)
-        var isWidgetProcess = Environment.GetCommandLineArgs().Any(arg => 
+        var isWidgetProcess = Environment.GetCommandLineArgs().Any(arg =>
             arg.Equals("--widget", StringComparison.OrdinalIgnoreCase));
-        
+
         if (isWidgetProcess)
         {
             // We're a separate widget process - check if main app is still running
@@ -370,7 +370,7 @@ public partial class OrderLogWidgetWindow : Window
                 var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                 var allSoupProcesses = System.Diagnostics.Process.GetProcessesByName("SOUP");
                 var otherProcesses = allSoupProcesses.Where(p => p.Id != currentProcess.Id).ToList();
-                
+
                 // If there are other SOUP processes, check if any have visible windows
                 bool mainAppVisible = false;
                 foreach (var process in otherProcesses)
@@ -390,7 +390,7 @@ public partial class OrderLogWidgetWindow : Window
                         process.Dispose();
                     }
                 }
-                
+
                 // If no main app window is visible, kill all other SOUP processes
                 if (!mainAppVisible && otherProcesses.Count > 0)
                 {
@@ -424,7 +424,7 @@ public partial class OrderLogWidgetWindow : Window
             {
                 Log.Warning(ex, "Error checking for other SOUP processes");
             }
-            
+
             // Dispose tray icon if we're the last one
             try
             {
@@ -432,23 +432,23 @@ public partial class OrderLogWidgetWindow : Window
                 trayService?.Dispose();
             }
             catch { }
-            
+
             return;
         }
-        
+
         // Legacy: Same-process mode - check if MainWindow is visible
         try
         {
             var mainWindowVisible = Application.Current?.Windows
                 .OfType<MainWindow>()
                 .Any(w => w != null && w.IsVisible) ?? false;
-            
+
             if (!mainWindowVisible)
             {
                 // Dispose tray icon before shutdown since both windows are closed
                 var trayService = _serviceProvider.GetService<TrayIconService>();
                 trayService?.Dispose();
-                
+
                 Application.Current?.Shutdown();
             }
         }
@@ -457,14 +457,14 @@ public partial class OrderLogWidgetWindow : Window
             // Ignore if Application.Current is not accessible
         }
     }
-    
+
     /// <summary>
     /// Event raised when widget is closed (for separate thread mode)
     /// </summary>
     public event Action? OnWidgetClosed;
-    
+
     private bool _isRunningOnSeparateThread;
-    
+
     /// <summary>
     /// Marks this widget as running on a separate thread
     /// </summary>
@@ -482,7 +482,7 @@ public partial class OrderLogWidgetWindow : Window
             _currentEdge = _edgeBeforeMinimize;
             PositionAppBar();
             _edgeBeforeMinimize = AppBarEdge.None;
-            
+
             Log.Debug("AppBar re-registered after restore at edge: {Edge}", _currentEdge);
         }
     }
@@ -503,7 +503,7 @@ public partial class OrderLogWidgetWindow : Window
 
         var result = SHAppBarMessage(ABM_NEW, ref data);
         _isAppBarRegistered = result != 0;
-        
+
         Log.Debug("AppBar registered: {IsRegistered}", _isAppBarRegistered);
     }
 
@@ -521,7 +521,7 @@ public partial class OrderLogWidgetWindow : Window
         SHAppBarMessage(ABM_REMOVE, ref data);
         _isAppBarRegistered = false;
         _currentEdge = AppBarEdge.None;
-        
+
         Log.Debug("AppBar unregistered");
     }
 
@@ -560,7 +560,7 @@ public partial class OrderLogWidgetWindow : Window
                 data.rc.right = screenBounds.Left + appBarWidth;
                 data.rc.bottom = screenBounds.Bottom;
                 break;
-                
+
             case AppBarEdge.Right:
                 data.rc.left = screenBounds.Right - appBarWidth;
                 data.rc.top = screenBounds.Top;
@@ -571,7 +571,7 @@ public partial class OrderLogWidgetWindow : Window
 
         // Query the system for the position
         SHAppBarMessage(ABM_QUERYPOS, ref data);
-        
+
         // Adjust based on query result
         switch (_currentEdge)
         {
@@ -592,10 +592,10 @@ public partial class OrderLogWidgetWindow : Window
         Top = data.rc.top / dpiScale;
         Width = (data.rc.right - data.rc.left) / dpiScale;
         Height = (data.rc.bottom - data.rc.top) / dpiScale;
-        
+
         // Also use MoveWindow for precision
-        MoveWindow(hwnd, data.rc.left, data.rc.top, 
-            data.rc.right - data.rc.left, 
+        MoveWindow(hwnd, data.rc.left, data.rc.top,
+            data.rc.right - data.rc.left,
             data.rc.bottom - data.rc.top, true);
     }
 
@@ -628,10 +628,10 @@ public partial class OrderLogWidgetWindow : Window
         }
 
         _currentEdge = edge;
-        
+
         // Position the appbar
         PositionAppBar();
-        
+
         Log.Debug("Docked to {Edge}", edge);
     }
 
@@ -659,19 +659,19 @@ public partial class OrderLogWidgetWindow : Window
     private void ApplyThemeResources(bool isDarkMode, bool useBasicTheme)
     {
         Resources.MergedDictionaries.Clear();
-        
+
         // Add ModernStyles first (base styles)
-        Resources.MergedDictionaries.Add(new ResourceDictionary 
-        { 
-            Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml") 
+        Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml")
         });
-        
+
         // Then add color theme (basic or modern)
         if (useBasicTheme)
         {
-            Resources.MergedDictionaries.Add(new ResourceDictionary 
-            { 
-                Source = new Uri("pack://application:,,,/SOUP;component/Themes/BasicTheme.xaml") 
+            Resources.MergedDictionaries.Add(new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/SOUP;component/Themes/BasicTheme.xaml")
             });
         }
         else
@@ -679,10 +679,10 @@ public partial class OrderLogWidgetWindow : Window
             var themePath = isDarkMode
                 ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
                 : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
-            
+
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
         }
-        
+
         // Re-apply CardFontSize from ViewModel after theme resources are loaded
         if (_viewModel.CardFontSize > 0)
         {
@@ -721,7 +721,7 @@ public partial class OrderLogWidgetWindow : Window
     {
         // Store current edge position before unregistering
         _edgeBeforeMinimize = _currentEdge;
-        
+
         // Unregister AppBar to release screen space while minimized
         if (_isAppBarRegistered)
         {
@@ -742,13 +742,13 @@ public partial class OrderLogWidgetWindow : Window
     {
         Show();
         Activate();
-        
+
         if (_isAppBarRegistered && _currentEdge != AppBarEdge.None)
         {
             PositionAppBar();
         }
     }
-    
+
     /// <summary>
     /// Opens the unified settings window to the OrderLog tab
     /// </summary>
@@ -785,20 +785,20 @@ public partial class OrderLogWidgetWindow : Window
     }
 
     private const int SW_RESTORE = 9;
-    
+
     /// <summary>
     /// Handles click on the update badge - performs in-app update
     /// </summary>
     private async void UpdateBadge_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        
+
         if (_availableUpdate == null) return;
 
         try
         {
             using var updateService = new UpdateService();
-            
+
             var shouldUpdate = MessageDialog.Show(
                 this,
                 $"A new version is available!\n\n" +
@@ -839,23 +839,23 @@ public partial class OrderLogWidgetWindow : Window
             if (updateService.ApplyUpdate(zipPath))
             {
                 _viewModel.StatusMessage = "Update ready! Restarting...";
-                
+
                 // Set global flag to bypass closing confirmations
                 App.IsUpdating = true;
-                
+
                 // Give the updater script time to start
                 await System.Threading.Tasks.Task.Delay(1000);
-                
+
                 // Get lifecycle service to force close all processes
                 var lifecycleService = App.GetService<AppLifecycleService>();
                 if (lifecycleService != null)
                 {
                     await lifecycleService.ForceCloseAllProcessesAsync();
                 }
-                
+
                 // Give processes time to fully terminate
                 await System.Threading.Tasks.Task.Delay(500);
-                
+
                 // Shutdown this process gracefully, then force exit
                 await Dispatcher.InvokeAsync(() =>
                 {
@@ -868,9 +868,9 @@ public partial class OrderLogWidgetWindow : Window
                         Log.Warning(ex, "Failed to shutdown application gracefully");
                     }
                 });
-                
+
                 await System.Threading.Tasks.Task.Delay(500);
-                
+
                 // Force exit this process
                 Log.Information("Force exiting for update");
                 Environment.Exit(0);

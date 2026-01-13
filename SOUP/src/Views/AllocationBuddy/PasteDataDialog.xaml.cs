@@ -10,7 +10,7 @@ public partial class PasteDataDialog : UserControl
     public PasteDataDialog()
     {
         InitializeComponent();
-        
+
         PasteTextBox.TextChanged += PasteTextBox_TextChanged;
         PasteTextBox.Focus();
     }
@@ -28,15 +28,15 @@ public partial class PasteDataDialog : UserControl
         // Count lines and estimate entries
         var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var lineCount = lines.Length;
-        
+
         // Try to detect if first line is header
-        var hasHeader = lineCount > 0 && 
+        var hasHeader = lineCount > 0 &&
             (lines[0].Contains("Store", StringComparison.OrdinalIgnoreCase) ||
              lines[0].Contains("Location", StringComparison.OrdinalIgnoreCase) ||
              lines[0].Contains("Item", StringComparison.OrdinalIgnoreCase));
 
         var dataLines = hasHeader ? lineCount - 1 : lineCount;
-        
+
         PreviewText.Text = $"📊 {dataLines} data row{(dataLines == 1 ? "" : "s")} detected{(hasHeader ? " (header found)" : "")}";
         ImportButton.IsEnabled = dataLines > 0;
     }

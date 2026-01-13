@@ -11,7 +11,7 @@ public partial class ArchiveDialog : UserControl
     public ArchiveDialog()
     {
         InitializeComponent();
-        
+
         // Set default name with timestamp
         NameTextBox.Text = $"Allocation {DateTime.Now:MMM d, yyyy}";
         NameTextBox.SelectAll();

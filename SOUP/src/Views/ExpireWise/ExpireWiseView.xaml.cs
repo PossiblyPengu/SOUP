@@ -5,8 +5,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Serilog;
-using SOUP.ViewModels;
 using SOUP.Core.Entities.ExpireWise;
+using SOUP.ViewModels;
 
 namespace SOUP.Views.ExpireWise;
 
@@ -26,7 +26,7 @@ public partial class ExpireWiseView : UserControl
             vm.FocusSearchRequested += OnFocusSearchRequested;
             vm.GroupByStoreChanged += OnGroupByStoreChanged;
             InitializeViewModelAsync(vm);
-            
+
             // Apply initial grouping state
             UpdateGrouping(vm.GroupByStore);
         }

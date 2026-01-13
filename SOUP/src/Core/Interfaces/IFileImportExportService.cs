@@ -1,6 +1,6 @@
-using SOUP.Core.Common;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SOUP.Core.Common;
 
 namespace SOUP.Core.Interfaces;
 
@@ -19,7 +19,7 @@ public interface IFileImportExportService
     /// <param name="filePath">Path to the CSV file.</param>
     /// <returns>A result containing the imported entities or an error.</returns>
     Task<Result<IEnumerable<T>>> ImportFromCsvAsync<T>(string filePath) where T : class, new();
-    
+
     /// <summary>
     /// Imports data from an Excel file.
     /// </summary>
@@ -27,7 +27,7 @@ public interface IFileImportExportService
     /// <param name="filePath">Path to the Excel file.</param>
     /// <returns>A result containing the imported entities or an error.</returns>
     Task<Result<IEnumerable<T>>> ImportFromExcelAsync<T>(string filePath) where T : class, new();
-    
+
     /// <summary>
     /// Exports data to a CSV file.
     /// </summary>
@@ -36,7 +36,7 @@ public interface IFileImportExportService
     /// <param name="filePath">Path for the output file.</param>
     /// <returns>A result indicating success or failure.</returns>
     Task<Result> ExportToCsvAsync<T>(IEnumerable<T> data, string filePath) where T : class;
-    
+
     /// <summary>
     /// Exports data to an Excel file.
     /// </summary>

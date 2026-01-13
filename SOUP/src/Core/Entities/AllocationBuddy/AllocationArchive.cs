@@ -1,5 +1,5 @@
-using SOUP.Core.Common;
 using System;
+using SOUP.Core.Common;
 
 namespace SOUP.Core.Entities.AllocationBuddy;
 
@@ -17,17 +17,17 @@ public class AllocationArchive : BaseEntity
     /// Gets or sets the archive name (typically auto-generated with timestamp).
     /// </summary>
     public required string Name { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the UTC timestamp when this archive was created.
     /// </summary>
     public DateTime ArchivedAt { get; set; } = DateTime.UtcNow;
-    
+
     /// <summary>
     /// Gets or sets the number of entries in this archive.
     /// </summary>
     public int EntryCount { get; set; }
-    
+
     /// <summary>
     /// Gets or sets optional notes about this archive.
     /// </summary>

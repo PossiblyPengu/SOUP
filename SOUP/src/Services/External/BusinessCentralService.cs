@@ -44,37 +44,9 @@ public sealed class BusinessCentralService : IDisposable
         _ownsHttpClient = false; // DI container manages the client
     }
 
-    /// <summary>
-    /// Creates a new BusinessCentralService (legacy constructor for backwards compatibility)
-    /// </summary>
-    [Obsolete("Use constructor with IHttpClientFactory for better socket management")]
-    public BusinessCentralService(ILogger<BusinessCentralService>? logger)
-    {
-        _httpClient = CreateConfiguredHttpClient();
-        _logger = logger;
-        _ownsHttpClient = true; // We created it, we dispose it
-    }
+    // Legacy constructor removed — use IHttpClientFactory or provide HttpClient via DI.
 
-    /// <summary>
-    /// Creates a properly configured HttpClient
-    /// </summary>
-    private static HttpClient CreateConfiguredHttpClient()
-    {
-        var handler = new HttpClientHandler
-        {
-            // Enforce TLS 1.2 or higher for security
-            SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
-        };
-        
-        var client = new HttpClient(handler)
-        {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-        
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        
-        return client;
-    }
+    // (removed legacy helper used only by obsolete constructor)
 
     /// <summary>
     /// Test connection and authentication to Business Central
@@ -91,11 +63,11 @@ public sealed class BusinessCentralService : IDisposable
             var baseUrl = GetApiBaseUrl(config);
             var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/companies");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            
+
             var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
                 return (true, "Connection successful");
-            
+
             return (false, $"API call failed: {response.StatusCode}");
         }
         catch (Exception ex)
@@ -117,7 +89,7 @@ public sealed class BusinessCentralService : IDisposable
         try
         {
             var tokenUrl = $"https://login.microsoftonline.com/{config.BcTenantId}/oauth2/v2.0/token";
-            
+
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["grant_type"] = "client_credentials",
@@ -177,13 +149,13 @@ public sealed class BusinessCentralService : IDisposable
             }
 
             var baseUrl = GetApiBaseUrl(config);
-            var companyFilter = string.IsNullOrWhiteSpace(config.BcCompanyId) 
-                ? "" 
+            var companyFilter = string.IsNullOrWhiteSpace(config.BcCompanyId)
+                ? ""
                 : $"/companies({config.BcCompanyId})";
 
             // OData query for items
             var url = $"{baseUrl}{companyFilter}/items?$select=number,displayName,unitPrice,inventory,blocked";
-            
+
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -192,7 +164,7 @@ public sealed class BusinessCentralService : IDisposable
 
             var json = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<ODataResponse<BcItem>>(json);
-            
+
             if (result?.Value != null)
             {
                 items.AddRange(result.Value);
@@ -204,13 +176,13 @@ public sealed class BusinessCentralService : IDisposable
             {
                 request = new HttpRequestMessage(HttpMethod.Get, result.NextLink);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                
+
                 response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
-                
+
                 json = await response.Content.ReadAsStringAsync();
                 result = JsonSerializer.Deserialize<ODataResponse<BcItem>>(json);
-                
+
                 if (result?.Value != null)
                     items.AddRange(result.Value);
             }
@@ -236,12 +208,12 @@ public sealed class BusinessCentralService : IDisposable
             if (string.IsNullOrEmpty(token)) return locations;
 
             var baseUrl = GetApiBaseUrl(config);
-            var companyFilter = string.IsNullOrWhiteSpace(config.BcCompanyId) 
-                ? "" 
+            var companyFilter = string.IsNullOrWhiteSpace(config.BcCompanyId)
+                ? ""
                 : $"/companies({config.BcCompanyId})";
 
             var url = $"{baseUrl}{companyFilter}/locations?$select=code,displayName";
-            
+
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -250,7 +222,7 @@ public sealed class BusinessCentralService : IDisposable
 
             var json = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<ODataResponse<BcLocation>>(json);
-            
+
             if (result?.Value != null)
             {
                 locations.AddRange(result.Value);
@@ -278,23 +250,23 @@ public sealed class BusinessCentralService : IDisposable
             if (string.IsNullOrEmpty(token)) return itemVendors;
 
             var baseUrl = GetApiBaseUrl(config);
-            var companyFilter = string.IsNullOrWhiteSpace(config.BcCompanyId) 
-                ? "" 
+            var companyFilter = string.IsNullOrWhiteSpace(config.BcCompanyId)
+                ? ""
                 : $"/companies({config.BcCompanyId})";
 
             // Note: itemVendors might need a custom API page in BC
             var url = $"{baseUrl}{companyFilter}/itemVendors?$select=itemNumber,vendorNumber,vendorItemNumber";
-            
+
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await _httpClient.SendAsync(request);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<ODataResponse<BcItemVendor>>(json);
-                
+
                 if (result?.Value != null)
                     itemVendors.AddRange(result.Value);
             }
@@ -320,7 +292,7 @@ public sealed class BusinessCentralService : IDisposable
             {
                 _httpClient.Dispose();
             }
-            
+
             // Clear sensitive data
             _accessToken = null;
             _disposed = true;
@@ -334,10 +306,10 @@ internal sealed class TokenResponse
 {
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = "";
-    
+
     [JsonPropertyName("expires_in")]
     public int ExpiresIn { get; set; }
-    
+
     [JsonPropertyName("token_type")]
     public string TokenType { get; set; } = "";
 }
@@ -346,7 +318,7 @@ internal sealed class ODataResponse<T>
 {
     [JsonPropertyName("value")]
     public List<T> Value { get; set; } = new();
-    
+
     [JsonPropertyName("@odata.nextLink")]
     public string? NextLink { get; set; }
 }
@@ -362,16 +334,16 @@ public class BcItem
 {
     [JsonPropertyName("number")]
     public string Number { get; set; } = "";
-    
+
     [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = "";
-    
+
     [JsonPropertyName("unitPrice")]
     public decimal UnitPrice { get; set; }
-    
+
     [JsonPropertyName("inventory")]
     public decimal Inventory { get; set; }
-    
+
     [JsonPropertyName("blocked")]
     public bool Blocked { get; set; }
 }
@@ -383,7 +355,7 @@ public class BcLocation
 {
     [JsonPropertyName("code")]
     public string Code { get; set; } = "";
-    
+
     [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = "";
 }
@@ -395,10 +367,10 @@ public class BcItemVendor
 {
     [JsonPropertyName("itemNumber")]
     public string ItemNumber { get; set; } = "";
-    
+
     [JsonPropertyName("vendorNumber")]
     public string VendorNumber { get; set; } = "";
-    
+
     [JsonPropertyName("vendorItemNumber")]
     public string VendorItemNumber { get; set; } = "";
 }

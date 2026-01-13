@@ -96,7 +96,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         try
         {
             var updateInfo = await _updateService.CheckForUpdatesAsync();
-            
+
             // Update on UI thread
             Application.Current?.Dispatcher.Invoke(() =>
             {
@@ -323,17 +323,17 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             _logger?.LogDebug("OpenSettings command invoked");
             var settingsViewModel = _serviceProvider.GetRequiredService<UnifiedSettingsViewModel>();
             var settingsWindow = new UnifiedSettingsWindow(settingsViewModel);
-            
+
             // Find the main window - Application.Current.MainWindow may not be reliable
             var mainWindow = System.Windows.Application.Current?.Windows
                 .OfType<MainWindow>()
                 .FirstOrDefault(w => w.IsVisible);
-            
+
             if (mainWindow != null)
             {
                 settingsWindow.Owner = mainWindow;
             }
-            
+
             settingsWindow.ShowDialog();
             _logger?.LogInformation("Opened unified settings window");
         }
@@ -357,11 +357,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             {
                 // Stop update checking timer
                 _updateCheckTimer?.Dispose();
-                
+
                 // Unsubscribe from events to prevent memory leaks
                 NavigationService.ModuleChanged -= OnModuleChanged;
                 _themeService.ThemeChanged -= OnThemeChanged;
-                
+
                 // Unsubscribe from nav item property changes
                 foreach (var item in NavItems)
                 {

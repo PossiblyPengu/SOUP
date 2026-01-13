@@ -21,7 +21,7 @@ namespace SOUP.Services;
 public class WindowSettingsService
 {
     private static readonly Lazy<WindowSettingsService> _instance = new(() => new WindowSettingsService(), isThreadSafe: true);
-    
+
     /// <summary>
     /// Gets the singleton instance of the window settings service.
     /// </summary>
@@ -153,11 +153,11 @@ public class WindowSettingsService
         {
             var intersection = System.Drawing.Rectangle.Intersect(
                 windowRect, screen.WorkingArea);
-            
+
             // Ensure significant portion (>50%) of window is visible
             var windowArea = windowRect.Width * windowRect.Height;
             var visibleArea = intersection.Width * intersection.Height;
-            
+
             if (visibleArea > windowArea * 0.5)
             {
                 return true;

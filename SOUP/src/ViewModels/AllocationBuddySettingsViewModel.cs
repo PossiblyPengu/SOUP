@@ -2,14 +2,14 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Serilog;
 using SOUP.Core.Entities.Settings;
+using SOUP.Data;
 using SOUP.Infrastructure.Services;
 using SOUP.Infrastructure.Services.Parsers;
-using SOUP.Data;
-using Serilog;
 
 namespace SOUP.ViewModels;
 

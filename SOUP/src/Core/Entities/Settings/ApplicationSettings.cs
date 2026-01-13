@@ -6,7 +6,7 @@ namespace SOUP.Core.Entities.Settings;
 public class ApplicationSettings
 {
     // ===== Appearance =====
-    
+
     /// <summary>
     /// When true, use dark theme; otherwise use light theme
     /// </summary>
@@ -18,7 +18,7 @@ public class ApplicationSettings
     public bool UseBasicTheme { get; set; } = false;
 
     // ===== Startup =====
-    
+
     /// <summary>
     /// The module to show when the application starts (e.g., "allocation", "essentials", "expirewise")
     /// Empty string means show the launcher/home
@@ -36,7 +36,7 @@ public class ApplicationSettings
     public bool StartMinimizedToTray { get; set; }
 
     // ===== Widget Behavior =====
-    
+
     /// <summary>
     /// When true, launch the Order Log widget as a separate window when the application starts
     /// </summary>
@@ -53,7 +53,7 @@ public class ApplicationSettings
     public bool KeepWidgetRunning { get; set; } = true;
 
     // ===== System Tray =====
-    
+
     /// <summary>
     /// When true, show the app in system tray
     /// </summary>
@@ -65,7 +65,7 @@ public class ApplicationSettings
     public bool CloseToTray { get; set; }
 
     // ===== Behavior =====
-    
+
     /// <summary>
     /// When true, show a confirmation dialog before exiting the application
     /// </summary>

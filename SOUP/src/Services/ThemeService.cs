@@ -1,8 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SOUP.Services;
 
@@ -25,7 +25,7 @@ public partial class ThemeService : ObservableObject
     /// Gets the singleton instance of the theme service.
     /// </summary>
     private static readonly Lazy<ThemeService> _instance = new(() => new ThemeService(), isThreadSafe: true);
-    
+
     /// <summary>
     /// Gets the singleton instance of the theme service.
     /// </summary>
@@ -108,7 +108,7 @@ public partial class ThemeService : ObservableObject
         try
         {
             Serilog.Log.Debug("ApplyTheme: Starting. UseBasicTheme={UseBasicTheme}, IsDarkMode={IsDarkMode}", UseBasicTheme, IsDarkMode);
-            
+
             // Clear all merged dictionaries first
             app.Resources.MergedDictionaries.Clear();
             Serilog.Log.Debug("ApplyTheme: Cleared merged dictionaries");
@@ -117,7 +117,7 @@ public partial class ThemeService : ObservableObject
             if (UseBasicTheme)
             {
                 Serilog.Log.Debug("ApplyTheme: Using basic Windows theme");
-                
+
                 // Load ModernStyles first for all the control styles
                 var modernStyles = new ResourceDictionary
                 {
@@ -125,7 +125,7 @@ public partial class ThemeService : ObservableObject
                 };
                 app.Resources.MergedDictionaries.Add(modernStyles);
                 Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
-                
+
                 // Then override with basic theme colors
                 var basicTheme = new ResourceDictionary
                 {
@@ -143,10 +143,10 @@ public partial class ThemeService : ObservableObject
                 };
                 app.Resources.MergedDictionaries.Add(modernStyles);
                 Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
-                
+
                 var colorTheme = new ResourceDictionary
                 {
-                    Source = new Uri(IsDarkMode 
+                    Source = new Uri(IsDarkMode
                         ? "pack://application:,,,/Themes/DarkTheme.xaml"
                         : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
                 };

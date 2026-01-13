@@ -1,7 +1,7 @@
-using SOUP.Core.Entities.ExpireWise;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SOUP.Core.Entities.ExpireWise;
 
 namespace SOUP.Core.Interfaces;
 
@@ -15,14 +15,14 @@ public interface IExpireWiseRepository : IRepository<ExpirationItem>
     /// </summary>
     /// <returns>A collection of expired items.</returns>
     Task<IEnumerable<ExpirationItem>> GetExpiredItemsAsync();
-    
+
     /// <summary>
     /// Gets items expiring within the specified number of days.
     /// </summary>
     /// <param name="days">Number of days to look ahead (default: 7).</param>
     /// <returns>A collection of items expiring soon.</returns>
     Task<IEnumerable<ExpirationItem>> GetExpiringSoonAsync(int days = 7);
-    
+
     /// <summary>
     /// Gets items with expiration dates within a date range.
     /// </summary>

@@ -174,7 +174,7 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
 
             await RefreshItemCountAsync();
             StatusMessage = $"✓ Successfully deleted {count} items";
-            
+
             MessageBox.Show(
                 $"All {count} expiration items have been deleted.",
                 "Data Cleared",

@@ -125,7 +125,7 @@ public class EssentialsBuddyParser
         foreach (var row in rows)
         {
             var itemNo = getCellValue(row, itemNoCol).Trim();
-            
+
             var binCode = binCodeCol >= 0 ? getCellValue(row, binCodeCol).Trim() : "N/A";
             var qtyText = getCellValue(row, qtyCol);
             var description = descCol >= 0 ? getCellValue(row, descCol).Trim() : "";
@@ -136,7 +136,7 @@ public class EssentialsBuddyParser
             // Filter: Only include bins starting with 9-90 unless item is private label and option is enabled
             bool isIn990Bin = binCode.ToUpperInvariant().StartsWith("9-90");
             bool isPrivateLabel = includeAllPrivateLabel && InternalItemDictionary.IsPrivateLabel(itemNo);
-            
+
             if (!isIn990Bin && !isPrivateLabel)
                 continue;
 

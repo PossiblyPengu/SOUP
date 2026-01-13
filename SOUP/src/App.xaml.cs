@@ -1,10 +1,10 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Net.Http;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using SOUP.Core.Interfaces;
@@ -137,9 +137,9 @@ public partial class App : Application
         // Repositories - Singletons to match ViewModel lifetimes (prevents captive dependency)
         // Only register repositories for enabled modules
         services.AddSingleton(typeof(IRepository<>), typeof(SqliteRepository<>));
-        
+
         var moduleConfig = ModuleConfiguration.Instance;
-        
+
         if (moduleConfig.AllocationBuddyEnabled)
             services.AddSingleton<IAllocationBuddyRepository, AllocationBuddyRepository>();
         if (moduleConfig.EssentialsBuddyEnabled)
@@ -155,7 +155,7 @@ public partial class App : Application
         services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>();
         services.AddSingleton<TrayIconService>();
         services.AddSingleton<UpdateService>();
-        services.AddSingleton<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp => 
+        services.AddSingleton<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp =>
             new SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser(
                 sp.GetService<ILogger<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>>()));
 
@@ -164,7 +164,7 @@ public partial class App : Application
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<UnifiedSettingsViewModel>();
         services.AddSingleton<ApplicationSettingsViewModel>();
-        services.AddTransient<DictionaryManagementViewModel>(sp => 
+        services.AddTransient<DictionaryManagementViewModel>(sp =>
             new DictionaryManagementViewModel(
                 sp.GetService<SOUP.Services.External.DictionarySyncService>(),
                 sp.GetService<ILogger<DictionaryManagementViewModel>>()));
@@ -219,7 +219,7 @@ public partial class App : Application
         {
             SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
         });
-        
+
         services.AddSingleton<SOUP.Services.External.MySqlDataService>();
         services.AddSingleton<SOUP.Services.External.BusinessCentralService>(sp =>
             new SOUP.Services.External.BusinessCentralService(
@@ -230,7 +230,7 @@ public partial class App : Application
 
         // Services - Navigation
         services.AddSingleton<NavOrderService>();
-        
+
         // Services - App Lifecycle
         if (moduleConfig.OrderLogEnabled)
         {
@@ -258,7 +258,7 @@ public partial class App : Application
                 splash.Show();
                 splash.SetStatus("Initializing services...");
             }
-            
+
             await _host.StartAsync();
 
             // Initialize theme service (must be on UI thread)
@@ -287,7 +287,7 @@ public partial class App : Application
                 var storeCount = dictDb.GetStoreCount();
                 splash?.SetStatus("Loading dictionaries...");
                 Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
-                
+
                 if (itemCount == 0)
                 {
                     Log.Warning("Dictionary database is empty. Run the ImportDictionary tool to populate it.");
@@ -351,62 +351,62 @@ public partial class App : Application
             splash?.SetStatus("Starting application...");
 
             // Check command-line arguments
-                        // Determine what to show after initialization. Do not display main UI
-                        // until the splash has finished so the splash is visible for its full duration.
-                        bool showMainWindow = false;
-                        bool showWidgetProcess = false;
-                        bool widgetOnlyMode = false;
-                        bool launchWidget = false;
+            // Determine what to show after initialization. Do not display main UI
+            // until the splash has finished so the splash is visible for its full duration.
+            bool showMainWindow = false;
+            bool showWidgetProcess = false;
+            bool widgetOnlyMode = false;
+            bool launchWidget = false;
 
-                        if (AppLifecycleService.IsWidgetProcess)
-                        {
-                            // Running as separate widget process (--widget flag) - show widget immediately
-                            if (moduleConfig.OrderLogEnabled)
-                            {
-                                var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
-                                var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
+            if (AppLifecycleService.IsWidgetProcess)
+            {
+                // Running as separate widget process (--widget flag) - show widget immediately
+                if (moduleConfig.OrderLogEnabled)
+                {
+                    var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
+                    var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
 
-                                widgetWindow.Closed += (s, args) =>
-                                {
-                                    Log.Information("Widget closed, shutting down");
-                                    Shutdown();
-                                };
+                    widgetWindow.Closed += (s, args) =>
+                    {
+                        Log.Information("Widget closed, shutting down");
+                        Shutdown();
+                    };
 
-                                widgetWindow.Show();
-                                Log.Information("Running in widget-only mode (--widget flag)");
-                            }
-                            else
-                            {
-                                Log.Warning("OrderLog widget requested but module is disabled");
-                                // For safety show main window if widget is disabled
-                                showMainWindow = true;
-                            }
-                        }
-                        else
-                        {
-                            // Normal startup (no --widget flag) - determine what to show after splash
-                            widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
-                            launchWidget = !AppLifecycleService.HasNoWidgetFlag &&
-                                           appSettings.LaunchWidgetOnStartup &&
-                                           moduleConfig.OrderLogEnabled;
+                    widgetWindow.Show();
+                    Log.Information("Running in widget-only mode (--widget flag)");
+                }
+                else
+                {
+                    Log.Warning("OrderLog widget requested but module is disabled");
+                    // For safety show main window if widget is disabled
+                    showMainWindow = true;
+                }
+            }
+            else
+            {
+                // Normal startup (no --widget flag) - determine what to show after splash
+                widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
+                launchWidget = !AppLifecycleService.HasNoWidgetFlag &&
+                               appSettings.LaunchWidgetOnStartup &&
+                               moduleConfig.OrderLogEnabled;
 
-                            if (widgetOnlyMode)
-                            {
-                                // Widget-only mode: show widget process after splash
-                                showWidgetProcess = true;
-                                Log.Information("Running in widget-only mode (settings)");
-                            }
-                            else
-                            {
-                                // Normal mode - show main window after splash
-                                showMainWindow = true;
-                                if (launchWidget)
-                                {
-                                    showWidgetProcess = true;
-                                }
-                            }
-                        }
-            
+                if (widgetOnlyMode)
+                {
+                    // Widget-only mode: show widget process after splash
+                    showWidgetProcess = true;
+                    Log.Information("Running in widget-only mode (settings)");
+                }
+                else
+                {
+                    // Normal mode - show main window after splash
+                    showMainWindow = true;
+                    if (launchWidget)
+                    {
+                        showWidgetProcess = true;
+                    }
+                }
+            }
+
             // Close splash screen with animation (only if shown)
             if (splash != null)
             {

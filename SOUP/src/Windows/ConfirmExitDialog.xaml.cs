@@ -11,11 +11,11 @@ public partial class ConfirmExitDialog : Window
     public ConfirmExitDialog()
     {
         InitializeComponent();
-        
+
         // Apply current theme
         ApplyTheme();
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
-        
+
         Unloaded += (s, e) => ThemeService.Instance.ThemeChanged -= OnThemeChanged;
     }
 
@@ -52,7 +52,7 @@ public partial class ConfirmExitDialog : Window
     public static bool ShowDialog(Window? owner)
     {
         var dialog = new ConfirmExitDialog();
-        
+
         if (owner != null && owner.IsVisible)
         {
             dialog.Owner = owner;
@@ -61,7 +61,7 @@ public partial class ConfirmExitDialog : Window
         {
             dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
-        
+
         return dialog.ShowDialog() == true;
     }
 }

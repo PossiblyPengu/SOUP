@@ -57,7 +57,7 @@ public sealed class TrayIconService : IDisposable
     {
         _settingsService = settingsService;
         _settingsService.SettingsChanged += OnSettingsChanged;
-        
+
         // Load initial settings synchronously
         LoadSettings();
     }
@@ -77,7 +77,7 @@ public sealed class TrayIconService : IDisposable
         {
             var settings = _settingsService.LoadSettingsAsync<ApplicationSettings>("Application")
                 .GetAwaiter().GetResult();
-            
+
             CloseToTray = settings.CloseToTray;
             ShowTrayIcon = settings.ShowTrayIcon;
             StartMinimizedToTray = settings.StartMinimizedToTray;
@@ -135,14 +135,14 @@ public sealed class TrayIconService : IDisposable
 
         // Create context menu
         var contextMenu = new ContextMenuStrip();
-        
+
         var showItem = new ToolStripMenuItem("Show S.O.U.P");
         showItem.Click += (s, e) => ShowRequested?.Invoke();
         showItem.Font = new Font(showItem.Font, System.Drawing.FontStyle.Bold);
         contextMenu.Items.Add(showItem);
-        
+
         contextMenu.Items.Add(new ToolStripSeparator());
-        
+
         var exitItem = new ToolStripMenuItem("Exit");
         exitItem.Click += (s, e) => ExitRequested?.Invoke();
         contextMenu.Items.Add(exitItem);

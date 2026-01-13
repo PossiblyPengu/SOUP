@@ -324,7 +324,9 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Orientation="Vertical" Grid.Column="0">
-                                <TextBlock Text="{Binding VendorName}" FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBox Text="{Binding VendorName}" FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam"
+                                         Padding="0" Margin="0"/>
                             </StackPanel>
 
                             <!-- Restore Button -->
@@ -356,18 +358,18 @@
 
                     <!-- Content -->
                     <StackPanel Grid.Row="2" Margin="16,14">
-                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas"/>
+                        <TextBox Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4"
+                                 Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
+                        <TextBox Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4"
+                                 Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
+                        <TextBox Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas"
+                                 Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
                     </StackPanel>
                     
                     <!-- Footer with timestamp -->
-                    <TextBlock Grid.Row="3" 
-                               Text="{Binding CreatedAtDisplay}" 
-                               FontSize="10" 
-                               Foreground="{DynamicResource TextDisabledBrush}" 
-                               HorizontalAlignment="Right" 
-                               Margin="0,4,16,8"/>
+                    <TextBox Grid.Row="3" Text="{Binding CreatedAtDisplay}" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}"
+                             Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam"
+                             HorizontalAlignment="Right" Margin="0,4,16,8" Padding="0"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -396,11 +398,12 @@
 
                     <!-- Note content area (read-only for archived) -->
                     <Grid Grid.Row="1" Margin="14,12,14,10">
-                        <TextBlock Text="{Binding NoteContent}" 
-                                   Foreground="{DynamicResource TextSecondaryBrush}" 
-                                   FontSize="{DynamicResource CardFontSize}" 
-                                   TextWrapping="Wrap" 
-                                   MaxHeight="80"/>
+                        <TextBox Text="{Binding NoteContent}" 
+                                 Foreground="{DynamicResource TextSecondaryBrush}" 
+                                 FontSize="{DynamicResource CardFontSize}" 
+                                 TextWrapping="Wrap" 
+                                 MaxHeight="80"
+                                 Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
                         
                         <!-- Restore button (show on hover) -->
                         <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"

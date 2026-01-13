@@ -1,21 +1,21 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SOUP.Core.Entities.AllocationBuddy;
-using SOUP.Infrastructure.Services.Parsers;
-using SOUP.Helpers;
-using SOUP.Services;
-using SOUP.Data;
-using SOUP.Core.Common;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
-using System.IO;
+using Microsoft.Extensions.Logging;
+using SOUP.Core.Common;
+using SOUP.Core.Entities.AllocationBuddy;
+using SOUP.Data;
+using SOUP.Helpers;
+using SOUP.Infrastructure.Services.Parsers;
+using SOUP.Services;
 
 namespace SOUP.ViewModels;
 
@@ -59,7 +59,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// Thread-safe lookup dictionary for O(1) item access by item number.
     /// </summary>
     private ConcurrentDictionary<string, DictionaryItem> _itemLookupByNumber = new(StringComparer.OrdinalIgnoreCase);
-    
+
     /// <summary>
     /// Thread-safe lookup dictionary for O(1) item access by SKU.
     /// </summary>
@@ -84,7 +84,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// Maximum clipboard text length (10MB) to prevent denial-of-service attacks.
     /// </summary>
     private const int MaxClipboardTextLength = 10_000_000;
-    
+
     /// <summary>
     /// Tracks whether current data has unsaved changes that need archiving.
     /// </summary>
@@ -108,12 +108,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// Gets the collection of location allocations, each containing items allocated to that location.
     /// </summary>
     public ObservableCollection<LocationAllocation> LocationAllocations { get; } = new();
-    
+
     /// <summary>
     /// Gets the pool of unallocated items that can be moved to locations.
     /// </summary>
     public ObservableCollection<ItemAllocation> ItemPool { get; } = new();
-    
+
     /// <summary>
     /// Gets the results of the last file import operation for display to the user.
     /// </summary>
@@ -155,7 +155,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     /// Gets a value indicating whether there is no data loaded (displays welcome screen).
     /// </summary>
     public bool HasNoData => LocationAllocations.Count == 0 && ItemPool.Count == 0;
-    
+
     /// <summary>
     /// Gets a value indicating whether data is loaded (displays main interface).
     /// </summary>
@@ -231,15 +231,15 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     {
         // Get items from locations (allocated)
         var locationItems = LocationAllocations.SelectMany(l => l.Items).ToList();
-        
+
         // Build lookup for pool quantities by item number (case-insensitive)
         var poolByItem = ItemPool
             .GroupBy(p => p.ItemNumber, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
-                g => g.Key, 
+                g => g.Key,
                 g => (Quantity: g.Sum(p => p.Quantity), Description: g.First().Description),
                 StringComparer.OrdinalIgnoreCase);
-        
+
         // Build lookup for location quantities by item number (case-insensitive)
         var locationByItem = locationItems
             .GroupBy(i => i.ItemNumber, StringComparer.OrdinalIgnoreCase)
@@ -247,17 +247,17 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 g => g.Key,
                 g => (Quantity: g.Sum(i => i.Quantity), Description: g.First().Description, LocationCount: g.Count()),
                 StringComparer.OrdinalIgnoreCase);
-        
+
         // Get all unique item numbers from both sources
         var allItemNumbers = locationByItem.Keys
             .Union(poolByItem.Keys, StringComparer.OrdinalIgnoreCase)
             .ToList();
-        
+
         var grouped = allItemNumbers.Select(itemNum =>
         {
             var hasLocation = locationByItem.TryGetValue(itemNum, out var locData);
             var hasPool = poolByItem.TryGetValue(itemNum, out var poolData);
-            
+
             return new ItemTotalSummary
             {
                 ItemNumber = itemNum,
@@ -285,7 +285,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             ItemTotals.Add(t);
         }
-        
+
         // Update each pool item's TotalInLocations for display
         foreach (var poolItem in ItemPool)
         {
@@ -298,7 +298,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 poolItem.TotalInLocations = 0;
             }
         }
-        
+
         OnPropertyChanged(nameof(ItemTotals));
 
         // Refresh item allocations if in item view mode
@@ -391,7 +391,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             ItemAllocations.Add(item);
         }
-        
+
         OnPropertyChanged(nameof(FilteredItemAllocations));
     }
 
@@ -401,58 +401,58 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     /// <summary>Command to import data from an Excel or CSV file via file dialog.</summary>
     public IAsyncRelayCommand ImportCommand { get; }
-    
+
     /// <summary>Command to import data from multiple files (used by drag-and-drop).</summary>
     public IAsyncRelayCommand<string[]> ImportFilesCommand { get; }
-    
+
     /// <summary>Command to paste and import data from the clipboard.</summary>
     public IRelayCommand PasteCommand { get; }
-    
+
     /// <summary>Command to import data from the paste text box on the welcome screen.</summary>
     public IRelayCommand ImportFromPasteTextCommand { get; }
-    
+
     /// <summary>Command to refresh the current data display.</summary>
     public IAsyncRelayCommand RefreshCommand { get; }
-    
+
     /// <summary>Command to clear the search filter.</summary>
     public IRelayCommand ClearCommand { get; }
-    
+
     /// <summary>Command to decrease an item's quantity by one.</summary>
     public IRelayCommand RemoveOneCommand { get; }
-    
+
     /// <summary>Command to increase an item's quantity by one.</summary>
     public IRelayCommand AddOneCommand { get; }
-    
+
     /// <summary>Command to move an item from the pool to a selected location.</summary>
     public IRelayCommand MoveFromPoolCommand { get; }
-    
+
     /// <summary>Command to deactivate a store, moving its items to the pool.</summary>
     public IAsyncRelayCommand<LocationAllocation> DeactivateStoreCommand { get; }
-    
+
     /// <summary>Command to undo the last store deactivation.</summary>
     public IRelayCommand UndoDeactivateCommand { get; }
-    
+
     /// <summary>Command to clear all allocation data after confirmation.</summary>
     public IAsyncRelayCommand ClearDataCommand { get; }
-    
+
     /// <summary>Command to copy a location's data to the clipboard.</summary>
     public IRelayCommand<LocationAllocation> CopyLocationToClipboardCommand { get; }
-    
+
     /// <summary>Command to copy an item's redistribution data (all location allocations) to the clipboard.</summary>
     public IRelayCommand<ItemAllocationView> CopyItemRedistributionCommand { get; }
-    
+
     /// <summary>Command to export allocation data to an Excel file.</summary>
     public IAsyncRelayCommand ExportToExcelCommand { get; }
-    
+
     /// <summary>Command to export allocation data to a CSV file.</summary>
     public IAsyncRelayCommand ExportToCsvCommand { get; }
-    
+
     /// <summary>Command to sort item totals by the specified mode.</summary>
     public IRelayCommand<string> SortItemTotalsCommand { get; private set; } = null!;
-    
+
     /// <summary>Command to set the view mode (stores or items).</summary>
     public IRelayCommand<string> SetViewModeCommand { get; private set; } = null!;
-    
+
     /// <summary>Command to open the settings window to the Allocation tab.</summary>
     public IRelayCommand OpenSettingsCommand { get; }
 
@@ -462,17 +462,17 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     /// <summary>Command to manually archive the current data.</summary>
     public IAsyncRelayCommand ArchiveCurrentCommand { get; }
-    
+
     /// <summary>Command to load and display the list of archives.</summary>
     public IAsyncRelayCommand ViewArchivesCommand { get; }
-    
+
     /// <summary>Gets the collection of available archives.</summary>
     public ObservableCollection<ArchiveViewModel> Archives { get; } = new();
-    
+
     /// <summary>Gets or sets whether the archive panel is open.</summary>
     [ObservableProperty]
     private bool _isArchivePanelOpen;
-    
+
     partial void OnIsArchivePanelOpenChanged(bool value)
     {
         _logger?.LogInformation("Archive panel open changed to: {Value}", value);
@@ -495,7 +495,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
         _logger = logger;
-        
+
         // Get settings service and subscribe to changes
         _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
         if (_settingsService != null)
@@ -523,7 +523,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         SetViewModeCommand = new RelayCommand<string>(mode => { if (mode != null) ViewMode = mode; });
         ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
         ExportToCsvCommand = new AsyncRelayCommand(ExportToCsvAsync);
-        
+
         // Archive commands
         ArchiveCurrentCommand = new AsyncRelayCommand(ArchiveCurrentAsync, () => HasData);
         ViewArchivesCommand = new AsyncRelayCommand(LoadArchivesAsync);
@@ -531,7 +531,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         // Load settings and dictionaries on a background task
         _ = LoadSettingsAsync();
         _ = LoadDictionariesAsync();
-        
+
         // Load archives on startup
         _ = LoadArchivesAsync();
     }
@@ -666,7 +666,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         var separator = _clipboardFormat == "CommaSeparated" ? "," : "\t";
         var sb = new System.Text.StringBuilder();
-        
+
         foreach (var item in loc.Items)
         {
             if (_includeDescriptionsInCopy)
@@ -706,7 +706,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         var separator = _clipboardFormat == "CommaSeparated" ? "," : "\t";
         var sb = new System.Text.StringBuilder();
-        
+
         // Add each store allocation
         foreach (var allocation in item.StoreAllocations)
         {
@@ -785,25 +785,25 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         try
         {
             _logger?.LogInformation("ImportAsync started");
-            
+
             var files = await _dialogService.ShowOpenFileDialogAsync("Select allocation file", "All Files", "xlsx", "csv");
-            
+
             _logger?.LogInformation("File dialog returned: {Files}", files != null ? string.Join(", ", files) : "null");
-            
-            if (files == null || files.Length == 0) 
+
+            if (files == null || files.Length == 0)
             {
                 _logger?.LogInformation("No files selected, returning");
                 return;
             }
-            
+
             // Auto-archive existing data before importing new data
             await AutoArchiveIfNeededAsync();
-            
+
             var file = files[0];
             _logger?.LogInformation("Importing file: {File}", file);
-            
+
             StatusMessage = $"Importing {Path.GetFileName(file)}...";
-            
+
             Result<IReadOnlyList<AllocationEntry>> result;
             if (file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
             {
@@ -814,7 +814,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 result = await _parser.ParseExcelAsync(file);
             }
 
-            _logger?.LogInformation("Parse result: Success={Success}, Count={Count}, Error={Error}", 
+            _logger?.LogInformation("Parse result: Success={Success}, Count={Count}, Error={Error}",
                 result.IsSuccess, result.Value?.Count ?? 0, result.ErrorMessage);
 
             if (!result.IsSuccess || result.Value == null)
@@ -837,7 +837,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             MarkAsModified();
             StatusMessage = $"Imported {result.Value.Count} entries from {Path.GetFileName(file)}";
             _logger?.LogInformation("Successfully imported {Count} entries", result.Value.Count);
-            
+
             OnPropertyChanged(nameof(LocationsCount));
             OnPropertyChanged(nameof(ItemPoolCount));
             OnPropertyChanged(nameof(TotalEntries));
@@ -901,7 +901,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             // Auto-archive is async, but for paste we'll fire-and-forget
             _ = AutoArchiveIfNeededAsync();
-            
+
             PopulateFromEntries(parseResult.Value);
             MarkAsModified();
             StatusMessage = $"Imported {parseResult.Value.Count} entries";
@@ -949,7 +949,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             // Auto-archive is async, but for paste we'll fire-and-forget
             _ = AutoArchiveIfNeededAsync();
-            
+
             PopulateFromEntries(result.Value);
             MarkAsModified();
             PasteText = string.Empty; // Clear the textbox after successful import
@@ -1013,12 +1013,12 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             await AutoArchiveIfNeededAsync();
             PopulateFromEntries(allEntries);
             MarkAsModified();
-            
+
             // Track the imported file name for session saves
-            _lastImportedFileName = files.Length == 1 
-                ? Path.GetFileNameWithoutExtension(files[0]) 
+            _lastImportedFileName = files.Length == 1
+                ? Path.GetFileNameWithoutExtension(files[0])
                 : $"{files.Length} files";
-            
+
             StatusMessage = $"Imported {allEntries.Count} entries from {files.Length} files";
             OnPropertyChanged(nameof(LocationsCount));
             OnPropertyChanged(nameof(ItemPoolCount));
@@ -1047,10 +1047,10 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             // Store both code and name for display
             var storeCode = g.Key;
             var storeName = g.FirstOrDefault()?.StoreName;
-            
+
             // Try to resolve both code and name from dictionary
             var storeFromDict = InternalStoreDictionary.FindByCode(storeCode);
-            
+
             if (storeFromDict != null)
             {
                 // Found by code - use the name from dictionary
@@ -1074,7 +1074,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     }
                 }
             }
-            
+
             var loc = new LocationAllocation { Location = storeCode, LocationName = storeName };
             foreach (var e in g)
             {
@@ -1496,7 +1496,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     _logger?.LogWarning(ex, "Failed to delete session archive: {FilePath}", file);
                 }
             }
-            
+
             // Clear the imported file name since data is cleared
             _lastImportedFileName = null;
         }
@@ -1518,7 +1518,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var defaultFileName = $"AllocationBuddy_Export_{timestamp}.xlsx";
-            
+
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export to Excel",
                 defaultFileName,
@@ -1595,7 +1595,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var defaultFileName = $"AllocationBuddy_Export_{timestamp}.csv";
-            
+
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export to CSV",
                 defaultFileName,
@@ -1608,7 +1608,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
 
             using var writer = new StreamWriter(filePath);
-            
+
             // Headers
             await writer.WriteLineAsync("Location,Location Name,Item Number,Description,Quantity,SKU");
 
@@ -1665,7 +1665,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         // Show archive dialog
         var dialog = new SOUP.Views.AllocationBuddy.ArchiveDialog();
         var result = await _dialogService.ShowContentDialogAsync<ArchiveDialogResult?>(dialog);
-        
+
         if (result == null) return;
 
         try
@@ -1706,7 +1706,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             // Reload archives list
             await LoadArchivesAsync();
-            
+
             _hasUnarchivedChanges = false; // Data is now archived
 
             StatusMessage = $"Archived as '{result.Name}'";
@@ -1728,7 +1728,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             Archives.Clear();
             var archivePath = GetArchivePath();
-            
+
             if (!Directory.Exists(archivePath))
             {
                 return;
@@ -1781,7 +1781,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         {
             var json = await File.ReadAllTextAsync(filePath);
             var data = System.Text.Json.JsonSerializer.Deserialize<ArchiveData>(json);
-            
+
             if (data == null)
             {
                 StatusMessage = "Invalid archive file";
@@ -1894,7 +1894,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         var sessionName = !string.IsNullOrEmpty(_lastImportedFileName)
             ? $"Session_{_lastImportedFileName}"
             : "Session-Save";
-        
+
         await SaveCurrentDataAsync(sessionName, "Automatically saved when application closed");
     }
 
@@ -1959,7 +1959,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             RefreshItemTotals();
 
             _hasUnarchivedChanges = false; // Loaded data is already archived
-            
+
             // Extract the original file name from session archives (Session_filename format)
             var archiveFileName = Path.GetFileNameWithoutExtension(files.Path);
             if (archiveFileName.Contains("_Session_"))
@@ -1967,7 +1967,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 var sessionIndex = archiveFileName.IndexOf("_Session_", StringComparison.Ordinal);
                 _lastImportedFileName = archiveFileName[(sessionIndex + 9)..]; // Skip "_Session_"
             }
-            
+
             StatusMessage = $"Restored {data.Locations.Count} locations from previous session";
             _logger?.LogInformation("Loaded most recent archive: {Name}", data.Name);
         }
@@ -2020,7 +2020,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
             _hasUnarchivedChanges = false;
             _logger?.LogInformation("{Prefix} allocation data ({Count} items)", prefix, TotalEntries);
-            
+
             // Reload archives list (only if not shutting down)
             if (prefix != "Session-Save")
             {
@@ -2068,7 +2068,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                 {
                     _settingsService.SettingsChanged -= OnSettingsChanged;
                 }
-                
+
                 _loadDictionariesCts?.Cancel();
                 _loadDictionariesCts?.Dispose();
                 _loadDictionariesCts = null;
@@ -2086,7 +2086,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             get
             {
                 // If no name or name equals code, just show code
-                if (string.IsNullOrWhiteSpace(LocationName) || 
+                if (string.IsNullOrWhiteSpace(LocationName) ||
                     LocationName.Equals(Location, StringComparison.OrdinalIgnoreCase))
                 {
                     return Location;

@@ -127,13 +127,13 @@ public sealed class WidgetProcessService : IDisposable
         try
         {
             _logger?.LogInformation("Requesting widget process to close");
-            
+
             // Send close message to main window
             process.CloseMainWindow();
-            
+
             // Wait for graceful exit
             var exited = await Task.Run(() => process.WaitForExit(3000), ct);
-            
+
             if (!exited)
             {
                 _logger?.LogWarning("Widget process did not exit gracefully, killing");

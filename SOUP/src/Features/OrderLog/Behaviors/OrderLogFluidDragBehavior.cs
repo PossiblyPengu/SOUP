@@ -341,7 +341,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         if (_isLinkMode)
         {
             UpdateDraggedElementPosition(currentPosition);
-            
+
             var targetBorder = FindBorderUnderCursor();
             if (!ReferenceEquals(targetBorder, _currentLinkTargetBorder))
             {
@@ -379,7 +379,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private void PerformSwapBasedReorder(Point mousePosition)
     {
         if (_draggedElement == null || AssociatedObject == null) return;
-        
+
         var viewModel = FindViewModel();
         if (viewModel == null) return;
 
@@ -394,11 +394,11 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
 
         // Find the target index based on mouse Y position
         int targetIndex = _currentLogicalIndex;
-        
+
         for (int i = 0; i < children.Count; i++)
         {
             var card = children[i];
-            
+
             // Skip our own card
             var cardItem = GetOrderItemFromElement(card);
             if (cardItem != null && cardItem.Id == draggedItem.Id) continue;
@@ -427,15 +427,15 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             var currentTransform = GetTranslateTransform();
             double currentOffsetY = currentTransform?.Y ?? 0;
             double currentOffsetX = currentTransform?.X ?? 0;
-            
+
             // Move item in collection
             viewModel.MoveItemToIndex(draggedItem, targetIndex);
             _currentLogicalIndex = targetIndex;
             _draggedIndex = targetIndex;
-            
+
             // Force layout update
             AssociatedObject.UpdateLayout();
-            
+
             // Re-acquire the visual element for the dragged item
             ReacquireDraggedElement(draggedItem, currentOffsetX, currentOffsetY);
         }
@@ -459,10 +459,10 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 // Found it - update our references
                 _draggedElement = border;
                 _draggedPanelChild = panelChild;
-                
+
                 // Update original position to new location
                 _elementOriginalPosition = panelChild.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
-                
+
                 // Re-apply transform with adjusted offset
                 ApplyDragTransform(panelChild);
                 var newTransform = GetTranslateTransform();
@@ -471,13 +471,13 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                     newTransform.X = offsetX;
                     newTransform.Y = offsetY;
                 }
-                
+
                 // Re-apply Z-index and visual feedback
                 Panel.SetZIndex(panelChild, DRAG_Z_INDEX);
-                
+
                 _visualFeedbackBorder = border;
                 ApplyModeVisualFeedback(border, _isLinkMode);
-                
+
                 return;
             }
         }
@@ -493,10 +493,10 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private Point GetCardOriginalPosition(FrameworkElement card, int visualIndex)
     {
         if (AssociatedObject == null) return new Point(0, 0);
-        
+
         // Get current position and subtract any transform offset
         var pos = card.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
-        
+
         // Remove any animator transform to get original position
         var transform = card.RenderTransform as TranslateTransform;
         if (transform != null)
@@ -508,13 +508,13 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             var tt = group.Children.OfType<TranslateTransform>().FirstOrDefault();
             if (tt != null) pos.Y -= tt.Y;
         }
-        
+
         return pos;
     }
 
     private Point GetDraggedCardCenter()
     {
-        if (_draggedElement == null || AssociatedObject == null) 
+        if (_draggedElement == null || AssociatedObject == null)
             return new Point(0, 0);
 
         var pos = _draggedElement.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
@@ -594,7 +594,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                         else if (border.DataContext is OrderItemGroup og) candidate = og.First;
                         if (candidate == null || candidate.IsPracticallyEmpty) continue;
 
-                        var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)), 
+                        var bounds = new Rect(border.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0)),
                             new Size(border.ActualWidth, border.ActualHeight));
                         var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
                         var dist = (center - mousePos).Length;
@@ -624,7 +624,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 {
                     await viewModel.SaveAsync();
                 }
-                
+
                 // Raise event for any listeners
                 ReorderComplete?.Invoke(draggedItems, null);
             }
@@ -829,7 +829,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         var shadowColor = isLinkMode
             ? Color.FromRgb(138, 43, 226) // Purple glow for link
             : Color.FromRgb(0, 0, 0);      // Black shadow for reorder
-        
+
         var dropShadow = new System.Windows.Media.Effects.DropShadowEffect
         {
             Color = shadowColor,

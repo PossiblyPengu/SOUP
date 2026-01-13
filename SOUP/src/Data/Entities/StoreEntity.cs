@@ -9,8 +9,8 @@ public class StoreEntity
     /// Primary key - store code
     /// </summary>
     public string Code { get; set; } = "";
-    
+
     public string Name { get; set; } = "";
-    
+
     public string Rank { get; set; } = "";
 }

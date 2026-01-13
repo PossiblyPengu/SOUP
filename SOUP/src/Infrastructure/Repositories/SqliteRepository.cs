@@ -32,7 +32,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         Context = context ?? throw new ArgumentNullException(nameof(context));
         Logger = logger;
         TableName = typeof(T).Name;
-        
+
         // Ensure table exists
         Context.EnsureTable<T>(TableName);
     }
@@ -43,17 +43,17 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT Data FROM [{TableName}] WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id.ToString());
-            
+
             var json = cmd.ExecuteScalar() as string;
             if (string.IsNullOrEmpty(json))
             {
                 return Task.FromResult<T?>(null);
             }
-            
+
             var entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
             return Task.FromResult(entity);
         }
@@ -70,10 +70,10 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT Data FROM [{TableName}] WHERE IsDeleted = 0";
-            
+
             var results = new List<T>();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -85,7 +85,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                     results.Add(entity);
                 }
             }
-            
+
             return Task.FromResult<IEnumerable<T>>(results);
         }
         catch (Exception ex)
@@ -101,13 +101,13 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             ArgumentNullException.ThrowIfNull(predicate);
             var compiledPredicate = predicate.Compile();
-            
+
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT Data FROM [{TableName}] WHERE IsDeleted = 0";
-            
+
             var results = new List<T>();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -119,7 +119,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                     results.Add(entity);
                 }
             }
-            
+
             return Task.FromResult<IEnumerable<T>>(results);
         }
         catch (Exception ex)
@@ -134,10 +134,10 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         try
         {
             ArgumentNullException.ThrowIfNull(entity);
-            
+
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $@"
                 INSERT INTO [{TableName}] (Id, CreatedAt, UpdatedAt, IsDeleted, Data)
@@ -148,7 +148,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
             cmd.Parameters.AddWithValue("@UpdatedAt", entity.UpdatedAt?.ToString("O") ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@IsDeleted", entity.IsDeleted ? 1 : 0);
             cmd.Parameters.AddWithValue("@Data", JsonSerializer.Serialize(entity, JsonOptions));
-            
+
             cmd.ExecuteNonQuery();
             return Task.FromResult(entity);
         }
@@ -165,10 +165,10 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             ArgumentNullException.ThrowIfNull(entities);
             var entityList = entities.ToList();
-            
+
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var transaction = connection.BeginTransaction();
             try
             {
@@ -194,7 +194,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                 transaction.Rollback();
                 throw;
             }
-            
+
             return Task.FromResult<IEnumerable<T>>(entityList);
         }
         catch (Exception ex)
@@ -210,10 +210,10 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             ArgumentNullException.ThrowIfNull(entity);
             entity.UpdatedAt = DateTime.UtcNow;
-            
+
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $@"
                 UPDATE [{TableName}]
@@ -224,7 +224,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
             cmd.Parameters.AddWithValue("@UpdatedAt", entity.UpdatedAt?.ToString("O") ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@IsDeleted", entity.IsDeleted ? 1 : 0);
             cmd.Parameters.AddWithValue("@Data", JsonSerializer.Serialize(entity, JsonOptions));
-            
+
             cmd.ExecuteNonQuery();
             return Task.FromResult(entity);
         }
@@ -242,7 +242,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
             // Soft delete
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             // First get the entity to update
             T? entity;
             using (var getCmd = connection.CreateCommand())
@@ -256,15 +256,15 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                 }
                 entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
             }
-            
+
             if (entity is null)
             {
                 return Task.FromResult(false);
             }
-            
+
             entity.IsDeleted = true;
             entity.UpdatedAt = DateTime.UtcNow;
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $@"
                 UPDATE [{TableName}]
@@ -274,7 +274,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
             cmd.Parameters.AddWithValue("@Id", id.ToString());
             cmd.Parameters.AddWithValue("@UpdatedAt", entity.UpdatedAt?.ToString("O") ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@Data", JsonSerializer.Serialize(entity, JsonOptions));
-            
+
             var affected = cmd.ExecuteNonQuery();
             return Task.FromResult(affected > 0);
         }
@@ -291,7 +291,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             // First get all entities to update their JSON
             var entities = new List<(Guid, T)>();
             using (var getCmd = connection.CreateCommand())
@@ -309,7 +309,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                     }
                 }
             }
-            
+
             using var transaction = connection.BeginTransaction();
             try
             {
@@ -317,7 +317,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                 {
                     entity.IsDeleted = true;
                     entity.UpdatedAt = DateTime.UtcNow;
-                    
+
                     using var cmd = connection.CreateCommand();
                     cmd.Transaction = transaction;
                     cmd.CommandText = $@"
@@ -337,7 +337,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
                 transaction.Rollback();
                 throw;
             }
-            
+
             return Task.CompletedTask;
         }
         catch (Exception ex)
@@ -353,11 +353,11 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
         {
             using var connection = Context.CreateConnection();
             connection.Open();
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = $"DELETE FROM [{TableName}]";
             var count = cmd.ExecuteNonQuery();
-            
+
             Logger?.LogInformation("Hard deleted {Count} entities from table {TableName}", count, TableName);
             return Task.FromResult(count);
         }

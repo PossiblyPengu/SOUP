@@ -2,13 +2,13 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using SOUP.Features.OrderLog.ViewModels;
+using SOUP.Features.OrderLog.Views;
 using SOUP.ViewModels;
 using SOUP.Views.AllocationBuddy;
 using SOUP.Views.EssentialsBuddy;
 using SOUP.Views.ExpireWise;
 using SOUP.Views.SwiftLabel;
-using SOUP.Features.OrderLog.ViewModels;
-using SOUP.Features.OrderLog.Views;
 
 namespace SOUP.Converters;
 

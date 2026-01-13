@@ -14,22 +14,22 @@ public class Result<T>
     /// Gets whether the operation succeeded.
     /// </summary>
     public bool IsSuccess { get; }
-    
+
     /// <summary>
     /// Gets the result value if successful.
     /// </summary>
     public T? Value { get; }
-    
+
     /// <summary>
     /// Gets the error message if the operation failed.
     /// </summary>
     public string Error { get; }
-    
+
     /// <summary>
     /// Gets the error message (alias for compatibility).
     /// </summary>
     public string ErrorMessage => Error;
-    
+
     /// <summary>
     /// Gets whether the operation failed.
     /// </summary>
@@ -54,7 +54,7 @@ public class Result<T>
     /// <param name="value">The result value.</param>
     /// <returns>A successful result.</returns>
     public static Result<T> Success(T value) => new(true, value, string.Empty);
-    
+
     /// <summary>
     /// Creates a failed result with the specified error message.
     /// </summary>
@@ -76,17 +76,17 @@ public class Result
     /// Gets whether the operation succeeded.
     /// </summary>
     public bool IsSuccess { get; }
-    
+
     /// <summary>
     /// Gets the error message if the operation failed.
     /// </summary>
     public string Error { get; }
-    
+
     /// <summary>
     /// Gets the error message (alias for compatibility).
     /// </summary>
     public string ErrorMessage => Error;
-    
+
     /// <summary>
     /// Gets whether the operation failed.
     /// </summary>
@@ -108,7 +108,7 @@ public class Result
     /// </summary>
     /// <returns>A successful result.</returns>
     public static Result Success() => new(true, string.Empty);
-    
+
     /// <summary>
     /// Creates a failed result with the specified error message.
     /// </summary>

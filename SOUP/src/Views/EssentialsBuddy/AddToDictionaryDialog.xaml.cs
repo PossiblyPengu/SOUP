@@ -17,10 +17,10 @@ public partial class AddToDictionaryDialog : Window
     public AddToDictionaryDialog(List<InventoryItem> unmatchedItems)
     {
         InitializeComponent();
-        
+
         Items = unmatchedItems;
         ItemsGrid.ItemsSource = Items;
-        
+
         UpdateSummary();
     }
 

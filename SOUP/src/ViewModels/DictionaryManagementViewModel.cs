@@ -9,8 +9,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
-using SOUP.Infrastructure.Services.Parsers;
 using SOUP.Data;
+using SOUP.Infrastructure.Services.Parsers;
 using SOUP.Services.External;
 
 namespace SOUP.ViewModels;
@@ -155,19 +155,19 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     /// Whether external sync is configured
     /// </summary>
     public bool CanSyncFromExternal => _externalConfig.IsMySqlConfigured || _externalConfig.IsBusinessCentralConfigured;
-    
+
     /// <summary>
     /// Last sync time display
     /// </summary>
-    public string LastSyncDisplay => _externalConfig.LastSyncTime.HasValue 
-        ? $"Last sync: {_externalConfig.LastSyncTime:g}" 
+    public string LastSyncDisplay => _externalConfig.LastSyncTime.HasValue
+        ? $"Last sync: {_externalConfig.LastSyncTime:g}"
         : "Never synced";
 
-    public ObservableCollection<string> ItemSortOptions { get; } = new() 
-    { 
-        "Number", 
-        "Description", 
-        "Essential", 
+    public ObservableCollection<string> ItemSortOptions { get; } = new()
+    {
+        "Number",
+        "Description",
+        "Essential",
         "Private Label",
         "Tags"
     };
@@ -188,7 +188,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
         _logger = logger;
         _syncService = syncService;
         _externalConfig = ExternalConnectionConfig.Load();
-        
+
         // Subscribe to sync progress events using stored handlers for cleanup
         if (_syncService != null)
         {
@@ -198,7 +198,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 SyncProgress = e.ProgressPercent;
             };
             _syncService.ProgressChanged += _progressHandler;
-            
+
             _completedHandler = async (_, e) =>
             {
                 IsSyncing = false;
@@ -231,7 +231,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     public async Task LoadDictionaryAsync()
     {
         if (IsLoading) return;
-        
+
         try
         {
             IsLoading = true;
@@ -259,11 +259,11 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 _logger?.LogInformation("DictionaryManagement: Updating UI collections");
-                
+
                 // Also keep Items/Stores synced for save operations
                 Items.Clear();
                 foreach (var item in _allItems) Items.Add(item);
-                
+
                 Stores.Clear();
                 foreach (var store in _allStores) Stores.Add(store);
 
@@ -273,12 +273,12 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
                 // Show first page of items
                 UpdateDisplayedItems();
-                
+
                 // Show all stores (clear and add to existing collection)
                 FilteredStores.Clear();
                 foreach (var store in _allStores) FilteredStores.Add(store);
-                
-                _logger?.LogInformation("DictionaryManagement: FilteredItems count = {Count}, FilteredStores count = {StoreCount}", 
+
+                _logger?.LogInformation("DictionaryManagement: FilteredItems count = {Count}, FilteredStores count = {StoreCount}",
                     FilteredItems.Count, FilteredStores.Count);
             }, System.Windows.Threading.DispatcherPriority.Normal);
 
@@ -311,7 +311,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             {
                 // Save items to SQLite
                 InternalItemDictionary.SaveItems(_allItems);
-                
+
                 // Save stores to SQLite
                 InternalStoreDictionary.SaveStores(_allStores);
             }).ConfigureAwait(false);
@@ -494,7 +494,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             }
 
             var itemNumber = SelectedItem.Number;
-            
+
             // Confirmation dialog
             var result = System.Windows.MessageBox.Show(
                 $"Are you sure you want to delete item {itemNumber}?\n\nThis will permanently remove it from the dictionary.",
@@ -504,10 +504,10 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
             if (result != System.Windows.MessageBoxResult.Yes)
                 return;
-            
+
             // Delete from SQLite immediately
             InternalItemDictionary.DeleteItem(itemNumber);
-            
+
             _allItems.RemoveAll(i => i.Number == itemNumber);
             SyncItemsFromAllItems();
             UpdateDisplayedItems();
@@ -660,10 +660,10 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             }
 
             var storeCode = SelectedStore.Code;
-            
+
             // Delete from SQLite immediately
             InternalStoreDictionary.DeleteStore(storeCode);
-            
+
             _allStores.RemoveAll(s => s.Code == storeCode);
             Stores.Remove(SelectedStore);
             ApplyStoreFilters();
@@ -755,19 +755,19 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
         // Apply sorting
         filtered = ItemSortBy switch
         {
-            "Number" => ItemSortDescending 
-                ? filtered.OrderByDescending(i => i.Number) 
+            "Number" => ItemSortDescending
+                ? filtered.OrderByDescending(i => i.Number)
                 : filtered.OrderBy(i => i.Number),
-            "Description" => ItemSortDescending 
-                ? filtered.OrderByDescending(i => i.Description) 
+            "Description" => ItemSortDescending
+                ? filtered.OrderByDescending(i => i.Description)
                 : filtered.OrderBy(i => i.Description),
-            "Essential" => ItemSortDescending 
+            "Essential" => ItemSortDescending
                 ? filtered.OrderBy(i => i.IsEssential).ThenBy(i => i.Number)
                 : filtered.OrderByDescending(i => i.IsEssential).ThenBy(i => i.Number),
-            "Private Label" => ItemSortDescending 
+            "Private Label" => ItemSortDescending
                 ? filtered.OrderBy(i => i.IsPrivateLabel).ThenBy(i => i.Number)
                 : filtered.OrderByDescending(i => i.IsPrivateLabel).ThenBy(i => i.Number),
-            "Tags" => ItemSortDescending 
+            "Tags" => ItemSortDescending
                 ? filtered.OrderByDescending(i => i.Tags?.Count ?? 0).ThenBy(i => i.Number)
                 : filtered.OrderBy(i => i.Tags?.Count ?? 0).ThenBy(i => i.Number),
             _ => filtered.OrderBy(i => i.Number)
@@ -775,7 +775,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
         var filteredList = filtered.ToList();
         TotalPages = Math.Max(1, (int)Math.Ceiling(filteredList.Count / (double)PageSize));
-        
+
         if (CurrentPage > TotalPages) CurrentPage = TotalPages;
         if (CurrentPage < 1) CurrentPage = 1;
 
@@ -791,8 +791,8 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             FilteredItems.Add(item);
         }
 
-        var searchInfo = string.IsNullOrWhiteSpace(ItemSearchText) 
-            ? "" 
+        var searchInfo = string.IsNullOrWhiteSpace(ItemSearchText)
+            ? ""
             : $" matching '{ItemSearchText}'";
         StatusMessage = $"Page {CurrentPage} of {TotalPages} ({filteredList.Count} items{searchInfo})";
     }
@@ -891,19 +891,19 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
             // Create a snapshot of existing items for lookup
             var existingItemsSnapshot = _allItems.ToDictionary(
-                i => i.Number, 
-                i => i, 
+                i => i.Number,
+                i => i,
                 StringComparer.OrdinalIgnoreCase);
 
             await Task.Run(() =>
             {
                 using var workbook = new XLWorkbook(openFileDialog.FileName);
                 var worksheet = workbook.Worksheets.First();
-                
+
                 // Find columns by header (case-insensitive)
                 var headerRow = worksheet.Row(1);
                 int numberCol = -1, descCol = -1, skuCol = -1, styleListCol = -1, brandCol = -1;
-                
+
                 foreach (var cell in headerRow.CellsUsed())
                 {
                     var headerText = cell.GetString().ToLower().Trim();
@@ -925,7 +925,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 if (skuCol == -1) skuCol = 3;
 
                 var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
-                
+
                 for (int row = 2; row <= lastRow; row++)
                 {
                     var itemNumber = worksheet.Cell(row, numberCol).GetString().Trim();
@@ -933,7 +933,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                     var skuValue = skuCol > 0 ? worksheet.Cell(row, skuCol).GetString().Trim() : "";
                     var styleListValue = styleListCol > 0 ? worksheet.Cell(row, styleListCol).GetString().Trim() : "";
                     var brandValue = brandCol > 0 ? worksheet.Cell(row, brandCol).GetString().Trim() : "";
-                    
+
                     if (string.IsNullOrWhiteSpace(itemNumber))
                         continue;
 
@@ -949,7 +949,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
                     // Auto-detect Essential from STYLELIST column (contains "ESSENTIAL")
                     bool isEssential = styleListValue.Contains("ESSENTIAL", StringComparison.OrdinalIgnoreCase);
-                    
+
                     // Auto-detect Private Label from BRAND column (contains "STAGSHOP")
                     bool isPrivateLabel = brandValue.Contains("STAGSHOP", StringComparison.OrdinalIgnoreCase);
 
@@ -996,7 +996,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 // Apply updates to existing items
                 foreach (var update in updatedItems)
                 {
-                    var existing = _allItems.FirstOrDefault(i => 
+                    var existing = _allItems.FirstOrDefault(i =>
                         i.Number.Equals(update.Number, StringComparison.OrdinalIgnoreCase));
                     if (existing != null)
                     {
@@ -1015,7 +1015,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 SyncItemsFromAllItems();
                 UpdateDisplayedItems();
             });
-            
+
             StatusMessage = $"Imported {imported} new items, updated {updated} existing items from Excel";
             _logger?.LogInformation("Imported {Imported} new, {Updated} updated items from Excel", imported, updated);
         }
@@ -1057,17 +1057,17 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             {
                 using var workbook = new XLWorkbook(openFileDialog.FileName);
                 var worksheet = workbook.Worksheets.First();
-                
+
                 // Find columns by header (case-insensitive)
                 var headerRow = worksheet.Row(1);
                 int codeCol = -1, nameCol = -1, rankCol = -1;
-                
+
                 foreach (var cell in headerRow.CellsUsed())
                 {
                     var headerText = cell.GetString().ToLowerInvariant().Trim();
-                    
+
                     // Check for store code/number column (e.g., "store #", "store code", "store number", "#")
-                    if (headerText.Contains("#") || headerText.Contains("code") || headerText.Contains("number") || 
+                    if (headerText.Contains("#") || headerText.Contains("code") || headerText.Contains("number") ||
                         headerText == "id" || headerText == "storeid")
                         codeCol = cell.Address.ColumnNumber;
                     // Check for name column
@@ -1084,13 +1084,13 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 if (rankCol == -1) rankCol = 3;
 
                 var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
-                
+
                 for (int row = 2; row <= lastRow; row++)
                 {
                     var code = worksheet.Cell(row, codeCol).GetString().Trim();
                     var name = worksheet.Cell(row, nameCol).GetString().Trim();
                     var rank = rankCol > 0 ? worksheet.Cell(row, rankCol).GetString().Trim().ToUpperInvariant() : "A";
-                    
+
                     if (string.IsNullOrWhiteSpace(code))
                         continue;
 
@@ -1174,11 +1174,11 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private async Task SyncFromMySqlAsync()
     {
         if (_syncService == null || IsSyncing || !_externalConfig.IsMySqlConfigured) return;
-        
+
         IsSyncing = true;
         SyncProgress = 0;
         StatusMessage = "Starting MySQL sync...";
-        
+
         await _syncService.SyncFromMySqlAsync(_externalConfig);
     }
 
@@ -1189,11 +1189,11 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private async Task SyncFromBcAsync()
     {
         if (_syncService == null || IsSyncing || !_externalConfig.IsBusinessCentralConfigured) return;
-        
+
         IsSyncing = true;
         SyncProgress = 0;
         StatusMessage = "Starting Business Central sync...";
-        
+
         await _syncService.SyncFromBusinessCentralAsync(_externalConfig);
     }
 
@@ -1204,11 +1204,11 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private async Task SyncFromBothAsync()
     {
         if (_syncService == null || IsSyncing) return;
-        
+
         IsSyncing = true;
         SyncProgress = 0;
         StatusMessage = "Starting combined sync...";
-        
+
         await _syncService.SyncFromBothAsync(_externalConfig);
     }
 

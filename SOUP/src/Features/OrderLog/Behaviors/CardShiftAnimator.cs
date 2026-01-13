@@ -22,11 +22,11 @@ public class CardShiftAnimator
     private readonly TimeSpan _animationDuration;
     private readonly IEasingFunction _easingFunction;
     private readonly IEasingFunction _springEasing;
-    
+
     // Insertion indicator
     private Border? _insertionIndicator;
     private int _lastIndicatorIndex = -1;
-    
+
     // Scale effect for shifting cards (disabled for cleaner visual)
     private const double SHIFT_SCALE = 1.0; // No scale change
     private const double SHIFT_SCALE_DURATION_RATIO = 0.5; // Scale animation is faster
@@ -38,10 +38,10 @@ public class CardShiftAnimator
         _easingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut };
         // Smooth cubic easing for predictable movement
         _springEasing = new CubicEase { EasingMode = EasingMode.EaseOut };
-        
+
         CreateInsertionIndicator();
     }
-    
+
     private void CreateInsertionIndicator()
     {
         _insertionIndicator = new Border
@@ -255,14 +255,14 @@ public class CardShiftAnimator
             int slotCursor = 0;
             foreach (var entry in newOrder)
             {
-                    if (entry == -1)
-                    {
-                        // dragged placeholder
-                        if (draggedSpan > 1 && (slotCursor % columns) != 0)
-                            slotCursor += (columns - (slotCursor % columns));
-                        slotCursor += draggedSpan;
-                        continue;
-                    }
+                if (entry == -1)
+                {
+                    // dragged placeholder
+                    if (draggedSpan > 1 && (slotCursor % columns) != 0)
+                        slotCursor += (columns - (slotCursor % columns));
+                    slotCursor += draggedSpan;
+                    continue;
+                }
 
                 // Ensure multi-column children start at column 0 of a row
                 int span = CardGridPlacement.GetSpan(_panel, placementChildren[entry]);
@@ -314,19 +314,19 @@ public class CardShiftAnimator
 
             return;
         }
-        
+
         // StackPanel shift animation - simple vertical shifting
         if (_panel is StackPanel)
         {
             for (int i = 0; i < allChildren.Count; i++)
             {
                 var child = allChildren[i];
-                
+
                 // Don't animate the dragged element
                 if (child == draggedElement) continue;
-                
+
                 double targetOffset = 0;
-                
+
                 // If dragging DOWN (insertionIndex > draggedIndex):
                 // Items between draggedIndex+1 and insertionIndex-1 need to shift UP
                 if (insertionIndex > draggedIndex)
@@ -345,7 +345,7 @@ public class CardShiftAnimator
                         targetOffset = draggedSize; // Shift down
                     }
                 }
-                
+
                 AnimateCardToOffset(child, targetOffset, isVertical: true);
             }
             return;
@@ -416,11 +416,11 @@ public class CardShiftAnimator
             // Reset scale
             AnimateCardScale(element, 1.0);
         }
-        
+
         // Hide insertion indicator
         HideInsertionIndicator();
     }
-    
+
     /// <summary>
     /// Shows the insertion indicator at the specified index.
     /// </summary>
@@ -428,14 +428,14 @@ public class CardShiftAnimator
     {
         if (_insertionIndicator == null || index == _lastIndicatorIndex) return;
         _lastIndicatorIndex = index;
-        
+
         var children = GetVisibleChildren(draggedElement);
         if (children.Count == 0)
         {
             HideInsertionIndicator();
             return;
         }
-        
+
         // Ensure indicator is in the panel
         if (!_panel.Children.Contains(_insertionIndicator))
         {
@@ -449,7 +449,7 @@ public class CardShiftAnimator
                 return; // Skip for non-Canvas panels for now
             }
         }
-        
+
         // Calculate position based on insertion index
         double targetY = 0;
         if (index < children.Count)
@@ -464,16 +464,16 @@ public class CardShiftAnimator
             var pos = lastChild.TransformToAncestor(_panel).Transform(new Point(0, 0));
             targetY = pos.Y + lastChild.ActualHeight + 4;
         }
-        
+
         Canvas.SetTop(_insertionIndicator, targetY);
         Canvas.SetLeft(_insertionIndicator, 0);
         _insertionIndicator.Width = _panel.ActualWidth - 16;
-        
+
         // Fade in
         var fadeIn = new DoubleAnimation(1, TimeSpan.FromMilliseconds(150));
         _insertionIndicator.BeginAnimation(UIElement.OpacityProperty, fadeIn);
     }
-    
+
     /// <summary>
     /// Hides the insertion indicator.
     /// </summary>
@@ -481,7 +481,7 @@ public class CardShiftAnimator
     {
         if (_insertionIndicator == null) return;
         _lastIndicatorIndex = -1;
-        
+
         var fadeOut = new DoubleAnimation(0, TimeSpan.FromMilliseconds(100));
         fadeOut.Completed += (s, e) =>
         {
@@ -573,7 +573,7 @@ public class CardShiftAnimator
         for (int i = 0; i < children.Count; i++)
         {
             var child = children[i];
-            
+
             // Skip the dragged element in positioning logic
             if (child == draggedElement)
             {
@@ -595,7 +595,7 @@ public class CardShiftAnimator
             {
                 return i;
             }
-            
+
             insertionIndex = i + 1;
         }
 
@@ -714,7 +714,7 @@ public class CardShiftAnimator
 
         var property = isVertical ? TranslateTransform.YProperty : TranslateTransform.XProperty;
         transform.BeginAnimation(property, animation);
-        
+
         // Apply subtle scale effect when shifting (makes cards feel "pressed")
         if (targetOffset != 0)
         {
@@ -746,16 +746,16 @@ public class CardShiftAnimator
 
         transform.BeginAnimation(TranslateTransform.XProperty, animX);
         transform.BeginAnimation(TranslateTransform.YProperty, animY);
-        
+
         // Apply subtle scale effect when shifting
         bool isMoving = Math.Abs(offsetX) > 0.1 || Math.Abs(offsetY) > 0.1;
         AnimateCardScale(element, isMoving ? SHIFT_SCALE : 1.0);
     }
-    
+
     private void AnimateCardScale(FrameworkElement element, double targetScale)
     {
         var scaleTransform = GetOrCreateScaleTransform(element);
-        
+
         var duration = TimeSpan.FromMilliseconds(_animationDuration.TotalMilliseconds * SHIFT_SCALE_DURATION_RATIO);
         var scaleAnim = new DoubleAnimation
         {
@@ -763,24 +763,24 @@ public class CardShiftAnimator
             Duration = duration,
             EasingFunction = _easingFunction
         };
-        
+
         scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
         scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
     }
-    
+
     private ScaleTransform GetOrCreateScaleTransform(FrameworkElement element)
     {
         if (_scaleTransforms.TryGetValue(element, out var existing))
         {
             return existing;
         }
-        
+
         var scaleTransform = new ScaleTransform(1, 1);
-        
+
         // Set center point for scaling
         scaleTransform.CenterX = element.ActualWidth / 2;
         scaleTransform.CenterY = element.ActualHeight / 2;
-        
+
         // Add to transform group
         if (element.RenderTransform is TransformGroup group)
         {
@@ -799,7 +799,7 @@ public class CardShiftAnimator
             newGroup.Children.Add(scaleTransform);
             element.RenderTransform = newGroup;
         }
-        
+
         _scaleTransforms[element] = scaleTransform;
         return scaleTransform;
     }

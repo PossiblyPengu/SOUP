@@ -1,10 +1,10 @@
 using System;
 using System.Windows;
-using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SOUP.Services;
-using Microsoft.Extensions.Logging;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SOUP.Services;
 
 namespace SOUP.ViewModels;
 
@@ -265,7 +265,7 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
             return;
         }
         _logger?.LogInformation("Opening OrderLog widget as separate process");
-        
+
         // Launch widget as a separate process for complete isolation
         // This allows clean shutdown for updates and avoids threading issues
         if (_widgetProcessService != null)

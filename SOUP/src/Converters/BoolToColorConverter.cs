@@ -15,7 +15,7 @@ public class BoolToSuccessColorConverter : IValueConverter
         if (value is bool boolValue)
         {
             // Green for success, orange for warning/not found
-            return boolValue 
+            return boolValue
                 ? new SolidColorBrush(Color.FromRgb(34, 197, 94))   // Green 
                 : new SolidColorBrush(Color.FromRgb(234, 179, 8));  // Yellow/amber
         }

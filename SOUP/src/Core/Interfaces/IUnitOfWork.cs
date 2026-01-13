@@ -16,17 +16,17 @@ public interface IUnitOfWork : IDisposable
     /// Gets the AllocationBuddy repository.
     /// </summary>
     IAllocationBuddyRepository AllocationBuddy { get; }
-    
+
     /// <summary>
     /// Gets the EssentialsBuddy repository.
     /// </summary>
     IEssentialsBuddyRepository EssentialsBuddy { get; }
-    
+
     /// <summary>
     /// Gets the ExpireWise repository.
     /// </summary>
     IExpireWiseRepository ExpireWise { get; }
-    
+
     /// <summary>
     /// Saves all pending changes to the database.
     /// </summary>

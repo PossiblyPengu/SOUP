@@ -13,12 +13,12 @@ public class StoreEntry
     /// Gets or sets the store code identifier.
     /// </summary>
     public string Code { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or sets the store name.
     /// </summary>
     public string Name { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or sets the store ranking/tier.
     /// </summary>

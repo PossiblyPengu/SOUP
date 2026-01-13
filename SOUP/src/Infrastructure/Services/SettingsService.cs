@@ -77,7 +77,7 @@ public sealed class SettingsService
         {
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             await File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
-            
+
             // Notify subscribers that settings have changed
             SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(appName));
         }

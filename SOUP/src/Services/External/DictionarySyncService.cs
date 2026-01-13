@@ -16,7 +16,7 @@ public class DictionarySyncService
     private readonly MySqlDataService _mySqlService;
     private readonly BusinessCentralService _bcService;
     private readonly ILogger<DictionarySyncService>? _logger;
-    
+
     public event EventHandler<SyncProgressEventArgs>? ProgressChanged;
     public event EventHandler<SyncCompletedEventArgs>? SyncCompleted;
 
@@ -36,11 +36,11 @@ public class DictionarySyncService
     public async Task<SyncResult> SyncFromMySqlAsync(ExternalConnectionConfig config)
     {
         var result = new SyncResult { Source = "MySQL" };
-        
+
         try
         {
             ReportProgress("Connecting to MySQL...", 0);
-            
+
             if (!await _mySqlService.ConnectAsync(config.GetMySqlConnectionString()))
             {
                 result.Success = false;
@@ -52,7 +52,7 @@ public class DictionarySyncService
             ReportProgress("Loading items from MySQL...", 20);
             var mysqlItems = await _mySqlService.GetItemsAsync();
             var skuMap = await _mySqlService.GetItemSkusAsync();
-            
+
             ReportProgress("Updating local item dictionary...", 40);
             var itemsUpdated = UpdateItemsFromMySql(mysqlItems, skuMap);
             result.ItemsUpdated = itemsUpdated;
@@ -60,7 +60,7 @@ public class DictionarySyncService
             // Sync stores
             ReportProgress("Loading stores from MySQL...", 60);
             var mysqlStores = await _mySqlService.GetStoresAsync();
-            
+
             ReportProgress("Updating local store dictionary...", 80);
             var storesUpdated = UpdateStoresFromMySql(mysqlStores);
             result.StoresUpdated = storesUpdated;
@@ -68,7 +68,7 @@ public class DictionarySyncService
             result.Success = true;
             config.LastSyncTime = DateTime.Now;
             config.Save();
-            
+
             ReportProgress("Sync complete!", 100);
             _logger?.LogInformation("MySQL sync complete: {Items} items, {Stores} stores", itemsUpdated, storesUpdated);
         }
@@ -89,11 +89,11 @@ public class DictionarySyncService
     public async Task<SyncResult> SyncFromBusinessCentralAsync(ExternalConnectionConfig config)
     {
         var result = new SyncResult { Source = "Business Central" };
-        
+
         try
         {
             ReportProgress("Authenticating with Business Central...", 0);
-            
+
             var (testSuccess, testMessage) = await _bcService.TestConnectionAsync(config);
             if (!testSuccess)
             {
@@ -106,7 +106,7 @@ public class DictionarySyncService
             ReportProgress("Loading items from Business Central...", 20);
             var bcItems = await _bcService.GetItemsAsync(config);
             var itemVendors = await _bcService.GetItemVendorsAsync(config);
-            
+
             ReportProgress("Updating local item dictionary...", 40);
             var itemsUpdated = UpdateItemsFromBc(bcItems, itemVendors);
             result.ItemsUpdated = itemsUpdated;
@@ -114,7 +114,7 @@ public class DictionarySyncService
             // Sync locations
             ReportProgress("Loading locations from Business Central...", 60);
             var bcLocations = await _bcService.GetLocationsAsync(config);
-            
+
             ReportProgress("Updating local store dictionary...", 80);
             var storesUpdated = UpdateStoresFromBc(bcLocations);
             result.StoresUpdated = storesUpdated;
@@ -122,7 +122,7 @@ public class DictionarySyncService
             result.Success = true;
             config.LastSyncTime = DateTime.Now;
             config.Save();
-            
+
             ReportProgress("Sync complete!", 100);
             _logger?.LogInformation("BC sync complete: {Items} items, {Stores} stores", itemsUpdated, storesUpdated);
         }
@@ -143,7 +143,7 @@ public class DictionarySyncService
     public async Task<SyncResult> SyncFromBothAsync(ExternalConnectionConfig config)
     {
         var result = new SyncResult { Source = "MySQL + Business Central" };
-        
+
         try
         {
             // Start with MySQL as primary source
@@ -152,7 +152,7 @@ public class DictionarySyncService
                 var mysqlResult = await SyncFromMySqlAsync(config);
                 result.ItemsUpdated += mysqlResult.ItemsUpdated;
                 result.StoresUpdated += mysqlResult.StoresUpdated;
-                
+
                 if (!mysqlResult.Success)
                 {
                     result.ErrorMessage = $"MySQL: {mysqlResult.ErrorMessage}";
@@ -165,17 +165,17 @@ public class DictionarySyncService
                 var bcResult = await SyncFromBusinessCentralAsync(config);
                 result.ItemsUpdated += bcResult.ItemsUpdated;
                 result.StoresUpdated += bcResult.StoresUpdated;
-                
+
                 if (!bcResult.Success && !string.IsNullOrEmpty(bcResult.ErrorMessage))
                 {
-                    result.ErrorMessage = string.IsNullOrEmpty(result.ErrorMessage) 
+                    result.ErrorMessage = string.IsNullOrEmpty(result.ErrorMessage)
                         ? $"BC: {bcResult.ErrorMessage}"
                         : $"{result.ErrorMessage}; BC: {bcResult.ErrorMessage}";
                 }
             }
 
             result.Success = string.IsNullOrEmpty(result.ErrorMessage);
-            
+
             if (result.Success)
             {
                 config.LastSyncTime = DateTime.Now;
@@ -204,19 +204,19 @@ public class DictionarySyncService
         foreach (var item in items)
         {
             var skus = new List<string>();
-            
+
             // Add UPC if available
             if (!string.IsNullOrWhiteSpace(item.Upc))
                 skus.Add(item.Upc);
-            
+
             // Add vendor item number
             if (!string.IsNullOrWhiteSpace(item.VendorItemNo))
                 skus.Add(item.VendorItemNo);
-            
+
             // Add from SKU map
             if (skuMap.TryGetValue(item.ItemNo, out var mappedSkus))
                 skus.AddRange(mappedSkus);
-            
+
             var entity = new DictionaryItemEntity
             {
                 Number = item.ItemNo,
@@ -278,10 +278,10 @@ public class DictionarySyncService
         foreach (var item in items.Where(i => !i.Blocked))
         {
             var existing = db.GetItem(item.Number);
-            
+
             var entity = existing ?? new DictionaryItemEntity { Number = item.Number };
             entity.Description = item.DisplayName;
-            
+
             // Merge SKUs from vendor relationships
             if (vendorSkuMap.TryGetValue(item.Number, out var vendorSkus))
             {
@@ -305,7 +305,7 @@ public class DictionarySyncService
         foreach (var location in locations)
         {
             var existing = db.GetStore(location.Code);
-            
+
             var entity = existing ?? new StoreEntity { Code = location.Code };
             entity.Name = location.DisplayName;
 

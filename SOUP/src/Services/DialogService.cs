@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -6,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
+using Microsoft.Win32;
 using SOUP.Windows;
 
 namespace SOUP.Services;
@@ -28,16 +28,16 @@ public class DialogService
     // Windows DWM API for dark title bar
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-    
+
     private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-    
+
     /// <summary>
     /// Apply dark mode to the window title bar
     /// </summary>
     private static void ApplyDarkTitleBar(Window window)
     {
         if (!ThemeService.Instance.IsDarkMode) return;
-        
+
         var hwnd = new WindowInteropHelper(window).EnsureHandle();
         int useImmersiveDarkMode = 1;
         DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useImmersiveDarkMode, sizeof(int));
@@ -173,7 +173,7 @@ public class DialogService
             ShowInTaskbar = false,
             Background = System.Windows.Media.Brushes.Transparent
         };
-        
+
         // Set owner only when MainWindow is visible (don't block other windows like widget)
         if (Application.Current?.MainWindow is { IsVisible: true } mainWindow)
         {
@@ -209,7 +209,7 @@ public class DialogService
     {
         var message = $"Successfully exported {itemCount} item(s) to:\n\n{fileName}\n\nWould you like to open the folder?";
         var openFolder = MessageDialog.Show(message, "Export Complete", DialogType.Information, DialogButtons.YesNo);
-        
+
         if (openFolder)
         {
             try
@@ -227,7 +227,7 @@ public class DialogService
                 }
             }
         }
-        
+
         return openFolder;
     }
 

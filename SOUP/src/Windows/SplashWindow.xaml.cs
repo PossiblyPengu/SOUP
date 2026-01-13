@@ -21,10 +21,10 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
-        
+
         // Set version text
         VersionText.Text = $"v{Core.AppVersion.Version}";
-        
+
         Loaded += (s, e) =>
         {
             _shownAt = DateTime.UtcNow;
@@ -41,10 +41,10 @@ public partial class SplashWindow : Window
 
         // Start fade in
         _fadeInAnimation?.Begin(this, HandoffBehavior.SnapshotAndReplace);
-        
+
         // Start logo scale animation
         _logoAnimation?.Begin(this, HandoffBehavior.SnapshotAndReplace);
-        
+
         // Start progress animation
         _progressAnimation?.Begin(this, HandoffBehavior.SnapshotAndReplace);
     }
@@ -69,7 +69,7 @@ public partial class SplashWindow : Window
         {
             _progressAnimation?.Stop(this);
             _logoAnimation?.Stop(this);
-            
+
             _fadeOutAnimation = Resources["FadeOutAnimation"] as Storyboard;
             // Ensure minimum display time so the splash is visible even on fast startups
             var elapsed = (DateTime.UtcNow - _shownAt).TotalMilliseconds;
@@ -84,9 +84,9 @@ public partial class SplashWindow : Window
                 {
                     Dispatcher.Invoke(() => Close());
                 };
-                
+
                 _fadeOutAnimation.Begin(this, HandoffBehavior.SnapshotAndReplace);
-                
+
                 // Wait for animation to complete
                 await Task.Delay(700);
             }

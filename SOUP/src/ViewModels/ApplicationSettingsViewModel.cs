@@ -19,7 +19,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     private bool _isLoading;
 
     // ===== Appearance =====
-    
+
     [ObservableProperty]
     private bool _isDarkMode = true;
 
@@ -27,7 +27,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     private bool _useBasicTheme = false;
 
     // ===== Startup =====
-    
+
     [ObservableProperty]
     private string _defaultModule = string.Empty;
 
@@ -38,7 +38,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     private bool _startMinimizedToTray;
 
     // ===== Widget Behavior =====
-    
+
     [ObservableProperty]
     private bool _launchWidgetOnStartup;
 
@@ -54,7 +54,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     public bool IsOrderLogEnabled => ModuleConfiguration.Instance.OrderLogEnabled;
 
     // ===== System Tray =====
-    
+
     [ObservableProperty]
     private bool _showTrayIcon = true;
 
@@ -62,7 +62,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     private bool _closeToTray;
 
     // ===== Behavior =====
-    
+
     [ObservableProperty]
     private bool _confirmBeforeExit;
 
@@ -86,19 +86,19 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     {
         _settingsService = settingsService;
         _themeService = themeService;
-        
+
         // Build available modules list based on enabled modules
         BuildAvailableModules();
-        
+
         _ = LoadSettingsAsync();
     }
 
     private void BuildAvailableModules()
     {
         var config = ModuleConfiguration.Instance;
-        
+
         AvailableModules.Add(new ModuleOption("", "Home (Launcher)"));
-        
+
         if (config.AllocationBuddyEnabled)
             AvailableModules.Add(new ModuleOption("allocation", "AllocationBuddy"));
         if (config.EssentialsBuddyEnabled)
@@ -238,29 +238,29 @@ public partial class ApplicationSettingsViewModel : ObservableObject
         {
             _isLoading = true;
             var settings = await _settingsService.LoadSettingsAsync<ApplicationSettings>("Application");
-            
+
             // Appearance
             IsDarkMode = settings.IsDarkMode;
             UseBasicTheme = settings.UseBasicTheme;
-            
+
             // Startup
             DefaultModule = settings.DefaultModule;
             RunAtStartup = settings.RunAtStartup;
             StartMinimizedToTray = settings.StartMinimizedToTray;
-            
+
             // Widget Behavior
             LaunchWidgetOnStartup = settings.LaunchWidgetOnStartup;
             WidgetOnlyMode = settings.WidgetOnlyMode;
             KeepWidgetRunning = settings.KeepWidgetRunning;
-            
+
             // System Tray
             ShowTrayIcon = settings.ShowTrayIcon;
             CloseToTray = settings.CloseToTray;
-            
+
             // Behavior
             ConfirmBeforeExit = settings.ConfirmBeforeExit;
             RememberWindowPositions = settings.RememberWindowPositions;
-            
+
             // Sync theme with ThemeService (in case it was changed elsewhere)
             if (_themeService.IsDarkMode != IsDarkMode)
             {
@@ -292,21 +292,21 @@ public partial class ApplicationSettingsViewModel : ObservableObject
                 // Appearance
                 IsDarkMode = IsDarkMode,
                 UseBasicTheme = UseBasicTheme,
-                
+
                 // Startup
                 DefaultModule = DefaultModule,
                 RunAtStartup = RunAtStartup,
                 StartMinimizedToTray = StartMinimizedToTray,
-                
+
                 // Widget Behavior
                 LaunchWidgetOnStartup = LaunchWidgetOnStartup,
                 WidgetOnlyMode = WidgetOnlyMode,
                 KeepWidgetRunning = KeepWidgetRunning,
-                
+
                 // System Tray
                 ShowTrayIcon = ShowTrayIcon,
                 CloseToTray = CloseToTray,
-                
+
                 // Behavior
                 ConfirmBeforeExit = ConfirmBeforeExit,
                 RememberWindowPositions = RememberWindowPositions

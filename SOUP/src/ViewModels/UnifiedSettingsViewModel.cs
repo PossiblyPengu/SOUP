@@ -115,14 +115,14 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
     public async Task InitializeAsync()
     {
         var tasks = new List<Task> { DictionaryManagement.InitializeAsync() };
-        
+
         if (AllocationBuddySettings != null)
             tasks.Add(AllocationBuddySettings.InitializeAsync());
         if (EssentialsBuddySettings != null)
             tasks.Add(EssentialsBuddySettings.InitializeAsync());
         if (ExpireWiseSettings != null)
             tasks.Add(ExpireWiseSettings.InitializeAsync());
-            
+
         await Task.WhenAll(tasks);
     }
 
@@ -132,14 +132,14 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         try
         {
             var tasks = new List<Task> { DictionaryManagement.SaveDictionaryCommand.ExecuteAsync(null) };
-            
+
             if (AllocationBuddySettings != null)
                 tasks.Add(AllocationBuddySettings.SaveSettingsCommand.ExecuteAsync(null));
             if (EssentialsBuddySettings != null)
                 tasks.Add(EssentialsBuddySettings.SaveSettingsCommand.ExecuteAsync(null));
             if (ExpireWiseSettings != null)
                 tasks.Add(ExpireWiseSettings.SaveSettingsCommand.ExecuteAsync(null));
-                
+
             await Task.WhenAll(tasks);
 
             StatusMessage = "All settings and dictionary saved successfully";
@@ -156,14 +156,14 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         try
         {
             var tasks = new List<Task>();
-            
+
             if (AllocationBuddySettings != null)
                 tasks.Add(AllocationBuddySettings.ResetToDefaultsCommand.ExecuteAsync(null));
             if (EssentialsBuddySettings != null)
                 tasks.Add(EssentialsBuddySettings.ResetToDefaultsCommand.ExecuteAsync(null));
             if (ExpireWiseSettings != null)
                 tasks.Add(ExpireWiseSettings.ResetToDefaultsCommand.ExecuteAsync(null));
-                
+
             if (tasks.Count > 0)
                 await Task.WhenAll(tasks);
 

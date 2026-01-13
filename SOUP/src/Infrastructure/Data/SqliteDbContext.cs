@@ -22,7 +22,7 @@ public sealed class SqliteDbContext : IDisposable
     {
         DatabasePath = databasePath;
         _logger = logger;
-        
+
         // Ensure directory exists
         var directory = Path.GetDirectoryName(databasePath);
         if (!string.IsNullOrEmpty(directory))
@@ -78,10 +78,10 @@ public sealed class SqliteDbContext : IDisposable
     public void EnsureTable<T>(string? tableName = null) where T : BaseEntity
     {
         var name = tableName ?? typeof(T).Name;
-        
+
         using var connection = CreateConnection();
         connection.Open();
-        
+
         using var cmd = connection.CreateCommand();
         cmd.CommandText = $@"
             CREATE TABLE IF NOT EXISTS [{name}] (
@@ -94,7 +94,7 @@ public sealed class SqliteDbContext : IDisposable
             CREATE INDEX IF NOT EXISTS IX_{name}_IsDeleted ON [{name}](IsDeleted);
         ";
         cmd.ExecuteNonQuery();
-        
+
         _logger?.LogDebug("Ensured table {TableName} exists", name);
     }
 

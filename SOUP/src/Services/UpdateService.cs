@@ -59,21 +59,21 @@ public sealed class UpdateService : IDisposable
             LastCheckError = null;
 
             var response = await _httpClient.GetAsync(GitHubApiUrl, cancellationToken);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 _logger?.LogWarning("No releases found on GitHub");
                 LastCheckError = "No releases found";
                 return null;
             }
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
                 _logger?.LogWarning("GitHub API rate limit exceeded");
                 LastCheckError = "GitHub rate limit exceeded. Try again later.";
                 return null;
             }
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger?.LogWarning("Failed to check for updates. Status: {StatusCode}", response.StatusCode);
@@ -83,7 +83,7 @@ public sealed class UpdateService : IDisposable
 
             // Parse as array since we're fetching all releases
             var releases = await response.Content.ReadFromJsonAsync<GitHubRelease[]>(cancellationToken: cancellationToken);
-            
+
             if (releases == null || releases.Length == 0)
             {
                 _logger?.LogWarning("No releases found on GitHub");
@@ -94,21 +94,21 @@ public sealed class UpdateService : IDisposable
             // Find the release with the highest version that has a portable zip asset
             GitHubRelease? bestRelease = null;
             Version? bestVersion = null;
-            
+
             foreach (var rel in releases)
             {
                 var tagVersion = rel.TagName?.TrimStart('v') ?? "";
                 if (!Version.TryParse(tagVersion, out var ver))
                     continue;
-                    
+
                 // Check if this release has a portable zip
-                var hasPortableZip = rel.Assets?.Any(a => 
-                    a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true && 
+                var hasPortableZip = rel.Assets?.Any(a =>
+                    a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true &&
                     a.Name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true) ?? false;
-                
+
                 if (!hasPortableZip)
                     continue;
-                    
+
                 // Check if this is a newer version than what we've found
                 if (bestVersion == null || ver > bestVersion)
                 {
@@ -116,7 +116,7 @@ public sealed class UpdateService : IDisposable
                     bestRelease = rel;
                 }
             }
-            
+
             if (bestRelease == null || bestVersion == null)
             {
                 _logger?.LogWarning("No releases with downloadable assets found");
@@ -125,10 +125,10 @@ public sealed class UpdateService : IDisposable
             }
 
             var latestVersion = bestVersion.ToString();
-            
+
             if (!IsNewerVersion(latestVersion, _currentVersion))
             {
-                _logger?.LogInformation("No update available. Latest: {Latest}, Current: {Current}", 
+                _logger?.LogInformation("No update available. Latest: {Latest}, Current: {Current}",
                     latestVersion, _currentVersion);
                 return null;
             }
@@ -136,8 +136,8 @@ public sealed class UpdateService : IDisposable
             _logger?.LogInformation("Update available: {Version}", latestVersion);
 
             // Find the portable zip asset
-            var zipAsset = bestRelease.Assets?.FirstOrDefault(a => 
-                a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true && 
+            var zipAsset = bestRelease.Assets?.FirstOrDefault(a =>
+                a.Name?.Contains("portable", StringComparison.OrdinalIgnoreCase) == true &&
                 a.Name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
 
             return new UpdateInfo
@@ -186,7 +186,7 @@ public sealed class UpdateService : IDisposable
         {
             var tempPath = Path.Combine(Path.GetTempPath(), "SOUP_Update");
             Directory.CreateDirectory(tempPath);
-            
+
             var zipPath = Path.Combine(tempPath, updateInfo.AssetName ?? $"SOUP-{updateInfo.Version}.zip");
 
             _logger?.LogInformation("Downloading update to {Path}", zipPath);
@@ -195,10 +195,10 @@ public sealed class UpdateService : IDisposable
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? updateInfo.AssetSize;
-            
+
             await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
             await using var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-            
+
             var buffer = new byte[8192];
             long totalRead = 0;
             int bytesRead;
@@ -207,7 +207,7 @@ public sealed class UpdateService : IDisposable
             {
                 await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                 totalRead += bytesRead;
-                
+
                 if (totalBytes > 0)
                 {
                     progress?.Report((double)totalRead / totalBytes * 100);
@@ -358,13 +358,13 @@ timeout /t 1 /nobreak >nul
     public void OpenReleasePage(UpdateInfo? updateInfo = null)
     {
         var url = updateInfo?.HtmlUrl ?? updateInfo?.DownloadUrl;
-        
+
         if (string.IsNullOrEmpty(url))
         {
             _logger?.LogWarning("No download URL available");
             return;
         }
-        
+
         try
         {
             Process.Start(new ProcessStartInfo
@@ -384,7 +384,7 @@ timeout /t 1 /nobreak >nul
     /// </summary>
     private static bool IsNewerVersion(string latest, string current)
     {
-        if (!Version.TryParse(latest, out var latestVer) || 
+        if (!Version.TryParse(latest, out var latestVer) ||
             !Version.TryParse(current, out var currentVer))
         {
             return false;

@@ -1,7 +1,7 @@
-using System.Windows;
-using System.Windows.Controls;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using SOUP.ViewModels;
 
@@ -21,7 +21,7 @@ public partial class ExternalDataSettingsView : UserControl
             throw new InvalidOperationException("ExternalDataViewModel not registered in dependency injection");
         }
         DataContext = viewModel;
-        
+
         // Check if already running as admin - auto-unlock
         CheckInitialAdminState();
     }
@@ -96,10 +96,10 @@ public partial class ExternalDataSettingsView : UserControl
 
                 // Validate credentials belong to an admin
                 bool isAdmin = ValidateAdminCredentials(credResult.Username, credResult.Password, credResult.Domain);
-                
+
                 // Clear password from memory
                 credResult.Password = null;
-                
+
                 if (isAdmin)
                 {
                     Serilog.Log.Information("Admin credentials validated successfully for External Data access");
@@ -109,12 +109,12 @@ public partial class ExternalDataSettingsView : UserControl
                     Serilog.Log.Warning("Provided credentials are not for an administrator account");
                     Dispatcher.Invoke(() => MessageBox.Show(
                         Window.GetWindow(this),
-                        "The provided credentials do not have administrator privileges.", 
-                        "Access Denied", 
-                        MessageBoxButton.OK, 
+                        "The provided credentials do not have administrator privileges.",
+                        "Access Denied",
+                        MessageBoxButton.OK,
                         MessageBoxImage.Warning));
                 }
-                
+
                 return isAdmin;
             }
             catch (Exception ex)
@@ -177,7 +177,7 @@ public partial class ExternalDataSettingsView : UserControl
     private CredentialResult PromptForWindowsCredentials()
     {
         var result = new CredentialResult();
-        
+
         var credui = new CREDUI_INFO
         {
             cbSize = Marshal.SizeOf<CREDUI_INFO>(),
@@ -188,7 +188,7 @@ public partial class ExternalDataSettingsView : UserControl
 
         uint authPackage = 0;
         bool save = false;
-        
+
         int credResult = CredUIPromptForWindowsCredentials(
             ref credui,
             0,

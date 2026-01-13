@@ -1,7 +1,7 @@
-using SOUP.Core.Entities.AllocationBuddy;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SOUP.Core.Entities.AllocationBuddy;
 
 namespace SOUP.Core.Interfaces;
 
@@ -16,19 +16,19 @@ public interface IAllocationBuddyRepository : IRepository<AllocationEntry>
     /// <param name="archiveId">The archive's unique identifier.</param>
     /// <returns>A collection of archived entries.</returns>
     Task<IEnumerable<AllocationEntry>> GetByArchiveIdAsync(Guid archiveId);
-    
+
     /// <summary>
     /// Gets all active (non-archived) entries.
     /// </summary>
     /// <returns>A collection of active entries.</returns>
     Task<IEnumerable<AllocationEntry>> GetActiveEntriesAsync();
-    
+
     /// <summary>
     /// Gets all archives.
     /// </summary>
     /// <returns>A collection of all archives.</returns>
     Task<IEnumerable<AllocationArchive>> GetAllArchivesAsync();
-    
+
     /// <summary>
     /// Creates a new archive.
     /// </summary>
@@ -36,7 +36,7 @@ public interface IAllocationBuddyRepository : IRepository<AllocationEntry>
     /// <param name="notes">Optional notes about the archive.</param>
     /// <returns>The created archive.</returns>
     Task<AllocationArchive> CreateArchiveAsync(string name, string? notes = null);
-    
+
     /// <summary>
     /// Moves entries to an archive.
     /// </summary>

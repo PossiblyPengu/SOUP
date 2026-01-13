@@ -9,9 +9,9 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using SOUP.Features.OrderLog.ViewModels;
-using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.Constants;
+using SOUP.Features.OrderLog.Models;
+using SOUP.Features.OrderLog.ViewModels;
 using SOUP.Services;
 
 namespace SOUP.Features.OrderLog.Views;
@@ -62,7 +62,7 @@ public partial class OrderLogWidgetView : UserControl
             ActiveTabButton.Style = FindResource("WidgetTabButtonStyle") as Style;
             // Apply active style to Archived tab
             ArchivedTabButton.Style = FindResource("WidgetTabButtonActiveStyle") as Style;
-            
+
             ActiveItemsPanel.Visibility = Visibility.Collapsed;
             ArchivedItemsPanel.Visibility = Visibility.Visible;
             AddButtonsPanel.Visibility = Visibility.Collapsed;
@@ -73,7 +73,7 @@ public partial class OrderLogWidgetView : UserControl
             ActiveTabButton.Style = FindResource("WidgetTabButtonActiveStyle") as Style;
             // Apply inactive style to Archived tab
             ArchivedTabButton.Style = FindResource("WidgetTabButtonStyle") as Style;
-            
+
             ActiveItemsPanel.Visibility = Visibility.Visible;
             ArchivedItemsPanel.Visibility = Visibility.Collapsed;
             AddButtonsPanel.Visibility = Visibility.Visible;
@@ -135,7 +135,7 @@ public partial class OrderLogWidgetView : UserControl
 
         // Create the scroll animation
         _marqueeStoryboard = new Storyboard();
-        
+
         var animation = new DoubleAnimationUsingKeyFrames
         {
             RepeatBehavior = RepeatBehavior.Forever
@@ -143,25 +143,25 @@ public partial class OrderLogWidgetView : UserControl
 
         // Start at 0 (left edge)
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
-        
+
         // Pause briefly at start
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(2))));
-        
+
         // Scroll left (negative X) to show all content
-        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-scrollDistance + containerWidth, 
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-scrollDistance + containerWidth,
             KeyTime.FromTimeSpan(TimeSpan.FromSeconds(2 + duration))));
-        
+
         // Pause briefly at end
-        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-scrollDistance + containerWidth, 
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-scrollDistance + containerWidth,
             KeyTime.FromTimeSpan(TimeSpan.FromSeconds(4 + duration))));
-        
+
         // Quick reset to start
-        animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, 
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(0,
             KeyTime.FromTimeSpan(TimeSpan.FromSeconds(4.5 + duration))));
 
         Storyboard.SetTarget(animation, MarqueeTransform);
         Storyboard.SetTargetProperty(animation, new PropertyPath(TranslateTransform.XProperty));
-        
+
         _marqueeStoryboard.Children.Add(animation);
         _marqueeStoryboard.Begin();
     }
@@ -173,7 +173,7 @@ public partial class OrderLogWidgetView : UserControl
 
         _marqueeStoryboard?.Stop();
         _marqueeStoryboard = null;
-        
+
         // Reset position
         if (MarqueeTransform != null)
         {
@@ -206,7 +206,7 @@ public partial class OrderLogWidgetView : UserControl
     private void AnimateEqualizerBars()
     {
         if (EqBar1 == null) return;
-        
+
         // Animate each bar to a random height
         AnimateBar(EqBar1, 0.3 + _random.NextDouble() * 0.7);
         AnimateBar(EqBar2, 0.3 + _random.NextDouble() * 0.7);
@@ -238,14 +238,14 @@ public partial class OrderLogWidgetView : UserControl
         UpdateThemeIcon(isDarkMode);
         ApplyThemeToUserControl(isDarkMode);
         ThemeService.Instance.ThemeChanged += OnThemeChanged;
-        
+
         // Subscribe to ViewModel property changes for ShowNowPlaying
         if (DataContext is OrderLogViewModel viewModel)
         {
             viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
     }
-    
+
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(OrderLogViewModel.ShowNowPlaying))
@@ -408,34 +408,34 @@ public partial class OrderLogWidgetView : UserControl
         // Clean up event subscriptions
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
-        
+
         _equalizerTimer?.Stop();
         _marqueeTimer?.Stop();
         StopMarquee();
-        
+
         if (_spotifyService != null)
         {
             _spotifyService.PropertyChanged -= SpotifyService_PropertyChanged;
         }
-        
+
         // Unsubscribe from ViewModel property changes
         if (DataContext is OrderLogViewModel viewModel)
         {
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
-        
+
         // Clean up drag behavior subscriptions
         if (_fluidDragBehavior != null)
         {
             _fluidDragBehavior.ReorderComplete -= OnFluidDragReorderComplete;
             _fluidDragBehavior.LinkComplete -= OnFluidDragLinkComplete;
         }
-        
+
         if (_gridDrag != null)
         {
             _gridDrag.ReorderComplete -= OnFluidDragReorderComplete;
         }
-        
+
         // Unsubscribe from theme changes
         ThemeService.Instance.ThemeChanged -= OnThemeChanged;
     }
@@ -444,7 +444,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         ThemeService.Instance.ToggleTheme();
     }
-    
+
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -494,20 +494,20 @@ public partial class OrderLogWidgetView : UserControl
                 : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
 
             Resources.MergedDictionaries.Clear();
-            
+
             // Add ModernStyles first (base styles including SurfaceBrush fallback)
-            Resources.MergedDictionaries.Add(new ResourceDictionary 
-            { 
-                Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml") 
+            Resources.MergedDictionaries.Add(new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml")
             });
-            
+
             // Add theme colors
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
-            
+
             // Add widget theme last (references theme colors via DynamicResource)
-            Resources.MergedDictionaries.Add(new ResourceDictionary 
-            { 
-                Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml") 
+            Resources.MergedDictionaries.Add(new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml")
             });
         }
         catch (Exception ex)
@@ -552,7 +552,7 @@ public partial class OrderLogWidgetView : UserControl
         var viewModel = DataContext as OrderLogViewModel;
         var showNowPlaying = viewModel?.ShowNowPlaying ?? true;
         NowPlayingSection.Visibility = (showNowPlaying && _spotifyService.HasMedia) ? Visibility.Visible : Visibility.Collapsed;
-        
+
         if (!_spotifyService.HasMedia) return;
 
         TrackTitleText.Text = _spotifyService.TrackTitle;
@@ -562,8 +562,8 @@ public partial class OrderLogWidgetView : UserControl
         PlayPauseButton.Content = _spotifyService.IsPlaying ? "⏸" : "▶";
 
         // Show/hide album art placeholder
-        AlbumArtPlaceholder.Visibility = _spotifyService.AlbumArt == null 
-            ? Visibility.Visible 
+        AlbumArtPlaceholder.Visibility = _spotifyService.AlbumArt == null
+            ? Visibility.Visible
             : Visibility.Collapsed;
 
         // Control equalizer animation
@@ -583,7 +583,7 @@ public partial class OrderLogWidgetView : UserControl
         // Update header and collapsed view based on expand state
         var track = _spotifyService.TrackTitle ?? "";
         var artist = _spotifyService.ArtistName ?? "";
-        
+
         if (_nowPlayingExpanded)
         {
             // Expanded: show "Now Playing" label, hide marquee
@@ -597,7 +597,7 @@ public partial class OrderLogWidgetView : UserControl
         {
             // Collapsed: show scrolling track info, hide static label
             NowPlayingHeaderText.Visibility = Visibility.Collapsed;
-            
+
             if (!string.IsNullOrEmpty(track))
             {
                 MarqueeContainer.Visibility = Visibility.Visible;
@@ -627,10 +627,10 @@ public partial class OrderLogWidgetView : UserControl
 
         _nowPlayingExpanded = !_nowPlayingExpanded;
         NowPlayingToggleIcon.Text = _nowPlayingExpanded ? "▼" : "▲";
-        
+
         // Calculate target height based on widget width (for square-ish album art)
         double targetHeight = Math.Min(Math.Max(this.ActualWidth * 0.8, 180), 280);
-        
+
         // Animated expand/collapse
         if (_nowPlayingExpanded)
         {
@@ -649,7 +649,7 @@ public partial class OrderLogWidgetView : UserControl
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
             };
-            collapseAnimation.Completed += (s, _) => 
+            collapseAnimation.Completed += (s, _) =>
             {
                 NowPlayingContent.Visibility = Visibility.Collapsed;
                 NowPlayingContent.BeginAnimation(HeightProperty, null); // Clear animation to allow auto-sizing
@@ -785,7 +785,7 @@ public partial class OrderLogWidgetView : UserControl
                                         if (oi.IsPracticallyEmpty) continue;
 
                                         var bounds = new Rect(border.TransformToAncestor(panel).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
-                                        var center = new Point(bounds.Left + bounds.Width/2, bounds.Top + bounds.Height/2);
+                                        var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
                                         var dist = (center - mousePos).Length;
                                         if (dist < best)
                                         {
@@ -915,7 +915,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         var order = OrderItem.CreateBlankOrder(vendorName: string.Empty, isPlaceholder: true);
         await vm.AddOrderAsync(order);
-        
+
         // Scroll to and focus the new item
         await ScrollToAndFocusNewItemAsync(order);
     }
@@ -924,7 +924,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         var note = OrderItem.CreateBlankNote();
         await vm.AddOrderAsync(note);
-        
+
         // Scroll to and focus the new item
         await ScrollToAndFocusNewItemAsync(note);
     }
@@ -933,13 +933,13 @@ public partial class OrderLogWidgetView : UserControl
     {
         // Wait for UI to update
         await Task.Delay(50);
-        
+
         // Scroll to top where new items appear
         MainScrollViewer.ScrollToTop();
-        
+
         // Wait for scroll and render
         await Task.Delay(100);
-        
+
         await Dispatcher.InvokeAsync(() =>
         {
             try
@@ -970,7 +970,7 @@ public partial class OrderLogWidgetView : UserControl
                             return;
                         }
                     }
-                    
+
                     // Fallback: find first TextBox
                     var textBox = FindVisualChild<TextBox>(container);
                     if (textBox != null)
@@ -1004,7 +1004,7 @@ public partial class OrderLogWidgetView : UserControl
     private IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
     {
         if (parent == null) yield break;
-        
+
         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
         {
             var child = VisualTreeHelper.GetChild(parent, i);
@@ -1012,7 +1012,7 @@ public partial class OrderLogWidgetView : UserControl
             {
                 yield return typedChild;
             }
-            
+
             foreach (var descendant in FindVisualChildren<T>(child))
             {
                 yield return descendant;
@@ -1024,7 +1024,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         if (sender is not Border border || border.DataContext is not OrderItem order) return;
         if (DataContext is not OrderLogViewModel vm) return;
-        
+
         // Only allow color picking for sticky notes - orders use status colors
         if (order.NoteType != NoteType.StickyNote) return;
 
@@ -1062,22 +1062,22 @@ public partial class OrderLogWidgetView : UserControl
             try
             {
                 System.Windows.Clipboard.SetText(value);
-                
+
                 // Show visual feedback - find the Path icon and Border in the button
                 if (btn.Template.FindName("Icon", btn) is System.Windows.Shapes.Path icon &&
                     btn.Template.FindName("Bd", btn) is Border border)
                 {
                     // Store original icon data (fill and background are dynamic resources, so we reset via resource lookup)
                     var originalData = icon.Data;
-                    
+
                     // Show checkmark icon and success color
                     icon.Data = System.Windows.Media.Geometry.Parse("M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41-1.41z");
                     icon.Fill = System.Windows.Media.Brushes.White;
                     border.Background = (System.Windows.Media.Brush)FindResource("SuccessBrush");
-                    
+
                     // Wait briefly then restore to default (not hover) state
                     await Task.Delay(800);
-                    
+
                     icon.Data = originalData;
                     icon.Fill = (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
                     border.Background = (System.Windows.Media.Brush)FindResource("SurfaceBrush");
@@ -1166,7 +1166,7 @@ public partial class OrderLogWidgetView : UserControl
             {
                 previousStatus = oldStatus;
             }
-            
+
             // "Done" means archive immediately
             if (newStatus == OrderItem.OrderStatus.Done)
             {
@@ -1256,7 +1256,7 @@ public partial class OrderLogWidgetView : UserControl
                 var dlg = new LinkOrdersWindow(order, vm);
                 if (ownerWindow != null)
                     dlg.Owner = ownerWindow;
-                    
+
                 if (dlg.ShowDialog() == true)
                 {
                     await vm.SaveAsync();
@@ -1503,7 +1503,7 @@ public partial class OrderLogWidgetView : UserControl
         if (sender is TextBox tb)
         {
             tb.Background = Brushes.Transparent;
-            
+
             // Use disabled color if empty, secondary otherwise
             if (string.IsNullOrEmpty(tb.Text))
             {
@@ -1513,7 +1513,7 @@ public partial class OrderLogWidgetView : UserControl
             {
                 tb.Foreground = Application.Current?.Resources["TextSecondaryBrush"] as Brush ?? Brushes.Gray;
             }
-            
+
             // Save changes
             if (DataContext is OrderLogViewModel vm)
             {

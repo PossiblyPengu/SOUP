@@ -195,34 +195,34 @@ public class AllocationBuddyParser
     private ColumnMap DetectColumnsByHeaders(List<string> headers, ColumnMap existingMap)
     {
         var result = existingMap;
-        
+
         // Common store/location header patterns
         var storePatterns = new[] { "store", "location", "loc", "site", "branch", "warehouse", "whse", "ship-to", "shipto", "customer", "dest", "destination" };
-        
+
         // Common item/product header patterns  
         var itemPatterns = new[] { "item", "product", "sku", "part", "article", "material", "upc", "barcode", "code", "number", "no.", "no" };
-        
+
         // Common quantity header patterns
         var qtyPatterns = new[] { "qty", "quantity", "amount", "count", "units", "pcs", "pieces", "ordered", "order qty", "pick qty", "pick" };
 
         for (int i = 0; i < headers.Count; i++)
         {
             var header = headers[i].ToLowerInvariant();
-            
+
             // Detect store column
             if (result.StoreColumnIndex < 0 && storePatterns.Any(p => header.Contains(p)))
             {
                 result.StoreColumnIndex = i;
                 _logger?.LogInformation("Store column detected by header '{Header}' at index {Index}", headers[i], i);
             }
-            
+
             // Detect item column
             if (result.ItemColumnIndex < 0 && i != result.StoreColumnIndex && itemPatterns.Any(p => header.Contains(p)))
             {
                 result.ItemColumnIndex = i;
                 _logger?.LogInformation("Item column detected by header '{Header}' at index {Index}", headers[i], i);
             }
-            
+
             // Detect quantity column
             if (result.QuantityColumnIndex < 0 && i != result.StoreColumnIndex && i != result.ItemColumnIndex && qtyPatterns.Any(p => header.Contains(p)))
             {
@@ -359,7 +359,7 @@ public class AllocationBuddyParser
 
             // Read all lines first to detect format
             var allLines = await File.ReadAllLinesAsync(filePath, cancellationToken);
-            
+
             // Try to detect pivot table format (stores as columns)
             var pivotResult = TryParsePivotCsv(allLines);
             if (pivotResult.IsSuccess && pivotResult.Value?.Count > 0)
@@ -546,11 +546,11 @@ public class AllocationBuddyParser
             // Find the header row (contains "Item" and store codes like 101, 102, etc.)
             int headerRowIndex = -1;
             string[]? headers = null;
-            
+
             for (int i = 0; i < Math.Min(10, lines.Length); i++)
             {
                 var fields = lines[i].Split(',');
-                
+
                 // Look for a row with "Item" in first column and numeric store codes
                 var firstField = fields[0].Trim().ToLowerInvariant();
                 if (firstField == "item" || firstField == "item no" || firstField == "item number" || firstField == "sku")
@@ -563,7 +563,7 @@ public class AllocationBuddyParser
                         if (int.TryParse(val, out var num) && num >= 100 && num <= 999)
                             numericCount++;
                     }
-                    
+
                     if (numericCount >= 3)
                     {
                         headerRowIndex = i;
@@ -592,8 +592,8 @@ public class AllocationBuddyParser
             if (storeColumns.Count == 0)
                 return Result<IReadOnlyList<AllocationEntry>>.Failure("No store columns found");
 
-            _logger?.LogInformation("Found {Count} store columns. First 5: {First5}", 
-                storeColumns.Count, 
+            _logger?.LogInformation("Found {Count} store columns. First 5: {First5}",
+                storeColumns.Count,
                 string.Join(", ", storeColumns.Take(5).Select(s => $"[{s.Index}]={s.StoreCode}")));
 
             var entries = new List<AllocationEntry>();
@@ -625,20 +625,20 @@ public class AllocationBuddyParser
                     for (int col = 1; col < Math.Min(fields.Length, 6); col++)
                     {
                         var val = fields[col].Trim().ToLowerInvariant();
-                        if (val.Contains("qty") || val.Contains("store") || val.Contains("inventory") || 
+                        if (val.Contains("qty") || val.Contains("store") || val.Contains("inventory") ||
                             val.Contains("reorder") || val.Contains("notes") || val.Contains("ship"))
                         {
                             looksLikePerStoreHeader = true;
                             break;
                         }
                     }
-                    
+
                     if (looksLikePerStoreHeader)
                     {
                         _logger?.LogInformation("Stopping pivot parse at row {Row} - found per-store section header", rowIdx);
                         break;
                     }
-                    
+
                     // Otherwise it might be an item literally named "Item" - skip it
                     continue;
                 }
@@ -647,10 +647,10 @@ public class AllocationBuddyParser
                 foreach (var (colIndex, storeCode) in storeColumns)
                 {
                     if (colIndex >= fields.Length) continue;
-                    
+
                     var qtyStr = fields[colIndex].Trim();
                     var qty = ParseQuantity(qtyStr);
-                    
+
                     if (qty > 0)
                     {
                         entries.Add(new AllocationEntry

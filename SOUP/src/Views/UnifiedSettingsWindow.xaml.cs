@@ -1,10 +1,10 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using SOUP.ViewModels;
-using SOUP.Windows;
 using SOUP.Features.OrderLog.Views;
 using SOUP.Services;
+using SOUP.ViewModels;
+using SOUP.Windows;
 
 namespace SOUP.Views;
 
@@ -17,17 +17,17 @@ public partial class UnifiedSettingsWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = viewModel;
-        
+
         // Hide tabs for disabled modules
         var moduleConfig = ModuleConfiguration.Instance;
         TabAllocation.Visibility = moduleConfig.AllocationBuddyEnabled ? Visibility.Visible : Visibility.Collapsed;
         TabEssentials.Visibility = moduleConfig.EssentialsBuddyEnabled ? Visibility.Visible : Visibility.Collapsed;
         TabExpireWise.Visibility = moduleConfig.ExpireWiseEnabled ? Visibility.Visible : Visibility.Collapsed;
         TabOrderLog.Visibility = moduleConfig.OrderLogEnabled ? Visibility.Visible : Visibility.Collapsed;
-        
+
         // Initialize asynchronously on window load
         Loaded += OnWindowLoaded;
-        
+
         // Select initial tab if specified, or first visible module tab
         if (!string.IsNullOrEmpty(initialTab))
         {
@@ -39,7 +39,7 @@ public partial class UnifiedSettingsWindow : Window
             SelectFirstVisibleTab();
         }
     }
-    
+
     /// <summary>
     /// Selects the first visible tab.
     /// </summary>
@@ -48,7 +48,7 @@ public partial class UnifiedSettingsWindow : Window
         // Application tab is always visible
         TabApplication.IsChecked = true;
     }
-    
+
     /// <summary>
     /// Selects a tab by name.
     /// </summary>
@@ -60,23 +60,23 @@ public partial class UnifiedSettingsWindow : Window
             case "application":
                 TabApplication.IsChecked = true;
                 break;
-            case "allocation" when moduleConfig.AllocationBuddyEnabled: 
-                TabAllocation.IsChecked = true; 
+            case "allocation" when moduleConfig.AllocationBuddyEnabled:
+                TabAllocation.IsChecked = true;
                 break;
-            case "essentials" when moduleConfig.EssentialsBuddyEnabled: 
-                TabEssentials.IsChecked = true; 
+            case "essentials" when moduleConfig.EssentialsBuddyEnabled:
+                TabEssentials.IsChecked = true;
                 break;
-            case "expirewise" when moduleConfig.ExpireWiseEnabled: 
-                TabExpireWise.IsChecked = true; 
+            case "expirewise" when moduleConfig.ExpireWiseEnabled:
+                TabExpireWise.IsChecked = true;
                 break;
-            case "dictionary": 
-                TabDictionary.IsChecked = true; 
+            case "dictionary":
+                TabDictionary.IsChecked = true;
                 break;
-            case "orderlog" when moduleConfig.OrderLogEnabled: 
-                TabOrderLog.IsChecked = true; 
+            case "orderlog" when moduleConfig.OrderLogEnabled:
+                TabOrderLog.IsChecked = true;
                 break;
-            case "externaldata": 
-                TabExternalData.IsChecked = true; 
+            case "externaldata":
+                TabExternalData.IsChecked = true;
                 break;
             default:
                 SelectFirstVisibleTab();
@@ -165,7 +165,7 @@ public partial class UnifiedSettingsWindow : Window
             else if (TabDictionary.IsChecked == true)
             {
                 PanelDictionary.Visibility = Visibility.Visible;
-                
+
                 // Load dictionary lazily
                 if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
                 {
@@ -210,24 +210,24 @@ public partial class UnifiedSettingsWindow : Window
     {
         try
         {
-            if (sender is TabControl tabControl && 
+            if (sender is TabControl tabControl &&
                 tabControl.SelectedItem is TabItem selectedTab)
             {
                 var tabHeader = selectedTab.Header?.ToString() ?? "(null)";
                 Serilog.Log.Information("Tab selected: {TabHeader}", tabHeader);
-                
+
                 if (tabHeader.Contains("Dictionary"))
                 {
-                    Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}", 
-                        _viewModel.DictionaryManagement.IsInitialized, 
+                    Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}",
+                        _viewModel.DictionaryManagement.IsInitialized,
                         _viewModel.DictionaryManagement.IsLoading);
-                        
+
                     // Load dictionary only when the tab is selected and not already initialized
                     if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
                     {
                         Serilog.Log.Information("Calling LoadDictionaryAsync...");
                         await _viewModel.DictionaryManagement.LoadDictionaryAsync();
-                        Serilog.Log.Information("LoadDictionaryAsync completed. FilteredItems.Count={Count}", 
+                        Serilog.Log.Information("LoadDictionaryAsync completed. FilteredItems.Count={Count}",
                             _viewModel.DictionaryManagement.FilteredItems?.Count ?? -1);
                     }
                 }

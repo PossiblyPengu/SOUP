@@ -22,7 +22,7 @@ public class WidgetThreadService : IDisposable
     private OrderLogWidgetWindow? _widgetWindow;
     private readonly Lock _lock = new();
     private bool _disposed;
-    
+
     /// <summary>
     /// Event raised when the widget is closed
     /// </summary>
@@ -63,21 +63,21 @@ public class WidgetThreadService : IDisposable
             _widgetThread.Start();
         }
     }
-    
+
     private void WidgetThreadProc()
     {
         try
         {
             // Get services - these are thread-safe singletons
             var viewModel = _serviceProvider.GetRequiredService<OrderLogViewModel>();
-            
+
             // Create the widget window on this thread
             _widgetWindow = new OrderLogWidgetWindow(viewModel, _serviceProvider);
             _widgetWindow.SetSeparateThreadMode();
-            
+
             // Store the dispatcher for this thread
             _widgetDispatcher = Dispatcher.CurrentDispatcher;
-            
+
             // Handle window closed to clean up
             _widgetWindow.OnWidgetClosed += OnWidgetWindowClosed;
             _widgetWindow.Closed += (s, e) =>
@@ -93,12 +93,12 @@ public class WidgetThreadService : IDisposable
                 }
                 Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
             };
-            
+
             _widgetWindow.Show();
-            
-            Log.Information("OrderLog widget started on separate thread (ThreadId: {ThreadId})", 
+
+            Log.Information("OrderLog widget started on separate thread (ThreadId: {ThreadId})",
                 Environment.CurrentManagedThreadId);
-            
+
             // Run the dispatcher for this thread
             Dispatcher.Run();
         }
@@ -116,7 +116,7 @@ public class WidgetThreadService : IDisposable
             Log.Information("Widget thread ended");
         }
     }
-    
+
     private void OnWidgetWindowClosed()
     {
         WidgetClosed?.Invoke();
@@ -129,13 +129,13 @@ public class WidgetThreadService : IDisposable
     {
         Dispatcher? dispatcher;
         OrderLogWidgetWindow? window;
-        
+
         lock (_lock)
         {
             dispatcher = _widgetDispatcher;
             window = _widgetWindow;
         }
-        
+
         if (window != null && dispatcher != null)
         {
             try
@@ -152,10 +152,10 @@ public class WidgetThreadService : IDisposable
                         Log.Warning(ex, "Error closing widget window");
                     }
                 }));
-                
+
                 // Wait for close with timeout
                 operation.Wait(TimeSpan.FromMilliseconds(500));
-                
+
                 // If the window didn't close gracefully, force shutdown the dispatcher
                 if (!operation.Status.HasFlag(DispatcherOperationStatus.Completed))
                 {
@@ -201,7 +201,7 @@ public class WidgetThreadService : IDisposable
         }
 
         CloseWidget();
-        
+
         // Wait briefly for graceful shutdown
         if (_widgetThread != null && _widgetThread.IsAlive)
         {
@@ -223,7 +223,7 @@ public class WidgetThreadService : IDisposable
                 Log.Warning(ex, "Error waiting for widget thread to exit");
             }
         }
-        
+
         GC.SuppressFinalize(this);
     }
 }

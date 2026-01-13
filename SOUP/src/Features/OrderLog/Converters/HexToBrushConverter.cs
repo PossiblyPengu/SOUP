@@ -18,11 +18,11 @@ public class HexToBrushConverter : IValueConverter
             {
                 if (!hex.StartsWith("#"))
                     hex = "#" + hex;
-                
+
                 // Return cached brush if available
                 if (_brushCache.TryGetValue(hex, out var cached))
                     return cached;
-                
+
                 var color = (Color)ColorConverter.ConvertFromString(hex);
                 var brush = new SolidColorBrush(color);
                 brush.Freeze(); // Improve performance and allow cross-thread access

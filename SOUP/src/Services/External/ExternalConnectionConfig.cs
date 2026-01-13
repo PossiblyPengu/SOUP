@@ -23,27 +23,27 @@ public class ExternalConnectionConfig
     private string _bcClientSecretDecrypted = "";
 
     #region MySQL Configuration
-    
+
     /// <summary>
     /// MySQL server hostname or IP
     /// </summary>
     public string MySqlServer { get; set; } = "";
-    
+
     /// <summary>
     /// MySQL database name
     /// </summary>
     public string MySqlDatabase { get; set; } = "";
-    
+
     /// <summary>
     /// MySQL username
     /// </summary>
     public string MySqlUser { get; set; } = "";
-    
+
     /// <summary>
     /// MySQL password (encrypted with DPAPI, base64 encoded for storage)
     /// </summary>
     public string MySqlPasswordEncrypted { get; set; } = "";
-    
+
     /// <summary>
     /// MySQL password (decrypted, in-memory only - not serialized)
     /// </summary>
@@ -57,31 +57,31 @@ public class ExternalConnectionConfig
             MySqlPasswordEncrypted = EncryptString(value);
         }
     }
-    
+
     /// <summary>
     /// MySQL port (default 3306)
     /// </summary>
     public int MySqlPort { get; set; } = 3306;
-    
+
     #endregion
 
     #region Business Central Configuration
-    
+
     /// <summary>
     /// Azure AD Tenant ID for BC authentication
     /// </summary>
     public string BcTenantId { get; set; } = "";
-    
+
     /// <summary>
     /// OAuth Client ID for BC API access
     /// </summary>
     public string BcClientId { get; set; } = "";
-    
+
     /// <summary>
     /// OAuth Client Secret (encrypted with DPAPI, base64 encoded for storage)
     /// </summary>
     public string BcClientSecretEncrypted { get; set; } = "";
-    
+
     /// <summary>
     /// OAuth Client Secret (decrypted, in-memory only - not serialized)
     /// </summary>
@@ -95,41 +95,41 @@ public class ExternalConnectionConfig
             BcClientSecretEncrypted = EncryptString(value);
         }
     }
-    
+
     /// <summary>
     /// Business Central environment name (e.g., "Production", "Sandbox")
     /// </summary>
     public string BcEnvironment { get; set; } = "Production";
-    
+
     /// <summary>
     /// Business Central company ID
     /// </summary>
     public string BcCompanyId { get; set; } = "";
-    
+
     /// <summary>
     /// Business Central API base URL
     /// </summary>
     public string BcBaseUrl { get; set; } = "";
-    
+
     #endregion
 
     #region Sync Settings
-    
+
     /// <summary>
     /// Whether to auto-sync on startup
     /// </summary>
     public bool AutoSyncOnStartup { get; set; } = false;
-    
+
     /// <summary>
     /// Last successful sync timestamp
     /// </summary>
     public DateTime? LastSyncTime { get; set; }
-    
+
     /// <summary>
     /// Sync interval in hours (0 = manual only)
     /// </summary>
     public int SyncIntervalHours { get; set; } = 0;
-    
+
     #endregion
 
     /// <summary>
@@ -157,7 +157,7 @@ public class ExternalConnectionConfig
         !string.IsNullOrWhiteSpace(BcClientSecretEncrypted);
 
     #region DPAPI Encryption Helpers
-    
+
     /// <summary>
     /// Encrypt a string using Windows DPAPI (current user scope)
     /// </summary>
@@ -165,7 +165,7 @@ public class ExternalConnectionConfig
     {
         if (string.IsNullOrEmpty(plainText))
             return "";
-            
+
         try
         {
             var plainBytes = Encoding.UTF8.GetBytes(plainText);
@@ -178,7 +178,7 @@ public class ExternalConnectionConfig
             return "";
         }
     }
-    
+
     /// <summary>
     /// Decrypt a string using Windows DPAPI (current user scope)
     /// </summary>
@@ -186,7 +186,7 @@ public class ExternalConnectionConfig
     {
         if (string.IsNullOrEmpty(encryptedBase64))
             return "";
-            
+
         try
         {
             var encryptedBytes = Convert.FromBase64String(encryptedBase64);
@@ -199,7 +199,7 @@ public class ExternalConnectionConfig
             return "";
         }
     }
-    
+
     #endregion
 
     /// <summary>
@@ -213,14 +213,14 @@ public class ExternalConnectionConfig
             {
                 var json = File.ReadAllText(ConfigPath);
                 var config = JsonSerializer.Deserialize<ExternalConnectionConfig>(json) ?? new();
-                
+
                 // Decrypt sensitive fields after loading
                 config._mySqlPasswordDecrypted = DecryptString(config.MySqlPasswordEncrypted);
                 config._bcClientSecretDecrypted = DecryptString(config.BcClientSecretEncrypted);
-                
+
                 // Migration: if old plaintext fields exist, encrypt them
                 MigrateOldConfig(config, json);
-                
+
                 return config;
             }
         }
@@ -230,7 +230,7 @@ public class ExternalConnectionConfig
         }
         return new();
     }
-    
+
     /// <summary>
     /// Migrate old plaintext config to encrypted format
     /// </summary>
@@ -241,9 +241,9 @@ public class ExternalConnectionConfig
             // Check if old plaintext fields exist in the JSON
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
-            
+
             // Migrate MySqlPassword if present and encrypted version is empty
-            if (root.TryGetProperty("MySqlPassword", out var oldPwd) && 
+            if (root.TryGetProperty("MySqlPassword", out var oldPwd) &&
                 string.IsNullOrEmpty(config.MySqlPasswordEncrypted))
             {
                 var plainPwd = oldPwd.GetString();
@@ -253,9 +253,9 @@ public class ExternalConnectionConfig
                     Serilog.Log.Information("Migrated MySQL password to encrypted storage");
                 }
             }
-            
+
             // Migrate BcClientSecret if present and encrypted version is empty
-            if (root.TryGetProperty("BcClientSecret", out var oldSecret) && 
+            if (root.TryGetProperty("BcClientSecret", out var oldSecret) &&
                 string.IsNullOrEmpty(config.BcClientSecretEncrypted))
             {
                 var plainSecret = oldSecret.GetString();
@@ -265,7 +265,7 @@ public class ExternalConnectionConfig
                     Serilog.Log.Information("Migrated BC client secret to encrypted storage");
                 }
             }
-            
+
             // Save migrated config
             if (root.TryGetProperty("MySqlPassword", out _) || root.TryGetProperty("BcClientSecret", out _))
             {

@@ -271,7 +271,7 @@ public static class AppVersion
     /// Gets the latest changelog entry.
     /// Returns the entry matching the current Version, or the first entry if no match.
     /// </summary>
-    public static ChangelogEntry LatestChanges => 
+    public static ChangelogEntry LatestChanges =>
         Changelog.FirstOrDefault(c => c.Version == Version) ?? Changelog[0];
 }
 

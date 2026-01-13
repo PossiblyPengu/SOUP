@@ -49,7 +49,7 @@ public partial class AboutWindow : Window
     private void LoadModuleInfo()
     {
         var config = ModuleConfiguration.Instance;
-        
+
         AddModuleEntry("AllocationBuddy", "📊", config.AllocationBuddyEnabled, "#6366f1");
         AddModuleEntry("EssentialsBuddy", "✅", config.EssentialsBuddyEnabled, "#f59e0b");
         AddModuleEntry("ExpireWise", "📅", config.ExpireWiseEnabled, "#10b981");
@@ -65,7 +65,7 @@ public partial class AboutWindow : Window
         try
         {
             var latest = AppVersion.LatestChanges;
-            
+
             // Check if changelog matches current version
             if (latest.Version == AppVersion.Version)
             {
@@ -78,8 +78,8 @@ public partial class AboutWindow : Window
                 // Changelog not yet updated for current version - show current version with note
                 ChangelogVersionText.Text = AppVersion.DisplayVersion;
                 ChangelogTitleText.Text = "Latest Release";
-                ChangelogItems.ItemsSource = new[] 
-                { 
+                ChangelogItems.ItemsSource = new[]
+                {
                     $"See previous: v{latest.Version} - {latest.Title}",
                     "Changelog will be updated in the next release."
                 };
@@ -136,7 +136,7 @@ public partial class AboutWindow : Window
         {
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(8, 3, 8, 3),
-            Background = isEnabled 
+            Background = isEnabled
                 ? new SolidColorBrush((Color)ColorConverter.ConvertFromString(accentColor)!) { Opacity = 0.2 }
                 : (Brush)FindResource("SurfaceActiveBrush")
         };
@@ -146,7 +146,7 @@ public partial class AboutWindow : Window
             Text = isEnabled ? "Enabled" : "Disabled",
             FontSize = 10,
             FontWeight = FontWeights.SemiBold,
-            Foreground = isEnabled 
+            Foreground = isEnabled
                 ? new SolidColorBrush((Color)ColorConverter.ConvertFromString(accentColor)!)
                 : (Brush)FindResource("TextTertiaryBrush")
         };
@@ -217,7 +217,7 @@ public partial class AboutWindow : Window
                     message = $"Could not check for updates:\n{updateService.LastCheckError}\n\n" +
                               $"Current version: v{updateService.CurrentVersion}";
                 }
-                
+
                 MessageDialog.ShowInfo(this, message, "Update Check");
             }
         }
@@ -282,13 +282,13 @@ public partial class AboutWindow : Window
             if (updateService.ApplyUpdate(zipPath))
             {
                 UpdateStatusText.Text = "Update ready! Restarting...";
-                
+
                 // Set global flag to bypass closing confirmations
                 App.IsUpdating = true;
-                
+
                 // Give the updater script time to start
                 await Task.Delay(1000);
-                
+
                 // Shutdown the entire application immediately
                 await Dispatcher.InvokeAsync(() =>
                 {
@@ -297,16 +297,16 @@ public partial class AboutWindow : Window
                         // Dispose tray icon to remove it from system tray
                         var trayService = App.GetService<TrayIconService>();
                         trayService?.Dispose();
-                        
+
                         // Shutdown the application
                         Application.Current?.Shutdown();
                     }
                     catch { }
                 });
-                
+
                 // Give shutdown time to complete
                 await Task.Delay(500);
-                
+
                 // Force exit to ensure all threads terminate
                 Environment.Exit(0);
             }

@@ -7,15 +7,15 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SOUP.Core.Entities.EssentialsBuddy;
 using SOUP.Core.Interfaces;
 using SOUP.Data;
-using SOUP.Services;
-using SOUP.Views.EssentialsBuddy;
-using SOUP.Views;
 using SOUP.Infrastructure.Services.Parsers;
+using SOUP.Services;
+using SOUP.Views;
+using SOUP.Views.EssentialsBuddy;
 
 namespace SOUP.ViewModels;
 
@@ -39,7 +39,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     #region Private Fields
 
     private static readonly JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
-    
+
     private readonly IEssentialsBuddyRepository _repository;
     private readonly IFileImportExportService _fileService;
     private readonly EssentialsBuddyParser _parser;
@@ -131,17 +131,17 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     /// Gets a value indicating whether data is loaded.
     /// </summary>
     public bool HasData => !HasNoData;
-    
+
     /// <summary>
     /// Gets the count of items marked as essential.
     /// </summary>
     public int EssentialItemsCount => Items.Count(i => i.IsEssential);
-    
+
     /// <summary>
     /// Gets the count of items that are out of stock.
     /// </summary>
     public int OutOfStockCount => Items.Count(i => i.Status == InventoryStatus.OutOfStock);
-    
+
     /// <summary>
     /// Gets the count of items with low stock levels.
     /// </summary>
@@ -184,7 +184,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
         _logger = logger;
-        
+
         // Subscribe to settings changes for dynamic updates
         _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
         if (_settingsService != null)
@@ -208,7 +208,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         if (_isInitialized) return;
         _isInitialized = true;
-        
+
         // Load and apply settings for stock thresholds
         await LoadAndApplySettingsAsync();
         await LoadItems();
@@ -225,16 +225,16 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             if (settingsService != null)
             {
                 var settings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.EssentialsBuddySettings>("EssentialsBuddy");
-                
+
                 // Apply thresholds to the static properties on InventoryItem
                 InventoryItem.GlobalLowStockThreshold = settings.LowStockThreshold;
                 InventoryItem.GlobalSufficientThreshold = settings.SufficientThreshold;
-                
+
                 // Apply default filter settings
                 StatusFilter = settings.DefaultStatusFilter;
                 EssentialsOnly = settings.DefaultEssentialsOnly;
-                
-                _logger?.LogInformation("Applied EssentialsBuddy settings: LowStock={Low}, Sufficient={Sufficient}, Filter={Filter}, EssentialsOnly={EO}", 
+
+                _logger?.LogInformation("Applied EssentialsBuddy settings: LowStock={Low}, Sufficient={Sufficient}, Filter={Filter}, EssentialsOnly={EO}",
                     settings.LowStockThreshold, settings.SufficientThreshold, settings.DefaultStatusFilter, settings.DefaultEssentialsOnly);
             }
         }
@@ -261,7 +261,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         {
             // Try exact match
             var dictEntity = InternalItemDictionary.GetEntity(item.ItemNumber);
-            
+
             if (dictEntity != null)
             {
                 item.DictionaryMatched = true;
@@ -283,7 +283,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         // Add ALL essential items from dictionary that aren't already in the list
         var allEssentials = InternalItemDictionary.GetAllEssentialItems();
         var addedEssentialsCount = 0;
-        
+
         foreach (var essential in allEssentials)
         {
             if (!existingItemNumbers.Contains(essential.Number))
@@ -307,7 +307,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
         _logger?.LogInformation("Dictionary matching: {Matched}/{Total} items matched, {Essentials} marked as essential, {PL} private label, {Unmatched} unmatched, {AddedEssentials} essential items added from dictionary",
             matchedCount, items.Count - addedEssentialsCount, essentialCount, privateLabelCount, unmatchedItems.Count, addedEssentialsCount);
-        
+
         return unmatchedItems;
     }
 
@@ -326,14 +326,14 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         {
             dialog.Owner = mainWindow;
         }
-        
+
         var result = dialog.ShowDialog();
-        
+
         if (result == true && dialog.WasConfirmed)
         {
             var addedCount = 0;
             var essentialCount = 0;
-            
+
             foreach (var item in dialog.Items)
             {
                 // Add to dictionary with user-provided description and essential status
@@ -343,25 +343,25 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     Description = !string.IsNullOrEmpty(item.Description) ? item.Description : item.ItemNumber,
                     Skus = new List<string>()
                 };
-                
+
                 InternalItemDictionary.UpsertItem(dictItem);
-                
+
                 // Set essential status
                 if (item.IsEssential)
                 {
                     InternalItemDictionary.SetEssential(item.ItemNumber, true);
                     essentialCount++;
                 }
-                
+
                 // Update the item to show it's now matched
                 item.DictionaryMatched = true;
                 item.DictionaryDescription = dictItem.Description;
                 addedCount++;
             }
-            
+
             StatusMessage = $"Added {addedCount} items to dictionary ({essentialCount} essentials)";
             _logger?.LogInformation("Added {Count} items to dictionary, {Essentials} marked as essential", addedCount, essentialCount);
-            
+
             // Refresh the view to show updated match status
             await LoadItems();
         }
@@ -435,10 +435,10 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 {
                     // Convert to list so we can add essential items from dictionary
                     var items = result.Value.ToList();
-                    
+
                     // Match against dictionary for descriptions and essential status
                     var unmatchedItems = MatchItemsAgainstDictionary(items);
-                    
+
                     // Clear existing and add new (replacing data like JS version)
                     var existing = await _repository.GetAllAsync();
                     foreach (var item in existing)
@@ -452,14 +452,14 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     }
 
                     await LoadItems();
-                    
+
                     var essentialCount = items.Count(i => i.IsEssential);
                     var matchedCount = items.Count(i => i.DictionaryMatched);
                     var privateLabelCount = items.Count(i => i.IsPrivateLabel);
                     StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials, {privateLabelCount} PL)";
-                    _logger?.LogInformation("Imported {Count} items from Excel, {Matched} matched dictionary, {Essentials} essentials, {PL} private label", 
+                    _logger?.LogInformation("Imported {Count} items from Excel, {Matched} matched dictionary, {Essentials} essentials, {PL} private label",
                         items.Count, matchedCount, essentialCount, privateLabelCount);
-                    
+
                     // Prompt to add unmatched items to dictionary
                     if (unmatchedItems.Count > 0)
                     {
@@ -508,10 +508,10 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 {
                     // Convert to list so we can add essential items from dictionary
                     var items = result.Value.ToList();
-                    
+
                     // Match against dictionary for descriptions and essential status
                     var unmatchedItems = MatchItemsAgainstDictionary(items);
-                    
+
                     // Clear existing and add new
                     var existing = await _repository.GetAllAsync();
                     foreach (var item in existing)
@@ -525,14 +525,14 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     }
 
                     await LoadItems();
-                    
+
                     var essentialCount = items.Count(i => i.IsEssential);
                     var matchedCount = items.Count(i => i.DictionaryMatched);
                     var privateLabelCount = items.Count(i => i.IsPrivateLabel);
                     StatusMessage = $"Imported {items.Count} items ({matchedCount} matched, {essentialCount} essentials, {privateLabelCount} PL)";
-                    _logger?.LogInformation("Imported {Count} items from CSV, {Matched} matched dictionary, {Essentials} essentials, {PL} private label", 
+                    _logger?.LogInformation("Imported {Count} items from CSV, {Matched} matched dictionary, {Essentials} essentials, {PL} private label",
                         items.Count, matchedCount, essentialCount, privateLabelCount);
-                    
+
                     // Prompt to add unmatched items to dictionary
                     if (unmatchedItems.Count > 0)
                     {
@@ -661,7 +661,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var defaultFileName = $"EssentialsBuddy_Export_{timestamp}.xlsx";
-            
+
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export to Excel",
                 defaultFileName,
@@ -717,7 +717,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var defaultFileName = $"EssentialsBuddy_Export_{timestamp}.csv";
-            
+
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export to CSV",
                 defaultFileName,
@@ -767,7 +767,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         {
             // Clear database first
             await _repository.DeleteAllAsync();
-            
+
             Items.Clear();
             FilteredItems.Clear();
             SearchText = string.Empty;
@@ -837,8 +837,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         // - PL items in 9-90 bins: always show
         // - PL items NOT in 9-90 bins: only show if PrivateLabelOnly checkbox is checked
         // - Other items with zero quantity: hide
-        query = query.Where(i => 
-            i.IsEssential || 
+        query = query.Where(i =>
+            i.IsEssential ||
             i.QuantityOnHand > 0 ||
             (i.IsPrivateLabel && (i.BinCode?.StartsWith("9-90", StringComparison.OrdinalIgnoreCase) ?? false)) ||
             (i.IsPrivateLabel && PrivateLabelOnly));
@@ -869,7 +869,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
         // Materialize once, then bulk update collection
         var results = query.OrderBy(i => i.ItemNumber).ToList();
-        
+
         FilteredItems.Clear();
         foreach (var item in results)
         {
@@ -1055,7 +1055,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             {
                 _settingsService.SettingsChanged -= OnSettingsChanged;
             }
-            
+
             // Dispose managed resources
             (_repository as IDisposable)?.Dispose();
         }

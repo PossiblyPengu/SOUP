@@ -125,7 +125,7 @@ public static class InternalItemDictionary
 
         var term = sku.Trim();
         var entities = DictionaryDbContext.Instance.FindItems(
-            x => x.Skus.Contains(term), 
+            x => x.Skus.Contains(term),
             maxResults: 1);
 
         var entity = entities.FirstOrDefault();

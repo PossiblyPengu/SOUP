@@ -23,7 +23,7 @@ public class BoolToVisibilityConverter : IValueConverter
             // Check if we should invert
             bool invert = parameter is string s && s.Equals("Invert", StringComparison.OrdinalIgnoreCase);
             if (invert) boolValue = !boolValue;
-            
+
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
         return Visibility.Collapsed;

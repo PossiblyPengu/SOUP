@@ -197,7 +197,7 @@ internal static class CardGridPlacement
         return element.ActualWidth >= panelWidth * 0.75 ? Math.Max(1, (int)Math.Floor(panelWidth / Math.Max(1, element.ActualWidth))) : 1;
     }
 
-    public static void ComputeSlotLayout(Panel panel, List<FrameworkElement> children, out Dictionary<int,int> slotToChild, out int nextSlot, out double colWidth, out double[] rowHeights, double? lockedPanelWidth = null)
+    public static void ComputeSlotLayout(Panel panel, List<FrameworkElement> children, out Dictionary<int, int> slotToChild, out int nextSlot, out double colWidth, out double[] rowHeights, double? lockedPanelWidth = null)
     {
         slotToChild = new Dictionary<int, int>();
         nextSlot = 0;

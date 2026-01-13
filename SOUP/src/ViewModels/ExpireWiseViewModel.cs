@@ -7,14 +7,14 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SOUP.Core.Entities.ExpireWise;
 using SOUP.Core.Interfaces;
-using SOUP.Services;
-using SOUP.Views.ExpireWise;
-using SOUP.Views;
 using SOUP.Infrastructure.Services.Parsers;
+using SOUP.Services;
+using SOUP.Views;
+using SOUP.Views.ExpireWise;
 
 namespace SOUP.ViewModels;
 
@@ -39,7 +39,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     #region Private Fields
 
     private static readonly JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
-    
+
     private readonly IExpireWiseRepository _repository;
     private readonly IFileImportExportService _fileService;
     private readonly ExpireWiseParser _parser;
@@ -318,7 +318,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     {
         if (_isInitialized) return;
         _isInitialized = true;
-        
+
         // Load and apply settings for expiration thresholds
         await LoadAndApplySettingsAsync();
         await LoadItems();
@@ -336,15 +336,15 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             if (settingsService != null)
             {
                 var settings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ExpireWiseSettings>("ExpireWise");
-                
+
                 // Apply thresholds to the static properties on ExpirationItem
                 ExpirationItem.CriticalDaysThreshold = settings.CriticalThresholdDays;
                 ExpirationItem.WarningDaysThreshold = settings.WarningThresholdDays;
-                
+
                 // Apply default filter settings
                 StatusFilter = settings.DefaultStatusFilter;
-                
-                _logger?.LogInformation("Applied ExpireWise settings: Critical={Critical} days, Warning={Warning} days, Filter={Filter}", 
+
+                _logger?.LogInformation("Applied ExpireWise settings: Critical={Critical} days, Warning={Warning} days, Filter={Filter}",
                     settings.CriticalThresholdDays, settings.WarningThresholdDays, settings.DefaultStatusFilter);
             }
         }
@@ -530,19 +530,19 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                     var addedItem = await _repository.AddAsync(item);
                     Items.Add(addedItem);
                 }
-                
+
                 // Recalculate total months
                 TotalMonths = Items
                     .Select(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
                     .Distinct()
                     .Count();
                 TotalItems = Items.Count;
-                
+
                 BuildAvailableMonths();
                 ApplyFilters();
-                
+
                 UpdateLastSaved();
-                
+
                 if (result.Count == 1)
                 {
                     StatusMessage = $"Added item {result[0].ItemNumber}";
@@ -812,7 +812,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var defaultFileName = $"ExpireWise_Export_{timestamp}.xlsx";
-            
+
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export to Excel",
                 defaultFileName,
@@ -865,7 +865,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var defaultFileName = $"ExpireWise_Export_{timestamp}.csv";
-            
+
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export to CSV",
                 defaultFileName,
@@ -1149,7 +1149,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             {
                 _settingsService.SettingsChanged -= OnSettingsChanged;
             }
-            
+
             // Dispose managed resources
             (_repository as IDisposable)?.Dispose();
         }

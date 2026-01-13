@@ -23,7 +23,7 @@ namespace SOUP.Features.OrderLog.Behaviors;
 public class SimpleReorderBehavior : Behavior<Panel>
 {
     private const int DRAG_THRESHOLD = 5;
-    
+
     // Drag state
     private bool _isDragging;
     private bool _isLinkMode;
@@ -34,12 +34,12 @@ public class SimpleReorderBehavior : Behavior<Panel>
     private int _targetIndex;
     private OrderItem? _linkTarget;
     private FrameworkElement? _linkTargetElement;
-    
+
     // Visual elements
     private DragAdorner? _dragAdorner;
     private InsertionIndicatorAdorner? _insertionAdorner;
     private AdornerLayer? _adornerLayer;
-    
+
     // Original styles for link target highlight
     private Brush? _originalTargetBorderBrush;
     private Thickness _originalTargetBorderThickness;
@@ -91,10 +91,10 @@ public class SimpleReorderBehavior : Behavior<Panel>
     {
         if (_isLinkMode == enabled) return;
         _isLinkMode = enabled;
-        
+
         // Update adorner color based on mode
         _dragAdorner?.SetLinkMode(enabled);
-        
+
         if (enabled)
         {
             // Hide insertion indicator in link mode
@@ -112,16 +112,16 @@ public class SimpleReorderBehavior : Behavior<Panel>
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.LeftButton != MouseButtonState.Pressed) return;
-        
+
         // Don't start drag if clicking on editable controls
         var originalElement = e.OriginalSource as DependencyObject;
         if (IsEditableControl(originalElement))
         {
             return;
         }
-        
+
         _dragStartPoint = e.GetPosition(AssociatedObject);
-        
+
         // Find the item being clicked
         var element = originalElement;
         while (element != null && element != AssociatedObject)
@@ -141,7 +141,7 @@ public class SimpleReorderBehavior : Behavior<Panel>
             element = VisualTreeHelper.GetParent(element);
         }
     }
-    
+
     /// <summary>
     /// Checks if the element or any of its parents is an editable control (TextBox, RichTextBox, ComboBox)
     /// Also checks for FlowDocument elements (Run, Paragraph, etc.) which are inside RichTextBox
@@ -155,7 +155,7 @@ public class SimpleReorderBehavior : Behavior<Panel>
         {
             return true;
         }
-        
+
         // Walk up visual tree to find editable controls
         while (element != null)
         {
@@ -228,7 +228,7 @@ public class SimpleReorderBehavior : Behavior<Panel>
         // Create insertion indicator (only visible in reorder mode)
         _insertionAdorner = new InsertionIndicatorAdorner(AssociatedObject);
         _adornerLayer.Add(_insertionAdorner);
-        
+
         if (_isLinkMode)
         {
             _insertionAdorner.Hide();
@@ -338,12 +338,12 @@ public class SimpleReorderBehavior : Behavior<Panel>
         if (children.Count == 0) return 0;
 
         double mouseY = mousePosition.Y;
-        
+
         for (int i = 0; i < children.Count; i++)
         {
             var (item, element) = children[i];
             if (element == null) continue;
-            
+
             var pos = element.TransformToAncestor(AssociatedObject).Transform(new Point(0, 0));
             double itemMidpoint = pos.Y + element.ActualHeight / 2;
 
@@ -541,7 +541,7 @@ public class DragAdorner : Adorner
     private bool _isLinkMode;
     private Color _borderColor = Color.FromRgb(99, 102, 241); // Indigo for reorder
 
-    public DragAdorner(UIElement adornedElement, FrameworkElement draggedElement, Point startPoint, bool isLinkMode = false) 
+    public DragAdorner(UIElement adornedElement, FrameworkElement draggedElement, Point startPoint, bool isLinkMode = false)
         : base(adornedElement)
     {
         _size = new Size(draggedElement.ActualWidth, draggedElement.ActualHeight);
@@ -594,7 +594,7 @@ public class DragAdorner : Adorner
 
         // Draw the element
         drawingContext.DrawRectangle(_visualBrush, null, rect);
-        
+
         // Draw border to indicate mode
         var pen = new Pen(new SolidColorBrush(_borderColor), 2);
         drawingContext.DrawRectangle(null, pen, rect);

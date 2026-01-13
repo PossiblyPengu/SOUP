@@ -15,12 +15,12 @@ public class Store : BaseEntity
     /// Gets or sets the store number identifier.
     /// </summary>
     public required string Number { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the store name/description.
     /// </summary>
     public required string Name { get; set; }
-    
+
     /// <summary>
     /// Gets or sets whether this store is currently active.
     /// </summary>

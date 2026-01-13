@@ -70,7 +70,7 @@ public partial class MainWindow : Window
     #endregion
 
     public MainWindow(
-        MainWindowViewModel viewModel, 
+        MainWindowViewModel viewModel,
         WidgetProcessService? widgetProcessService = null,
         TrayIconService? trayIconService = null)
     {
@@ -81,13 +81,13 @@ public partial class MainWindow : Window
 
         // Attach window position/size persistence
         WindowSettingsService.Instance.AttachToWindow(this, WindowKey);
-        
+
         // Handle closing to check if widget or close-to-tray should keep app alive
         Closing += MainWindow_Closing;
-        
+
         // Handle visibility changes to refresh bindings when window is shown again
         IsVisibleChanged += MainWindow_IsVisibleChanged;
-        
+
         // Hook into WM_GETMINMAXINFO to respect WorkArea when maximized
         SourceInitialized += MainWindow_SourceInitialized;
 
@@ -121,11 +121,11 @@ public partial class MainWindow : Window
                     var monitorArea = monitorInfo.rcMonitor;
 
                     var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
-                    
+
                     // Set max size to work area size
                     mmi.ptMaxSize.X = workArea.Right - workArea.Left;
                     mmi.ptMaxSize.Y = workArea.Bottom - workArea.Top;
-                    
+
                     // Set max position to work area top-left (relative to monitor)
                     mmi.ptMaxPosition.X = workArea.Left - monitorArea.Left;
                     mmi.ptMaxPosition.Y = workArea.Top - monitorArea.Top;
@@ -148,7 +148,7 @@ public partial class MainWindow : Window
                 _hasBeenShownOnce = true;
                 return;
             }
-            
+
             // Window became visible again after being hidden
             if (DataContext is MainWindowViewModel vm)
             {
@@ -157,7 +157,7 @@ public partial class MainWindow : Window
                 {
                     vm.NavigationService.NavigateToLauncher();
                 }
-                
+
                 // Refresh command bindings
                 vm.OpenSettingsCommand.NotifyCanExecuteChanged();
                 vm.ToggleThemeCommand.NotifyCanExecuteChanged();
@@ -178,7 +178,7 @@ public partial class MainWindow : Window
             Dispatcher.Invoke(OnTrayShowRequested);
             return;
         }
-        
+
         Show();
         WindowState = WindowState.Normal;
         Activate();
@@ -203,26 +203,26 @@ public partial class MainWindow : Window
         var closeToTray = _trayIconService?.CloseToTray == true;
         var confirmBeforeExit = _trayIconService?.ConfirmBeforeExit == true;
         var keepWidgetRunning = _trayIconService?.KeepWidgetRunning ?? true;
-        
+
         // Check if the Order Log widget is still open (runs as separate process)
         var widgetOpen = _widgetProcessService?.IsWidgetOpen == true;
-        
+
         // If close-to-tray enabled, or widget is open and we want to keep it running, hide instead of close
         if (closeToTray || (widgetOpen && keepWidgetRunning))
         {
             e.Cancel = true;
             this.Hide();
-            
+
             // Show balloon tip when minimizing to tray (only if no widget keeping it alive)
             if (closeToTray && !widgetOpen)
             {
                 _trayIconService?.ShowBalloon(
-                    "S.O.U.P", 
+                    "S.O.U.P",
                     "Application minimized to tray. Double-click to restore.",
                     System.Windows.Forms.ToolTipIcon.Info,
                     2000);
             }
-            
+
             // If widget is not open and we're hiding, we should dispose tray if ShowTrayIcon is false
             // This handles the case where user disabled tray icon in settings
             if (!widgetOpen && _trayIconService?.ShowTrayIcon == false)
@@ -241,13 +241,13 @@ public partial class MainWindow : Window
                     return;
                 }
             }
-            
+
             // Close widget if it's running and KeepWidgetRunning is false
             if (widgetOpen && !keepWidgetRunning)
             {
                 _widgetProcessService?.KillWidget();
             }
-            
+
             // Shut down the application
             _trayIconService?.Dispose();
             Application.Current.Shutdown();
@@ -267,10 +267,10 @@ public partial class MainWindow : Window
             {
                 // Get mouse position relative to window
                 var point = e.GetPosition(this);
-                
+
                 // Restore window
                 WindowState = WindowState.Normal;
-                
+
                 // Move window so cursor is at the same relative position
                 Left = point.X - (Width / 2);
                 Top = point.Y - 20;
@@ -282,7 +282,7 @@ public partial class MainWindow : Window
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
         Serilog.Log.Information("SettingsButton_Click fired");
-        
+
         // Fallback click handler in case command binding fails after window hide/show
         if (DataContext is MainWindowViewModel vm)
         {
@@ -302,8 +302,8 @@ public partial class MainWindow : Window
 
     private void MaximizeButton_Click(object sender, RoutedEventArgs e)
     {
-        WindowState = WindowState == WindowState.Maximized 
-            ? WindowState.Normal 
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
             : WindowState.Maximized;
     }
 

@@ -162,12 +162,12 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
         IsEditMode = true;
         DialogTitle = "Edit Expiration Item";
         EditItemId = item.Id;
-        
+
         SkuInput = item.ItemNumber;
         DefaultUnits = item.Units;
         ExpiryMonth = item.ExpiryDate.Month;
         ExpiryYear = item.ExpiryDate.Year;
-        SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == item.Location) 
+        SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == item.Location)
                        ?? AvailableStores.FirstOrDefault();
 
         // Auto-verify for edit mode
@@ -192,7 +192,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
 
         var lines = ParseInputLines();
         TotalItemCount = lines.Count;
-        
+
         if (TotalItemCount == 1)
             StatusMessage = "1 item - Press Verify to check";
         else
@@ -205,12 +205,12 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     private List<(string Sku, int? Qty)> ParseInputLines()
     {
         var results = new List<(string Sku, int? Qty)>();
-        
+
         if (string.IsNullOrWhiteSpace(SkuInput))
             return results;
 
         var lines = SkuInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        
+
         foreach (var line in lines)
         {
             var trimmed = line.Trim();
@@ -218,7 +218,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
 
             // Check for tab-separated (Excel paste) or multiple spaces
             var parts = trimmed.Split(new[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            
+
             if (parts.Length >= 2)
             {
                 // Last part might be quantity - check if it's a number
@@ -256,7 +256,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
         NotFoundCount = 0;
 
         var lines = ParseInputLines();
-        
+
         foreach (var (sku, qty) in lines)
         {
             var dictItemBySku = InternalItemDictionary.FindBySku(sku);
@@ -270,7 +270,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
                 Description = dictItem?.Description ?? "Not in database",
                 Units = qty ?? DefaultUnits,
                 Found = dictItem != null,
-                CanAddSkuToItem = dictItem != null && dictItemBySku == null 
+                CanAddSkuToItem = dictItem != null && dictItemBySku == null
                     && !string.Equals(sku, dictItem.Number, StringComparison.OrdinalIgnoreCase)
             };
 
@@ -331,7 +331,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     private void StartAddToDict(ParsedSkuEntry item)
     {
         if (item == null || item.Found) return;
-        
+
         ItemToAddToDict = item;
         NewDictItemNumber = string.Empty;
         NewDictDescription = string.Empty;
@@ -398,7 +398,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
 
         // Refresh counts
         RefreshCounts();
-        
+
         ShowAddToDictionaryPanel = false;
         ShowDictSuggestions = false;
     }
@@ -508,7 +508,7 @@ public class MonthOption
 {
     public int Value { get; }
     public string Name { get; }
-    
+
     public MonthOption(int value, string name)
     {
         Value = value;

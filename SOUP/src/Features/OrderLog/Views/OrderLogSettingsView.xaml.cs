@@ -17,7 +17,7 @@ public partial class OrderLogSettingsView : UserControl
     private void ClearArchived_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not OrderLogViewModel vm) return;
-        
+
         if (vm.ArchivedItems.Count == 0)
         {
             vm.StatusMessage = "No archived items to clear";
@@ -53,7 +53,7 @@ public partial class OrderLogSettingsView : UserControl
     private void PickOrderColor_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (DataContext is not OrderLogViewModel vm) return;
-        
+
         var picker = new OrderColorPickerWindow(vm.DefaultOrderColor)
         {
             Owner = Window.GetWindow(this)
@@ -68,7 +68,7 @@ public partial class OrderLogSettingsView : UserControl
     private void PickNoteColor_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (DataContext is not OrderLogViewModel vm) return;
-        
+
         var picker = new OrderColorPickerWindow(vm.DefaultNoteColor)
         {
             Owner = Window.GetWindow(this)

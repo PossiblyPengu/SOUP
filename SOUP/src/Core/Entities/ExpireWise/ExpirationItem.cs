@@ -1,5 +1,5 @@
-using SOUP.Core.Common;
 using System;
+using SOUP.Core.Common;
 
 namespace SOUP.Core.Entities.ExpireWise;
 
@@ -39,42 +39,42 @@ public class ExpirationItem : BaseEntity
     /// Gets or sets the item number identifier.
     /// </summary>
     public string ItemNumber { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or sets the Universal Product Code (barcode).
     /// </summary>
     public string Upc { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or sets the item description.
     /// </summary>
     public string Description { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or sets the storage location.
     /// </summary>
     public string? Location { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the number of units.
     /// </summary>
     public int Units { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the quantity (alias for Units).
     /// </summary>
     public int Quantity { get => Units; set => Units = value; }
-    
+
     /// <summary>
     /// Gets or sets the expiration date (month/year).
     /// </summary>
     public DateTime ExpiryDate { get; set; }
-    
+
     /// <summary>
     /// Gets or sets optional notes about the item.
     /// </summary>
     public string? Notes { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the item category.
     /// </summary>
@@ -116,7 +116,7 @@ public class ExpirationItem : BaseEntity
     /// Gets the number of days until expiration (negative if expired).
     /// </summary>
     public int DaysUntilExpiry => (ActualExpiryDate - DateTime.Today).Days;
-    
+
     /// <summary>
     /// Gets a human-readable status description.
     /// </summary>
@@ -137,13 +137,13 @@ public enum ExpirationStatus
 {
     /// <summary>More than 30 days until expiration.</summary>
     Good,
-    
+
     /// <summary>Between 8-30 days until expiration.</summary>
     Warning,
-    
+
     /// <summary>7 days or less until expiration.</summary>
     Critical,
-    
+
     /// <summary>Already past expiration date.</summary>
     Expired
 }

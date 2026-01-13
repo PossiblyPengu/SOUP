@@ -1,9 +1,9 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
-using SOUP.ViewModels;
 using SOUP.Helpers;
 using SOUP.Services;
+using SOUP.ViewModels;
 
 namespace SOUP.Windows;
 
@@ -31,7 +31,8 @@ public partial class EssentialsBuddyWindow : Window
             WindowAnimationHelper.AnimateWindowOpen(this);
             UpdateThemeIcon(ThemeService.Instance.IsDarkMode);
         };
-        Closed += (s, e) => {
+        Closed += (s, e) =>
+        {
             ThemeService.Instance.ThemeChanged -= OnThemeChanged;
         };
     }

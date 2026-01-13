@@ -23,7 +23,7 @@ public static class AppPaths
     /// <summary>
     /// User's desktop directory
     /// </summary>
-    public static string Desktop { get; } = 
+    public static string Desktop { get; } =
         Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
     /// <summary>

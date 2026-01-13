@@ -17,7 +17,7 @@ public partial class ExternalDataViewModel : ObservableObject
     private readonly BusinessCentralService _bcService;
     private readonly DictionarySyncService _syncService;
     private readonly ILogger<ExternalDataViewModel>? _logger;
-    
+
     [ObservableProperty]
     private ExternalConnectionConfig _config;
 
@@ -52,16 +52,16 @@ public partial class ExternalDataViewModel : ObservableObject
         _bcService = bcService;
         _syncService = syncService;
         _logger = logger;
-        
+
         _config = ExternalConnectionConfig.Load();
-        
+
         // Subscribe to sync events
         _syncService.ProgressChanged += (_, e) =>
         {
             SyncStatus = e.Message;
             SyncProgress = e.ProgressPercent;
         };
-        
+
         _syncService.SyncCompleted += (_, e) =>
         {
             IsSyncing = false;
@@ -79,8 +79,8 @@ public partial class ExternalDataViewModel : ObservableObject
     /// <summary>
     /// Last sync time display
     /// </summary>
-    public string LastSyncDisplay => Config.LastSyncTime.HasValue 
-        ? $"Last sync: {Config.LastSyncTime:g}" 
+    public string LastSyncDisplay => Config.LastSyncTime.HasValue
+        ? $"Last sync: {Config.LastSyncTime:g}"
         : "Never synced";
 
     [RelayCommand]
@@ -88,9 +88,9 @@ public partial class ExternalDataViewModel : ObservableObject
     {
         MySqlTestResult = "Testing...";
         MySqlTestSuccess = false;
-        
+
         var (success, message) = await _mySqlService.TestConnectionAsync(Config.GetMySqlConnectionString());
-        
+
         MySqlTestSuccess = success;
         MySqlTestResult = success ? "✓ Connected successfully" : $"✗ {message}";
     }
@@ -100,9 +100,9 @@ public partial class ExternalDataViewModel : ObservableObject
     {
         BcTestResult = "Testing...";
         BcTestSuccess = false;
-        
+
         var (success, message) = await _bcService.TestConnectionAsync(Config);
-        
+
         BcTestSuccess = success;
         BcTestResult = success ? "✓ Connected successfully" : $"✗ {message}";
     }
@@ -111,10 +111,10 @@ public partial class ExternalDataViewModel : ObservableObject
     private async Task SyncFromMySqlAsync()
     {
         if (IsSyncing) return;
-        
+
         IsSyncing = true;
         SyncProgress = 0;
-        
+
         await _syncService.SyncFromMySqlAsync(Config);
         OnPropertyChanged(nameof(LastSyncDisplay));
     }
@@ -123,10 +123,10 @@ public partial class ExternalDataViewModel : ObservableObject
     private async Task SyncFromBcAsync()
     {
         if (IsSyncing) return;
-        
+
         IsSyncing = true;
         SyncProgress = 0;
-        
+
         await _syncService.SyncFromBusinessCentralAsync(Config);
         OnPropertyChanged(nameof(LastSyncDisplay));
     }
@@ -135,10 +135,10 @@ public partial class ExternalDataViewModel : ObservableObject
     private async Task SyncFromBothAsync()
     {
         if (IsSyncing) return;
-        
+
         IsSyncing = true;
         SyncProgress = 0;
-        
+
         await _syncService.SyncFromBothAsync(Config);
         OnPropertyChanged(nameof(LastSyncDisplay));
     }

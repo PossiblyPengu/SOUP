@@ -28,14 +28,14 @@ public partial class ExpirationItemDialog : UserControl
         {
             if (!viewModel.IsVerified)
             {
-                MessageBox.Show("Please verify SKUs before adding.", "Verification Required", 
+                MessageBox.Show("Please verify SKUs before adding.", "Verification Required",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (viewModel.ParsedItems.Count == 0)
             {
-                MessageBox.Show("No items to add.", "No Items", 
+                MessageBox.Show("No items to add.", "No Items",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -48,7 +48,7 @@ public partial class ExpirationItemDialog : UserControl
                     "Some Items Not Found",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
-                
+
                 if (result != MessageBoxResult.Yes)
                     return;
             }
