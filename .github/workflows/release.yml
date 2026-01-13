@@ -77,16 +77,22 @@ jobs:
 
       - name: Publish Trimmed Self-Contained (Experimental)
         run: |
-          dotnet publish src/SOUP.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            --output ../publish-portable-trimmed `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:EnableCompressionInSingleFile=true `
-            -p:PublishTrimmed=true `
-            -p:InvariantGlobalization=true
+          $csproj = Get-Content src/SOUP.csproj -Raw
+          if ($csproj -match '<UseWPF>\s*true\s*</UseWPF>') {
+            Write-Host "Skipping trimmed publish: project uses WPF (trimming not supported for WPF)." -ForegroundColor Yellow
+          }
+          else {
+            dotnet publish src/SOUP.csproj `
+              --configuration Release `
+              --runtime win-x64 `
+              --self-contained true `
+              --output ../publish-portable-trimmed `
+              -p:PublishSingleFile=true `
+              -p:IncludeNativeLibrariesForSelfExtract=true `
+              -p:EnableCompressionInSingleFile=true `
+              -p:PublishTrimmed=true `
+              -p:InvariantGlobalization=true
+          }
 
       - name: Create ZIP archives
         shell: pwsh

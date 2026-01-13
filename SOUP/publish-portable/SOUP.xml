@@ -2253,7 +2253,8 @@
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshDisplayCollection(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup})">
             <summary>
             Shared helper to build grouped display items from a source collection.
-            Groups linked items together while preserving order.
+            Groups linked items together and optionally sorts groups by status.
+            Sticky notes are excluded from sorting and appended in original order.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddToItems(SOUP.Features.OrderLog.Models.OrderItem,System.Boolean)">
@@ -2324,6 +2325,12 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultNoteColor"/>
         </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortByStatus"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortStatusDescending"/>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowArchivedChanged(System.Boolean)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -2363,6 +2370,16 @@
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnSortByStatusChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnSortStatusDescendingChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.loadCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand"/>.</summary>
@@ -7020,6 +7037,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultNoteColor">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortByStatus">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortByStatus" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortStatusDescending">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVisible" generated properties.</summary>
         </member>
@@ -7610,6 +7633,12 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultNoteColor">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortByStatus">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortByStatus" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortStatusDescending">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVisible" generated properties.</summary>

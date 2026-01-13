@@ -885,11 +885,12 @@
                 </Border>
                 
                 <!-- Add Buttons (only show on Active tab) -->
-                <Grid Grid.Row="1" x:Name="AddButtonsPanel">
+                    <Grid Grid.Row="1" x:Name="AddButtonsPanel">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="12" x:Name="ButtonSpacerColumn"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
                     <!-- Add Order button - hidden in Notes Only Mode -->
@@ -900,6 +901,62 @@
                             <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0"/>
                             <TextBlock Text="Add Order"/>
                         </StackPanel>
+                    </Button>
+                    
+                    <!-- Sort toggle button: click to enable/switch direction -->
+                        <Button Grid.Column="3" Click="SortToggle_Click" ToolTip="Sort by status (click to toggle direction)" Width="34" Height="34" Margin="8,0,0,0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Padding" Value="4"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <Grid>
+                            <TextBlock x:Name="SortSymbol" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">⇅
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="⇅"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding SortByStatus}" Value="True"/>
+                                                    <Condition Binding="{Binding SortStatusDescending}" Value="False"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Text" Value="↑"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding SortByStatus}" Value="True"/>
+                                                    <Condition Binding="{Binding SortStatusDescending}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Text" Value="↓"/>
+                                            </MultiDataTrigger>
+                                            <DataTrigger Binding="{Binding SortByStatus}" Value="False">
+                                                <Setter Property="Text" Value="⇅"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <Button.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard/>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Button.Triggers>
                     </Button>
                     
                     <!-- Add Note button - spans full width in Notes Only Mode -->

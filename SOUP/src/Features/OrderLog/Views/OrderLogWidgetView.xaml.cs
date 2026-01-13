@@ -349,6 +349,21 @@ public partial class OrderLogWidgetView : UserControl
             vm.StatusMessage = $"Linked {items.Count} item(s)";
         }
     }
+    private void SortToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm) return;
+
+        // If sorting is not enabled, enable ascending sort; otherwise toggle direction
+        if (!vm.SortByStatus)
+        {
+            vm.SortByStatus = true;
+            vm.SortStatusDescending = false;
+        }
+        else
+        {
+            vm.SortStatusDescending = !vm.SortStatusDescending;
+        }
+    }
 
     /// <summary>
     /// Resolves an OrderItem from a context menu sender, handling WPF's ContextMenu DataContext inheritance issues.

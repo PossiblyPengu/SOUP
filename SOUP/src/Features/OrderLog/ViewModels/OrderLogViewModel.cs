@@ -159,6 +159,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _defaultNoteColor = OrderLogColors.DefaultNote;
 
+    [ObservableProperty]
+    private bool _sortByStatus = false;
+
+    [ObservableProperty]
+    private bool _sortStatusDescending = false;
+
     partial void OnCardFontSizeChanged(double value)
     {
         try
@@ -209,6 +215,16 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         SaveWidgetSettings();
     }
 
+    partial void OnSortByStatusChanged(bool value)
+    {
+        RefreshDisplayItems();
+    }
+
+    partial void OnSortStatusDescendingChanged(bool value)
+    {
+        RefreshDisplayItems();
+    }
+
     partial void OnNotesOnlyModeChanged(bool value)
     {
         SaveWidgetSettings();
@@ -224,7 +240,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             UndoTimeoutSeconds = UndoTimeoutSeconds,
             DefaultOrderColor = DefaultOrderColor,
             DefaultNoteColor = DefaultNoteColor,
-            NotesOnlyMode = NotesOnlyMode
+            NotesOnlyMode = NotesOnlyMode,
+            SortByStatus = SortByStatus,
+            SortStatusDescending = SortStatusDescending
         };
         _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
@@ -251,6 +269,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             DefaultOrderColor = string.IsNullOrEmpty(s.DefaultOrderColor) ? OrderLogColors.DefaultOrder : s.DefaultOrderColor;
             DefaultNoteColor = string.IsNullOrEmpty(s.DefaultNoteColor) ? OrderLogColors.DefaultNote : s.DefaultNoteColor;
             NotesOnlyMode = s.NotesOnlyMode;
+            // Sorting preferences
+            SortByStatus = s.SortByStatus;
+            SortStatusDescending = s.SortStatusDescending;
             if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)
@@ -1186,44 +1207,75 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Shared helper to build grouped display items from a source collection.
-    /// Groups linked items together while preserving order.
+    /// Groups linked items together and optionally sorts groups by status.
+    /// Sticky notes are excluded from sorting and appended in original order.
     /// </summary>
-    private static void RefreshDisplayCollection(
+    private void RefreshDisplayCollection(
         ObservableCollection<OrderItem> source,
         ObservableCollection<OrderItemGroup> display)
     {
         display.Clear();
-        var processed = new HashSet<Guid>();
 
-        foreach (var item in source)
+        // Collect renderable items in source order
+        var srcList = source.Where(i => i.IsRenderable).ToList();
+
+        // Build groups (preserve member order as in srcList)
+        var groups = new List<OrderItemGroup>();
+        var seenGroupIds = new HashSet<Guid?>();
+
+        foreach (var item in srcList)
         {
-            if (processed.Contains(item.Id)) continue;
-            if (!item.IsRenderable)
-            {
-                processed.Add(item.Id);
-                continue;
-            }
-
             if (item.LinkedGroupId == null)
             {
-                display.Add(new OrderItemGroup(new[] { item }));
-                processed.Add(item.Id);
+                groups.Add(new OrderItemGroup(new[] { item }));
             }
             else
             {
                 var gid = item.LinkedGroupId;
-                var members = source.Where(i => i.LinkedGroupId == gid && i.IsRenderable).ToList();
+                if (seenGroupIds.Contains(gid)) continue;
+                seenGroupIds.Add(gid);
+                var members = srcList.Where(i => i.LinkedGroupId == gid).ToList();
                 if (members.Count > 0)
-                {
-                    foreach (var m in members)
-                        processed.Add(m.Id);
-                    display.Add(new OrderItemGroup(members));
-                }
-                else
-                {
-                    processed.Add(item.Id);
-                }
+                    groups.Add(new OrderItemGroup(members));
             }
+        }
+
+        // Split out pure-note groups (do not include in sorting)
+        var noteGroups = groups.Where(g => g.Members.All(m => m.IsStickyNote)).ToList();
+        var orderGroups = groups.Except(noteGroups).ToList();
+
+        if (SortByStatus)
+        {
+            // Map statuses to explicit priorities so order is NotReady, OnDeck, InProgress
+            static int StatusPriority(OrderItem.OrderStatus s) => s switch
+            {
+                OrderItem.OrderStatus.NotReady => 0,
+                OrderItem.OrderStatus.OnDeck => 1,
+                OrderItem.OrderStatus.InProgress => 2,
+                OrderItem.OrderStatus.Done => 3,
+                _ => 4
+            };
+
+            // Determine a sort key for each group: use the group's primary status priority (min of members)
+            Func<OrderItemGroup, int> keySelector = g => g.Members.Min(m => StatusPriority(m.Status));
+            orderGroups = SortStatusDescending
+                ? orderGroups.OrderByDescending(keySelector).ToList()
+                : orderGroups.OrderBy(keySelector).ToList();
+        }
+
+        // Within each order group, sort members by CreatedAt (oldest first)
+        foreach (var g in orderGroups)
+        {
+            var ordered = g.Members.OrderBy(m => m.CreatedAt).ToList();
+            g.Members.Clear();
+            foreach (var m in ordered) g.Members.Add(m);
+            display.Add(g);
+        }
+
+        // Append note groups preserving their relative order and member order
+        foreach (var g in noteGroups)
+        {
+            display.Add(g);
         }
     }
 

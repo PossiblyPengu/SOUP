@@ -273,6 +273,36 @@
                                   IsChecked="{Binding NotesOnlyMode, Mode=TwoWay}"/>
                     </Grid>
                 </Border>
+
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Sort By Status" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="When enabled, order groups are grouped and sorted by status (Not Ready → On Deck → In Progress)." Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource ModernToggle}" VerticalAlignment="Center"
+                                  IsChecked="{Binding SortByStatus, Mode=TwoWay}"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Sort Descending" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="When enabled, sort order is reversed (In Progress first). Only active when Sort By Status is enabled." Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource ModernToggle}" VerticalAlignment="Center"
+                                  IsChecked="{Binding SortStatusDescending, Mode=TwoWay}" IsEnabled="{Binding SortByStatus}"/>
+                    </Grid>
+                </Border>
                 
                 <!-- Default Colors Section -->
                 <TextBlock Text="DEFAULT COLORS" Style="{StaticResource SectionHeader}"/>
