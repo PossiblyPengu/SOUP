@@ -34,7 +34,7 @@ public sealed class SettingsService
         // Ensure the settings directory exists
         Directory.CreateDirectory(_settingsDirectory);
 
-        _jsonOptions = new JsonSerializerOptions
+        _jsonOptions = new()
         {
             WriteIndented = true,
             PropertyNameCaseInsensitive = true

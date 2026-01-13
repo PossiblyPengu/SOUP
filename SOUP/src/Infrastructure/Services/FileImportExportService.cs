@@ -53,7 +53,7 @@ public class FileImportExportService : IFileImportExportService
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheet(1);
 
-            var data = new List<T>();
+            List<T> data = new();
             var properties = typeof(T).GetProperties().Where(p => p.CanWrite).ToArray();
             var headers = worksheet.Row(1).CellsUsed()
                 .Select((c, idx) => new { Index = idx, Name = c.Value.ToString() ?? "" })
@@ -112,7 +112,7 @@ public class FileImportExportService : IFileImportExportService
             if (extension != ".csv")
                 return Result<IEnumerable<T>>.Failure($"Invalid file type: expected CSV file (.csv), got {extension}");
 
-            var data = new List<T>();
+            List<T> data = new();
             var properties = typeof(T).GetProperties().Where(p => p.CanWrite).ToArray();
 
             using var reader = new StreamReader(filePath);

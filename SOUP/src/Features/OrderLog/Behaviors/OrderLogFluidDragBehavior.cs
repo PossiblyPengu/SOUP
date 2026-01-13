@@ -637,7 +637,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         }
 
         // Cleanup after a short delay to allow UI to settle
-        _cleanupTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+        _cleanupTimer ??= new() { Interval = TimeSpan.FromMilliseconds(200) };
         _cleanupTimer.Tick -= OnCleanupTimerTick;
         _cleanupTimer.Tick += OnCleanupTimerTick;
         _cleanupTimer.Start();
@@ -688,7 +688,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         _animator?.ResetAllCardPositions();
 
         // Delay cleanup to allow animation to complete - reuse timer
-        _cleanupTimer ??= new System.Windows.Threading.DispatcherTimer();
+        _cleanupTimer ??= new();
         _cleanupTimer.Interval = TimeSpan.FromMilliseconds(AnimationDuration + 50);
         _cleanupTimer.Tick -= OnCancelCleanupTick;
         _cleanupTimer.Tick += OnCancelCleanupTick;

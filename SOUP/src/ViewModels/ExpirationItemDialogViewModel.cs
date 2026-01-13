@@ -414,7 +414,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
         {
             Number = NewDictItemNumber,
             Description = NewDictDescription,
-            Skus = new List<string> { ItemToAddToDict.InputSku }
+            Skus = new() { ItemToAddToDict.InputSku }
         };
 
         InternalItemDictionary.UpsertItem(newItem);

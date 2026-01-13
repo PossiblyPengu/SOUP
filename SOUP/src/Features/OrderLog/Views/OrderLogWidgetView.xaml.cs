@@ -28,7 +28,7 @@ public partial class OrderLogWidgetView : UserControl
     private System.Windows.Threading.DispatcherTimer? _marqueeTimer;
     private Storyboard? _marqueeStoryboard;
     private bool _isMarqueeRunning = false;
-    private Random _random = new Random();
+    private Random _random = new();
     private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
     private Behaviors.GridDragBehavior? _gridDrag;
 

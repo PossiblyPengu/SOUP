@@ -135,15 +135,15 @@ Checks for:
 
 | Type | Location | Notes |
 |------|----------|-------|
-| Debug Build | `src/bin/Debug/net8.0-windows/` | For development |
-| Release Build | `src/bin/Release/net8.0-windows/` | For testing |
-| Framework Publish | `publish-framework/` | Requires .NET 8 (~27 MB) |
+| Debug Build | `src/bin/Debug/net10.0-windows/` | For development |
+| Release Build | `src/bin/Release/net10.0-windows/` | For testing |
+| Framework Publish | `publish-framework/` | Requires .NET 10 (~27 MB) |
 | Portable Publish | `publish-portable/` | Self-contained (~80 MB) |
 | Installer | `installer/SOUP-Setup-X.X.X.exe` | Full installer |
 
 ## Requirements
 
-- .NET 8 SDK (local or system `dotnet`)
+.NET 10 SDK (local or system `dotnet`)
 - Inno Setup 6 (for installer) - [Download](https://jrsoftware.org/isdl.php)
 
 ## Version Management

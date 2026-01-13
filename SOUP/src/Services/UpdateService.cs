@@ -26,7 +26,7 @@ public sealed class UpdateService : IDisposable
     public UpdateService(ILogger<UpdateService>? logger = null)
     {
         _logger = logger;
-        _httpClient = new HttpClient();
+        _httpClient = new();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "SOUP-Updater");
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
         _httpClient.Timeout = TimeSpan.FromSeconds(15);

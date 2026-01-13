@@ -29,7 +29,7 @@ public partial class LinkOrdersWindow : Window
         _allAvailableOrders = _vm.Items.Where(i => i.Id != _source.Id && i.NoteType == NoteType.Order).ToList();
 
         // Set up collection view for filtering
-        _viewSource = new CollectionViewSource { Source = _allAvailableOrders };
+        _viewSource = new() { Source = _allAvailableOrders };
         _viewSource.Filter += ApplyFilters;
         OrdersList.ItemsSource = _viewSource.View;
     }

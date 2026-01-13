@@ -18,6 +18,8 @@ param(
     [switch]$Portable,
     [switch]$Installer,
     [switch]$Release,
+    [switch]$Trim,
+    [switch]$InvariantGlobalization,
     [switch]$BumpMajor,
     [switch]$BumpMinor,
     [switch]$BumpPatch,
@@ -82,6 +84,10 @@ if ($csprojContent -match '<Version>([^<]+)</Version>') {
     Write-Host "ERROR: Could not find version in csproj!" -ForegroundColor Red
     exit 1
 }
+
+# Detect WPF usage: trimming is not supported for WPF apps
+$isWpf = $false
+if ($csprojContent -match '<UseWPF>\s*true\s*</UseWPF>') { $isWpf = $true }
 
 # Parse current version
 $versionParts = $version -split '\.'
@@ -164,12 +170,15 @@ if ($Framework) {
         Remove-Item -Path $publishFrameworkDir -Recurse -Force
     }
     
+    $frameworkArgs = @('-p:PublishSingleFile=false')
+    if ($InvariantGlobalization) { $frameworkArgs += '-p:InvariantGlobalization=true' }
+
     & $dotnetPath publish $projectFile `
         --configuration Release `
         --runtime win-x64 `
         --self-contained false `
         --output $publishFrameworkDir `
-        -p:PublishSingleFile=false
+        $frameworkArgs
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: Framework-dependent publish failed!" -ForegroundColor Red
@@ -188,14 +197,26 @@ if ($Portable) {
         Remove-Item -Path $publishPortableDir -Recurse -Force
     }
     
+    $portableArgs = @(
+        '-p:PublishSingleFile=true',
+        '-p:IncludeNativeLibrariesForSelfExtract=true',
+        '-p:EnableCompressionInSingleFile=true'
+    )
+    if ($Trim) {
+        if ($isWpf) {
+            Write-Host "  Skipping PublishTrimmed for WPF project (not supported)." -ForegroundColor Yellow
+        } else {
+            $portableArgs += '-p:PublishTrimmed=true'
+        }
+    }
+    if ($InvariantGlobalization) { $portableArgs += '-p:InvariantGlobalization=true' }
+
     & $dotnetPath publish $projectFile `
         --configuration Release `
         --runtime win-x64 `
         --self-contained true `
         --output $publishPortableDir `
-        -p:PublishSingleFile=true `
-        -p:IncludeNativeLibrariesForSelfExtract=true `
-        -p:EnableCompressionInSingleFile=true
+        $portableArgs
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: Self-contained publish failed!" -ForegroundColor Red

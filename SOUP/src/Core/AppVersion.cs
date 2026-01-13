@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.21.0";
+    public const string Version = "4.22.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.22.0", "2026-01-13", "Release Update", new[]
+        {
+            "feat: Update project to .NET 10 and enhance globalization support- Updated runtime configuration to enable invariant globalization and predefined cultures.- Added XML documentation for GeneratedInternalTypeHelper methods in publish-framework and publish-portable.- Modified README and publish scripts to reflect .NET 10 requirements.- Refactored various classes to use target-typed new expressions for cleaner code.- Improved error handling and performance in HexToBrushConverter and StatusToColorConverter.- Introduced a new OrderLogColors class for better color management in OrderLog views.- Enhanced the CI workflow for building and testing the project on GitHub Actions."
+        }),
         new("4.21.0", "2026-01-13", "Release Update", new[]
         {
             "Update target framework to .NET 10.0 across all projects and scripts"

@@ -293,7 +293,7 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
             connection.Open();
             
             // First get all entities to update their JSON
-            var entities = new List<(Guid Id, T Entity)>();
+            var entities = new List<(Guid, T)>();
             using (var getCmd = connection.CreateCommand())
             {
                 getCmd.CommandText = $"SELECT Id, Data FROM [{TableName}] WHERE IsDeleted = 0";

@@ -206,7 +206,7 @@ public partial class ThemeService : ObservableObject
 
             var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
             });
 
             File.WriteAllText(_settingsPath, json);

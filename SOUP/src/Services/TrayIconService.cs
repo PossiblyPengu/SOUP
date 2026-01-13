@@ -97,7 +97,7 @@ public sealed class TrayIconService : IDisposable
     {
         if (_notifyIcon != null) return;
 
-        _notifyIcon = new NotifyIcon
+        _notifyIcon = new()
         {
             Text = "S.O.U.P - S.A.M. Operations Utilities Pack",
             Visible = ShowTrayIcon

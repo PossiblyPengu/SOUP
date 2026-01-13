@@ -1924,8 +1924,8 @@
         </member>
         <member name="T:SOUP.Features.OrderLog.Converters.StatusToColorConverter">
             <summary>
-            Converts OrderItem.OrderStatus to a Color or Brush resource.
-            Eliminates repetitive DataTriggers in XAML.
+            Converts an OrderItem.OrderStatus to a theme-aware brush or Color.
+            Uses application resources when available, with sensible fallbacks.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache">

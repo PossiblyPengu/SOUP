@@ -7,13 +7,33 @@ using SOUP.Features.OrderLog.Models;
 
 namespace SOUP.Features.OrderLog.Converters;
 
+public static class OrderLogColors
+{
+    // Predefined brushes used across OrderLog views
+    private static readonly Brush NotReadyBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x1b));    // #18181b zinc-900
+    private static readonly Brush OnDeckBrush = new SolidColorBrush(Color.FromRgb(0x1c, 0x1c, 0x22));      // #1c1c22 slightly lighter
+    private static readonly Brush InProgressBrush = new SolidColorBrush(Color.FromRgb(0x14, 0x53, 0x2d));  // #14532d green-900
+    private static readonly Brush DoneBrush = new SolidColorBrush(Color.FromRgb(0x27, 0x27, 0x2a));        // #27272a zinc-800
+
+    public static Brush FromStatus(OrderItem.OrderStatus status)
+    {
+        return status switch
+        {
+            OrderItem.OrderStatus.NotReady => NotReadyBrush,
+            OrderItem.OrderStatus.OnDeck => OnDeckBrush,
+            OrderItem.OrderStatus.InProgress => InProgressBrush,
+            OrderItem.OrderStatus.Done => DoneBrush,
+            _ => NotReadyBrush,
+        };
+    }
+}
+
 /// <summary>
-/// Converts OrderItem.OrderStatus to a Color or Brush resource.
-/// Eliminates repetitive DataTriggers in XAML.
+/// Converts an OrderItem.OrderStatus to a theme-aware brush or Color.
+/// Uses application resources when available, with sensible fallbacks.
 /// </summary>
 public class StatusToColorConverter : IValueConverter
 {
-    // Cache brushes to avoid repeated resource lookups
     private static Brush? _dangerBrush;
     private static Brush? _warningBrush;
     private static Brush? _successBrush;
@@ -23,7 +43,6 @@ public class StatusToColorConverter : IValueConverter
     private static void EnsureCacheInitialized()
     {
         if (_cacheInitialized) return;
-        
         var app = Application.Current;
         _dangerBrush = app?.TryFindResource("DangerBrush") as Brush;
         _warningBrush = app?.TryFindResource("WarningBrush") as Brush;

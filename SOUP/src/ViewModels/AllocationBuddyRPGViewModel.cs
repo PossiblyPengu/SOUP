@@ -578,7 +578,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     {
         // Cancel any existing load operation
         _loadDictionariesCts?.Cancel();
-        _loadDictionariesCts = new CancellationTokenSource();
+        _loadDictionariesCts = new();
         var cancellationToken = _loadDictionariesCts.Token;
 
         try
@@ -736,7 +736,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         // remember the deactivation for undo
         var snapshot = loc.Items.Select(i => new ItemSnapshot { ItemNumber = i.ItemNumber, Description = i.Description, Quantity = i.Quantity, SKU = i.SKU }).ToList();
-        _lastDeactivation = new DeactivationRecord { Location = loc, Items = snapshot };
+        _lastDeactivation = new() { Location = loc, Items = snapshot };
         // notify Undo command availability
         (UndoDeactivateCommand as RelayCommand)?.NotifyCanExecuteChanged();
 
@@ -975,7 +975,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         if (files == null || files.Length == 0) return;
 
         FileImportResults.Clear();
-        var allEntries = new List<AllocationEntry>();
+        List<AllocationEntry> allEntries = new();
         foreach (var file in files)
         {
             try

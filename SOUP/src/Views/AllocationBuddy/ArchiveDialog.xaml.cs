@@ -27,7 +27,7 @@ public partial class ArchiveDialog : UserControl
             return;
         }
 
-        Result = new AllocationBuddyRPGViewModel.ArchiveDialogResult
+        Result = new()
         {
             Name = NameTextBox.Text.Trim(),
             Notes = string.IsNullOrWhiteSpace(NotesTextBox.Text) ? null : NotesTextBox.Text.Trim()

@@ -357,7 +357,6 @@ public partial class App : Application
                         bool showWidgetProcess = false;
                         bool widgetOnlyMode = false;
                         bool launchWidget = false;
-                        OrderLogWidgetWindow? widgetWindowInstance = null;
 
                         if (AppLifecycleService.IsWidgetProcess)
                         {

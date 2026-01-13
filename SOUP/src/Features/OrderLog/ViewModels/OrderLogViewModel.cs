@@ -73,7 +73,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Auto-clear status message after timeout (unless it's empty or the default count message)
         if (!string.IsNullOrEmpty(value) && !IsDefaultStatusMessage(value))
         {
-            _statusClearTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(StatusClearSeconds) };
+            _statusClearTimer ??= new() { Interval = TimeSpan.FromSeconds(StatusClearSeconds) };
             _statusClearTimer.Stop();
             _statusClearTimer.Tick -= OnStatusClearTimerTick;
             _statusClearTimer.Tick += OnStatusClearTimerTick;
@@ -137,7 +137,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _logger = logger;
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
+        _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
 
@@ -354,7 +354,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private async Task DebouncedSaveAsync()
     {
         _saveDebounceCts?.Cancel();
-        _saveDebounceCts = new System.Threading.CancellationTokenSource();
+        _saveDebounceCts = new();
         
         try
         {
@@ -619,7 +619,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Reuse existing timer instead of creating new one each time
         if (_undoTimer == null)
         {
-            _undoTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(UndoTimeoutSeconds) };
+            _undoTimer = new() { Interval = TimeSpan.FromSeconds(UndoTimeoutSeconds) };
             _undoTimer.Tick += OnUndoTimerTick;
         }
         else

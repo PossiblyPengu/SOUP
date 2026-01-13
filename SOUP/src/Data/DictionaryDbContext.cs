@@ -117,7 +117,7 @@ public sealed class DictionaryDbContext : IDisposable
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT Number, Description, Skus, IsEssential, IsPrivateLabel, Tags FROM Items";
 
-            var items = new List<DictionaryItemEntity>();
+            List<DictionaryItemEntity> items = new();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -125,10 +125,10 @@ public sealed class DictionaryDbContext : IDisposable
                 {
                     Number = reader.GetString(0),
                     Description = reader.GetString(1),
-                    Skus = JsonSerializer.Deserialize<List<string>>(reader.GetString(2), JsonOptions) ?? [],
+                    Skus = JsonSerializer.Deserialize<List<string>>(reader.GetString(2), JsonOptions) ?? new(),
                     IsEssential = reader.GetInt32(3) == 1,
                     IsPrivateLabel = reader.GetInt32(4) == 1,
-                    Tags = JsonSerializer.Deserialize<List<string>>(reader.GetString(5), JsonOptions) ?? []
+                    Tags = JsonSerializer.Deserialize<List<string>>(reader.GetString(5), JsonOptions) ?? new()
                 });
             }
             return items;
@@ -157,10 +157,10 @@ public sealed class DictionaryDbContext : IDisposable
                 {
                     Number = reader.GetString(0),
                     Description = reader.GetString(1),
-                    Skus = JsonSerializer.Deserialize<List<string>>(reader.GetString(2), JsonOptions) ?? [],
+                    Skus = JsonSerializer.Deserialize<List<string>>(reader.GetString(2), JsonOptions) ?? new(),
                     IsEssential = reader.GetInt32(3) == 1,
                     IsPrivateLabel = reader.GetInt32(4) == 1,
-                    Tags = JsonSerializer.Deserialize<List<string>>(reader.GetString(5), JsonOptions) ?? []
+                    Tags = JsonSerializer.Deserialize<List<string>>(reader.GetString(5), JsonOptions) ?? new()
                 };
             }
             return null;
@@ -181,7 +181,7 @@ public sealed class DictionaryDbContext : IDisposable
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT Number, Description, Skus, IsEssential, IsPrivateLabel, Tags FROM Items";
 
-            var results = new List<DictionaryItemEntity>();
+            List<DictionaryItemEntity> results = new();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -189,10 +189,10 @@ public sealed class DictionaryDbContext : IDisposable
                 {
                     Number = reader.GetString(0),
                     Description = reader.GetString(1),
-                    Skus = JsonSerializer.Deserialize<List<string>>(reader.GetString(2), JsonOptions) ?? [],
+                    Skus = JsonSerializer.Deserialize<List<string>>(reader.GetString(2), JsonOptions) ?? new(),
                     IsEssential = reader.GetInt32(3) == 1,
                     IsPrivateLabel = reader.GetInt32(4) == 1,
-                    Tags = JsonSerializer.Deserialize<List<string>>(reader.GetString(5), JsonOptions) ?? []
+                    Tags = JsonSerializer.Deserialize<List<string>>(reader.GetString(5), JsonOptions) ?? new()
                 };
 
                 if (predicate(item))
@@ -353,7 +353,7 @@ public sealed class DictionaryDbContext : IDisposable
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT Code, Name, Rank FROM Stores";
 
-            var stores = new List<StoreEntity>();
+            List<StoreEntity> stores = new();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -411,7 +411,7 @@ public sealed class DictionaryDbContext : IDisposable
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT Code, Name, Rank FROM Stores";
 
-            var results = new List<StoreEntity>();
+            List<StoreEntity> results = new();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {

@@ -1044,8 +1044,8 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             StatusMessage = "Importing stores from Excel...";
             int imported = 0;
             int updated = 0;
-            var newStores = new List<StoreEntry>();
-            var updatedStores = new List<StoreEntry>();
+            List<StoreEntry> newStores = new();
+            List<StoreEntry> updatedStores = new();
 
             // Create a snapshot of existing stores for lookup
             var existingStoresSnapshot = _allStores.ToDictionary(

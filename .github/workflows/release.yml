@@ -38,7 +38,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.x'
 
       - name: Restore dependencies
         run: dotnet restore src/SOUP.csproj
@@ -71,7 +71,22 @@ jobs:
             --runtime win-x64 `
             --self-contained true `
             --output ../publish-portable `
-            -p:PublishSingleFile=false
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true
+
+      - name: Publish Trimmed Self-Contained (Experimental)
+        run: |
+          dotnet publish src/SOUP.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ../publish-portable-trimmed `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:PublishTrimmed=true `
+            -p:InvariantGlobalization=true
 
       - name: Create ZIP archives
         shell: pwsh
@@ -79,9 +94,20 @@ jobs:
         run: |
           Compress-Archive -Path publish-framework\* -DestinationPath SOUP-${{ steps.version.outputs.VERSION }}-framework.zip
           Compress-Archive -Path publish-portable\* -DestinationPath SOUP-${{ steps.version.outputs.VERSION }}-portable.zip
+          if (Test-Path publish-portable-trimmed) {
+            Compress-Archive -Path publish-portable-trimmed\* -DestinationPath SOUP-${{ steps.version.outputs.VERSION }}-portable-trimmed.zip
+          }
           # Also create generic name for auto-updater
           Copy-Item "SOUP-${{ steps.version.outputs.VERSION }}-portable.zip" "SOUP-portable.zip"
           Get-ChildItem *.zip
+
+      - name: Create checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem *.zip | ForEach-Object {
+            $hash = Get-FileHash -Path $_.FullName -Algorithm SHA256
+            "$($hash.Hash)  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+          }
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2

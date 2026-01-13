@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: SOUP
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore
+        run: dotnet restore src/SOUP.csproj
+
+      - name: Build
+        run: dotnet build src/SOUP.csproj --configuration Release --no-restore
+
+      - name: Run tests
+        run: |
+          if (Test-Path "test") {
+            dotnet test --configuration Release
+          } else {
+            Write-Host "No tests found"
+          }
+
+      - name: Smoke check (assembly load)
+        shell: pwsh
+        run: |
+          $dll = "src\bin\Release\net10.0-windows10.0.19041.0\win-x64\SOUP.dll"
+          if (Test-Path $dll) {
+            Write-Host "Assembly exists: $dll"
+          } else {
+            Write-Error "Build output missing: $dll"
+          }

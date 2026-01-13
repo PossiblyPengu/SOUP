@@ -269,7 +269,7 @@ public partial class OrderLogWidgetWindow : Window
             await _viewModel.InitializeAsync();
             
             // Start update check timer (check every 30 minutes, first check after 5 seconds)
-            _updateCheckCts = new CancellationTokenSource();
+            _updateCheckCts = new();
             _updateCheckTimer = new Timer(CheckForUpdatesCallback, null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
         }
         catch (Exception ex)

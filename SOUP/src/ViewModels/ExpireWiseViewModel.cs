@@ -106,7 +106,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// Gets or sets the currently displayed month.
     /// </summary>
     [ObservableProperty]
-    private DateTime _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+    private DateTime _currentMonth = new(DateTime.Now.Year, DateTime.Now.Month, 1);
 
     /// <summary>
     /// Gets or sets the formatted display string for the current month.
