@@ -17,9 +17,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Setup local .NET SDK environment
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
-if (Test-Path $localSDKPath) {
+# Setup local .NET SDK environment (prefer any installed .NET 10 SDK in the known folder)
+$localSdkRoot = "D:\CODE\important files"
+$localSDKPath = $null
+if (Test-Path $localSdkRoot) {
+    $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like 'dotnet-sdk-10*' } |
+        Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
+
+    if (-not $localSDKPath) {
+        $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'dotnet-sdk*' } |
+            Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
+    }
+}
+
+if ($localSDKPath -and (Test-Path $localSDKPath)) {
     $env:DOTNET_ROOT = $localSDKPath
     $env:PATH = "$localSDKPath;$env:PATH"
 }
@@ -76,10 +89,12 @@ if ($needsRestore -and -not $Restore) {
     Write-Host "  (Auto-restoring packages...)" -ForegroundColor Gray
 }
 
-& $dotnetPath build $projectFile `
-    --configuration $configuration `
-    --verbosity $verbosity `
-    --no-restore:$(-not $Restore -and -not $needsRestore)
+# Build arguments: include --no-restore only when we explicitly want no restore
+$noRestore = -not ($Restore -or $needsRestore)
+$buildArgs = @($projectFile, "--configuration", $configuration, "--verbosity", $verbosity)
+if ($noRestore) { $buildArgs += "--no-restore" }
+
+& $dotnetPath build @buildArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -93,5 +108,5 @@ Write-Host "  Build Succeeded!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$outputDir = Join-Path $srcDir "bin\$configuration\net8.0-windows"
+$outputDir = Join-Path $srcDir "bin\$configuration\net10.0-windows"
 Write-Host "Output: $outputDir" -ForegroundColor White

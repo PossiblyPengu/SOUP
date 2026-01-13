@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.20.1";
+    public const string Version = "4.21.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -36,7 +36,7 @@ public static class AppVersion
     /// <summary>
     /// The build date in ISO format.
     /// </summary>
-    public const string BuildDate = "2026-01-12";
+    public const string BuildDate = "2026-01-13";
 
     /// <summary>
     /// Full version string with channel (e.g., "v4.3.0 - Stable").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.21.0", "2026-01-13", "Release Update", new[]
+        {
+            "Update target framework to .NET 10.0 across all projects and scripts"
+        }),
         new("4.20.1", "2026-01-12", "Release Update", new[]
         {
             "Enhance widget management and UI improvements- Added handling for widget closure to ensure the main application shuts down if no windows are visible.- Updated OrderLogWidgetView.xaml to use a new elevated card style and adjusted margins for better layout.- Implemented a retry mechanism for fetching album art in SpotifyService, improving user experience when album art is not immediately available.- Introduced new theme resources in BasicTheme.xaml for better styling consistency, including elevated card styles and ghost button styles."

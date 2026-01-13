@@ -14,9 +14,23 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Setup local .NET SDK environment (use .NET 9.0 SDK)
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
-if (Test-Path $localSDKPath) {
+# Setup local .NET SDK environment (prefer any installed .NET 10 SDK in the known folder)
+$localSdkRoot = "D:\CODE\important files"
+$localSDKPath = $null
+if (Test-Path $localSdkRoot) {
+    $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like 'dotnet-sdk-10*' } |
+        Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
+
+    if (-not $localSDKPath) {
+        # fallback to any dotnet-sdk folder if a 10.x SDK isn't present
+        $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'dotnet-sdk*' } |
+            Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
+    }
+}
+
+if ($localSDKPath -and (Test-Path $localSDKPath)) {
     $env:DOTNET_ROOT = $localSDKPath
     $env:PATH = "$localSDKPath;$env:PATH"
 }
@@ -38,7 +52,7 @@ Write-Host ""
 
 if ($NoBuild) {
     # Just run without building
-    $exePath = Join-Path $srcDir "bin\$configuration\net9.0-windows10.0.19041.0\win-x64\SOUP.exe"
+    $exePath = Join-Path $srcDir "bin\$configuration\net10.0-windows10.0.19041.0\win-x64\SOUP.exe"
     
     if (-not (Test-Path $exePath)) {
         Write-Host "ERROR: Executable not found at $exePath" -ForegroundColor Red
