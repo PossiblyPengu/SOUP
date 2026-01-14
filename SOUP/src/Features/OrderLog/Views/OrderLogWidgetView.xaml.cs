@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -21,6 +22,8 @@ namespace SOUP.Features.OrderLog.Views;
 /// </summary>
 public partial class OrderLogWidgetView : UserControl
 {
+    // Routed command for focusing the archived search box
+    public static readonly RoutedCommand FocusArchivedSearchCommand = new();
     private bool _nowPlayingExpanded = false;
     private bool _showingArchivedTab = false;
     private SpotifyService? _spotifyService;
@@ -35,22 +38,39 @@ public partial class OrderLogWidgetView : UserControl
     public OrderLogWidgetView()
     {
         InitializeComponent();
+        // Bind the focus command to handler
+        CommandBindings.Add(new CommandBinding(FocusArchivedSearchCommand, FocusArchivedSearch_Executed));
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         InitializeEqualizerTimer();
         InitializeMarqueeTimer();
     }
 
+    private void FocusArchivedSearch_Executed(object sender, ExecutedRoutedEventArgs e)
+    {
+        try
+        {
+            ArchivedSearchBox?.Focus();
+            ArchivedSearchBox?.SelectAll();
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to focus archived search box");
+        }
+    }
+
     private void ActiveTab_Click(object sender, RoutedEventArgs e)
     {
         _showingArchivedTab = false;
-        UpdateTabState();
+        // Defer heavy UI updates to background priority to avoid blocking layout
+        Dispatcher.BeginInvoke(new Action(UpdateTabState), System.Windows.Threading.DispatcherPriority.Background);
     }
 
     private void ArchivedTab_Click(object sender, RoutedEventArgs e)
     {
         _showingArchivedTab = true;
-        UpdateTabState();
+        // Defer heavy UI updates to background priority to avoid blocking layout
+        Dispatcher.BeginInvoke(new Action(UpdateTabState), System.Windows.Threading.DispatcherPriority.Background);
     }
 
     private void UpdateTabState()
@@ -77,6 +97,33 @@ public partial class OrderLogWidgetView : UserControl
             ActiveItemsPanel.Visibility = Visibility.Visible;
             ArchivedItemsPanel.Visibility = Visibility.Collapsed;
             AddButtonsPanel.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void SetArchivedSortNewest_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is OrderLogViewModel vm)
+        {
+            vm.ArchivedSortByDate = true;
+            vm.ArchivedSortDescending = true;
+        }
+    }
+
+    private void SetArchivedSortOldest_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is OrderLogViewModel vm)
+        {
+            vm.ArchivedSortByDate = true;
+            vm.ArchivedSortDescending = false;
+        }
+    }
+
+    private void ArchivedSortToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is OrderLogViewModel vm)
+        {
+            vm.ArchivedSortByDate = true;
+            vm.ArchivedSortDescending = !vm.ArchivedSortDescending;
         }
     }
 
@@ -251,6 +298,41 @@ public partial class OrderLogWidgetView : UserControl
         if (e.PropertyName == nameof(OrderLogViewModel.ShowNowPlaying))
         {
             Dispatcher.Invoke(() => UpdateNowPlayingUI());
+            return;
+        }
+
+        if (e.PropertyName == nameof(OrderLogViewModel.UndoAvailable))
+        {
+            // Animate UndoBar in/out for a small snackbar effect
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    if (UndoBar == null) return;
+                    // Ensure a render transform exists
+                    if (UndoBar.RenderTransform == null || UndoBar.RenderTransform is not TranslateTransform)
+                    {
+                        UndoBar.RenderTransform = new TranslateTransform(0, 24);
+                    }
+                    var tt = (TranslateTransform)UndoBar.RenderTransform;
+                    var show = false;
+                    if (DataContext is OrderLogViewModel vm) show = vm.UndoAvailable;
+                    var anim = new System.Windows.Media.Animation.DoubleAnimation
+                    {
+                        To = show ? 0 : 24,
+                        Duration = TimeSpan.FromMilliseconds(260),
+                        EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }
+                    };
+                    var fade = new System.Windows.Media.Animation.DoubleAnimation
+                    {
+                        To = show ? 1 : 0,
+                        Duration = TimeSpan.FromMilliseconds(260)
+                    };
+                    tt.BeginAnimation(TranslateTransform.YProperty, anim);
+                    UndoBar.BeginAnimation(OpacityProperty, fade);
+                }
+                catch (Exception ex) { Log.Debug(ex, "UndoBar animation failed"); }
+            });
         }
     }
 
@@ -331,6 +413,54 @@ public partial class OrderLogWidgetView : UserControl
             }
         };
     }
+
+    private void GroupToggle_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is ToggleButton tb)
+            {
+                // Find the nearest ancestor Expander and toggle its IsExpanded
+                DependencyObject? current = tb;
+                while (current != null && current is not Expander)
+                {
+                    current = VisualTreeHelper.GetParent(current);
+                }
+
+                if (current is Expander exp)
+                {
+                    exp.IsExpanded = tb.IsChecked == true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Group toggle click handler failed");
+        }
+    }
+
+    private void SortButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            try
+            {
+                // If any expander is expanded, collapse all; otherwise expand all
+                var expanders = FindVisualChildren<Expander>(ActiveItemsPanel).ToList();
+                bool anyExpanded = expanders.Any(ex => ex.IsExpanded);
+                foreach (var ex in expanders)
+                    ex.IsExpanded = !anyExpanded;
+
+                e.Handled = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, "Failed to toggle all group expanders");
+            }
+        }
+    }
+
+    
 
     private async void OnFluidDragReorderComplete(List<OrderItem> items, OrderItem? target)
     {
@@ -443,6 +573,22 @@ public partial class OrderLogWidgetView : UserControl
     private void ThemeToggle_Click(object sender, RoutedEventArgs e)
     {
         ThemeService.Instance.ToggleTheme();
+    }
+
+    private void ClearArchivedSearch_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (DataContext is OrderLogViewModel vm)
+            {
+                vm.ArchivedSearchQuery = string.Empty;
+            }
+            ArchivedSearchBox?.Focus();
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to clear archived search");
+        }
     }
 
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
@@ -1037,6 +1183,64 @@ public partial class OrderLogWidgetView : UserControl
         {
             order.ColorHex = picker.SelectedColor;
             _ = vm.SaveAsync();
+        }
+    }
+
+    private void CopyArchivedNote_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem menu) return;
+            if (menu.DataContext is OrderItem item)
+            {
+                var parts = new[] { item.VendorName, item.TransferNumbers, item.WhsShipmentNumbers, item.CreatedAtDisplay };
+                var txt = string.Join("\t", parts.Where(p => !string.IsNullOrEmpty(p)));
+                Clipboard.SetText(txt);
+            }
+            else if (menu.DataContext is ViewModels.OrderItemGroup group && group.First != null)
+            {
+                var first = group.First;
+                var parts = new[] { first.VendorName, first.TransferNumbers, first.WhsShipmentNumbers, first.CreatedAtDisplay };
+                var txt = string.Join("\t", parts.Where(p => !string.IsNullOrEmpty(p)));
+                Clipboard.SetText(txt);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to copy archived note details");
+        }
+    }
+
+    private void ArchivedItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        try
+        {
+            if (e == null || e.ClickCount != 2) return;
+            OrderItem? item = null;
+            if (sender is FrameworkElement fe && fe.DataContext is OrderItem it)
+            {
+                item = it;
+            }
+            else if (sender is FrameworkElement fe2 && fe2.DataContext is ViewModels.OrderItemGroup grp && grp.First != null)
+            {
+                item = grp.First;
+            }
+
+            if (item != null)
+            {
+                var parts = new[] { item.VendorName, item.TransferNumbers, item.WhsShipmentNumbers, item.NoteContent, item.CreatedAtDisplay };
+                var txt = string.Join("\t", parts.Where(p => !string.IsNullOrEmpty(p)));
+                Clipboard.SetText(txt);
+
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    vm.StatusMessage = "Copied archived item details";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to copy archived item on double-click");
         }
     }
 

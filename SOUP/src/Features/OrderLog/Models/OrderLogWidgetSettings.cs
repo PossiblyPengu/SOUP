@@ -11,4 +11,8 @@ public class OrderLogWidgetSettings
     public bool NotesOnlyMode { get; set; } = false;
     public bool SortByStatus { get; set; } = false;
     public bool SortStatusDescending { get; set; } = false;
+    // Archived view preferences
+    public string ArchivedSearchQuery { get; set; } = string.Empty;
+    public bool ArchivedSortByDate { get; set; } = true;
+    public bool ArchivedSortDescending { get; set; } = true;
 }

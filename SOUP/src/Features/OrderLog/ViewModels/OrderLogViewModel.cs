@@ -49,6 +49,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
+    [ObservableProperty]
+    private int _archivedResultsCount = 0;
+    public ObservableCollection<OrderItemGroup> NotesGroups { get; } = new();
 
     /// <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
     private IEnumerable<OrderItem> AllItems => Items.Concat(ArchivedItems);
@@ -165,6 +168,19 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _sortStatusDescending = false;
 
+    // Archived view controls
+    [ObservableProperty]
+    private string _archivedSearchQuery = string.Empty;
+
+    [ObservableProperty]
+    private bool _archivedSortByDate = true;
+
+    [ObservableProperty]
+    private bool _archivedSortDescending = true;
+
+    [ObservableProperty]
+    private bool _notesIsExpanded = true;
+
     partial void OnCardFontSizeChanged(double value)
     {
         try
@@ -225,6 +241,30 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
     }
 
+    partial void OnArchivedSearchQueryChanged(string value)
+    {
+        RefreshArchivedDisplayItems();
+        SaveWidgetSettings();
+    }
+
+    partial void OnArchivedSortByDateChanged(bool value)
+    {
+        RefreshArchivedDisplayItems();
+        SaveWidgetSettings();
+    }
+
+    partial void OnArchivedSortDescendingChanged(bool value)
+    {
+        RefreshArchivedDisplayItems();
+        SaveWidgetSettings();
+    }
+
+    partial void OnNotesIsExpandedChanged(bool value)
+    {
+        // Persist via GroupStateStore for expand/collapse states
+        SetGroupState("Notes", value);
+    }
+
     partial void OnNotesOnlyModeChanged(bool value)
     {
         SaveWidgetSettings();
@@ -243,6 +283,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             NotesOnlyMode = NotesOnlyMode,
             SortByStatus = SortByStatus,
             SortStatusDescending = SortStatusDescending
+            ,
+            ArchivedSearchQuery = ArchivedSearchQuery,
+            ArchivedSortByDate = ArchivedSortByDate,
+            ArchivedSortDescending = ArchivedSortDescending
         };
         _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
@@ -273,6 +317,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             SortByStatus = s.SortByStatus;
             SortStatusDescending = s.SortStatusDescending;
             if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
+
+            // Restore archived view preferences
+            ArchivedSearchQuery = s.ArchivedSearchQuery ?? string.Empty;
+            ArchivedSortByDate = s.ArchivedSortByDate;
+            ArchivedSortDescending = s.ArchivedSortDescending;
+
+            // Restore notes expander state from GroupStateStore
+            NotesIsExpanded = GetGroupState("Notes", true);
         }
         catch (Exception ex)
         {
@@ -1198,12 +1250,58 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// Refresh the display items from the Items collection.
     /// Call this after modifying Items externally (e.g., linking orders).
     /// </summary>
-    public void RefreshDisplayItems() => RefreshDisplayCollection(Items, DisplayItems);
+    public void RefreshDisplayItems() => RefreshDisplayCollection(Items, DisplayItems, updateNotesGroups: true);
 
     /// <summary>
     /// Refresh the archived display items from the ArchivedItems collection.
     /// </summary>
-    public void RefreshArchivedDisplayItems() => RefreshDisplayCollection(ArchivedItems, DisplayArchivedItems);
+    public void RefreshArchivedDisplayItems()
+    {
+        // Snapshot archived items
+        var snapshot = ArchivedItems.ToList();
+
+        // Apply search filter if present. Keep whole linked groups when any member matches.
+        if (!string.IsNullOrWhiteSpace(ArchivedSearchQuery))
+        {
+            var q = ArchivedSearchQuery.Trim();
+
+            // First pass: find matching item IDs and linked group IDs
+            var matchedIds = new HashSet<Guid>();
+            var matchedGroupIds = new HashSet<Guid>();
+            foreach (var i in snapshot)
+            {
+                var matches =
+                    (!string.IsNullOrEmpty(i.VendorName) && i.VendorName.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(i.TransferNumbers) && i.TransferNumbers.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(i.WhsShipmentNumbers) && i.WhsShipmentNumbers.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(i.NoteContent) && i.NoteContent.Contains(q, StringComparison.OrdinalIgnoreCase));
+
+                if (matches)
+                {
+                    matchedIds.Add(i.Id);
+                    if (i.LinkedGroupId != null) matchedGroupIds.Add(i.LinkedGroupId.Value);
+                }
+            }
+
+            // Second pass: include items that either matched directly or belong to a matched linked group
+            snapshot = snapshot.Where(i => matchedIds.Contains(i.Id) || (i.LinkedGroupId != null && matchedGroupIds.Contains(i.LinkedGroupId.Value))).ToList();
+        }
+
+        // Apply date sorting when requested
+        if (ArchivedSortByDate)
+        {
+            snapshot = ArchivedSortDescending
+                ? snapshot.OrderByDescending(i => i.CreatedAt).ToList()
+                : snapshot.OrderBy(i => i.CreatedAt).ToList();
+        }
+
+        // Expose result count for UI
+        ArchivedResultsCount = snapshot.Count;
+
+        // Pass filtered list into shared refresh pipeline by creating a temporary ObservableCollection
+        var filtered = new ObservableCollection<OrderItem>(snapshot);
+        RefreshDisplayCollection(filtered, DisplayArchivedItems, updateNotesGroups: false);
+    }
 
     /// <summary>
     /// Shared helper to build grouped display items from a source collection.
@@ -1212,7 +1310,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RefreshDisplayCollection(
         ObservableCollection<OrderItem> source,
-        ObservableCollection<OrderItemGroup> display)
+        ObservableCollection<OrderItemGroup> display,
+        bool updateNotesGroups = true)
     {
         display.Clear();
 
@@ -1263,7 +1362,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 : orderGroups.OrderBy(keySelector).ToList();
         }
 
-        // Within each order group, sort members by CreatedAt (oldest first)
+        // Clear notes collection then within each order group, sort members by CreatedAt (oldest first)
+        if (updateNotesGroups)
+        {
+            NotesGroups.Clear();
+        }
         foreach (var g in orderGroups)
         {
             var ordered = g.Members.OrderBy(m => m.CreatedAt).ToList();
@@ -1272,10 +1375,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             display.Add(g);
         }
 
-        // Append note groups preserving their relative order and member order
-        foreach (var g in noteGroups)
+        // Populate separate NotesGroups (preserve original order) when requested
+        if (updateNotesGroups)
         {
-            display.Add(g);
+            foreach (var g in noteGroups)
+            {
+                NotesGroups.Add(g);
+            }
         }
     }
 

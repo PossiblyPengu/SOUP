@@ -1414,6 +1414,17 @@
             
                 <!-- Archived Notes Panel (separate tab) -->
                 <StackPanel x:Name="ArchivedItemsPanel" Visibility="Collapsed">
+                    <!-- Archived search box (bound to ViewModel.ArchivedSearchQuery) -->
+                    <Border Background="{DynamicResource SurfaceBrush}" Padding="8" CornerRadius="6" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ArchivedSearchBox" Grid.Column="0" Text="{Binding ArchivedSearchQuery, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Button Grid.Column="1" Click="ClearArchivedSearch_Click" Style="{StaticResource GhostButtonStyle}" Padding="6,4">✕</Button>
+                        </Grid>
+                    </Border>
                     <ListBox x:Name="ArchivedListBox"
                              ItemsSource="{Binding DisplayArchivedItems}"
                              BorderThickness="0"
@@ -1806,7 +1817,7 @@
         </Border>
 
         <!-- Undo Bar (shows when undo is available) -->
-        <Border Grid.Row="4"
+        <Border x:Name="UndoBar" Grid.Row="4"
                 Background="{DynamicResource AccentBrush}"
                 Padding="12,8"
                 Visibility="{Binding UndoAvailable, Converter={StaticResource BoolToVis}}">
