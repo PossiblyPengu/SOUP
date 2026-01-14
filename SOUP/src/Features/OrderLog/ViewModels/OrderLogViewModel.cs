@@ -48,10 +48,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> ArchivedItems { get; } = new();
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
+
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
     [ObservableProperty]
     private int _archivedResultsCount = 0;
     public ObservableCollection<OrderItemGroup> NotesGroups { get; } = new();
+    public ObservableCollection<OrderItemStatusSection> StatusSections { get; } = new();
 
     /// <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
     private IEnumerable<OrderItem> AllItems => Items.Concat(ArchivedItems);
@@ -1314,6 +1316,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         bool updateNotesGroups = true)
     {
         display.Clear();
+        StatusSections.Clear();
 
         // Collect renderable items in source order
         var srcList = source.Where(i => i.IsRenderable).ToList();
@@ -1343,41 +1346,31 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var noteGroups = groups.Where(g => g.Members.All(m => m.IsStickyNote)).ToList();
         var orderGroups = groups.Except(noteGroups).ToList();
 
-        if (SortByStatus)
+        // Group by status
+        foreach (OrderItem.OrderStatus status in Enum.GetValues(typeof(OrderItem.OrderStatus)))
         {
-            // Map statuses to explicit priorities so order is NotReady, OnDeck, InProgress
-            static int StatusPriority(OrderItem.OrderStatus s) => s switch
+            var section = new OrderItemStatusSection(status);
+            var statusGroups = orderGroups.Where(g => g.Members.Any(m => m.Status == status)).ToList();
+            foreach (var g in statusGroups)
             {
-                OrderItem.OrderStatus.NotReady => 0,
-                OrderItem.OrderStatus.OnDeck => 1,
-                OrderItem.OrderStatus.InProgress => 2,
-                OrderItem.OrderStatus.Done => 3,
-                _ => 4
-            };
-
-            // Determine a sort key for each group: use the group's primary status priority (min of members)
-            Func<OrderItemGroup, int> keySelector = g => g.Members.Min(m => StatusPriority(m.Status));
-            orderGroups = SortStatusDescending
-                ? orderGroups.OrderByDescending(keySelector).ToList()
-                : orderGroups.OrderBy(keySelector).ToList();
+                // Sort members by CreatedAt (oldest first)
+                var ordered = g.Members.OrderBy(m => m.CreatedAt).ToList();
+                g.Members.Clear();
+                foreach (var m in ordered) g.Members.Add(m);
+                section.Groups.Add(g);
+            }
+            if (section.Groups.Count > 0)
+                StatusSections.Add(section);
         }
 
-        // Clear notes collection then within each order group, sort members by CreatedAt (oldest first)
-        if (updateNotesGroups)
-        {
-            NotesGroups.Clear();
-        }
+        // Fallback: keep flat DisplayItems for legacy consumers
         foreach (var g in orderGroups)
-        {
-            var ordered = g.Members.OrderBy(m => m.CreatedAt).ToList();
-            g.Members.Clear();
-            foreach (var m in ordered) g.Members.Add(m);
             display.Add(g);
-        }
 
         // Populate separate NotesGroups (preserve original order) when requested
         if (updateNotesGroups)
         {
+            NotesGroups.Clear();
             foreach (var g in noteGroups)
             {
                 NotesGroups.Add(g);

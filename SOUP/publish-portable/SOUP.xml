@@ -1889,6 +1889,11 @@
             Eliminates magic string color codes throughout the codebase.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Converters.HighlightTextMultiConverter">
+            <summary>
+            MultiValueConverter that takes [text, query] and returns a TextBlock with matched runs highlighted.
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Converters.LinkedGroupToVisibilityConverter">
             <summary>
             Returns Visible when a Guid? is non-null and not Guid.Empty, otherwise Collapsed.
@@ -2148,6 +2153,12 @@
             Gets or creates the singleton instance of the repository.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.ViewModels.OrderItemStatusSection">
+            <inheritdoc/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderItemStatusSection.IsExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderItemStatusSection._isExpanded"/>
+        </member>
         <member name="T:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel">
             <inheritdoc/>
             <inheritdoc/>
@@ -2250,7 +2261,7 @@
             Refresh the archived display items from the ArchivedItems collection.
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshDisplayCollection(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup})">
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshDisplayCollection(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.Boolean)">
             <summary>
             Shared helper to build grouped display items from a source collection.
             Groups linked items together and optionally sorts groups by status.
@@ -2276,6 +2287,9 @@
             <summary>
             Removes an item from the ArchivedItems collection with O(1) membership tracking.
             </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedResultsCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._archivedResultsCount"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._showArchived"/>
@@ -2331,6 +2345,18 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortStatusDescending"/>
         </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSearchQuery">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._archivedSearchQuery"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSortByDate">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._archivedSortByDate"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSortDescending">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._archivedSortDescending"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesIsExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notesIsExpanded"/>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowArchivedChanged(System.Boolean)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -2380,6 +2406,26 @@
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnArchivedSearchQueryChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSearchQuery"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSearchQuery"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnArchivedSortByDateChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSortByDate"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSortByDate"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnArchivedSortDescendingChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSortDescending"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchivedSortDescending"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotesIsExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesIsExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesIsExpanded"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.loadCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand"/>.</summary>
@@ -6979,6 +7025,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsArchived" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ArchivedResultsCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ArchivedResultsCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowArchived" generated properties.</summary>
         </member>
@@ -7032,6 +7084,18 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortStatusDescending">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ArchivedSearchQuery">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ArchivedSearchQuery" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ArchivedSortByDate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ArchivedSortByDate" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ArchivedSortDescending">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ArchivedSortDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotesIsExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotesIsExpanded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVisible" generated properties.</summary>
@@ -7576,6 +7640,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsArchived" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ArchivedResultsCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ArchivedResultsCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowArchived" generated properties.</summary>
         </member>
@@ -7629,6 +7699,18 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortStatusDescending">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ArchivedSearchQuery">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ArchivedSearchQuery" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ArchivedSortByDate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ArchivedSortByDate" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ArchivedSortDescending">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ArchivedSortDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotesIsExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotesIsExpanded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVisible" generated properties.</summary>

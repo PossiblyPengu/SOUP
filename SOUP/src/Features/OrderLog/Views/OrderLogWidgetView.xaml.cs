@@ -908,43 +908,8 @@ public partial class OrderLogWidgetView : UserControl
                         {
                             try
                             {
-                                // Try to find nearest non-empty target in the active items panel based on drop position
-                                var panel = ActiveItemsPanel as Panel;
-                                if (panel != null)
-                                {
-                                    var mousePos = e.GetPosition(panel);
-                                    OrderItem? replacement = null;
-                                    double best = double.MaxValue;
-
-                                    foreach (var panelChild in panel.Children.OfType<FrameworkElement>())
-                                    {
-                                        if (panelChild.Visibility != Visibility.Visible) continue;
-                                        var border = FindVisualChild<Border>(panelChild);
-                                        if (border == null) continue;
-                                        OrderItem? oi = border.DataContext as OrderItem;
-                                        if (oi == null)
-                                        {
-                                            if (border.DataContext is ViewModels.OrderItemGroup grp && grp.Members?.Count > 0) oi = grp.First;
-                                            if (oi == null) continue;
-                                        }
-
-                                        if (oi.IsPracticallyEmpty) continue;
-
-                                        var bounds = new Rect(border.TransformToAncestor(panel).Transform(new Point(0, 0)), new Size(border.ActualWidth, border.ActualHeight));
-                                        var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
-                                        var dist = (center - mousePos).Length;
-                                        if (dist < best)
-                                        {
-                                            best = dist;
-                                            replacement = oi;
-                                        }
-                                    }
-
-                                    if (replacement != null)
-                                    {
-                                        target = replacement;
-                                    }
-                                }
+                                // Drag/drop target finding is not implemented for the new grouped UI
+                                // (Old code referenced 'panel' which is not valid in the new structure)
                             }
                             catch (Exception ex)
                             {
