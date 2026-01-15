@@ -277,10 +277,10 @@ public partial class OrderItem : ObservableObject
 
     /// <summary>
     /// Whether this item should be rendered as an order card in the UI.
-    /// Sticky notes are always renderable; orders with empty vendor name are considered invalid.
+    /// Items with any content are renderable. Only truly empty items are hidden.
     /// </summary>
     [JsonIgnore]
-    public bool IsRenderable => NoteType == NoteType.StickyNote || !string.IsNullOrWhiteSpace(VendorName) || IsPlaceholder;
+    public bool IsRenderable => !IsPracticallyEmpty || IsPlaceholder;
 
     /// <summary>
     /// Transient flag used to indicate this order is a UI placeholder (should render, but not be treated as a filled order).

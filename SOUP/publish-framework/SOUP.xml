@@ -1776,14 +1776,6 @@
             Clears all transforms and removes them from elements.
             </summary>
         </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.GridDragBehavior">
-            <summary>
-            New grid-aware drag behavior. Uses card geometry (bounds) and a slot map
-            computed from measured card sizes to determine the nearest empty slot and
-            animates other cards to make room. Intended as a drop-in replacement
-            for grid/WrapPanel card reordering.
-            </summary>
-        </member>
         <member name="T:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior">
              <summary>
              Fluid drag-and-drop behavior for OrderLog cards with smooth animations.
@@ -1856,31 +1848,6 @@
         <member name="M:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.IsClickOnDragHandle(System.Windows.DependencyObject)">
             <summary>
             Checks if the click originated from a drag handle element (Tag="DragHandle").
-            </summary>
-        </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.SimpleReorderBehavior">
-            <summary>
-            Simple drag-to-reorder behavior that:
-            1. Uses an adorner for the drag preview (no transforms on actual items)
-            2. Shows an insertion indicator line for reorder mode
-            3. Supports Ctrl+drag to link orders together
-            4. Only modifies the collection on drop (no stuttering)
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.SimpleReorderBehavior.IsEditableControl(System.Windows.DependencyObject)">
-            <summary>
-            Checks if the element or any of its parents is an editable control (TextBox, RichTextBox, ComboBox)
-            Also checks for FlowDocument elements (Run, Paragraph, etc.) which are inside RichTextBox
-            </summary>
-        </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.DragAdorner">
-            <summary>
-            Adorner that displays a semi-transparent copy of the dragged item.
-            </summary>
-        </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.InsertionIndicatorAdorner">
-            <summary>
-            Adorner that displays a horizontal line indicating where the item will be inserted.
             </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.Constants.OrderLogColors">
@@ -2050,7 +2017,7 @@
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.IsRenderable">
             <summary>
             Whether this item should be rendered as an order card in the UI.
-            Sticky notes are always renderable; orders with empty vendor name are considered invalid.
+            Items with any content are renderable. Only truly empty items are hidden.
             </summary>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.IsPlaceholder">
@@ -2245,6 +2212,11 @@
             Call this after modifying Items externally (e.g., linking orders).
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshStatusGroups">
+            <summary>
+            Refresh the status-grouped collections for collapsible status view.
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshArchivedDisplayItems">
             <summary>
             Refresh the archived display items from the ArchivedItems collection.
@@ -2331,6 +2303,15 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortStatusDescending"/>
         </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notReadyGroupExpanded"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._onDeckGroupExpanded"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._inProgressGroupExpanded"/>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowArchivedChanged(System.Boolean)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -2380,6 +2361,21 @@
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotReadyGroupExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnOnDeckGroupExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnInProgressGroupExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.loadCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand"/>.</summary>
@@ -7033,6 +7029,15 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortStatusDescending">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotReadyGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotReadyGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.OnDeckGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "OnDeckGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVisible" generated properties.</summary>
         </member>
@@ -7629,6 +7634,15 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortStatusDescending">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotReadyGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotReadyGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.OnDeckGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "OnDeckGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVisible" generated properties.</summary>

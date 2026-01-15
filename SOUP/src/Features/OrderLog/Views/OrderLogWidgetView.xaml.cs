@@ -30,7 +30,6 @@ public partial class OrderLogWidgetView : UserControl
     private bool _isMarqueeRunning = false;
     private Random _random = new();
     private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
-    private Behaviors.GridDragBehavior? _gridDrag;
 
     public OrderLogWidgetView()
     {
@@ -314,20 +313,14 @@ public partial class OrderLogWidgetView : UserControl
                 return;
             }
 
-            // Find attached behaviors (support legacy fluid drag and new GridDragBehavior)
+            // Find attached fluid drag behavior
             var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
             _fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
-            _gridDrag = behaviors.OfType<Behaviors.GridDragBehavior>().FirstOrDefault();
 
             if (_fluidDragBehavior != null)
             {
                 _fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
                 _fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
-            }
-
-            if (_gridDrag != null)
-            {
-                _gridDrag.ReorderComplete += OnFluidDragReorderComplete;
             }
         };
     }
@@ -429,11 +422,6 @@ public partial class OrderLogWidgetView : UserControl
         {
             _fluidDragBehavior.ReorderComplete -= OnFluidDragReorderComplete;
             _fluidDragBehavior.LinkComplete -= OnFluidDragLinkComplete;
-        }
-
-        if (_gridDrag != null)
-        {
-            _gridDrag.ReorderComplete -= OnFluidDragReorderComplete;
         }
 
         // Unsubscribe from theme changes
@@ -1167,17 +1155,8 @@ public partial class OrderLogWidgetView : UserControl
                 previousStatus = oldStatus;
             }
 
-            // "Done" means archive immediately
-            if (newStatus == OrderItem.OrderStatus.Done)
-            {
-                // Store previous status and archive
-                order.PreviousStatus = previousStatus;
-                _ = vm.ArchiveOrderAsync(order);
-            }
-            else
-            {
-                _ = vm.SetStatusAsync(order, newStatus, previousStatus);
-            }
+            // SetStatusAsync handles all statuses including Done (archives linked groups together)
+            _ = vm.SetStatusAsync(order, newStatus, previousStatus);
         }
     }
 
@@ -1198,22 +1177,12 @@ public partial class OrderLogWidgetView : UserControl
             previousStatus = oldStatus;
         }
 
-        // "Done" means archive immediately
-        if (newStatus == OrderItem.OrderStatus.Done)
+        // SetStatusAsync handles linked groups automatically - just call it once
+        // It will apply the status to ALL members of the group
+        var representative = group.First;
+        if (representative != null)
         {
-            foreach (var member in group.Members.ToList())
-            {
-                member.PreviousStatus = previousStatus;
-                _ = vm.ArchiveOrderAsync(member);
-            }
-        }
-        else
-        {
-            // Apply status to ALL members in the group
-            foreach (var member in group.Members)
-            {
-                _ = vm.SetStatusAsync(member, newStatus, previousStatus);
-            }
+            _ = vm.SetStatusAsync(representative, newStatus, previousStatus);
         }
     }
 
@@ -1426,11 +1395,12 @@ public partial class OrderLogWidgetView : UserControl
             if (fe.DataContext is not ViewModels.OrderItemGroup group) return;
             if (DataContext is not OrderLogViewModel vm) return;
 
-            foreach (var member in group.Members.ToList())
+            // SetStatusAsync handles linked groups - just call once with representative
+            var representative = group.First;
+            if (representative != null)
             {
-                // Restore to previous status if available, otherwise default to InProgress
-                var restoreStatus = member.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
-                await vm.SetStatusAsync(member, restoreStatus);
+                var restoreStatus = representative.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+                await vm.SetStatusAsync(representative, restoreStatus);
             }
             vm.StatusMessage = "Restored group";
         }
@@ -1451,11 +1421,12 @@ public partial class OrderLogWidgetView : UserControl
             if (target.DataContext is not ViewModels.OrderItemGroup group) return;
             if (DataContext is not OrderLogViewModel vm) return;
 
-            foreach (var member in group.Members.ToList())
+            // SetStatusAsync handles linked groups - just call once with representative
+            var representative = group.First;
+            if (representative != null)
             {
-                // Restore to previous status if available, otherwise default to InProgress
-                var restoreStatus = member.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
-                await vm.SetStatusAsync(member, restoreStatus);
+                var restoreStatus = representative.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
+                await vm.SetStatusAsync(representative, restoreStatus);
             }
             vm.StatusMessage = "Restored group";
         }

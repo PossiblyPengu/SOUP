@@ -51,6 +51,10 @@ public partial class OrderLogWidgetWindow : Window
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
     // Use pointer-size safe wrappers in NativeMethods
 
     private const int GWL_EXSTYLE = -20;
@@ -374,8 +378,9 @@ public partial class OrderLogWidgetWindow : Window
                 {
                     try
                     {
-                        // If the process has a main window that's visible, the main app is running
-                        if (process.MainWindowHandle != IntPtr.Zero)
+                        // Check if the process has a main window that's actually visible (not just hidden to tray)
+                        var hwnd = process.MainWindowHandle;
+                        if (hwnd != IntPtr.Zero && IsWindowVisible(hwnd))
                         {
                             mainAppVisible = true;
                             break;

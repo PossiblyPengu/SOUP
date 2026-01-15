@@ -14,7 +14,16 @@
       "Bash(find:*)",
       "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-8.0.404-win-x64\\\\dotnet.exe\" build \"e:\\\\CODE\\\\Cshp\\\\SOUP\\\\src\\\\SOUP.csproj\")",
       "Bash(dotnet build:*)",
-      "Bash(del \"d:\\\\CODE\\\\Cshp\\\\run.bat\")"
+      "Bash(del \"d:\\\\CODE\\\\Cshp\\\\run.bat\")",
+      "Bash(wc:*)",
+      "Bash(cmd /c \"dir /s /b %LOCALAPPDATA%\\\\SOUP\\\\*.db 2>nul\")",
+      "Bash(cmd /c \"dir /s /b %APPDATA%\\\\SOUP\\\\*.db 2>nul\")",
+      "Bash(cmd /c \"dir /s %LOCALAPPDATA%\\\\SOUP 2>nul\")",
+      "Bash(cmd /c \"dir /s %APPDATA%\\\\SOUP 2>nul\")",
+      "Bash(cmd /c \"dir /s /b %APPDATA%\\\\SOUP 2>nul\")",
+      "Bash(cmd /c \"dir /s /b E:\\\\CODE\\\\Cshp\\\\SOUP\\\\src\\\\bin\\\\*.db 2>nul\")",
+      "Bash(cmd /c \"echo %APPDATA% && dir %APPDATA%\\\\SOUP /s 2>nul || echo [Folder not found]\")",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

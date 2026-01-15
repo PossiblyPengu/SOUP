@@ -989,7 +989,10 @@
                 <Grid>
                     <!-- Active Notes Panel -->
                     <StackPanel x:Name="ActiveItemsPanel">
+
+                    <!-- Flat List View (visible when SortByStatus is False) -->
                     <ListBox x:Name="ActiveItemsListBox" ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent"
+                             Visibility="{Binding SortByStatus, Converter={StaticResource InverseBoolToVis}}"
                              VirtualizingStackPanel.IsVirtualizing="False"
                              VirtualizingStackPanel.VirtualizationMode="Standard"
                              ScrollViewer.CanContentScroll="False">
@@ -1013,7 +1016,7 @@
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Vertical" Background="Transparent">
                                     <i:Interaction.Behaviors>
-                                        <behaviors:SimpleReorderBehavior />
+                                        <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
                                     </i:Interaction.Behaviors>
                                 </StackPanel>
                             </ItemsPanelTemplate>
@@ -1410,19 +1413,236 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+
+                    <!-- Grouped Status View (visible when SortByStatus is True) -->
+                    <StackPanel x:Name="GroupedStatusPanel" Visibility="{Binding SortByStatus, Converter={StaticResource BoolToVis}}">
+
+                        <!-- In Progress Section -->
+                        <Expander IsExpanded="{Binding InProgressGroupExpanded, Mode=TwoWay}" Margin="0,0,0,8">
+                            <Expander.Style>
+                                <Style TargetType="Expander">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Expander">
+                                                <Border Background="{TemplateBinding Background}">
+                                                    <DockPanel>
+                                                        <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{StaticResource WidgetStatusInProgressBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <Border Width="4" CornerRadius="2" Background="{StaticResource WidgetStatusInProgressBrush}" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="1" Text="In Progress" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource WidgetStatusInProgressBrush}" VerticalAlignment="Center"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.InProgressItems.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
+                                                                                <TextBlock.RenderTransform>
+                                                                                    <RotateTransform x:Name="ArrowRotate" Angle="0" CenterX="5" CenterY="5"/>
+                                                                                </TextBlock.RenderTransform>
+                                                                            </TextBlock>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsChecked" Value="False">
+                                                                            <Setter TargetName="Arrow" Property="Text" Value="▶"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
+                                                    </DockPanel>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsExpanded" Value="True">
+                                                        <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Expander.Style>
+                            <ItemsControl ItemsSource="{Binding InProgressItems}" Margin="0,8,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupMergedTemplate}" Margin="0,0,0,8"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Expander>
+
+                        <!-- On Deck Section -->
+                        <Expander IsExpanded="{Binding OnDeckGroupExpanded, Mode=TwoWay}" Margin="0,0,0,8">
+                            <Expander.Style>
+                                <Style TargetType="Expander">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Expander">
+                                                <Border Background="{TemplateBinding Background}">
+                                                    <DockPanel>
+                                                        <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{StaticResource WidgetStatusOnDeckBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <Border Width="4" CornerRadius="2" Background="{StaticResource WidgetStatusOnDeckBrush}" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="1" Text="On Deck" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource WidgetStatusOnDeckBrush}" VerticalAlignment="Center"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.OnDeckItems.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
+                                                                                <TextBlock.RenderTransform>
+                                                                                    <RotateTransform x:Name="ArrowRotate" Angle="0" CenterX="5" CenterY="5"/>
+                                                                                </TextBlock.RenderTransform>
+                                                                            </TextBlock>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsChecked" Value="False">
+                                                                            <Setter TargetName="Arrow" Property="Text" Value="▶"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
+                                                    </DockPanel>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsExpanded" Value="True">
+                                                        <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Expander.Style>
+                            <ItemsControl ItemsSource="{Binding OnDeckItems}" Margin="0,8,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupMergedTemplate}" Margin="0,0,0,8"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Expander>
+
+                        <!-- Not Ready Section -->
+                        <Expander IsExpanded="{Binding NotReadyGroupExpanded, Mode=TwoWay}" Margin="0,0,0,8">
+                            <Expander.Style>
+                                <Style TargetType="Expander">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Expander">
+                                                <Border Background="{TemplateBinding Background}">
+                                                    <DockPanel>
+                                                        <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{StaticResource WidgetStatusNotReadyBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <Border Width="4" CornerRadius="2" Background="{StaticResource WidgetStatusNotReadyBrush}" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="1" Text="Not Ready" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource WidgetStatusNotReadyBrush}" VerticalAlignment="Center"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.NotReadyItems.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
+                                                                                <TextBlock.RenderTransform>
+                                                                                    <RotateTransform x:Name="ArrowRotate" Angle="0" CenterX="5" CenterY="5"/>
+                                                                                </TextBlock.RenderTransform>
+                                                                            </TextBlock>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsChecked" Value="False">
+                                                                            <Setter TargetName="Arrow" Property="Text" Value="▶"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
+                                                    </DockPanel>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsExpanded" Value="True">
+                                                        <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Expander.Style>
+                            <ItemsControl ItemsSource="{Binding NotReadyItems}" Margin="0,8,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupMergedTemplate}" Margin="0,0,0,8"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Expander>
+
+                        <!-- Sticky Notes (always shown at bottom in grouped view) -->
+                        <ItemsControl ItemsSource="{Binding DisplayItems}" Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.Style>
+                                            <Style TargetType="ContentControl">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding First.IsStickyNote}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ContentControl.Style>
+                                    </ContentControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                 </StackPanel>
-            
+
                 <!-- Archived Notes Panel (separate tab) -->
                 <StackPanel x:Name="ArchivedItemsPanel" Visibility="Collapsed">
                     <ListBox x:Name="ArchivedListBox"
                              ItemsSource="{Binding DisplayArchivedItems}"
                              BorderThickness="0"
                              Background="Transparent"
-                             VirtualizingStackPanel.IsVirtualizing="False"
-                             VirtualizingStackPanel.VirtualizationMode="Standard"
-                             ScrollViewer.CanContentScroll="False"
+                             VirtualizingStackPanel.IsVirtualizing="True"
+                             VirtualizingStackPanel.VirtualizationMode="Recycling"
+                             ScrollViewer.CanContentScroll="True"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                             ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -1440,38 +1660,81 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <ContentControl Content="{Binding}">
-                                    <ContentControl.Style>
-                                        <Style TargetType="ContentControl">
-                                            <!-- Default: single order item -->
-                                            <Setter Property="ContentTemplate">
-                                                <Setter.Value>
-                                                    <DataTemplate>
-                                                        <ContentControl Content="{Binding First}">
-                                                            <ContentControl.Style>
-                                                                <Style TargetType="ContentControl">
-                                                                    <!-- Default: Order template -->
-                                                                    <Setter Property="ContentTemplate" Value="{StaticResource ArchivedOrderItemTemplate}"/>
-                                                                    <Style.Triggers>
-                                                                        <!-- Switch to Note template for sticky notes -->
-                                                                        <DataTrigger Binding="{Binding NoteType}" Value="{x:Static models:NoteType.StickyNote}">
-                                                                            <Setter Property="ContentTemplate" Value="{StaticResource ArchivedStickyNoteTemplate}"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </ContentControl.Style>
-                                                        </ContentControl>
-                                                    </DataTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsGroup}" Value="True">
-                                                    <Setter Property="ContentTemplate" Value="{StaticResource ArchivedOrderItemGroupMergedTemplate}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ContentControl.Style>
-                                </ContentControl>
+                                <!-- Archived item card -->
+                                <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Restore" Click="QuickArchive_Click" DataContext="{Binding First}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" DataContext="{Binding First}" Foreground="{DynamicResource DangerBrush}"/>
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="8"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Color Bar (muted for archived) -->
+                                        <Border Grid.Row="0" CornerRadius="8,8,0,0" Height="8"
+                                                Background="{DynamicResource TextTertiaryBrush}"/>
+
+                                        <!-- Header -->
+                                        <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding First.VendorName, FallbackValue='Archived'}"
+                                                           FontSize="{DynamicResource CardFontSize}"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <Button Grid.Column="1" Click="QuickArchive_Click" DataContext="{Binding First}"
+                                                        ToolTip="Restore" Cursor="Hand">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                            <Setter Property="Padding" Value="8,4"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                            <TextBlock Text="↩ Restore" FontSize="{DynamicResource CardFontSize}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Content -->
+                                        <StackPanel Grid.Row="2" Margin="16,14">
+                                            <TextBlock Text="{Binding First.TransferNumbers}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       FontSize="{DynamicResource CardFontSize}"
+                                                       Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding First.WhsShipmentNumbers}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       FontSize="{DynamicResource CardFontSize}"
+                                                       Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding First.TimeInProgressDisplay}"
+                                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                                       FontSize="{DynamicResource CardFontSize}"
+                                                       FontFamily="Consolas"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

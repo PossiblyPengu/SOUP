@@ -11,4 +11,9 @@ public class OrderLogWidgetSettings
     public bool NotesOnlyMode { get; set; } = false;
     public bool SortByStatus { get; set; } = false;
     public bool SortStatusDescending { get; set; } = false;
+
+    // Status group expand/collapse state
+    public bool NotReadyGroupExpanded { get; set; } = true;
+    public bool OnDeckGroupExpanded { get; set; } = true;
+    public bool InProgressGroupExpanded { get; set; } = true;
 }

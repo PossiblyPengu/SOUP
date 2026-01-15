@@ -165,6 +165,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _sortStatusDescending = false;
 
+    // Status group expand/collapse state
+    [ObservableProperty]
+    private bool _notReadyGroupExpanded = true;
+
+    [ObservableProperty]
+    private bool _onDeckGroupExpanded = true;
+
+    [ObservableProperty]
+    private bool _inProgressGroupExpanded = true;
+
+    // Status-grouped items for collapsible view
+    public ObservableCollection<OrderItemGroup> NotReadyItems { get; } = new();
+    public ObservableCollection<OrderItemGroup> OnDeckItems { get; } = new();
+    public ObservableCollection<OrderItemGroup> InProgressItems { get; } = new();
+
     partial void OnCardFontSizeChanged(double value)
     {
         try
@@ -230,6 +245,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         SaveWidgetSettings();
     }
 
+    partial void OnNotReadyGroupExpandedChanged(bool value)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnOnDeckGroupExpandedChanged(bool value)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnInProgressGroupExpandedChanged(bool value)
+    {
+        SaveWidgetSettings();
+    }
+
     private void SaveWidgetSettings()
     {
         var settings = new OrderLogWidgetSettings
@@ -242,7 +272,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             DefaultNoteColor = DefaultNoteColor,
             NotesOnlyMode = NotesOnlyMode,
             SortByStatus = SortByStatus,
-            SortStatusDescending = SortStatusDescending
+            SortStatusDescending = SortStatusDescending,
+            NotReadyGroupExpanded = NotReadyGroupExpanded,
+            OnDeckGroupExpanded = OnDeckGroupExpanded,
+            InProgressGroupExpanded = InProgressGroupExpanded
         };
         _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
@@ -272,6 +305,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             // Sorting preferences
             SortByStatus = s.SortByStatus;
             SortStatusDescending = s.SortStatusDescending;
+            // Status group expand/collapse state
+            NotReadyGroupExpanded = s.NotReadyGroupExpanded;
+            OnDeckGroupExpanded = s.OnDeckGroupExpanded;
+            InProgressGroupExpanded = s.InProgressGroupExpanded;
             if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)
@@ -1198,7 +1235,57 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// Refresh the display items from the Items collection.
     /// Call this after modifying Items externally (e.g., linking orders).
     /// </summary>
-    public void RefreshDisplayItems() => RefreshDisplayCollection(Items, DisplayItems);
+    public void RefreshDisplayItems()
+    {
+        RefreshDisplayCollection(Items, DisplayItems);
+        RefreshStatusGroups();
+    }
+
+    /// <summary>
+    /// Refresh the status-grouped collections for collapsible status view.
+    /// </summary>
+    private void RefreshStatusGroups()
+    {
+        NotReadyItems.Clear();
+        OnDeckItems.Clear();
+        InProgressItems.Clear();
+
+        var srcList = Items.Where(i => i.IsRenderable && !i.IsStickyNote).ToList();
+        var seenGroupIds = new HashSet<Guid?>();
+
+        foreach (var item in srcList)
+        {
+            OrderItemGroup group;
+            if (item.LinkedGroupId == null)
+            {
+                group = new OrderItemGroup(new[] { item });
+            }
+            else
+            {
+                var gid = item.LinkedGroupId;
+                if (seenGroupIds.Contains(gid)) continue;
+                seenGroupIds.Add(gid);
+                var members = srcList.Where(i => i.LinkedGroupId == gid).ToList();
+                if (members.Count == 0) continue;
+                group = new OrderItemGroup(members);
+            }
+
+            // Categorize by status (use first member's status for groups)
+            var status = group.First?.Status ?? OrderItem.OrderStatus.NotReady;
+            switch (status)
+            {
+                case OrderItem.OrderStatus.NotReady:
+                    NotReadyItems.Add(group);
+                    break;
+                case OrderItem.OrderStatus.OnDeck:
+                    OnDeckItems.Add(group);
+                    break;
+                case OrderItem.OrderStatus.InProgress:
+                    InProgressItems.Add(group);
+                    break;
+            }
+        }
+    }
 
     /// <summary>
     /// Refresh the archived display items from the ArchivedItems collection.
