@@ -50,6 +50,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
 
+    // Grouping helper service (extracted to simplify VM)
+    private readonly OrderGroupingService _groupingService;
+
+    [ObservableProperty]
+    private int _displayItemsCount;
+
+    [ObservableProperty]
+    private int _displayArchivedItemsCount;
+
+    [ObservableProperty]
+    private int _displayMembersCount;
+
     /// <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
     private IEnumerable<OrderItem> AllItems => Items.Concat(ArchivedItems);
 
@@ -140,6 +152,15 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
+
+        // grouping helper service (extracted to simplify VM)
+        _groupingService = new OrderGroupingService();
+
+        // Ensure counts update when display collections change
+        DisplayItems.CollectionChanged += (s, e) => UpdateDisplayCounts();
+        DisplayArchivedItems.CollectionChanged += (s, e) => UpdateDisplayCounts();
+
+        UpdateDisplayCounts();
 
         _logger?.LogInformation("OrderLogViewModel initialized");
     }
@@ -1246,45 +1267,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RefreshStatusGroups()
     {
-        NotReadyItems.Clear();
-        OnDeckItems.Clear();
-        InProgressItems.Clear();
-
-        var srcList = Items.Where(i => i.IsRenderable && !i.IsStickyNote).ToList();
-        var seenGroupIds = new HashSet<Guid?>();
-
-        foreach (var item in srcList)
-        {
-            OrderItemGroup group;
-            if (item.LinkedGroupId == null)
-            {
-                group = new OrderItemGroup(new[] { item });
-            }
-            else
-            {
-                var gid = item.LinkedGroupId;
-                if (seenGroupIds.Contains(gid)) continue;
-                seenGroupIds.Add(gid);
-                var members = srcList.Where(i => i.LinkedGroupId == gid).ToList();
-                if (members.Count == 0) continue;
-                group = new OrderItemGroup(members);
-            }
-
-            // Categorize by status (use first member's status for groups)
-            var status = group.First?.Status ?? OrderItem.OrderStatus.NotReady;
-            switch (status)
-            {
-                case OrderItem.OrderStatus.NotReady:
-                    NotReadyItems.Add(group);
-                    break;
-                case OrderItem.OrderStatus.OnDeck:
-                    OnDeckItems.Add(group);
-                    break;
-                case OrderItem.OrderStatus.InProgress:
-                    InProgressItems.Add(group);
-                    break;
-            }
-        }
+        // Delegate status-group population to the grouping service
+        _groupingService.PopulateStatusGroups(Items, NotReadyItems, OnDeckItems, InProgressItems);
     }
 
     /// <summary>
@@ -1301,69 +1285,23 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         ObservableCollection<OrderItem> source,
         ObservableCollection<OrderItemGroup> display)
     {
+        // Use grouping service to build ordered display collection and apply it
+        var built = _groupingService.BuildDisplayCollection(source, SortByStatus, SortStatusDescending);
         display.Clear();
-
-        // Collect renderable items in source order
-        var srcList = source.Where(i => i.IsRenderable).ToList();
-
-        // Build groups (preserve member order as in srcList)
-        var groups = new List<OrderItemGroup>();
-        var seenGroupIds = new HashSet<Guid?>();
-
-        foreach (var item in srcList)
-        {
-            if (item.LinkedGroupId == null)
-            {
-                groups.Add(new OrderItemGroup(new[] { item }));
-            }
-            else
-            {
-                var gid = item.LinkedGroupId;
-                if (seenGroupIds.Contains(gid)) continue;
-                seenGroupIds.Add(gid);
-                var members = srcList.Where(i => i.LinkedGroupId == gid).ToList();
-                if (members.Count > 0)
-                    groups.Add(new OrderItemGroup(members));
-            }
-        }
-
-        // Split out pure-note groups (do not include in sorting)
-        var noteGroups = groups.Where(g => g.Members.All(m => m.IsStickyNote)).ToList();
-        var orderGroups = groups.Except(noteGroups).ToList();
-
-        if (SortByStatus)
-        {
-            // Map statuses to explicit priorities so order is NotReady, OnDeck, InProgress
-            static int StatusPriority(OrderItem.OrderStatus s) => s switch
-            {
-                OrderItem.OrderStatus.NotReady => 0,
-                OrderItem.OrderStatus.OnDeck => 1,
-                OrderItem.OrderStatus.InProgress => 2,
-                OrderItem.OrderStatus.Done => 3,
-                _ => 4
-            };
-
-            // Determine a sort key for each group: use the group's primary status priority (min of members)
-            Func<OrderItemGroup, int> keySelector = g => g.Members.Min(m => StatusPriority(m.Status));
-            orderGroups = SortStatusDescending
-                ? orderGroups.OrderByDescending(keySelector).ToList()
-                : orderGroups.OrderBy(keySelector).ToList();
-        }
-
-        // Within each order group, sort members by CreatedAt (oldest first)
-        foreach (var g in orderGroups)
-        {
-            var ordered = g.Members.OrderBy(m => m.CreatedAt).ToList();
-            g.Members.Clear();
-            foreach (var m in ordered) g.Members.Add(m);
-            display.Add(g);
-        }
-
-        // Append note groups preserving their relative order and member order
-        foreach (var g in noteGroups)
+        foreach (var g in built)
         {
             display.Add(g);
         }
+
+        UpdateDisplayCounts();
+    }
+
+    private void UpdateDisplayCounts()
+    {
+        // DisplayItems/DisplayArchivedItems are groups; DisplayMembersCount counts total members
+        DisplayItemsCount = DisplayItems.Sum(g => g.Members.Count);
+        DisplayArchivedItemsCount = DisplayArchivedItems.Sum(g => g.Members.Count);
+        DisplayMembersCount = Items.Count + ArchivedItems.Count;
     }
 
     public bool GetGroupState(string? name, bool defaultValue = true)
