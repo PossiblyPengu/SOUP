@@ -6,7 +6,10 @@
 #   .\scripts\release.ps1 -Patch           # Bump patch version (4.6.2 -> 4.6.3)
 #   .\scripts\release.ps1 -Minor           # Bump minor version (4.6.2 -> 4.7.0)
 #   .\scripts\release.ps1 -Major           # Bump major version (4.6.2 -> 5.0.0)
-#   .\scripts\release.ps1 -Version 5.0.0   # Set specific version
+#   .\scripts\release.ps1 -Bump patch      # Equivalent to -Patch
+#   .\scripts\release.ps1 -Bump minor      # Equivalent to -Minor
+#   .\scripts\release.ps1 -Bump major      # Equivalent to -Major
+#   .\scripts\release.ps1 -Version 5.0.0   # Set specific version (also supports prerelease like 5.0.0-beta.1)
 #   .\scripts\release.ps1 -DryRun          # Preview without making changes
 #   .\scripts\release.ps1 -SkipGit         # Build only, don't commit/tag/push
 #   .\scripts\release.ps1 -Notes "note"    # Single-line release note
@@ -17,6 +20,7 @@ param(
     [switch]$Minor,
     [switch]$Major,
     [string]$Version,
+    [string]$Bump,
     [switch]$DryRun,
     [switch]$SkipGit,
     [string]$Notes
@@ -67,11 +71,28 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
     
     # Determine new version
     if ($Version) {
-        if ($Version -match '^\d+\.\d+\.\d+$') {
+        # Accept semver with optional prerelease (e.g. 1.2.3 or 1.2.3-beta.1)
+        if ($Version -match '^\d+\.\d+\.\d+(-[A-Za-z0-9\.-]+)?$') {
             $newVersion = $Version
         } else {
-            Write-Host "ERROR: Invalid version format. Use X.Y.Z" -ForegroundColor Red
+            Write-Host "ERROR: Invalid version format. Use X.Y.Z or X.Y.Z-prerelease" -ForegroundColor Red
             exit 1
+        }
+    }
+    elseif ($Bump) {
+        switch ($Bump.ToLower()) {
+            'major' { $newVersion = "$($majorNum + 1).0.0" }
+            'minor' { $newVersion = "$majorNum.$($minorNum + 1).0" }
+            'patch' { $newVersion = "$majorNum.$minorNum.$($patchNum + 1)" }
+            default {
+                # If Bump looks like a version, accept it (allow prerelease)
+                if ($Bump -match '^\d+\.\d+\.\d+(-[A-Za-z0-9\.-]+)?$') {
+                    $newVersion = $Bump
+                } else {
+                    Write-Host "ERROR: Invalid bump value. Use 'major','minor','patch', or a version string like X.Y.Z" -ForegroundColor Red
+                    exit 1
+                }
+            }
         }
     }
     elseif ($Major) {
@@ -90,6 +111,7 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
         Write-Host "  [1] Patch  ($majorNum.$minorNum.$($patchNum + 1))"
         Write-Host "  [2] Minor  ($majorNum.$($minorNum + 1).0)"
         Write-Host "  [3] Major  ($($majorNum + 1).0.0)"
+        Write-Host "  [4] Custom (enter full version like 5.0.0 or 5.0.0-beta.1)"
         Write-Host "  [Q] Quit"
         Write-Host ""
         
@@ -99,6 +121,10 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
             "1" { $newVersion = "$majorNum.$minorNum.$($patchNum + 1)" }
             "2" { $newVersion = "$majorNum.$($minorNum + 1).0" }
             "3" { $newVersion = "$($majorNum + 1).0.0" }
+            "4" {
+                $inputVer = Read-Host "Enter version (X.Y.Z or X.Y.Z-prerelease)"
+                if ($inputVer -match '^\d+\.\d+\.\d+(-[A-Za-z0-9\.-]+)?$') { $newVersion = $inputVer } else { Write-Host "Invalid version format" -ForegroundColor Red; exit 1 }
+            }
             "q" { exit 0 }
             "Q" { exit 0 }
             default { Write-Host "Invalid choice" -ForegroundColor Red; exit 1 }
@@ -189,7 +215,11 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
             if ($releaseNotes.Count -gt 0) {
                 # Build the changelog entry
                 $changelogLines = ($releaseNotes | ForEach-Object { "            `"$_`"" }) -join ",`n"
-                $releaseTitle = if ($Major) { "Major Release" } elseif ($Minor) { "Feature Update" } else { "Release Update" }
+                # Determine a friendly release title based on bump intent
+                $releaseTitle = 
+                    if ($Major -or ($Bump -and $Bump.ToLower() -eq 'major')) { "Major Release" }
+                    elseif ($Minor -or ($Bump -and $Bump.ToLower() -eq 'minor')) { "Feature Update" }
+                    else { "Release Update" }
                 
                 $newChangelogEntry = @"
         new("$newVersion", "$today", "$releaseTitle", new[]
