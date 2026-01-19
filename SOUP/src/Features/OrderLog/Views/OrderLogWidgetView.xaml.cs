@@ -985,7 +985,7 @@ public partial class OrderLogWidgetView : UserControl
             if (InlineVendorNameBox != null) InlineVendorNameBox.Text = string.Empty;
             if (InlineTransferNumbersBox != null) InlineTransferNumbersBox.Text = string.Empty;
             if (InlineWhsShipmentNumbersBox != null) InlineWhsShipmentNumbersBox.Text = string.Empty;
-            if (InlineStatusComboBox != null) InlineStatusComboBox.SelectedValue = Models.OrderItem.OrderStatus.InProgress;
+            if (InlineStatusComboBox != null) InlineStatusComboBox.SelectedValue = Models.OrderItem.OrderStatus.NotReady;
 
             // Animate card expansion
             AddOrderCard.Visibility = Visibility.Visible;
@@ -1075,7 +1075,7 @@ public partial class OrderLogWidgetView : UserControl
 
         var status = InlineStatusComboBox?.SelectedValue is Models.OrderItem.OrderStatus selectedStatus
             ? selectedStatus
-            : Models.OrderItem.OrderStatus.InProgress;
+            : Models.OrderItem.OrderStatus.NotReady;
 
         var order = Models.OrderItem.CreateBlankOrder(vendorName, isPlaceholder: false);
         order.TransferNumbers = InlineTransferNumbersBox?.Text?.Trim() ?? string.Empty;

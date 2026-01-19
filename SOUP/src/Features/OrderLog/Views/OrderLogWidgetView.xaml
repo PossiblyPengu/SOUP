@@ -1367,11 +1367,11 @@
                                           Padding="10,6"
                                           FontSize="13"
                                           Margin="0,0,0,14"
-                                          SelectedValuePath="Tag"
-                                          SelectedValue="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                                    <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
+                                        SelectedValuePath="Tag"
+                                        SelectedValue="{x:Static models:OrderItem+OrderStatus.NotReady}">
+                                    <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" IsSelected="True"/>
                                     <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
-                                    <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" IsSelected="True"/>
+                                    <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
                                 </ComboBox>
 
                                 <!-- Buttons -->
