@@ -345,8 +345,6 @@
                                 <CommandBinding Command="EditingCommands.ToggleBold"/>
                                 <CommandBinding Command="EditingCommands.ToggleItalic"/>
                                 <CommandBinding Command="EditingCommands.ToggleUnderline"/>
-                                <CommandBinding Command="EditingCommands.IncreaseFontSize"/>
-                                <CommandBinding Command="EditingCommands.DecreaseFontSize"/>
                                 <CommandBinding Command="EditingCommands.ToggleBullets"/>
                             </RichTextBox.CommandBindings>
                             <RichTextBox.InputBindings>
@@ -484,73 +482,6 @@
                                                             CornerRadius="4"
                                                             Padding="{TemplateBinding Padding}">
                                                         <TextBlock Text="•" FontSize="14"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-
-                            <!-- Separator -->
-                            <Border Width="1" Height="16" Background="{DynamicResource BorderBrush}" Margin="4,0"/>
-
-                            <!-- Font Size Decrease -->
-                            <Button Command="EditingCommands.DecreaseFontSize"
-                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
-                                    ToolTip="Decrease Font Size"
-                                    Margin="2,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6,4"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="4"
-                                                            Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="A−" FontSize="10"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-
-                            <!-- Font Size Increase -->
-                            <Button Command="EditingCommands.IncreaseFontSize"
-                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
-                                    ToolTip="Increase Font Size"
-                                    Margin="2,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6,4"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="4"
-                                                            Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="A+" FontSize="12"
                                                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     </Border>
                                                 </ControlTemplate>
@@ -1984,6 +1915,15 @@
                                 </Style>
                             </Expander.Style>
                             <ItemsControl ItemsSource="{Binding InProgressItems}" Margin="0,8,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
+                                            </i:Interaction.Behaviors>
+                                        </StackPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ContentControl Margin="0,0,0,8">
@@ -2061,6 +2001,15 @@
                                 </Style>
                             </Expander.Style>
                             <ItemsControl ItemsSource="{Binding OnDeckItems}" Margin="0,8,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
+                                            </i:Interaction.Behaviors>
+                                        </StackPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ContentControl Margin="0,0,0,8">
@@ -2138,6 +2087,15 @@
                                 </Style>
                             </Expander.Style>
                             <ItemsControl ItemsSource="{Binding NotReadyItems}" Margin="0,8,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
+                                            </i:Interaction.Behaviors>
+                                        </StackPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <ContentControl Margin="0,0,0,8">
