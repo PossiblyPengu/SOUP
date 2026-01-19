@@ -2266,7 +2266,17 @@
             Margin="0,-20,0,0"
             Panel.ZIndex="50"
                 Visibility="{Binding ShowNowPlaying, Converter={StaticResource BoolToVis}, FallbackValue=Visible}">
-            <StackPanel>
+            <Grid>
+                <!-- Top-edge shadow so cards appear to go behind the Now Playing bar -->
+                <Rectangle IsHitTestVisible="False" Height="18" VerticalAlignment="Top">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#66000000" Offset="0"/>
+                            <GradientStop Color="#00000000" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <StackPanel>
                 <!-- Full Album Art Player (collapsible - rises from bottom) -->
                 <Border x:Name="NowPlayingContent" 
                         Visibility="Collapsed"
@@ -2544,7 +2554,8 @@
                                    Foreground="{DynamicResource TextTertiaryBrush}"/>
                     </Grid>
                 </Border>
-            </StackPanel>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Undo Bar (shows when undo is available) -->
