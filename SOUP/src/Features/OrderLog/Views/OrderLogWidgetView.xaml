@@ -2504,18 +2504,25 @@
                             <TextBlock x:Name="MusicIcon" Text="🎵" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
                         </StackPanel>
                         
-                        <!-- Center: Track Info - shows "Now Playing" when expanded, scrolling track/artist when collapsed -->
+                        <!-- Center: Track Info - header on left, scrolling track/artist on the right when collapsed -->
                         <Grid Grid.Column="1" Margin="0,0,8,0" ClipToBounds="True">
-                            <!-- Expanded state: just shows "Now Playing" -->
-                            <TextBlock x:Name="NowPlayingHeaderText" 
-                                       Text="Now Playing" 
-                                       FontSize="{DynamicResource CardFontSize}" 
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Static label (always visible as a small header) -->
+                            <TextBlock x:Name="NowPlayingHeaderText"
+                                       Grid.Column="0"
+                                       Text="Now Playing"
+                                       FontSize="{DynamicResource CardFontSize}"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center"/>
-                            
-                            <!-- Collapsed state: scrolling track info spanning full width -->
-                            <Canvas x:Name="MarqueeContainer" Height="20" Visibility="Collapsed" ClipToBounds="True">
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"/>
+
+                            <!-- Scrolling track info (shows when collapsed and track exists) -->
+                            <Canvas x:Name="MarqueeContainer" Grid.Column="1" Height="20" Visibility="Collapsed" ClipToBounds="True">
                                 <StackPanel x:Name="MarqueeContent" Orientation="Horizontal" Canvas.Top="0">
                                     <StackPanel.RenderTransform>
                                         <TranslateTransform x:Name="MarqueeTransform" X="0"/>

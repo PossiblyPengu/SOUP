@@ -382,6 +382,12 @@ public partial class OrderLogWidgetView : UserControl
                 {
                     try
                     {
+                        // If Now Playing is expanded, collapse it when the user starts scrolling
+                        if (_nowPlayingExpanded)
+                        {
+                            SetNowPlayingExpanded(false);
+                        }
+
                         double newOffset = MainScrollViewer.VerticalOffset - (ev.Delta / 3.0);
                         newOffset = Math.Max(0, Math.Min(newOffset, MainScrollViewer.ExtentHeight - MainScrollViewer.ViewportHeight));
                         MainScrollViewer.ScrollToVerticalOffset(newOffset);
@@ -393,9 +399,62 @@ public partial class OrderLogWidgetView : UserControl
                 // Attach both preview and bubbling with handledEventsToo
                 MainScrollViewer.AddHandler(UIElement.PreviewMouseWheelEvent, handler, true);
                 MainScrollViewer.AddHandler(UIElement.MouseWheelEvent, handler, true);
+                // Also collapse NowPlaying when the scrollviewer content is changed (e.g., scrollbar drag)
+                MainScrollViewer.ScrollChanged += (s, ev) =>
+                {
+                    try
+                    {
+                        if (ev.VerticalChange != 0 && _nowPlayingExpanded)
+                        {
+                            SetNowPlayingExpanded(false);
+                        }
+                    }
+                    catch { }
+                };
             }
         }
         catch (Exception ex) { Log.Debug(ex, "Optional scroll enhancement setup failed"); }
+    }
+
+    private void SetNowPlayingExpanded(bool expanded)
+    {
+        // Ensure this runs on UI thread
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(() => SetNowPlayingExpanded(expanded));
+            return;
+        }
+
+        _nowPlayingExpanded = expanded;
+        NowPlayingToggleIcon.Text = _nowPlayingExpanded ? "▼" : "▲";
+
+        double targetHeight = Math.Min(Math.Max(this.ActualWidth * 0.8, 180), 280);
+
+        if (_nowPlayingExpanded)
+        {
+            NowPlayingContent.Visibility = Visibility.Visible;
+            NowPlayingContent.BeginAnimation(HeightProperty, null);
+            var expandAnimation = new DoubleAnimation(0, targetHeight, TimeSpan.FromMilliseconds(200))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            NowPlayingContent.BeginAnimation(HeightProperty, expandAnimation);
+        }
+        else
+        {
+            var currentHeight = NowPlayingContent.ActualHeight;
+            var collapseAnimation = new DoubleAnimation(currentHeight, 0, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+            collapseAnimation.Completed += (s, _) =>
+            {
+                NowPlayingContent.Visibility = Visibility.Collapsed;
+                NowPlayingContent.BeginAnimation(HeightProperty, null);
+            };
+            NowPlayingContent.BeginAnimation(HeightProperty, collapseAnimation);
+        }
+        UpdateNowPlayingUI();
     }
 
     private void WireUpFluidDragBehavior()
@@ -664,7 +723,17 @@ public partial class OrderLogWidgetView : UserControl
 
     private void UpdateNowPlayingUI()
     {
-        if (_spotifyService == null) return;
+        if (_spotifyService == null)
+        {
+            // When spotify service isn't initialized we don't show the header by default
+            try
+            {
+                NowPlayingHeaderText.Visibility = Visibility.Collapsed;
+                MarqueeContainer.Visibility = Visibility.Collapsed;
+            }
+            catch { }
+            return;
+        }
 
         // Hide the entire player section when nothing is playing OR when disabled in settings
         var viewModel = DataContext as OrderLogViewModel;
@@ -713,7 +782,7 @@ public partial class OrderLogWidgetView : UserControl
         }
         else
         {
-            // Collapsed: show scrolling track info, hide static label
+            // Collapsed: hide the static "Now Playing" label; show marquee if a track exists
             NowPlayingHeaderText.Visibility = Visibility.Collapsed;
 
             if (!string.IsNullOrEmpty(track))
@@ -725,10 +794,8 @@ public partial class OrderLogWidgetView : UserControl
             }
             else
             {
-                // No track playing, show static "Now Playing"
+                // No track playing, hide marquee as well
                 MarqueeContainer.Visibility = Visibility.Collapsed;
-                NowPlayingHeaderText.Visibility = Visibility.Visible;
-                NowPlayingHeaderText.Text = "Now Playing";
                 _marqueeTimer?.Stop();
             }
         }
