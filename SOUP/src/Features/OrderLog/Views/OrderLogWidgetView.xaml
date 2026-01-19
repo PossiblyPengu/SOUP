@@ -1180,6 +1180,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Row 1: Tabs (only show when ShowArchived is true) -->
@@ -1309,6 +1310,31 @@
                         </TextBlock>
                     </Button>
                 </Grid>
+
+                <!-- Row 3: Notes Header -->
+                <Border Grid.Row="2"
+                        Padding="16,0,16,12"
+                        x:Name="NotesHeaderPanel">
+                    <Border Background="{DynamicResource SurfaceHoverBrush}"
+                            CornerRadius="8"
+                            Padding="12,8"
+                            Cursor="Hand"
+                            MouseLeftButtonDown="NotesHeader_Click">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="3" Height="16" CornerRadius="1.5" Background="#FFB347" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Notes" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="{Binding StickyNotes.Count}"
+                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Grid.Column="3" x:Name="NotesArrow" Text="▼" FontSize="9" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </Border>
             </Grid>
         </Border>
 
@@ -1319,92 +1345,161 @@
                     <!-- Active Notes Panel -->
                     <StackPanel x:Name="ActiveItemsPanel">
 
-                    <!-- Notes Section (collapsible) -->
-                    <Expander IsExpanded="True" Margin="0,0,0,8">
-                        <Expander.Style>
-                            <Style TargetType="Expander">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Expander">
-                                            <Border Background="{TemplateBinding Background}">
-                                                <DockPanel>
-                                                    <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                                                  Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
-                                                        <ToggleButton.Template>
-                                                            <ControlTemplate TargetType="ToggleButton">
-                                                                <Border Background="#2A261F" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
-                                                                    <Grid>
-                                                                        <Grid.ColumnDefinitions>
-                                                                            <ColumnDefinition Width="Auto"/>
-                                                                            <ColumnDefinition Width="*"/>
-                                                                            <ColumnDefinition Width="Auto"/>
-                                                                            <ColumnDefinition Width="Auto"/>
-                                                                        </Grid.ColumnDefinitions>
-                                                                        <Border Width="3" CornerRadius="1.5" Background="#FFB347" Margin="0,0,10,0"/>
-                                                                        <TextBlock Grid.Column="1" Text="Notes" FontSize="13" FontWeight="SemiBold" Foreground="#FFB347" VerticalAlignment="Center"/>
-                                                                        <TextBlock Grid.Column="2" Text="{Binding DataContext.StickyNotes.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                                                        <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="9" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                                    </Grid>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsChecked" Value="False">
-                                                                        <Setter TargetName="Arrow" Property="Text" Value="▶"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </ToggleButton.Template>
-                                                    </ToggleButton>
-                                                    <ContentPresenter x:Name="ExpanderContent" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
-                                                </DockPanel>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsExpanded" Value="True">
-                                                    <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Expander.Style>
-                        <!-- Notes content (sticky notes only) -->
+                    <!-- Add Order Card (Inline) -->
+                    <Border x:Name="AddOrderCard"
+                            Visibility="Collapsed"
+                            Style="{StaticResource WidgetElevatedCardStyle}"
+                            Margin="6,0,6,12"
+                            Background="{DynamicResource SurfaceBrush}">
                         <Grid>
-                            <ItemsControl ItemsSource="{Binding StickyNotes}" Margin="0,0,0,8">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource StickyNoteTemplate}"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                            <!-- Empty state -->
-                            <TextBlock Text="No notes yet. Click 'Add Note' to create one."
-                                       FontSize="12"
-                                       Foreground="{DynamicResource TextDisabledBrush}"
-                                       FontStyle="Italic"
-                                       Margin="12,8"
-                                       HorizontalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding StickyNotes.Count}" Value="0">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                            <!-- Header -->
+                            <Border Grid.Row="0"
+                                    Background="{DynamicResource SurfaceHoverBrush}"
+                                    Padding="14,10"
+                                    CornerRadius="8,8,0,0">
+                                <Grid>
+                                    <TextBlock Text="Add New Order"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <Button Content="✕"
+                                            HorizontalAlignment="Right"
+                                            Click="CancelAddOrder_Click"
+                                            Style="{DynamicResource GhostButtonStyle}"
+                                            FontSize="14"
+                                            Width="28"
+                                            Height="28"
+                                            Padding="0"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Form -->
+                            <StackPanel Grid.Row="1" Margin="14,14,14,16">
+                                <!-- Vendor Name -->
+                                <TextBlock Text="Vendor Name"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           Margin="0,0,0,4"/>
+                                <TextBox x:Name="InlineVendorNameBox"
+                                         Background="{DynamicResource SurfaceHoverBrush}"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         BorderThickness="1"
+                                         Padding="10,6"
+                                         FontSize="13"
+                                         Margin="0,0,0,10"/>
+
+                                <!-- Transfer Numbers -->
+                                <TextBlock Text="Transfer Numbers (Optional)"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           Margin="0,0,0,4"/>
+                                <TextBox x:Name="InlineTransferNumbersBox"
+                                         Background="{DynamicResource SurfaceHoverBrush}"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         BorderThickness="1"
+                                         Padding="10,6"
+                                         FontSize="13"
+                                         Margin="0,0,0,10"/>
+
+                                <!-- Warehouse Shipment Numbers -->
+                                <TextBlock Text="Warehouse Shipment Numbers (Optional)"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           Margin="0,0,0,4"/>
+                                <TextBox x:Name="InlineWhsShipmentNumbersBox"
+                                         Background="{DynamicResource SurfaceHoverBrush}"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         BorderThickness="1"
+                                         Padding="10,6"
+                                         FontSize="13"
+                                         Margin="0,0,0,10"/>
+
+                                <!-- Status -->
+                                <TextBlock Text="Status"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           Margin="0,0,0,4"/>
+                                <ComboBox x:Name="InlineStatusComboBox"
+                                          Background="{DynamicResource SurfaceHoverBrush}"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"
+                                          BorderBrush="{DynamicResource BorderBrush}"
+                                          BorderThickness="1"
+                                          Padding="10,6"
+                                          FontSize="13"
+                                          Margin="0,0,0,14"
+                                          SelectedValuePath="Tag"
+                                          SelectedValue="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                    <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
+                                    <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
+                                    <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" IsSelected="True"/>
+                                </ComboBox>
+
+                                <!-- Buttons -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Content="Cancel"
+                                            Click="CancelAddOrder_Click"
+                                            Style="{DynamicResource SecondaryButtonStyle}"
+                                            Padding="0,8"/>
+
+                                    <Button Grid.Column="2"
+                                            Content="Add Order"
+                                            Click="ConfirmAddOrder_Click"
+                                            Style="{DynamicResource PrimaryButtonStyle}"
+                                            Padding="0,8"/>
+                                </Grid>
+                            </StackPanel>
                         </Grid>
-                    </Expander>
+                    </Border>
+
+                    <!-- Notes Section -->
+                    <Grid x:Name="NotesSection" Margin="0,0,0,8">
+                        <ItemsControl ItemsSource="{Binding StickyNotes}" Margin="0,0,0,8">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ContentControl Content="{Binding}" ContentTemplate="{StaticResource StickyNoteTemplate}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Empty state -->
+                        <TextBlock Text="No notes yet. Click 'Add Note' to create one."
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextDisabledBrush}"
+                                   FontStyle="Italic"
+                                   Margin="12,8"
+                                   HorizontalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding StickyNotes.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
 
                     <!-- Flat List View (hidden - status headers always visible) -->
                     <ListBox x:Name="ActiveItemsListBox" ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent"

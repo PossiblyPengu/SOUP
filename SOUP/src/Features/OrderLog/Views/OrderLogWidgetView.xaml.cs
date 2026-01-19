@@ -22,6 +22,7 @@ namespace SOUP.Features.OrderLog.Views;
 public partial class OrderLogWidgetView : UserControl
 {
     private bool _nowPlayingExpanded = false;
+    private bool _notesExpanded = true;
     private bool _showingArchivedTab = false;
     private SpotifyService? _spotifyService;
     private System.Windows.Threading.DispatcherTimer? _equalizerTimer;
@@ -62,9 +63,11 @@ public partial class OrderLogWidgetView : UserControl
             // Apply active style to Archived tab
             ArchivedTabButton.Style = FindResource("WidgetTabButtonActiveStyle") as Style;
 
-            ActiveItemsPanel.Visibility = Visibility.Collapsed;
-            ArchivedItemsPanel.Visibility = Visibility.Visible;
+            // Animate tab transition
+            AnimateTabTransition(ActiveItemsPanel, ArchivedItemsPanel);
             AddButtonsPanel.Visibility = Visibility.Collapsed;
+            NotesHeaderPanel.Visibility = Visibility.Collapsed;
+            if (AddOrderCard != null) AddOrderCard.Visibility = Visibility.Collapsed;
         }
         else
         {
@@ -73,9 +76,100 @@ public partial class OrderLogWidgetView : UserControl
             // Apply inactive style to Archived tab
             ArchivedTabButton.Style = FindResource("WidgetTabButtonStyle") as Style;
 
-            ActiveItemsPanel.Visibility = Visibility.Visible;
-            ArchivedItemsPanel.Visibility = Visibility.Collapsed;
+            // Animate tab transition
+            AnimateTabTransition(ArchivedItemsPanel, ActiveItemsPanel);
             AddButtonsPanel.Visibility = Visibility.Visible;
+            NotesHeaderPanel.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void AnimateTabTransition(FrameworkElement outgoing, FrameworkElement incoming)
+    {
+        // Fade out outgoing panel
+        var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(100))
+        {
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+        };
+
+        fadeOut.Completed += (s, _) =>
+        {
+            outgoing.Visibility = Visibility.Collapsed;
+            outgoing.BeginAnimation(OpacityProperty, null);
+
+            // Fade in incoming panel
+            incoming.Visibility = Visibility.Visible;
+            incoming.Opacity = 0;
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            incoming.BeginAnimation(OpacityProperty, fadeIn);
+        };
+
+        outgoing.BeginAnimation(OpacityProperty, fadeOut);
+    }
+
+    private void NotesHeader_Click(object sender, MouseButtonEventArgs e)
+    {
+        _notesExpanded = !_notesExpanded;
+
+        if (NotesArrow is { } arrow)
+        {
+            arrow.Text = _notesExpanded ? "▼" : "▶";
+        }
+
+        if (NotesSection is { } section)
+        {
+            if (_notesExpanded)
+            {
+                // Expand animation
+                section.Visibility = Visibility.Visible;
+                section.Opacity = 0;
+                section.RenderTransform = new TranslateTransform(0, -10);
+
+                var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                var slideDown = new DoubleAnimation(-10, 0, TimeSpan.FromMilliseconds(200))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                section.BeginAnimation(OpacityProperty, fadeIn);
+                if (section.RenderTransform is TranslateTransform transform)
+                {
+                    transform.BeginAnimation(TranslateTransform.YProperty, slideDown);
+                }
+            }
+            else
+            {
+                // Collapse animation
+                var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+                };
+
+                var slideUp = new DoubleAnimation(0, -10, TimeSpan.FromMilliseconds(150))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+                };
+
+                fadeOut.Completed += (s, _) =>
+                {
+                    section.Visibility = Visibility.Collapsed;
+                    section.BeginAnimation(OpacityProperty, null);
+                };
+
+                section.BeginAnimation(OpacityProperty, fadeOut);
+                if (section.RenderTransform is TranslateTransform transform)
+                {
+                    transform.BeginAnimation(TranslateTransform.YProperty, slideUp);
+                }
+            }
         }
     }
 
@@ -256,7 +350,7 @@ public partial class OrderLogWidgetView : UserControl
 
     private async void ViewModel_ItemAdded(OrderItem item)
     {
-        // Autofocus the newly added item
+        // Scroll to and focus the newly added item (for notes, orders added via dialog don't need focus)
         await ScrollToAndFocusNewItemAsync(item);
     }
 
@@ -884,11 +978,145 @@ public partial class OrderLogWidgetView : UserControl
     {
         Log.Debug("AddBlankOrder_Click fired");
 
-        if (DataContext is OrderLogViewModel vm)
+        // Show inline add order card with animation
+        if (AddOrderCard != null)
         {
-            // Immediately create an inline blank order (no dialog)
-            _ = AddBlankOrderAsync(vm);
+            // Clear form fields
+            if (InlineVendorNameBox != null) InlineVendorNameBox.Text = string.Empty;
+            if (InlineTransferNumbersBox != null) InlineTransferNumbersBox.Text = string.Empty;
+            if (InlineWhsShipmentNumbersBox != null) InlineWhsShipmentNumbersBox.Text = string.Empty;
+            if (InlineStatusComboBox != null) InlineStatusComboBox.SelectedValue = Models.OrderItem.OrderStatus.InProgress;
+
+            // Animate card expansion
+            AddOrderCard.Visibility = Visibility.Visible;
+            AddOrderCard.Opacity = 0;
+            AddOrderCard.RenderTransform = new ScaleTransform(0.95, 0.95);
+            AddOrderCard.RenderTransformOrigin = new Point(0.5, 0);
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            var scaleX = new DoubleAnimation(0.95, 1, TimeSpan.FromMilliseconds(200))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            var scaleY = new DoubleAnimation(0.95, 1, TimeSpan.FromMilliseconds(200))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            AddOrderCard.BeginAnimation(OpacityProperty, fadeIn);
+            if (AddOrderCard.RenderTransform is ScaleTransform scale)
+            {
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleX);
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleY);
+            }
+
+            // Focus vendor name field after animation starts
+            _ = Dispatcher.BeginInvoke(new Action(() => InlineVendorNameBox?.Focus()),
+                System.Windows.Threading.DispatcherPriority.Input);
+
+            // Scroll to top to show the card
+            MainScrollViewer?.ScrollToTop();
         }
+    }
+
+    private void CancelAddOrder_Click(object sender, RoutedEventArgs e)
+    {
+        // Hide the inline add order card with animation
+        if (AddOrderCard != null)
+        {
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            var scaleX = new DoubleAnimation(1, 0.95, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            var scaleY = new DoubleAnimation(1, 0.95, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            fadeOut.Completed += (s, _) =>
+            {
+                AddOrderCard.Visibility = Visibility.Collapsed;
+                AddOrderCard.BeginAnimation(OpacityProperty, null);
+            };
+
+            AddOrderCard.BeginAnimation(OpacityProperty, fadeOut);
+            if (AddOrderCard.RenderTransform is ScaleTransform scale)
+            {
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleX);
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleY);
+            }
+        }
+    }
+
+    private async void ConfirmAddOrder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm) return;
+
+        var vendorName = InlineVendorNameBox?.Text?.Trim();
+
+        if (string.IsNullOrEmpty(vendorName))
+        {
+            MessageBox.Show("Please enter a vendor name.", "Vendor Name Required",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            InlineVendorNameBox?.Focus();
+            return;
+        }
+
+        var status = InlineStatusComboBox?.SelectedValue is Models.OrderItem.OrderStatus selectedStatus
+            ? selectedStatus
+            : Models.OrderItem.OrderStatus.InProgress;
+
+        var order = Models.OrderItem.CreateBlankOrder(vendorName, isPlaceholder: false);
+        order.TransferNumbers = InlineTransferNumbersBox?.Text?.Trim() ?? string.Empty;
+        order.WhsShipmentNumbers = InlineWhsShipmentNumbersBox?.Text?.Trim() ?? string.Empty;
+        order.Status = status;
+
+        await vm.AddOrderAsync(order);
+
+        // Hide the card with animation and scroll to top to show the new order
+        if (AddOrderCard != null)
+        {
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            var scaleX = new DoubleAnimation(1, 0.95, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            var scaleY = new DoubleAnimation(1, 0.95, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            fadeOut.Completed += (s, _) =>
+            {
+                AddOrderCard.Visibility = Visibility.Collapsed;
+                AddOrderCard.BeginAnimation(OpacityProperty, null);
+            };
+
+            AddOrderCard.BeginAnimation(OpacityProperty, fadeOut);
+            if (AddOrderCard.RenderTransform is ScaleTransform scale)
+            {
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleX);
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleY);
+            }
+        }
+
+        MainScrollViewer?.ScrollToTop();
     }
 
     private void AddBlankNote_Click(object sender, RoutedEventArgs e)
@@ -897,13 +1125,6 @@ public partial class OrderLogWidgetView : UserControl
         {
             _ = AddBlankNoteAsync(vm);
         }
-    }
-
-    private async Task AddBlankOrderAsync(OrderLogViewModel vm)
-    {
-        var order = OrderItem.CreateBlankOrder(vendorName: string.Empty, isPlaceholder: true);
-        await vm.AddOrderAsync(order);
-        // Autofocus is handled by ItemAdded event
     }
 
     private async Task AddBlankNoteAsync(OrderLogViewModel vm)
