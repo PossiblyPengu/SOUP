@@ -2247,12 +2247,12 @@
                 </Border.Background>
             </Border>
             
-            <!-- Bottom fade/shadow overlay -->
-            <Border VerticalAlignment="Bottom" Height="24" IsHitTestVisible="False">
+            <!-- Bottom fade/shadow overlay (subtle shadow under NowPlaying) -->
+            <Border VerticalAlignment="Bottom" Height="18" IsHitTestVisible="False" Panel.ZIndex="49">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="#00000000" Offset="0"/>
-                        <GradientStop Color="#AA000000" Offset="1"/>
+                        <GradientStop Color="#66000000" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
@@ -2267,15 +2267,7 @@
             Panel.ZIndex="50"
                 Visibility="{Binding ShowNowPlaying, Converter={StaticResource BoolToVis}, FallbackValue=Visible}">
             <Grid>
-                <!-- Top-edge shadow so cards appear to go behind the Now Playing bar -->
-                <Rectangle IsHitTestVisible="False" Height="18" VerticalAlignment="Top">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#66000000" Offset="0"/>
-                            <GradientStop Color="#00000000" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+                <!-- (shadow moved outside NowPlaying; kept empty here) -->
                 <StackPanel>
                 <!-- Full Album Art Player (collapsible - rises from bottom) -->
                 <Border x:Name="NowPlayingContent" 
