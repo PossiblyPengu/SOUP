@@ -1261,7 +1261,7 @@
 
         <!-- Notes List with bottom fade overlay -->
         <Grid Grid.Row="2">
-            <ScrollViewer x:Name="MainScrollViewer" Padding="16,8,16,24" Style="{StaticResource WidgetScrollViewerStyle}">
+            <ScrollViewer x:Name="MainScrollViewer" Padding="16,8,16,8" Style="{StaticResource WidgetScrollViewerStyle}">
                 <Grid>
                     <!-- Active Notes Panel -->
                     <StackPanel x:Name="ActiveItemsPanel">
@@ -2263,6 +2263,8 @@
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0,1,0,0"
+            Margin="0,-20,0,0"
+            Panel.ZIndex="50"
                 Visibility="{Binding ShowNowPlaying, Converter={StaticResource BoolToVis}, FallbackValue=Visible}">
             <StackPanel>
                 <!-- Full Album Art Player (collapsible - rises from bottom) -->
