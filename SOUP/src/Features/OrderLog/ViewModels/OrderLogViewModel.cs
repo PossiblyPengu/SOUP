@@ -54,6 +54,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     // Grouping helper service (extracted to simplify VM)
     private readonly OrderGroupingService _groupingService;
 
+    public OrderGroupingService.OrderLogSortMode SortModeEnum { get; private set; } = OrderGroupingService.OrderLogSortMode.Status;
+
     [ObservableProperty]
     private int _displayItemsCount;
 
@@ -188,6 +190,22 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _sortStatusDescending = false;
 
+    partial void OnSortStatusDescendingChanged(bool value)
+    {
+        RefreshDisplayItems();
+    }
+
+    public void CycleSortMode()
+    {
+        SortModeEnum = SortModeEnum switch
+        {
+            OrderGroupingService.OrderLogSortMode.Status => OrderGroupingService.OrderLogSortMode.CreatedAt,
+            OrderGroupingService.OrderLogSortMode.CreatedAt => OrderGroupingService.OrderLogSortMode.VendorName,
+            _ => OrderGroupingService.OrderLogSortMode.Status
+        };
+        RefreshDisplayItems();
+    }
+
     // Status group expand/collapse state
     [ObservableProperty]
     private bool _notReadyGroupExpanded = true;
@@ -264,11 +282,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     }
 
     partial void OnSortByStatusChanged(bool value)
-    {
-        RefreshDisplayItems();
-    }
-
-    partial void OnSortStatusDescendingChanged(bool value)
     {
         RefreshDisplayItems();
     }
@@ -1321,7 +1334,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         ObservableCollection<OrderItemGroup> display)
     {
         // Use grouping service to build ordered display collection and apply it
-        var built = _groupingService.BuildDisplayCollection(source, SortByStatus, SortStatusDescending);
+        var built = _groupingService.BuildDisplayCollection(source, SortByStatus, SortStatusDescending, SortModeEnum);
         display.Clear();
         foreach (var g in built)
         {

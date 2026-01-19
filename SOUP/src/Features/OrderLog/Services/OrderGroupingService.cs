@@ -14,7 +14,14 @@ namespace SOUP.Features.OrderLog.Services;
 /// </summary>
 public class OrderGroupingService
 {
-    public ObservableCollection<OrderItemGroup> BuildDisplayCollection(IEnumerable<OrderItem> sourceItems, bool sortByStatus, bool sortStatusDescending)
+    public enum OrderLogSortMode
+    {
+        Status = 0,
+        CreatedAt = 1,
+        VendorName = 2
+    }
+
+    public ObservableCollection<OrderItemGroup> BuildDisplayCollection(IEnumerable<OrderItem> sourceItems, bool sortByStatus, bool sortStatusDescending, OrderLogSortMode sortMode)
     {
         var display = new ObservableCollection<OrderItemGroup>();
 
@@ -59,6 +66,26 @@ public class OrderGroupingService
             orderGroups = sortStatusDescending
                 ? orderGroups.OrderByDescending(keySelector).ToList()
                 : orderGroups.OrderBy(keySelector).ToList();
+        }
+
+        // If not sorting by status, apply the selected sort mode
+        if (!sortByStatus)
+        {
+            switch (sortMode)
+            {
+                case OrderLogSortMode.CreatedAt:
+                    orderGroups = sortStatusDescending
+                        ? orderGroups.OrderByDescending(g => g.Members.Min(m => m.CreatedAt)).ToList()
+                        : orderGroups.OrderBy(g => g.Members.Min(m => m.CreatedAt)).ToList();
+                    break;
+                case OrderLogSortMode.VendorName:
+                    orderGroups = sortStatusDescending
+                        ? orderGroups.OrderByDescending(g => g.Members.Min(m => m.VendorName)).ToList()
+                        : orderGroups.OrderBy(g => g.Members.Min(m => m.VendorName)).ToList();
+                    break;
+                default:
+                    break;
+            }
         }
 
         foreach (var g in orderGroups)

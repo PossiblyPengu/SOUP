@@ -336,17 +336,7 @@
                                      LostFocus="NoteContent_LostFocus"
                                      GotFocus="EditableField_GotFocus"
                                      Cursor="IBeam">
-                            <RichTextBox.CommandBindings>
-                                <CommandBinding Command="ApplicationCommands.Cut"/>
-                                <CommandBinding Command="ApplicationCommands.Copy"/>
-                                <CommandBinding Command="ApplicationCommands.Paste"/>
-                                <CommandBinding Command="ApplicationCommands.Undo"/>
-                                <CommandBinding Command="ApplicationCommands.Redo"/>
-                                <CommandBinding Command="EditingCommands.ToggleBold"/>
-                                <CommandBinding Command="EditingCommands.ToggleItalic"/>
-                                <CommandBinding Command="EditingCommands.ToggleUnderline"/>
-                                <CommandBinding Command="EditingCommands.ToggleBullets"/>
-                            </RichTextBox.CommandBindings>
+                            
                             <RichTextBox.InputBindings>
                                 <KeyBinding Key="B" Modifiers="Control" Command="EditingCommands.ToggleBold"/>
                                 <KeyBinding Key="I" Modifiers="Control" Command="EditingCommands.ToggleItalic"/>
@@ -365,20 +355,20 @@
                             Padding="0,6,0,0"
                             Margin="-12,6,-12,-12">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <!-- Bold -->
-                            <Button Command="EditingCommands.ToggleBold"
-                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                <!-- Bold -->
+                                <ToggleButton x:Name="BoldToggle" Click="FormatBold_Click" Tag="{Binding}"
                                     ToolTip="Bold (Ctrl+B)"
-                                    Margin="2,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
+                                    Margin="2,0"
+                                    Focusable="False" IsTabStop="False">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                         <Setter Property="Padding" Value="6,4"/>
                                         <Setter Property="Cursor" Value="Hand"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
+                                                <ControlTemplate TargetType="ToggleButton">
                                                     <Border Background="{TemplateBinding Background}"
                                                             CornerRadius="4"
                                                             Padding="{TemplateBinding Padding}">
@@ -394,23 +384,23 @@
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
+                                </ToggleButton.Style>
+                            </ToggleButton>
 
-                            <!-- Italic -->
-                            <Button Command="EditingCommands.ToggleItalic"
-                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                <!-- Italic -->
+                                <ToggleButton x:Name="ItalicToggle" Click="FormatItalic_Click" Tag="{Binding}"
                                     ToolTip="Italic (Ctrl+I)"
-                                    Margin="2,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
+                                    Margin="2,0"
+                                    Focusable="False" IsTabStop="False">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                         <Setter Property="Padding" Value="6,4"/>
                                         <Setter Property="Cursor" Value="Hand"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
+                                                <ControlTemplate TargetType="ToggleButton">
                                                     <Border Background="{TemplateBinding Background}"
                                                             CornerRadius="4"
                                                             Padding="{TemplateBinding Padding}">
@@ -426,23 +416,23 @@
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
+                                </ToggleButton.Style>
+                            </ToggleButton>
 
-                            <!-- Underline -->
-                            <Button Command="EditingCommands.ToggleUnderline"
-                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                <!-- Underline -->
+                                <ToggleButton x:Name="UnderlineToggle" Click="FormatUnderline_Click" Tag="{Binding}"
                                     ToolTip="Underline (Ctrl+U)"
-                                    Margin="2,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
+                                    Margin="2,0"
+                                    Focusable="False" IsTabStop="False">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                         <Setter Property="Padding" Value="6,4"/>
                                         <Setter Property="Cursor" Value="Hand"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
+                                                <ControlTemplate TargetType="ToggleButton">
                                                     <Border Background="{TemplateBinding Background}"
                                                             CornerRadius="4"
                                                             Padding="{TemplateBinding Padding}">
@@ -458,26 +448,26 @@
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
+                                </ToggleButton.Style>
+                            </ToggleButton>
 
                             <!-- Separator -->
                             <Border Width="1" Height="16" Background="{DynamicResource BorderBrush}" Margin="4,0"/>
 
-                            <!-- Bullet List -->
-                            <Button Command="EditingCommands.ToggleBullets"
-                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                <!-- Bullet List -->
+                                <ToggleButton x:Name="BulletToggle" Click="InsertBullet_Click" Tag="{Binding}"
                                     ToolTip="Bullet List"
-                                    Margin="2,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
+                                    Margin="2,0"
+                                    Focusable="False" IsTabStop="False">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                         <Setter Property="Padding" Value="6,4"/>
                                         <Setter Property="Cursor" Value="Hand"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
+                                                <ControlTemplate TargetType="ToggleButton">
                                                     <Border Background="{TemplateBinding Background}"
                                                             CornerRadius="4"
                                                             Padding="{TemplateBinding Padding}">
@@ -493,8 +483,8 @@
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
+                                </ToggleButton.Style>
+                            </ToggleButton>
                         </StackPanel>
                     </Border>
 
@@ -1174,10 +1164,10 @@
                                 </Setter>
                             </Style>
                         </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0"
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Order" FontSize="13" FontWeight="Medium"
+                            <TextBlock Text="Order" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>
@@ -1215,9 +1205,9 @@
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📝" FontSize="13" Margin="0,0,6,0"/>
-                            <TextBlock Text="Note" FontSize="13" FontWeight="Medium"
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📝" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Note" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>

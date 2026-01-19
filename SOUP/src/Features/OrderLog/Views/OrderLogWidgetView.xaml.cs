@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Documents;
+using System.Windows.Controls.Primitives;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SOUP.Features.OrderLog.Constants;
@@ -447,8 +449,15 @@ public partial class OrderLogWidgetView : UserControl
     {
         if (DataContext is not OrderLogViewModel vm) return;
 
-        // Toggle sort direction (status headers always visible)
-        vm.SortStatusDescending = !vm.SortStatusDescending;
+        // If Ctrl pressed, toggle sort direction. Otherwise cycle sort mode.
+        if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+        {
+            vm.SortStatusDescending = !vm.SortStatusDescending;
+        }
+        else
+        {
+            vm.CycleSortMode();
+        }
     }
 
     /// <summary>
@@ -578,25 +587,52 @@ public partial class OrderLogWidgetView : UserControl
             Resources.MergedDictionaries.Clear();
 
             // Add ModernStyles first (base styles including SurfaceBrush fallback)
-            Resources.MergedDictionaries.Add(new ResourceDictionary
-            {
-                Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml")
-            });
+            var modernStyles = new ResourceDictionary { Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml") };
+            var themeDict = new ResourceDictionary { Source = new Uri(themePath) };
+            var widgetTheme = new ResourceDictionary { Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml") };
 
-            // Add theme colors
-            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
+            Resources.MergedDictionaries.Add(modernStyles);
+            Resources.MergedDictionaries.Add(themeDict);
+            Resources.MergedDictionaries.Add(widgetTheme);
 
-            // Add widget theme last (references theme colors via DynamicResource)
-            Resources.MergedDictionaries.Add(new ResourceDictionary
+            // Also merge these into Application-level resources so popups (ContextMenu/Popup)
+            // which live in their own visual tree can resolve DynamicResource lookups.
+            try
             {
-                Source = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml")
-            });
+                if (Application.Current != null)
+                {
+                    var appRes = Application.Current.Resources;
+
+                    // Avoid adding duplicates by checking Source URI match
+                    bool HasSource(ResourceDictionary rd, Uri src)
+                    {
+                        foreach (var m in rd.MergedDictionaries)
+                        {
+                            if (m.Source != null && m.Source == src) return true;
+                        }
+                        return false;
+                    }
+
+                    var modernUri = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml");
+                    var themeUriLocal = new Uri(themePath);
+                    var widgetUri = new Uri("pack://application:,,,/SOUP;component/Features/OrderLog/Themes/OrderLogWidgetTheme.xaml");
+
+                    if (!HasSource(appRes, modernUri)) appRes.MergedDictionaries.Add(modernStyles);
+                    if (!HasSource(appRes, themeUriLocal)) appRes.MergedDictionaries.Add(themeDict);
+                    if (!HasSource(appRes, widgetUri)) appRes.MergedDictionaries.Add(widgetTheme);
+                }
+            }
+            catch (Exception exApp)
+            {
+                Log.Debug(exApp, "Failed to merge widget theme into Application resources");
+            }
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to apply theme to widget view");
         }
     }
+
 
     private void UpdateThemeIcon(bool isDarkMode)
     {
@@ -1741,12 +1777,94 @@ public partial class OrderLogWidgetView : UserControl
 
     private void NoteContent_Loaded(object sender, RoutedEventArgs e)
     {
-        Helpers.TextFormattingHelper.LoadNoteContent(sender);
+        // Load saved content and attach selection change handler for UI feedback
+        if (sender is RichTextBox rtb)
+        {
+            Helpers.TextFormattingHelper.LoadNoteContent(rtb);
+            rtb.SelectionChanged -= NoteRichTextBox_SelectionChanged;
+            rtb.SelectionChanged += NoteRichTextBox_SelectionChanged;
+            // Initialize button states
+            UpdateFormattingToolbarState(rtb);
+        }
     }
 
     private void NoteContent_LostFocus(object sender, RoutedEventArgs e)
     {
         Helpers.TextFormattingHelper.UpdateNoteContent(sender, this);
+    }
+
+    private void NoteRichTextBox_SelectionChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RichTextBox rtb)
+        {
+            UpdateFormattingToolbarState(rtb);
+        }
+    }
+
+    private void UpdateFormattingToolbarState(RichTextBox rtb)
+    {
+        try
+        {
+            // Determine formatting at selection
+            var fw = rtb.Selection.GetPropertyValue(TextElement.FontWeightProperty);
+            bool isBold = fw != DependencyProperty.UnsetValue && fw.Equals(FontWeights.Bold);
+
+            var fs = rtb.Selection.GetPropertyValue(TextElement.FontStyleProperty);
+            bool isItalic = fs != DependencyProperty.UnsetValue && fs.Equals(FontStyles.Italic);
+
+            var td = rtb.Selection.GetPropertyValue(Inline.TextDecorationsProperty);
+            bool isUnderline = td != DependencyProperty.UnsetValue && td is TextDecorationCollection tdc && tdc.Contains(TextDecorations.Underline[0]);
+
+            // Check if current paragraph is in a List (bullet)
+            bool isInList = false;
+            var para = rtb.CaretPosition.Paragraph;
+            var p = para as DependencyObject;
+            while (p != null)
+            {
+                if (p is System.Windows.Documents.List) { isInList = true; break; }
+                p = VisualTreeHelper.GetParent(p);
+            }
+
+            // Find toolbar toggles in the same DataTemplate visual tree
+            var container = FindAncestor<FrameworkElement>(rtb);
+            if (container != null)
+            {
+                var bold = FindDescendantByName<ToggleButton>(container, "BoldToggle");
+                var italic = FindDescendantByName<ToggleButton>(container, "ItalicToggle");
+                var underline = FindDescendantByName<ToggleButton>(container, "UnderlineToggle");
+                var bullet = FindDescendantByName<ToggleButton>(container, "BulletToggle");
+
+                if (bold != null) bold.IsChecked = isBold;
+                if (italic != null) italic.IsChecked = isItalic;
+                if (underline != null) underline.IsChecked = isUnderline;
+                if (bullet != null) bullet.IsChecked = isInList;
+            }
+        }
+        catch { }
+    }
+
+    private static T? FindDescendantByName<T>(DependencyObject root, string name) where T : FrameworkElement
+    {
+        if (root == null) return null;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T fe && fe.Name == name) return fe;
+            var found = FindDescendantByName<T>(child, name);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static T? FindAncestor<T>(DependencyObject start) where T : DependencyObject
+    {
+        var parent = VisualTreeHelper.GetParent(start);
+        while (parent != null)
+        {
+            if (parent is T t) return t;
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return null;
     }
 
     #endregion

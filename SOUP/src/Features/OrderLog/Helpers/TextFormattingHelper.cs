@@ -222,6 +222,7 @@ public static class TextFormattingHelper
         var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
+            rtb.Focus();
             EditingCommands.ToggleBold.Execute(null, rtb);
             UpdateNoteContent(sender, view);
         }
@@ -232,6 +233,7 @@ public static class TextFormattingHelper
         var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
+            rtb.Focus();
             EditingCommands.ToggleItalic.Execute(null, rtb);
             UpdateNoteContent(sender, view);
         }
@@ -242,6 +244,7 @@ public static class TextFormattingHelper
         var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
+            rtb.Focus();
             EditingCommands.ToggleUnderline.Execute(null, rtb);
             UpdateNoteContent(sender, view);
         }
@@ -252,6 +255,7 @@ public static class TextFormattingHelper
         var rtb = FindNoteContentRichTextBox(sender, view);
         if (rtb != null)
         {
+            rtb.Focus();
             InsertTextAtCaret(rtb, "• ", newLine: true);
             UpdateNoteContent(sender, view);
         }
