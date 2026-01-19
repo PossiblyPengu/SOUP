@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SOUP.Features.OrderLog.Models;
+using SOUP.Features.OrderLog.ViewModels;
 
 namespace SOUP.Features.OrderLog.Services;
 
@@ -24,13 +25,14 @@ public class OrderGroupingService
 
         foreach (var item in srcList)
         {
-            if (item.LinkedGroupId == null)
+            // Treat Guid.Empty as no group (historical/invalid data may have empty GUIDs)
+            var gid = item.LinkedGroupId;
+            if (gid == null || gid == Guid.Empty)
             {
                 groups.Add(new OrderItemGroup(new[] { item }));
             }
             else
             {
-                var gid = item.LinkedGroupId;
                 if (seenGroupIds.Contains(gid)) continue;
                 seenGroupIds.Add(gid);
                 var members = srcList.Where(i => i.LinkedGroupId == gid).ToList();
@@ -90,13 +92,13 @@ public class OrderGroupingService
         foreach (var item in srcList)
         {
             OrderItemGroup group;
-            if (item.LinkedGroupId == null)
+            var gid = item.LinkedGroupId;
+            if (gid == null || gid == Guid.Empty)
             {
                 group = new OrderItemGroup(new[] { item });
             }
             else
             {
-                var gid = item.LinkedGroupId;
                 if (seenGroupIds.Contains(gid)) continue;
                 seenGroupIds.Add(gid);
                 var members = srcList.Where(i => i.LinkedGroupId == gid).ToList();

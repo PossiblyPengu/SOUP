@@ -23,7 +23,10 @@
       "Bash(cmd /c \"dir /s /b %APPDATA%\\\\SOUP 2>nul\")",
       "Bash(cmd /c \"dir /s /b E:\\\\CODE\\\\Cshp\\\\SOUP\\\\src\\\\bin\\\\*.db 2>nul\")",
       "Bash(cmd /c \"echo %APPDATA% && dir %APPDATA%\\\\SOUP /s 2>nul || echo [Folder not found]\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(Select-String -Pattern \"error|warning|succeeded|failed\")",
+      "Bash(dotnet --list-sdks:*)",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" --version)"
     ],
     "deny": [],
     "ask": []

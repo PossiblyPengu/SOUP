@@ -18,70 +18,180 @@
                 <ResourceDictionary Source="/SOUP;component/Themes/DarkTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Status to Color Converter -->
+            <!-- Status Chip Style (matching main widget design) -->
+            <Style x:Key="StatusChipStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="8,3"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="Background" Value="#2A1F1F"/>
+            </Style>
+
+            <!-- Modern Checkbox Style -->
+            <Style x:Key="ModernCheckboxStyle" TargetType="CheckBox">
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="36" Height="20" CornerRadius="10">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border x:Name="Thumb" Width="16" Height="16" CornerRadius="8"
+                                            Background="{DynamicResource TextSecondaryBrush}"
+                                            Margin="2,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=CheckBox}}" Value="True">
+                                                        <Setter Property="Margin" Value="18,0,0,0"/>
+                                                        <Setter Property="Background" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </Border>
+                                <ContentPresenter Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Status to Color Converter - Legacy bar style for preview list -->
             <Style x:Key="StatusIndicatorStyle" TargetType="Border">
-            <Setter Property="Width" Value="4"/>
-            <Setter Property="CornerRadius" Value="2"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.NotReady}">
-                    <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
-                    <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
-                    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
-                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+                <Setter Property="Width" Value="4"/>
+                <Setter Property="CornerRadius" Value="2"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.NotReady}">
+                        <Setter Property="Background" Value="#FF6B6B"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                        <Setter Property="Background" Value="#FFB347"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                        <Setter Property="Background" Value="#4ECDC4"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                        <Setter Property="Background" Value="#71717A"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
 
         <!-- Order Card Template -->
         <DataTemplate x:Key="OrderCardTemplate">
             <Border Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="6"
+                    CornerRadius="10"
                     Margin="4"
-                    Padding="12,8">
+                    Padding="14,12">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Status Color Indicator -->
-                    <Border Grid.Column="0" Style="{StaticResource StatusIndicatorStyle}" Margin="0,0,10,0"/>
-
-                    <!-- Order Info -->
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="{DynamicResource CardFontSize}"/>
-                        <TextBlock Margin="0,2,0,0" FontSize="11" Opacity="0.7">
-                            <Run Text="Vendor:"/>
-                            <Run Text="{Binding VendorName, TargetNullValue='(none)', Mode=OneWay}"/>
-                        </TextBlock>
-                        <TextBlock FontSize="11" Opacity="0.7">
-                            <Run Text="Transfer:"/>
-                            <Run Text="{Binding TransferNumbers, TargetNullValue='(none)', Mode=OneWay}"/>
-                        </TextBlock>
-                        <TextBlock FontSize="11" Opacity="0.7">
-                            <Run Text="Status:"/>
-                            <Run Text="{Binding Status, Mode=OneWay}"/>
-                        </TextBlock>
-                    </StackPanel>
+                    <!-- Status Chip -->
+                    <Border Grid.Row="0" Grid.Column="0" CornerRadius="10" Padding="8,4" HorizontalAlignment="Left" Margin="0,0,0,8">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#2A1F1F"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.NotReady}">
+                                        <Setter Property="Background" Value="#2A1F1F"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                                        <Setter Property="Background" Value="#2A261F"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                        <Setter Property="Background" Value="#1F2A2A"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                                        <Setter Property="Background" Value="#1F1F1F"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontSize="10" Margin="0,0,4,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="○"/>
+                                        <Setter Property="Foreground" Value="#FF6B6B"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                                                <Setter Property="Text" Value="◐"/>
+                                                <Setter Property="Foreground" Value="#FFB347"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                                <Setter Property="Text" Value="●"/>
+                                                <Setter Property="Foreground" Value="#4ECDC4"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                                                <Setter Property="Text" Value="✓"/>
+                                                <Setter Property="Foreground" Value="#71717A"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock FontSize="10" FontWeight="Medium">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Not Ready"/>
+                                        <Setter Property="Foreground" Value="#FF6B6B"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.OnDeck}">
+                                                <Setter Property="Text" Value="On Deck"/>
+                                                <Setter Property="Foreground" Value="#FFB347"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.InProgress}">
+                                                <Setter Property="Text" Value="In Progress"/>
+                                                <Setter Property="Foreground" Value="#4ECDC4"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="{x:Static models:OrderItem+OrderStatus.Done}">
+                                                <Setter Property="Text" Value="Done"/>
+                                                <Setter Property="Foreground" Value="#71717A"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
 
                     <!-- Linked Group Badge -->
-                    <Border Grid.Column="2"
+                    <Border Grid.Row="0" Grid.Column="1"
                             Background="{DynamicResource AccentBrush}"
-                            CornerRadius="4"
-                            Padding="6,3"
-                            Margin="8,0,0,0"
+                            CornerRadius="10"
+                            Padding="8,4"
                             Visibility="{Binding LinkedGroupId, Converter={StaticResource NullToVisibilityConverter}}">
                         <TextBlock Text="🔗 Linked" FontSize="10" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
                     </Border>
+
+                    <!-- Order Info -->
+                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                        <TextBlock Text="{Binding VendorName, TargetNullValue='(No vendor)'}"
+                                   FontWeight="SemiBold" FontSize="13"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+                            <Run Text="Transfer:"/>
+                            <Run Text="{Binding TransferNumbers, TargetNullValue='(none)', Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -215,11 +325,15 @@
                       Checked="FilterChanged"
                       Unchecked="FilterChanged"
                       Foreground="{DynamicResource TextSecondaryBrush}"
-                      Margin="0,0,12,0"/>
-            <TextBlock Text="{Binding ElementName=OrdersList, Path=Items.Count, StringFormat='{}{0} orders'}"
-                       VerticalAlignment="Center"
-                       FontSize="11"
-                       Foreground="{DynamicResource TextTertiaryBrush}"/>
+                      Margin="0,0,16,0"
+                      Style="{StaticResource ModernCheckboxStyle}"/>
+            <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="10,4">
+                <TextBlock Text="{Binding ElementName=OrdersList, Path=Items.Count, StringFormat='{}{0} orders'}"
+                           VerticalAlignment="Center"
+                           FontSize="11"
+                           FontWeight="Medium"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </Border>
         </StackPanel>
 
         <!-- Orders List -->

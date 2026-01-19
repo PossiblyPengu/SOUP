@@ -28,6 +28,7 @@
         <converters:ShowForNotesConverter x:Key="ShowForNotesConverter"/>
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
+        <converters:HexToColorConverter x:Key="HexToColorConverter"/>
         <converters:VendorNameGroupComparerConverter x:Key="VendorNameGroupComparer"/>
         
         <!-- Small Copy Button Style -->
@@ -104,85 +105,179 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Orientation="Vertical">
-                                <Grid>
-                                    <TextBlock Text="Vendor name..." FontSize="{DynamicResource CardFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource TextDisabledBrush}" FontStyle="Italic" IsHitTestVisible="False" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding VendorName}" Value="">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding VendorName}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                    <TextBlock Text="{Binding VendorName}" FontSize="{DynamicResource CardFontSize}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                </Grid>
-                                <TextBlock Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas" Margin="0,6,0,0"/>
-                            </StackPanel>
+                            <!-- Vendor Name Display -->
+                            <Grid Grid.Column="0">
+                                <TextBlock Text="Vendor name..."
+                                           FontSize="{DynamicResource CardFontSize}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextDisabledBrush}"
+                                           FontStyle="Italic"
+                                           IsHitTestVisible="False"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding VendorName}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding VendorName}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         FontSize="{DynamicResource CardFontSize}"
+                                         FontWeight="SemiBold"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         CaretBrush="#00D4FF"
+                                         SelectionBrush="{DynamicResource AccentBrush}"
+                                         Padding="0"
+                                         VerticalAlignment="Center"
+                                         TabIndex="0"
+                                         GotFocus="EditableField_GotFocus"
+                                         LostFocus="EditableField_LostFocus"/>
+                            </Grid>
 
-                            <!-- Quick Archive Button (shows on hover) -->
-                            <Button Grid.Column="1" Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand" Margin="4,0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6"/>
-                                        <Setter Property="Opacity" Value="0"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="📦" FontSize="{DynamicResource CardFontSize}" Opacity="0.7"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
+                            <!-- Status ComboBox -->
+                            <ComboBox Grid.Column="1"
+                                      HorizontalAlignment="Right"
+                                      SelectedValue="{Binding Status, Mode=TwoWay}"
+                                      SelectedValuePath="Tag"
+                                      SelectionChanged="StatusComboBox_SelectionChanged"
+                                      TabIndex="1"
+                                      FontSize="11"
+                                      FontWeight="SemiBold"
+                                      Padding="8,6"
+                                      MinHeight="28"
+                                      MinWidth="120"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"
+                                      Style="{DynamicResource ModernComboBoxStyle}">
+                                <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
+                                <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
+                                <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
+                                <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </ComboBox>
 
-                            <Button Grid.Column="2" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle"/>
+                            <Button Grid.Column="2" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle" IsTabStop="False"/>
                         </Grid>
                     </Border>
 
                     <StackPanel Grid.Row="2" Margin="16,12">
-                        <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                        <!-- Editable Transfer Numbers -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}"
+                                    Click="CopyTransferNumbers_Click" Tag="{Binding TransferNumbers}" IsTabStop="False"/>
+                            <TextBlock Grid.Column="1" Text="Transfer #s..."
+                                       FontSize="{DynamicResource CardFontSize}"
+                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                       FontStyle="Italic"
+                                       IsHitTestVisible="False"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TransferNumbers}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding TransferNumbers}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
+                                     FontSize="{DynamicResource CardFontSize}"
+                                     CaretBrush="#00D4FF"
+                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                     Padding="0"
+                                     TabIndex="2"
+                                     GotFocus="EditableField_GotFocus"
+                                     LostFocus="EditableField_LostFocus"/>
+                        </Grid>
+
+                        <!-- Editable WHS Shipment Numbers -->
+                        <Grid Margin="0,3,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}"
+                                    Click="CopyWhsNumbers_Click" Tag="{Binding WhsShipmentNumbers}" IsTabStop="False"/>
+                            <TextBlock Grid.Column="1" Text="WHS #s..."
+                                       FontSize="{DynamicResource CardFontSize}"
+                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                       FontStyle="Italic"
+                                       IsHitTestVisible="False"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding WhsShipmentNumbers}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding WhsShipmentNumbers}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
+                                     FontSize="{DynamicResource CardFontSize}"
+                                     CaretBrush="#00D4FF"
+                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                     Padding="0"
+                                     TabIndex="3"
+                                     GotFocus="EditableField_GotFocus"
+                                     LostFocus="EditableField_LostFocus"/>
+                        </Grid>
+
+                        <!-- TimeInProgress Display -->
+                        <TextBlock Text="{Binding TimeInProgressDisplay}"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   FontSize="{DynamicResource CardFontSize}"
+                                   FontFamily="Consolas"
+                                   Margin="0,6,0,0"/>
+
+                        <!-- Created timestamp -->
+                        <TextBlock Text="{Binding CreatedAtDisplay}"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource TextDisabledBrush}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,4,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
 
-        <!-- Template for a single Sticky Note card (active) - fluid body-only design -->
+        <!-- Template for a single Sticky Note card - Windows sticky note style -->
         <DataTemplate x:Key="StickyNoteTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+            <Border Margin="6" CornerRadius="8" Padding="12">
+                <Border.Background>
+                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.15"/>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.3"/>
+                </Border.BorderBrush>
+                <Border.BorderThickness>1</Border.BorderThickness>
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}"/>
@@ -194,24 +289,20 @@
 
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="6"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Thin color accent bar -->
-                    <Border Grid.Row="0" CornerRadius="8,8,0,0" Cursor="Hand" MouseLeftButtonDown="ColorBar_Click" Height="6" Margin="-16,-12,-16,0"
-                            Background="{Binding ColorHex, Converter={StaticResource HexToBrushConverter}}"/>
-
-                    <!-- Note content area -->
-                    <Grid Grid.Row="1" Margin="14,12,14,10">
-                        <!-- Placeholder text -->
+                    <!-- Note content -->
+                    <Grid Grid.Row="0">
                         <TextBlock Text="Write your note..."
                                    FontSize="{DynamicResource CardFontSize}"
                                    Foreground="{DynamicResource TextDisabledBrush}"
                                    FontStyle="Italic"
                                    IsHitTestVisible="False"
                                    VerticalAlignment="Top"
-                                   Margin="4,4,0,0">
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,60,0">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -226,68 +317,295 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        
-                        <!-- Editable content -->
-                        <RichTextBox Background="Transparent"
+
+                        <RichTextBox x:Name="NoteRichTextBox"
+                                     Background="Transparent"
                                      BorderThickness="0"
                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                      CaretBrush="#00D4FF"
                                      FontSize="{DynamicResource CardFontSize}"
-                                     Padding="4"
-                                     MinHeight="40"
-                                     MinWidth="200"
-                                     MaxWidth="300"
-                                     HorizontalAlignment="Stretch"
+                                     Padding="0,0,60,24"
+                                     MinHeight="80"
                                      AcceptsReturn="True"
+                                     AcceptsTab="True"
                                      IsDocumentEnabled="True"
                                      VerticalScrollBarVisibility="Auto"
+                                     SpellCheck.IsEnabled="True"
                                      PreviewKeyDown="NoteContent_PreviewKeyDown"
                                      Loaded="NoteContent_Loaded"
                                      LostFocus="NoteContent_LostFocus"
                                      GotFocus="EditableField_GotFocus"
-                                     Cursor="IBeam"/>
-                        
-                        <!-- Floating action buttons (always visible with good contrast) -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0">
-                            <Button Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand">
+                                     Cursor="IBeam">
+                            <RichTextBox.CommandBindings>
+                                <CommandBinding Command="ApplicationCommands.Cut"/>
+                                <CommandBinding Command="ApplicationCommands.Copy"/>
+                                <CommandBinding Command="ApplicationCommands.Paste"/>
+                                <CommandBinding Command="ApplicationCommands.Undo"/>
+                                <CommandBinding Command="ApplicationCommands.Redo"/>
+                                <CommandBinding Command="EditingCommands.ToggleBold"/>
+                                <CommandBinding Command="EditingCommands.ToggleItalic"/>
+                                <CommandBinding Command="EditingCommands.ToggleUnderline"/>
+                                <CommandBinding Command="EditingCommands.IncreaseFontSize"/>
+                                <CommandBinding Command="EditingCommands.DecreaseFontSize"/>
+                                <CommandBinding Command="EditingCommands.ToggleBullets"/>
+                            </RichTextBox.CommandBindings>
+                            <RichTextBox.InputBindings>
+                                <KeyBinding Key="B" Modifiers="Control" Command="EditingCommands.ToggleBold"/>
+                                <KeyBinding Key="I" Modifiers="Control" Command="EditingCommands.ToggleItalic"/>
+                                <KeyBinding Key="U" Modifiers="Control" Command="EditingCommands.ToggleUnderline"/>
+                                <KeyBinding Key="Z" Modifiers="Control" Command="ApplicationCommands.Undo"/>
+                                <KeyBinding Key="Y" Modifiers="Control" Command="ApplicationCommands.Redo"/>
+                            </RichTextBox.InputBindings>
+                        </RichTextBox>
+                    </Grid>
+
+                    <!-- Formatting toolbar -->
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource SurfaceBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="0,6,0,0"
+                            Margin="-12,6,-12,-12">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <!-- Bold -->
+                            <Button Command="EditingCommands.ToggleBold"
+                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                    ToolTip="Bold (Ctrl+B)"
+                                    Margin="2,0">
                                 <Button.Style>
                                     <Style TargetType="Button">
-                                        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                        <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6"/>
-                                        <Setter Property="Opacity" Value="0.7"/>
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="✓" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="4"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="B" FontWeight="Bold" FontSize="11"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
                                         </Setter>
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="1"/>
-                                                <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <Button Tag="DragHandle" Margin="4,0,0,0">
+
+                            <!-- Italic -->
+                            <Button Command="EditingCommands.ToggleItalic"
+                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                    ToolTip="Italic (Ctrl+I)"
+                                    Margin="2,0">
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource WidgetDragHandleStyle}">
-                                        <Setter Property="Opacity" Value="0.5"/>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="4"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="I" FontStyle="Italic" FontSize="11"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="1"/>
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- Underline -->
+                            <Button Command="EditingCommands.ToggleUnderline"
+                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                    ToolTip="Underline (Ctrl+U)"
+                                    Margin="2,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="4"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="U" TextDecorations="Underline" FontSize="11"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- Separator -->
+                            <Border Width="1" Height="16" Background="{DynamicResource BorderBrush}" Margin="4,0"/>
+
+                            <!-- Bullet List -->
+                            <Button Command="EditingCommands.ToggleBullets"
+                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                    ToolTip="Bullet List"
+                                    Margin="2,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="4"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="•" FontSize="14"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- Separator -->
+                            <Border Width="1" Height="16" Background="{DynamicResource BorderBrush}" Margin="4,0"/>
+
+                            <!-- Font Size Decrease -->
+                            <Button Command="EditingCommands.DecreaseFontSize"
+                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                    ToolTip="Decrease Font Size"
+                                    Margin="2,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="4"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="A−" FontSize="10"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- Font Size Increase -->
+                            <Button Command="EditingCommands.IncreaseFontSize"
+                                    CommandTarget="{Binding ElementName=NoteRichTextBox}"
+                                    ToolTip="Increase Font Size"
+                                    Margin="2,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6,4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="4"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="A+" FontSize="12"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                             </Button>
                         </StackPanel>
-                    </Grid>
+                    </Border>
+
+                    <!-- Floating action buttons (top right) -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0">
+                        <Button Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand" Margin="0,0,2,0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                                                    <TextBlock Text="✓" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Tag="DragHandle" Opacity="0.5">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource WidgetDragHandleStyle}">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -853,32 +1171,31 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Tab Bar + Add Buttons -->
+        <!-- Integrated Toolbar -->
         <Border Grid.Row="0"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,0,0,1"
-                Padding="16,14,16,14">
+                BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
-                <!-- Modern Segmented Tabs (only show when ShowArchived is true) -->
-                <Border Style="{StaticResource WidgetTabContainerStyle}" Margin="0,0,0,14"
+
+                <!-- Row 1: Tabs (only show when ShowArchived is true) -->
+                <Border Grid.Row="0" Style="{StaticResource WidgetTabContainerStyle}" Margin="16,14,16,0"
                         Visibility="{Binding ShowArchived, Converter={StaticResource BoolToVis}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        
+
                         <Button x:Name="ActiveTabButton"
                                 Content="Active"
                                 Click="ActiveTab_Click"
                                 Style="{StaticResource WidgetTabButtonActiveStyle}"/>
-                        
+
                         <Button x:Name="ArchivedTabButton"
                                 Grid.Column="1"
                                 Content="📦 Archived"
@@ -886,86 +1203,78 @@
                                 Style="{StaticResource WidgetTabButtonStyle}"/>
                     </Grid>
                 </Border>
-                
-                <!-- Add Buttons (only show on Active tab) -->
-                    <Grid Grid.Row="1" x:Name="AddButtonsPanel">
+
+                <!-- Row 2: Action Bar (only show on Active tab) -->
+                <Grid Grid.Row="1" x:Name="AddButtonsPanel" Margin="16,14,16,14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="12" x:Name="ButtonSpacerColumn"/>
+                        <ColumnDefinition Width="8"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    
-                    <!-- Add Order button - hidden in Notes Only Mode -->
-                    <Button Click="AddBlankOrder_Click"
+
+                    <!-- Add Order button -->
+                    <Button Click="AddBlankOrder_Click" Grid.Column="0"
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
-                            Style="{StaticResource WidgetPrimaryActionButtonStyle}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0"/>
-                            <TextBlock Text="Add Order"/>
-                        </StackPanel>
-                    </Button>
-                    
-                    <!-- Sort toggle button: click to enable/switch direction -->
-                        <Button Grid.Column="3" Click="SortToggle_Click" ToolTip="Sort by status (click to toggle direction)" Width="34" Height="34" Margin="8,0,0,0">
+                            Height="36" Padding="12,8"
+                            Background="{DynamicResource SurfaceHoverBrush}"
+                            BorderThickness="0" Cursor="Hand">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-                                <Setter Property="BorderThickness" Value="1"/>
-                                <Setter Property="Padding" Value="4"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="8"
+                                                    Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
                             </Style>
                         </Button.Style>
-                        <Grid>
-                            <TextBlock x:Name="SortSymbol" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">⇅
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="⇅"/>
-                                        <Style.Triggers>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding SortByStatus}" Value="True"/>
-                                                    <Condition Binding="{Binding SortStatusDescending}" Value="False"/>
-                                                </MultiDataTrigger.Conditions>
-                                                <Setter Property="Text" Value="↑"/>
-                                            </MultiDataTrigger>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding SortByStatus}" Value="True"/>
-                                                    <Condition Binding="{Binding SortStatusDescending}" Value="True"/>
-                                                </MultiDataTrigger.Conditions>
-                                                <Setter Property="Text" Value="↓"/>
-                                            </MultiDataTrigger>
-                                            <DataTrigger Binding="{Binding SortByStatus}" Value="False">
-                                                <Setter Property="Text" Value="⇅"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Grid>
-                        <Button.Triggers>
-                            <EventTrigger RoutedEvent="Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard/>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Button.Triggers>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Order" FontSize="13" FontWeight="Medium"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
                     </Button>
-                    
-                    <!-- Add Note button - spans full width in Notes Only Mode -->
-                    <Button Click="AddBlankNote_Click" Grid.Column="2">
+
+                    <!-- Add Note button -->
+                    <Button Click="AddBlankNote_Click" Grid.Column="2"
+                            Height="36" Padding="12,8"
+                            Background="{DynamicResource SurfaceHoverBrush}"
+                            BorderThickness="0" Cursor="Hand">
                         <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource WidgetSecondaryActionButtonStyle}">
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="8"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding NotesOnlyMode}" Value="True">
                                         <Setter Property="Grid.Column" Value="0"/>
@@ -975,9 +1284,29 @@
                             </Style>
                         </Button.Style>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📝" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
-                            <TextBlock Text="Add Note"/>
+                            <TextBlock Text="📝" FontSize="13" Margin="0,0,6,0"/>
+                            <TextBlock Text="Note" FontSize="13" FontWeight="Medium"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
+                    </Button>
+
+                    <!-- Sort direction toggle button -->
+                    <Button Grid.Column="4" Click="SortToggle_Click" ToolTip="Toggle sort direction"
+                            Width="36" Height="36"
+                            Style="{StaticResource WidgetIconButtonStyle}">
+                        <TextBlock x:Name="SortSymbol" FontSize="16" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="↑"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SortStatusDescending}" Value="True">
+                                            <Setter Property="Text" Value="↓"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Button>
                 </Grid>
             </Grid>
@@ -990,9 +1319,96 @@
                     <!-- Active Notes Panel -->
                     <StackPanel x:Name="ActiveItemsPanel">
 
-                    <!-- Flat List View (visible when SortByStatus is False) -->
+                    <!-- Notes Section (collapsible) -->
+                    <Expander IsExpanded="True" Margin="0,0,0,8">
+                        <Expander.Style>
+                            <Style TargetType="Expander">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Expander">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <DockPanel>
+                                                    <ToggleButton DockPanel.Dock="Top" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                  Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border Background="#2A261F" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <Border Width="3" CornerRadius="1.5" Background="#FFB347" Margin="0,0,10,0"/>
+                                                                        <TextBlock Grid.Column="1" Text="Notes" FontSize="13" FontWeight="SemiBold" Foreground="#FFB347" VerticalAlignment="Center"/>
+                                                                        <TextBlock Grid.Column="2" Text="{Binding DataContext.StickyNotes.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                                        <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="9" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                    </Grid>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsChecked" Value="False">
+                                                                        <Setter TargetName="Arrow" Property="Text" Value="▶"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+                                                    <ContentPresenter x:Name="ExpanderContent" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
+                                                </DockPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsExpanded" Value="True">
+                                                    <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Expander.Style>
+                        <!-- Notes content (sticky notes only) -->
+                        <Grid>
+                            <ItemsControl ItemsSource="{Binding StickyNotes}" Margin="0,0,0,8">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource StickyNoteTemplate}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Empty state -->
+                            <TextBlock Text="No notes yet. Click 'Add Note' to create one."
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                       FontStyle="Italic"
+                                       Margin="12,8"
+                                       HorizontalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding StickyNotes.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Expander>
+
+                    <!-- Flat List View (hidden - status headers always visible) -->
                     <ListBox x:Name="ActiveItemsListBox" ItemsSource="{Binding DisplayItems}" BorderThickness="0" Background="Transparent"
-                             Visibility="{Binding SortByStatus, Converter={StaticResource InverseBoolToVis}}"
+                             Visibility="Collapsed"
                              VirtualizingStackPanel.IsVirtualizing="False"
                              VirtualizingStackPanel.VirtualizationMode="Standard"
                              ScrollViewer.CanContentScroll="False">
@@ -1414,8 +1830,8 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                    <!-- Grouped Status View (visible when SortByStatus is True) -->
-                    <StackPanel x:Name="GroupedStatusPanel" Visibility="{Binding SortByStatus, Converter={StaticResource BoolToVis}}">
+                    <!-- Grouped Status View (always visible) -->
+                    <StackPanel x:Name="GroupedStatusPanel" Visibility="Visible">
 
                         <!-- In Progress Section -->
                         <Expander IsExpanded="{Binding InProgressGroupExpanded, Mode=TwoWay}" Margin="0,0,0,8">
@@ -1432,7 +1848,7 @@
                                                                       Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
                                                             <ToggleButton.Template>
                                                                 <ControlTemplate TargetType="ToggleButton">
-                                                                    <Border Background="{StaticResource WidgetStatusInProgressBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
+                                                                    <Border Background="{DynamicResource WidgetStatusInProgressBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
                                                                         <Grid>
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="Auto"/>
@@ -1440,9 +1856,9 @@
                                                                                 <ColumnDefinition Width="Auto"/>
                                                                                 <ColumnDefinition Width="Auto"/>
                                                                             </Grid.ColumnDefinitions>
-                                                                            <Border Width="4" CornerRadius="2" Background="{StaticResource WidgetStatusInProgressBrush}" Margin="0,0,12,0"/>
-                                                                            <TextBlock Grid.Column="1" Text="In Progress" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource WidgetStatusInProgressBrush}" VerticalAlignment="Center"/>
-                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.InProgressItems.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            <Border Width="4" CornerRadius="2" Background="{DynamicResource WidgetStatusInProgressBrush}" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="1" Text="In Progress" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource WidgetStatusInProgressBrush}" VerticalAlignment="Center"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.InProgressCount, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                                        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                                                             <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
                                                                                 <TextBlock.RenderTransform>
@@ -1475,7 +1891,20 @@
                             <ItemsControl ItemsSource="{Binding InProgressItems}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupMergedTemplate}" Margin="0,0,0,8"/>
+                                        <ContentControl Margin="0,0,0,8">
+                                            <ContentControl.Style>
+                                                <Style TargetType="ContentControl">
+                                                    <Setter Property="Content" Value="{Binding}"/>
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Count}" Value="1">
+                                                            <Setter Property="Content" Value="{Binding First}"/>
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource OrderItemTemplate}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ContentControl.Style>
+                                        </ContentControl>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -1496,7 +1925,7 @@
                                                                       Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
                                                             <ToggleButton.Template>
                                                                 <ControlTemplate TargetType="ToggleButton">
-                                                                    <Border Background="{StaticResource WidgetStatusOnDeckBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
+                                                                    <Border Background="{DynamicResource WidgetStatusOnDeckBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
                                                                         <Grid>
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="Auto"/>
@@ -1504,9 +1933,9 @@
                                                                                 <ColumnDefinition Width="Auto"/>
                                                                                 <ColumnDefinition Width="Auto"/>
                                                                             </Grid.ColumnDefinitions>
-                                                                            <Border Width="4" CornerRadius="2" Background="{StaticResource WidgetStatusOnDeckBrush}" Margin="0,0,12,0"/>
-                                                                            <TextBlock Grid.Column="1" Text="On Deck" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource WidgetStatusOnDeckBrush}" VerticalAlignment="Center"/>
-                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.OnDeckItems.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            <Border Width="4" CornerRadius="2" Background="{DynamicResource WidgetStatusOnDeckBrush}" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="1" Text="On Deck" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource WidgetStatusOnDeckBrush}" VerticalAlignment="Center"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.OnDeckCount, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                                        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                                                             <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
                                                                                 <TextBlock.RenderTransform>
@@ -1539,7 +1968,20 @@
                             <ItemsControl ItemsSource="{Binding OnDeckItems}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupMergedTemplate}" Margin="0,0,0,8"/>
+                                        <ContentControl Margin="0,0,0,8">
+                                            <ContentControl.Style>
+                                                <Style TargetType="ContentControl">
+                                                    <Setter Property="Content" Value="{Binding}"/>
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Count}" Value="1">
+                                                            <Setter Property="Content" Value="{Binding First}"/>
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource OrderItemTemplate}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ContentControl.Style>
+                                        </ContentControl>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -1560,7 +2002,7 @@
                                                                       Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
                                                             <ToggleButton.Template>
                                                                 <ControlTemplate TargetType="ToggleButton">
-                                                                    <Border Background="{StaticResource WidgetStatusNotReadyBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
+                                                                    <Border Background="{DynamicResource WidgetStatusNotReadyBgBrush}" CornerRadius="8" Padding="14,10" Margin="6,0">
                                                                         <Grid>
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="Auto"/>
@@ -1568,9 +2010,9 @@
                                                                                 <ColumnDefinition Width="Auto"/>
                                                                                 <ColumnDefinition Width="Auto"/>
                                                                             </Grid.ColumnDefinitions>
-                                                                            <Border Width="4" CornerRadius="2" Background="{StaticResource WidgetStatusNotReadyBrush}" Margin="0,0,12,0"/>
-                                                                            <TextBlock Grid.Column="1" Text="Not Ready" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource WidgetStatusNotReadyBrush}" VerticalAlignment="Center"/>
-                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.NotReadyItems.Count, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            <Border Width="4" CornerRadius="2" Background="{DynamicResource WidgetStatusNotReadyBrush}" Margin="0,0,12,0"/>
+                                                                            <TextBlock Grid.Column="1" Text="Not Ready" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource WidgetStatusNotReadyBrush}" VerticalAlignment="Center"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding DataContext.NotReadyCount, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                                        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                                                             <TextBlock Grid.Column="3" x:Name="Arrow" Text="▼" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
                                                                                 <TextBlock.RenderTransform>
@@ -1603,32 +2045,24 @@
                             <ItemsControl ItemsSource="{Binding NotReadyItems}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource OrderItemGroupMergedTemplate}" Margin="0,0,0,8"/>
+                                        <ContentControl Margin="0,0,0,8">
+                                            <ContentControl.Style>
+                                                <Style TargetType="ContentControl">
+                                                    <Setter Property="Content" Value="{Binding}"/>
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Count}" Value="1">
+                                                            <Setter Property="Content" Value="{Binding First}"/>
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource OrderItemTemplate}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ContentControl.Style>
+                                        </ContentControl>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </Expander>
-
-                        <!-- Sticky Notes (always shown at bottom in grouped view) -->
-                        <ItemsControl ItemsSource="{Binding DisplayItems}" Margin="0,8,0,0">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <ContentControl Content="{Binding}">
-                                        <ContentControl.Style>
-                                            <Style TargetType="ContentControl">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding First.IsStickyNote}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Setter Property="ContentTemplate" Value="{StaticResource OrderItemGroupMergedTemplate}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </ContentControl.Style>
-                                    </ContentControl>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
                     </StackPanel>
                 </StackPanel>
 

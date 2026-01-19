@@ -9,7 +9,7 @@ public class OrderLogWidgetSettings
     public string DefaultOrderColor { get; set; } = "#B56576";
     public string DefaultNoteColor { get; set; } = "#FFD700";
     public bool NotesOnlyMode { get; set; } = false;
-    public bool SortByStatus { get; set; } = false;
+    public bool SortByStatus { get; set; } = true; // Always true - status headers always visible
     public bool SortStatusDescending { get; set; } = false;
 
     // Status group expand/collapse state

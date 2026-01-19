@@ -242,6 +242,7 @@ public partial class OrderLogWidgetView : UserControl
         if (DataContext is OrderLogViewModel viewModel)
         {
             viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            viewModel.ItemAdded += ViewModel_ItemAdded;
         }
     }
 
@@ -251,6 +252,12 @@ public partial class OrderLogWidgetView : UserControl
         {
             Dispatcher.Invoke(() => UpdateNowPlayingUI());
         }
+    }
+
+    private async void ViewModel_ItemAdded(OrderItem item)
+    {
+        // Autofocus the newly added item
+        await ScrollToAndFocusNewItemAsync(item);
     }
 
     private async void InitializeSpotifyAndWireUpAsync()
@@ -346,16 +353,8 @@ public partial class OrderLogWidgetView : UserControl
     {
         if (DataContext is not OrderLogViewModel vm) return;
 
-        // If sorting is not enabled, enable ascending sort; otherwise toggle direction
-        if (!vm.SortByStatus)
-        {
-            vm.SortByStatus = true;
-            vm.SortStatusDescending = false;
-        }
-        else
-        {
-            vm.SortStatusDescending = !vm.SortStatusDescending;
-        }
+        // Toggle sort direction (status headers always visible)
+        vm.SortStatusDescending = !vm.SortStatusDescending;
     }
 
     /// <summary>
@@ -415,6 +414,7 @@ public partial class OrderLogWidgetView : UserControl
         if (DataContext is OrderLogViewModel viewModel)
         {
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            viewModel.ItemAdded -= ViewModel_ItemAdded;
         }
 
         // Clean up drag behavior subscriptions
@@ -903,18 +903,14 @@ public partial class OrderLogWidgetView : UserControl
     {
         var order = OrderItem.CreateBlankOrder(vendorName: string.Empty, isPlaceholder: true);
         await vm.AddOrderAsync(order);
-
-        // Scroll to and focus the new item
-        await ScrollToAndFocusNewItemAsync(order);
+        // Autofocus is handled by ItemAdded event
     }
 
     private async Task AddBlankNoteAsync(OrderLogViewModel vm)
     {
         var note = OrderItem.CreateBlankNote();
         await vm.AddOrderAsync(note);
-
-        // Scroll to and focus the new item
-        await ScrollToAndFocusNewItemAsync(note);
+        // Autofocus is handled by ItemAdded event
     }
 
     private async Task ScrollToAndFocusNewItemAsync(OrderItem item)

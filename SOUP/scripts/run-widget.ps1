@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Setup local .NET SDK environment
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
+$localSDKPath = "D:\CODE\important files\dotnet-sdk-10.0.101-win-x64"
 if (Test-Path $localSDKPath) {
     $env:DOTNET_ROOT = $localSDKPath
     $env:PATH = "$localSDKPath;$env:PATH"

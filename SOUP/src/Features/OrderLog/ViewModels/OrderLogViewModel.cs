@@ -47,6 +47,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> Items { get; } = new();
     public ObservableCollection<OrderItem> ArchivedItems { get; } = new();
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
+    public ObservableCollection<OrderItem> StickyNotes { get; } = new(); // Dedicated sticky notes collection
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
 
@@ -135,6 +136,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private string _stickyNoteColorHex = OrderLogColors.DefaultNote; // Yellow default for sticky notes
 
     public event Action? GroupStatesReset;
+    public event Action<OrderItem>? ItemAdded;
 
     public OrderLogViewModel(
         IOrderLogService orderLogService,
@@ -181,7 +183,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private string _defaultNoteColor = OrderLogColors.DefaultNote;
 
     [ObservableProperty]
-    private bool _sortByStatus = false;
+    private bool _sortByStatus = true; // Always true - status headers always visible
 
     [ObservableProperty]
     private bool _sortStatusDescending = false;
@@ -200,6 +202,16 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItemGroup> NotReadyItems { get; } = new();
     public ObservableCollection<OrderItemGroup> OnDeckItems { get; } = new();
     public ObservableCollection<OrderItemGroup> InProgressItems { get; } = new();
+
+    // Count properties for status groups (ObservableCollection.Count doesn't raise PropertyChanged)
+    [ObservableProperty]
+    private int _notReadyCount;
+
+    [ObservableProperty]
+    private int _onDeckCount;
+
+    [ObservableProperty]
+    private int _inProgressCount;
 
     partial void OnCardFontSizeChanged(double value)
     {
@@ -896,6 +908,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
         await SaveAsync();
         StatusMessage = "Order added";
+        ItemAdded?.Invoke(order);
     }
 
     public async Task<bool> AddOrderInlineAsync()
@@ -926,6 +939,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _newNoteColorHex = DefaultOrderColor;
 
         StatusMessage = "Order added";
+        ItemAdded?.Invoke(order);
         return true;
     }
 
@@ -959,6 +973,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _stickyNoteColorHex = DefaultNoteColor;
 
         StatusMessage = "Sticky note added";
+        ItemAdded?.Invoke(note);
         return true;
     }
 
@@ -981,6 +996,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
         await SaveAsync();
         StatusMessage = "Quick note added";
+        ItemAdded?.Invoke(note);
     }
 
     public void SetStickyNoteColor(string colorHex)
@@ -1260,6 +1276,20 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         RefreshDisplayCollection(Items, DisplayItems);
         RefreshStatusGroups();
+        RefreshStickyNotes();
+    }
+
+    /// <summary>
+    /// Refresh the sticky notes collection (separate from orders).
+    /// </summary>
+    private void RefreshStickyNotes()
+    {
+        StickyNotes.Clear();
+        var notes = Items.Where(i => i.IsStickyNote).OrderBy(i => i.CreatedAt);
+        foreach (var note in notes)
+        {
+            StickyNotes.Add(note);
+        }
     }
 
     /// <summary>
@@ -1269,6 +1299,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         // Delegate status-group population to the grouping service
         _groupingService.PopulateStatusGroups(Items, NotReadyItems, OnDeckItems, InProgressItems);
+
+        // Update count properties (ObservableCollection.Count doesn't raise PropertyChanged)
+        NotReadyCount = NotReadyItems.Count;
+        OnDeckCount = OnDeckItems.Count;
+        InProgressCount = InProgressItems.Count;
     }
 
     /// <summary>
@@ -1292,6 +1327,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             display.Add(g);
         }
+
+        // Log grouping details for diagnostics
+        try
+        {
+            var details = string.Join(',', built.Select(g => $"{(g.LinkedGroupId?.ToString() ?? "(null)")}:{g.Count}"));
+            _logger?.LogInformation("OrderLog grouping built {GroupCount} groups: {Details}", built.Count, details);
+        }
+        catch { }
 
         UpdateDisplayCounts();
     }

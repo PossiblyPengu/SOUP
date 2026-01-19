@@ -13,28 +13,60 @@
         ShowInTaskbar="False">
 
     <Window.Resources>
+        <!-- Color Swatch Button Style -->
         <Style x:Key="ColorSwatchStyle" TargetType="Button">
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" 
+                        <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="6"
+                                CornerRadius="8"
                                 BorderThickness="2"
-                                BorderBrush="Transparent">
-                            <Border.Effect>
-                                <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.2"/>
-                            </Border.Effect>
-                        </Border>
+                                BorderBrush="Transparent"/>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Slider Style for RGB -->
+        <Style x:Key="ColorSliderStyle" TargetType="Slider">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid>
+                            <Border Height="4" CornerRadius="2" Background="{DynamicResource SurfaceHoverBrush}" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Opacity="0"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Opacity="0"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Width="16" Height="16" Fill="{DynamicResource AccentBrush}" Cursor="Hand">
+                                                    <Ellipse.Effect>
+                                                        <DropShadowEffect ShadowDepth="1" BlurRadius="4" Opacity="0.3"/>
+                                                    </Ellipse.Effect>
+                                                </Ellipse>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -184,19 +216,37 @@
 
                         <StackPanel Orientation="Vertical">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="R" Width="18" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                <Slider x:Name="RSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged" Width="220"/>
-                                <TextBlock x:Name="RValue" Width="36" TextAlignment="Right" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="R" Width="20" VerticalAlignment="Center" FontWeight="Medium"
+                                           Foreground="#FF6B6B"/>
+                                <Slider x:Name="RSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged"
+                                        Width="200" Style="{StaticResource ColorSliderStyle}"/>
+                                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4"
+                                        Padding="8,4" Margin="8,0,0,0" MinWidth="40">
+                                    <TextBlock x:Name="RValue" TextAlignment="Center" FontFamily="Consolas"
+                                               FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Border>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="G" Width="18" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                <Slider x:Name="GSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged" Width="220"/>
-                                <TextBlock x:Name="GValue" Width="36" TextAlignment="Right" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,8,0,0">
+                                <TextBlock Text="G" Width="20" VerticalAlignment="Center" FontWeight="Medium"
+                                           Foreground="#4ECDC4"/>
+                                <Slider x:Name="GSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged"
+                                        Width="200" Style="{StaticResource ColorSliderStyle}"/>
+                                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4"
+                                        Padding="8,4" Margin="8,0,0,0" MinWidth="40">
+                                    <TextBlock x:Name="GValue" TextAlignment="Center" FontFamily="Consolas"
+                                               FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Border>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="B" Width="18" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                <Slider x:Name="BSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged" Width="220"/>
-                                <TextBlock x:Name="BValue" Width="36" TextAlignment="Right" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,8,0,0">
+                                <TextBlock Text="B" Width="20" VerticalAlignment="Center" FontWeight="Medium"
+                                           Foreground="#5B9BD5"/>
+                                <Slider x:Name="BSlider" Minimum="0" Maximum="255" ValueChanged="Slider_ValueChanged"
+                                        Width="200" Style="{StaticResource ColorSliderStyle}"/>
+                                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4"
+                                        Padding="8,4" Margin="8,0,0,0" MinWidth="40">
+                                    <TextBlock x:Name="BValue" TextAlignment="Center" FontFamily="Consolas"
+                                               FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>

@@ -16,6 +16,13 @@ public class OrderItemGroup
 
     public Guid? LinkedGroupId => First?.LinkedGroupId;
 
+    /// <summary>
+    /// Determines whether this group should use the merged/linked UI.
+    /// Only true when a LinkedGroupId exists and there is more than one member.
+    /// This avoids rendering the merged template for single items with empty/null IDs.
+    /// </summary>
+    public bool ShouldRenderMerged => LinkedGroupId != null && Count > 1;
+
     public OrderItemGroup() { }
 
     public OrderItemGroup(IEnumerable<OrderItem> items)
