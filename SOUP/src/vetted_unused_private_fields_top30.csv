@@ -1,0 +1,31 @@
+Field,Declaration,Matches,Recommendation
+_adornerLayer,src/Behaviors/ListBoxDragDropBehavior.cs:32,9,Keep - used in behavior
+_albumArt,src/Services/SpotifyService.cs:39,3,Keep - used by `SpotifyService`
+_allItems,src/ViewModels/DictionaryManagementViewModel.cs:33,21,Keep - used internally
+_allocationBuddyHandler,src/ViewModels/UnifiedSettingsViewModel.cs:36,5,Keep - subscribed handler
+_allStores,src/ViewModels/DictionaryManagementViewModel.cs:34,21,Keep - used internally
+_analytics,src/ViewModels/ExpireWiseViewModel.cs:206,1,Candidate - 1 reference (likely unused). Manual verify before removal
+_appBarCallbackId,src/Windows/OrderLogWidgetWindow.xaml.cs:32,4,Keep - used for window messages
+_applicationHandler,src/ViewModels/UnifiedSettingsViewModel.cs:35,4,Keep - subscribed handler
+_appName,src/ViewModels/AllocationBuddySettingsViewModel.cs:19,12,Keep - settings key
+_artistName,src/Services/SpotifyService.cs:36,4,Keep - used by `SpotifyService`
+_artRetryCts,src/Services/SpotifyService.cs:44,10,Keep - cancellation token source used
+_autoLoadLastSession,src/ViewModels/AllocationBuddySettingsViewModel.cs:40,3,Keep - settings field (multiple modules)
+_autoRefreshIntervalMinutes,src/ViewModels/ExpireWiseSettingsViewModel.cs:31,2,Keep - settings field (multiple modules)
+_autoSaveIntervalMinutes,src/ViewModels/AllocationBuddySettingsViewModel.cs:31,1,Candidate - 1 reference. Manual verify
+_availableMonths,src/ViewModels/ExpireWiseViewModel.cs:71,1,Candidate - 1 reference. Manual verify
+_availableStores,src/ViewModels/ExpirationItemDialogViewModel.cs:36,1,Candidate - 1 reference. Manual verify
+_availableUpdate,src/Windows/OrderLogWidgetWindow.xaml.cs:40,7,Keep - update info used in UI
+_averageShelfLife,src/ViewModels/ExpireWiseAnalyticsViewModel.cs:43,1,Candidate - 1 reference. Manual verify
+_bcService,src/ViewModels/ExternalDataViewModel.cs:17,9,Keep - service dependency
+_bcTestResult,src/ViewModels/ExternalDataViewModel.cs:37,1,Candidate - 1 reference. Manual verify
+_bcTestSuccess,src/ViewModels/ExternalDataViewModel.cs:43,1,Candidate - 1 reference. Manual verify
+_binCode,src/ViewModels/InventoryItemDialogViewModel.cs:27,1,Candidate - 1 reference. Manual verify
+_canAddSkuToItem,src/ViewModels/ExpirationItemDialogViewModel.cs:488,1,Candidate - 1 reference. Manual verify
+_category,src/ViewModels/InventoryItemDialogViewModel.cs:39,1,Candidate - 1 reference. Manual verify
+_clipboardFormat,src/ViewModels/AllocationBuddySettingsViewModel.cs:46,6,Keep - used for copy/export logic
+_closeToTray,src/ViewModels/ApplicationSettingsViewModel.cs:62,1,Candidate - 1 reference. Manual verify
+_completedHandler,src/ViewModels/DictionaryManagementViewModel.cs:30,5,Keep - sync completion handler
+_config,src/ViewModels/ExternalDataViewModel.cs:22,2,Keep - loaded config
+_confirmBeforeExit,src/ViewModels/ApplicationSettingsViewModel.cs:67,1,Candidate - 1 reference. Manual verify
+_connectionString,src/Data/DictionaryDbContext.cs:19,14,Keep - DB connection string

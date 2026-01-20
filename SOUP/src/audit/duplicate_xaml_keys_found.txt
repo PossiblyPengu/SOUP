@@ -1,0 +1,11 @@
+Duplicate XAML keys discovered (quick scan)
+
+Observed duplicates / collisions worth review:
+- `CardStyle` defined in: src/Themes/ModernStyles.xaml (global) and also used/defined locally in some views.
+- `WidgetElevatedCardStyle` defined in: src/Themes/BasicTheme.xaml and similar keys found in feature themes (order log widget renamed to `OrderLogWidgetElevatedCardStyle`).
+
+Notes:
+- Many views define view-local styles with common names (e.g., `PrimaryButton`, `SectionHeader`, `ModernCard`). This is intended but can cause confusion when merged into global resource dictionaries.
+- Recommendation: centralize widely-used styles in `Themes/ModernStyles.xaml` or rename view-local keys with a prefix (e.g., `OrderLog_`, `SwiftLabel_`) when they are intended to be local.
+
+This file was generated from a repo-wide `x:Key` scan (200+ matches). For a full authoritative list, see `src/unused_private_fields_candidates.txt` and run the provided scripts under `scripts/` to produce a deduplicated CSV.

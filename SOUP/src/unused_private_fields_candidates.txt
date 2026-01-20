@@ -1,0 +1,256 @@
+﻿_adornerLayer -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:32
+_albumArt -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:39
+_allItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:33
+_allocationBuddyHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:36
+_allStores -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:34
+_analytics -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:206
+_appBarCallbackId -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:32
+_applicationHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:35
+_appName -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:19, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:13, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:16
+_artistName -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:36
+_artRetryCts -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:44
+_autoLoadLastSession -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:40, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:40, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:40
+_autoRefreshIntervalMinutes -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:31, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:31
+_autoSaveIntervalMinutes -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:31
+_availableMonths -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:71
+_availableStores -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:36
+_availableUpdate -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:47, D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:40
+_averageShelfLife -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:43
+_bcService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:17
+_bcTestResult -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:37
+_bcTestSuccess -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:43
+_binCode -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:27
+_canAddSkuToItem -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:488
+_category -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:39
+_clipboardFormat -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:56, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:46
+_closeToTray -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:62
+_completedHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:30
+_config -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:22
+_confirmBeforeExit -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:67
+_connectionString -> declarations: D:/CODE/Cshp/SOUP/src/Data/DictionaryDbContext.cs:19
+_criticalCount -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:155
+_criticalItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:34
+_criticalThresholdDays -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:22
+_currentEdge -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:30
+_currentModuleName -> declarations: D:/CODE/Cshp/SOUP/src/Services/NavigationService.cs:32
+_currentMonth -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:109
+_currentMonthDisplay -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:115
+_currentPage -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:124
+_currentPreviewIndex -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:27
+_currentSession -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:47
+_currentVersion -> declarations: D:/CODE/Cshp/SOUP/src/Services/UpdateService.cs:18
+_currentView -> declarations: D:/CODE/Cshp/SOUP/src/Services/NavigationService.cs:26
+_customDictionaryItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:58
+_dateDisplayFormat -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:46
+_defaultEssentialsOnly -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:46
+_defaultExportPath -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:25, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:28, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:28
+_defaultImportPath -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:22, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:25, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:25
+_defaultModule -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:32
+_defaultStatusFilter -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:43, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:43
+_defaultUnits -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:39
+_description -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:2130, D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:479, D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:24
+_dialogService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:48, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:46, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:46
+_dialogTitle -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:82, D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:45
+_dictionaryFilePath -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:28
+_dictionaryHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:39
+_dictSuggestions -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:103
+_disposed -> declarations: D:/CODE/Cshp/SOUP/src/Data/DictionaryDbContext.cs:20, D:/CODE/Cshp/SOUP/src/Services/TrayIconService.cs:19, D:/CODE/Cshp/SOUP/src/Services/UpdateService.cs:19, D:/CODE/Cshp/SOUP/src/Services/WidgetProcessService.cs:20, D:/CODE/Cshp/SOUP/src/Services/WidgetThreadService.cs:24, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:76, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:26, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:1034, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:1128, D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:22, D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:29, D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:32
+_dockedWidth -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:36
+_draggedIndex -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:25
+_draggedItem -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:24
+_draggedListBoxItem -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:28
+_dragOffset -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:35
+_dragStartIndex -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:26
+_edgeBeforeMinimize -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:31
+_essentialsBuddyHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:37
+_essentialsOnly -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:90
+_expiredCount -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:161
+_expiredItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:31
+_expireWiseHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:38
+_expiryMonth -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:42
+_expiryYear -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:45
+_externalConfig -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:25
+_fadeInAnimation -> declarations: D:/CODE/Cshp/SOUP/src/Windows/SplashWindow.xaml.cs:14
+_fadeOutAnimation -> declarations: D:/CODE/Cshp/SOUP/src/Windows/SplashWindow.xaml.cs:15
+_filePath -> declarations: D:/CODE/Cshp/SOUP/src/Services/NavOrderService.cs:15
+_fileService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:44, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:44
+_filteredItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:40, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:66, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:65
+_filteredStores -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:46
+_filterEssentialOnly -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:138
+_filterPrivateLabelOnly -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:141
+_floatingAdorner -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:34
+_floatingFixedLeft -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:36
+_found -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:485
+_foundCount -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:59
+_goodItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:40
+_groupByStore -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:195
+_hasData -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:133
+_hasMedia -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:38
+_hasNoData -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:124
+_hasUnarchivedChanges -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:91
+_httpClient -> declarations: D:/CODE/Cshp/SOUP/src/Services/UpdateService.cs:16
+_hwndSource -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:33
+_image -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/FloatingAdorner.cs:11
+_includeAllPrivateLabel -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:102
+_includeDescriptionsInCopy -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:55, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:43
+_iniConfigPath -> declarations: D:/CODE/Cshp/SOUP/src/Services/ModuleConfiguration.cs:71
+_inputSku -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:473
+_isAppBarRegistered -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:29
+_isArchivePanelOpen -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:474
+_isDarkMode -> declarations: D:/CODE/Cshp/SOUP/src/Services/ThemeService.cs:41, D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:24, D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:25, D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:35
+_isDragging -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:29
+_isEditMode -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:79, D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:48
+_isGenerating -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:59
+_isInitialized -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:180, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:50, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:208
+_isLinkMode -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:30
+_isLoading -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:19, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:118, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:108, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:121
+_isPlaying -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:37
+_isRunningOnSeparateThread -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:468
+_isSelected -> declarations: D:/CODE/Cshp/SOUP/src/Models/NavItem.cs:75
+_isSyncing -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:144, D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:25
+_isUpdateAvailable -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:41
+_isUpdated -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:2139
+_isVerified -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:72
+_isVisible -> declarations: D:/CODE/Cshp/SOUP/src/Models/NavItem.cs:69
+_itemNumber -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:2127, D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:476, D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:21
+_items -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:37, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:60, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:59
+_itemSearchText -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:82
+_itemSortBy -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:131
+_itemSortDescending -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:135
+_itemToAddToDict -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:94
+_itemTotalsSortMode -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:214
+_jsonConfigPath -> declarations: D:/CODE/Cshp/SOUP/src/Services/ModuleConfiguration.cs:72
+_keepWidgetRunning -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:49
+_lastDeactivation -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:101
+_lastImportedFileName -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:96
+_lastMousePos -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:37
+_lastSavedDisplay -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:183
+_lastTrackKey -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:40
+_lastUpdated -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:42
+_lastUserAction -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:42
+_launchWidgetOnStartup -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:43
+_left -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/FloatingAdorner.cs:12
+_loadDictionariesCts -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:71
+_locationDistribution -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:22
+_lock -> declarations: D:/CODE/Cshp/SOUP/src/Services/WidgetProcessService.cs:19, D:/CODE/Cshp/SOUP/src/Services/WidgetThreadService.cs:23
+_logger -> declarations: D:/CODE/Cshp/SOUP/src/Services/AppLifecycleService.cs:19, D:/CODE/Cshp/SOUP/src/Services/NavOrderService.cs:16, D:/CODE/Cshp/SOUP/src/Services/UpdateService.cs:17, D:/CODE/Cshp/SOUP/src/Services/WidgetProcessService.cs:17, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:50, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:23, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:48, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:48, D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:19, D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:19, D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:24, D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:23
+_logoAnimation -> declarations: D:/CODE/Cshp/SOUP/src/Windows/SplashWindow.xaml.cs:16
+_lowStockThreshold -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:16
+_maximumThreshold -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:36
+_minimumThreshold -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:33
+_moduleConfig -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:20
+_monthItemCount -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:143
+_monthlyData -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:16
+_monthTotalUnits -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:149
+_mostCommonLocation -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:46
+_mySqlService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:16
+_mySqlTestResult -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:34
+_mySqlTestSuccess -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:40
+_navigationService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:17
+_navOrderService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:26
+_newDictDescription -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:100
+_newDictItemNumber -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:97
+_newItemDescription -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:55, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:91
+_newItemIsEssential -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:100
+_newItemIsPrivateLabel -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:103
+_newItemNumber -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:52, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:88
+_newItemSkus -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:94
+_newItemTags -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:97
+_newStoreCode -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:64
+_newStoreId -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:106
+_newStoreName -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:67, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:109
+_newStoreRank -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:70, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:112
+_nextExpiringDays -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:52
+_nextExpiringItem -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:49
+_notFoundCount -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:62
+_notifyIcon -> declarations: D:/CODE/Cshp/SOUP/src/Services/TrayIconService.cs:18
+_orderLogHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:40
+_outOfStockThreshold -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:19
+_parsedItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:53
+_parser -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:47, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:45, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:45
+_pasteText -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:148
+_pollTimer -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:41
+_privateLabelOnly -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:96
+_progressAnimation -> declarations: D:/CODE/Cshp/SOUP/src/Windows/SplashWindow.xaml.cs:17
+_progressHandler -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:29
+_quantity -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:2133
+_quantityOnHand -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/InventoryItemDialogViewModel.cs:30
+_quickAddExpanded -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:230
+_quickAddMonth -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:236
+_quickAddSku -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:218
+_quickAddStatus -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:224
+_quickAddUnits -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:248
+_quickAddYear -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:242
+_rememberWindowPositions -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:70
+_repository -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:43, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:15, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:43
+_runAtStartup -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:35
+_searchText -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:136, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:78, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:89
+_selectedDictionaryItem -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:61
+_selectedItem -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:49, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:72, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:77
+_selectedItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:83
+_selectedLocation -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SelectLocationDialogViewModel.cs:12
+_selectedMarginPreset -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:39
+_selectedNavItem -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:38
+_selectedPaperSize -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:36
+_selectedPrinter -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:33
+_selectedQuantity -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SelectLocationDialogViewModel.cs:15
+_selectedStore -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:76, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:52, D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:33, D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:30
+_selectedTabIndex -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:189
+_serviceProvider -> declarations: D:/CODE/Cshp/SOUP/src/Services/WidgetThreadService.cs:19, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:49, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:47, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:47, D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:18, D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:23, D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:26
+_sessionManager -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:46
+_settingsDir -> declarations: D:/CODE/Cshp/SOUP/src/Services/WindowSettingsService.cs:30
+_settingsPath -> declarations: D:/CODE/Cshp/SOUP/src/Services/ThemeService.cs:34
+_settingsService -> declarations: D:/CODE/Cshp/SOUP/src/Services/TrayIconService.cs:17, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:51, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:18, D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:17, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:12, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:49, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:14, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:49
+_showAddToDictionaryPanel -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:91
+_showAllItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:121
+_showConfirmationDialogs -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:54, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:34
+_showDictSuggestions -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:106
+_showExpirationNotifications -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:37
+_showLowStockNotifications -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:37
+_shownAt -> declarations: D:/CODE/Cshp/SOUP/src/Windows/SplashWindow.xaml.cs:18
+_showResults -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:68
+_showTrayIcon -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:59
+_sKU -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:2136
+_skuInput -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:30
+_skuWasAdded -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:491
+_startMinimizedToTray -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:38
+_startPoint -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/ListBoxDragDropBehavior.cs:23
+_statusDistribution -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:19
+_statusFilter -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:84, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:95
+_statusMessage -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:130, D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:49, D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:73, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:115, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:49, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddyViewModel.cs:114, D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:65, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:49, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:127, D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:56, D:/CODE/Cshp/SOUP/src/ViewModels/UnifiedSettingsViewModel.cs:30
+_stores -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:73, D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:43
+_storeSearchText -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:85
+_sufficientThreshold -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:22
+_syncProgress -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:147, D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:31
+_syncProgressMessage -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:150
+_syncService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:24, D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:18
+_syncStatus -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExternalDataViewModel.cs:28
+_theme -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddySettingsViewModel.cs:37, D:/CODE/Cshp/SOUP/src/ViewModels/EssentialsBuddySettingsViewModel.cs:34, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:34
+_themeService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:18, D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:16, D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:25
+_title -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:32
+_top -> declarations: D:/CODE/Cshp/SOUP/src/Behaviors/FloatingAdorner.cs:13
+_totalBoxes -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:50
+_totalInLocations -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:2143
+_totalItemCount -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:56, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:52
+_totalItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:25, D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:167
+_totalMonths -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseViewModel.cs:173
+_totalPages -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/DictionaryManagementViewModel.cs:127
+_totalUnits -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:28
+_trackTitle -> declarations: D:/CODE/Cshp/SOUP/src/Services/SpotifyService.cs:35
+_transferNumber -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/SwiftLabelViewModel.cs:53
+_units -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpirationItemDialogViewModel.cs:482
+_updateCheckCts -> declarations: D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:41
+_updateCheckTimer -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:28, D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:39
+_updateService -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:27
+_updateVersion -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/MainWindowViewModel.cs:44
+_useBasicTheme -> declarations: D:/CODE/Cshp/SOUP/src/Services/ThemeService.cs:47, D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:27
+_viewMode -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/AllocationBuddyRPGViewModel.cs:319
+_viewModel -> declarations: D:/CODE/Cshp/SOUP/src/Views/UnifiedSettingsWindow.xaml.cs:13, D:/CODE/Cshp/SOUP/src/Windows/OrderLogWidgetWindow.xaml.cs:25
+_warningItems -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseAnalyticsViewModel.cs:37
+_warningThresholdDays -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ExpireWiseSettingsViewModel.cs:19
+_widgetDispatcher -> declarations: D:/CODE/Cshp/SOUP/src/Services/WidgetThreadService.cs:21
+_widgetOnlyMode -> declarations: D:/CODE/Cshp/SOUP/src/ViewModels/ApplicationSettingsViewModel.cs:46
+_widgetProcess -> declarations: D:/CODE/Cshp/SOUP/src/Services/WidgetProcessService.cs:18
+_widgetProcessService -> declarations: D:/CODE/Cshp/SOUP/src/Services/AppLifecycleService.cs:20, D:/CODE/Cshp/SOUP/src/ViewModels/LauncherViewModel.cs:21
+_widgetThread -> declarations: D:/CODE/Cshp/SOUP/src/Services/WidgetThreadService.cs:20
+_widgetWindow -> declarations: D:/CODE/Cshp/SOUP/src/Services/WidgetThreadService.cs:22

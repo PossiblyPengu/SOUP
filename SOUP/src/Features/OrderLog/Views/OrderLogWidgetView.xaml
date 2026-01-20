@@ -68,7 +68,7 @@
 
         <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource WidgetElevatedCardStyle}" Margin="6" >
+            <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" >
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Set Status">
@@ -693,7 +693,7 @@
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{DynamicResource WidgetElevatedCardStyle}">
+            <Border Style="{DynamicResource OrderLogWidgetElevatedCardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1269,7 +1269,7 @@
                     <!-- Add Order Card (Inline) -->
                     <Border x:Name="AddOrderCard"
                             Visibility="Collapsed"
-                            Style="{StaticResource WidgetElevatedCardStyle}"
+                            Style="{StaticResource OrderLogWidgetElevatedCardStyle}"
                             Margin="6,0,6,12"
                             Background="{DynamicResource SurfaceBrush}">
                         <Grid>

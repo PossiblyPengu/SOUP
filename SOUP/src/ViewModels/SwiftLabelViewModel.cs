@@ -64,7 +64,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         : "--- - Select Store";
 
     public string TransferPreviewText => string.IsNullOrWhiteSpace(TransferNumber)
-        ? "Transfer: TO-XXXXX"
+        ? "Transfer: TXXXXX"
         : $"Transfer: {TransferNumber}";
 
     public string BoxPreviewText => $"Box 1 of {TotalBoxes}";
@@ -262,9 +262,34 @@ public partial class SwiftLabelViewModel : ObservableObject
     {
         SaveLabelsCommand.NotifyCanExecuteChanged();
         PrintLabelsCommand.NotifyCanExecuteChanged();
+
+        // Normalize transfer number so it always starts with an uppercase 'T'
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var trimmed = value.Trim();
+
+            // Remove common prefixes like "TO", "TO-", "T-", or leading 't'
+            if (trimmed.StartsWith("TO-", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring(3);
+            else if (trimmed.StartsWith("TO", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring(2);
+            else if (trimmed.StartsWith("T-", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring(2);
+            else if (trimmed.StartsWith("T", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring(1);
+
+            // Trim any leading non-alphanumeric characters now
+            trimmed = trimmed.TrimStart('-', ' ', '#');
+
+            // Build normalized value with single leading 'T' (leave rest as-is)
+            _transferNumber = "T" + trimmed;
+            OnPropertyChanged(nameof(TransferNumber));
+        }
+
         OnPropertyChanged(nameof(TransferPreviewText));
         RefreshPreviewLabels();
     }
+
 
     private void RefreshPreviewLabels()
     {
@@ -274,7 +299,7 @@ public partial class SwiftLabelViewModel : ObservableObject
         if (store == null || TotalBoxes <= 0)
             return;
 
-        var transfer = string.IsNullOrWhiteSpace(TransferNumber) ? "TO-XXXXX" : TransferNumber;
+        var transfer = string.IsNullOrWhiteSpace(TransferNumber) ? "TXXXXX" : TransferNumber;
         var dateStr = $"Date: {DateTime.Now:MMM dd, yyyy}";
 
         // Calculate preview dimensions based on paper size
@@ -291,7 +316,8 @@ public partial class SwiftLabelViewModel : ObservableObject
         // Scale fonts based on label height
         double fontScale = labelHeight / 100.0;
         double storeFontSize = Math.Clamp(11 * fontScale, 8, 14);
-        double transferFontSize = Math.Clamp(10 * fontScale, 7, 12);
+        // Make the transfer line more prominent by increasing its base multiplier
+        double transferFontSize = Math.Clamp(14 * fontScale, 9, 18);
         double boxFontSize = Math.Clamp(18 * fontScale, 12, 28);
         double dateFontSize = Math.Clamp(9 * fontScale, 6, 11);
 
