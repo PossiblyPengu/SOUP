@@ -1819,6 +1819,11 @@
             When false (default), drag can be initiated from anywhere on the card.
             </summary>
         </member>
+        <member name="P:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.EnableReordering">
+            <summary>
+            When false, reordering is disabled and only link-mode (Ctrl+Drag) is allowed.
+            </summary>
+        </member>
         <member name="E:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.ReorderComplete">
             <summary>
             Event raised when a reorder operation completes.
@@ -6517,6 +6522,16 @@
             and to allow for application-wide ViewModel functionality to be added later.
             </para>
             </remarks>
+        </member>
+        <member name="T:SOUP.Views.AboutPage">
+            <summary>
+            AboutPage
+            </summary>
+        </member>
+        <member name="M:SOUP.Views.AboutPage.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
         </member>
         <member name="T:SOUP.Views.AllocationBuddy.AllocationBuddyRPGView">
             <summary>

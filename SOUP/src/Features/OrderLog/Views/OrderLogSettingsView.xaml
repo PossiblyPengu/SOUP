@@ -369,9 +369,36 @@
                     </StackPanel>
                 </Border>
                 
-                <!-- Widget Content -->
+                <!-- Widget Content (dummy preview to avoid loading full widget) -->
                 <Border Grid.Row="1" Padding="8">
-                    <local:OrderLogWidgetView DataContext="{Binding}"/>
+                    <Grid MinHeight="280" Background="{DynamicResource SurfaceBrush}">
+                        <StackPanel Margin="12">
+                            <TextBlock Text="Order Log Preview" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Vertical" Margin="0,0,0,4">
+                                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="#1234 — Latte" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Not Ready" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="#1235 — Cappuccino" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="In Progress" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="10">
+                                    <StackPanel>
+                                        <TextBlock Text="#1236 — Croissant" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="On Deck" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="(Live preview disabled in settings)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
             </Grid>
         </Border>

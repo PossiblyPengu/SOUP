@@ -58,6 +58,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private CardShiftAnimator? _animator;
     private double? _lockedPanelWidth;
     private bool _isLinkMode;
+    private bool _initialClickWasOnHandle;
     private TransformGroup? _draggedTransform;
     private FrameworkElement? _currentLinkTargetBorder; // Visual feedback for the card we will link to
     private DateTime _lastShiftCalculation = DateTime.MinValue;
@@ -85,6 +86,13 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             typeof(OrderLogFluidDragBehavior),
             new PropertyMetadata(false));
 
+    public static readonly DependencyProperty EnableReorderingProperty =
+        DependencyProperty.Register(
+            nameof(EnableReordering),
+            typeof(bool),
+            typeof(OrderLogFluidDragBehavior),
+            new PropertyMetadata(true));
+
     /// <summary>
     /// Animation duration in milliseconds (default: 300ms)
     /// </summary>
@@ -102,6 +110,15 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     {
         get => (bool)GetValue(RequireDragHandleProperty);
         set => SetValue(RequireDragHandleProperty, value);
+    }
+
+    /// <summary>
+    /// When false, reordering is disabled and only link-mode (Ctrl+Drag) is allowed.
+    /// </summary>
+    public bool EnableReordering
+    {
+        get => (bool)GetValue(EnableReorderingProperty);
+        set => SetValue(EnableReorderingProperty, value);
     }
 
     /// <summary>
@@ -150,18 +167,25 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     {
         if (_isDragging || _isFinishingDrag) return;
 
-        // Check if the click is on a section drag handle - if so, ignore it
-        // This allows the old DragDrop system to handle individual order drags from merged cards
+        // Check if the click is on a section drag handle.
+        // Historically we returned here to let the old DragDrop system handle
+        // individual member drags from merged/grouped cards. To prevent
+        // accidental reordering we only fall back to the old path when the
+        // user is intentionally holding Control (Ctrl+drag). Otherwise let
+        // our behavior handle it (StartDrag will block if Ctrl isn't held).
         if (IsClickOnSectionDragHandle(e.OriginalSource as DependencyObject))
         {
-            return;
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+            {
+                return; // allow legacy drag behaviour when Ctrl is down
+            }
+            // otherwise continue to let this behavior decide (it will require Ctrl to actually start)
         }
 
-        // If RequireDragHandle is true, only allow drag from elements with Tag="DragHandle"
-        if (RequireDragHandle && !IsClickOnDragHandle(e.OriginalSource as DependencyObject))
-        {
-            return;
-        }
+        // Record whether the initial click was on a drag handle so StartDrag
+        // can decide whether Ctrl is required. Do not early-return here; let
+        // StartDrag enforce gating so non-handle Ctrl+drag for linking still works.
+        _initialClickWasOnHandle = IsClickOnDragHandle(e.OriginalSource as DependencyObject);
 
         _dragStartPoint = e.GetPosition(AssociatedObject);
 
@@ -287,6 +311,13 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     private void StartDrag()
     {
         if (_draggedElement == null || AssociatedObject == null) return;
+        // Decide whether drag may start:
+        // - If the initial click was on the visible handle, allow drag start regardless of Ctrl (for reorder).
+        // - If not clicking the handle, only allow start when Control is held (user intends linking).
+        if (!_initialClickWasOnHandle && (Keyboard.Modifiers & ModifierKeys.Control) == 0)
+        {
+            return; // not a handle click and Ctrl not held -> don't start
+        }
 
         _isDragging = true;
         _currentLogicalIndex = _draggedIndex;
@@ -618,15 +649,24 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             }
             else
             {
-                // Reorder mode: item is already in correct position (moved during drag)
-                // Just save and notify
-                if (viewModel != null)
+                // Reorder mode: if reordering is disabled, cancel and snap back instead
+                if (!EnableReordering)
                 {
-                    await viewModel.SaveAsync();
+                    CancelDrag();
+                    // No reordering, nothing to save or notify
                 }
+                else
+                {
+                    // Item is already in correct position (moved during drag)
+                    // Just save and notify
+                    if (viewModel != null)
+                    {
+                        await viewModel.SaveAsync();
+                    }
 
-                // Raise event for any listeners
-                ReorderComplete?.Invoke(draggedItems, null);
+                    // Raise event for any listeners
+                    ReorderComplete?.Invoke(draggedItems, null);
+                }
             }
         }
         catch (Exception ex)
@@ -751,6 +791,7 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         _draggedTransform = null;
         _originalBorderBrush = null;
         _lockedPanelWidth = null;
+        _initialClickWasOnHandle = false;
     }
 
     private void ApplyDragTransform(FrameworkElement element)

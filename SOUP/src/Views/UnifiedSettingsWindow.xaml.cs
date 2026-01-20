@@ -122,11 +122,35 @@ public partial class UnifiedSettingsWindow : Window
     /// </summary>
     private void OnAboutClick(object sender, RoutedEventArgs e)
     {
-        var aboutWindow = new AboutWindow
+        try
         {
-            Owner = this
-        };
-        aboutWindow.ShowDialog();
+            // Hide other panels
+            PanelApplication.Visibility = Visibility.Collapsed;
+            PanelAllocation.Visibility = Visibility.Collapsed;
+            PanelEssentials.Visibility = Visibility.Collapsed;
+            PanelExpireWise.Visibility = Visibility.Collapsed;
+            PanelDictionary.Visibility = Visibility.Collapsed;
+            PanelOrderLog.Visibility = Visibility.Collapsed;
+            PanelExternalData.Visibility = Visibility.Collapsed;
+
+            // Lazy-create AboutPage
+            if (PanelAbout.Child == null)
+            {
+                var aboutPage = new AboutPage();
+                aboutPage.BackRequested += () =>
+                {
+                    PanelAbout.Child = null;
+                    PanelAbout.Visibility = Visibility.Collapsed;
+                    SelectFirstVisibleTab();
+                };
+                PanelAbout.Child = aboutPage;
+            }
+            PanelAbout.Visibility = Visibility.Visible;
+        }
+        catch (System.Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to open embedded About page");
+        }
     }
 
     /// <summary>
@@ -144,6 +168,7 @@ public partial class UnifiedSettingsWindow : Window
             PanelDictionary.Visibility = Visibility.Collapsed;
             PanelOrderLog.Visibility = Visibility.Collapsed;
             PanelExternalData.Visibility = Visibility.Collapsed;
+            PanelAbout.Visibility = Visibility.Collapsed;
 
             // Show the selected panel
             if (TabApplication.IsChecked == true)

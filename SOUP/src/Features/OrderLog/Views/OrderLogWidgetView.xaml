@@ -1392,7 +1392,11 @@
                         <ItemsControl ItemsSource="{Binding StickyNotes}" Margin="0,0,0,8">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
+                                    <WrapPanel Orientation="Horizontal">
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" RequireDragHandle="True" EnableReordering="True" />
+                                        </i:Interaction.Behaviors>
+                                    </WrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -1447,9 +1451,9 @@
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Vertical" Background="Transparent">
-                                    <i:Interaction.Behaviors>
-                                        <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
-                                    </i:Interaction.Behaviors>
+                                        <i:Interaction.Behaviors>
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" EnableReordering="False" RequireDragHandle="True" />
+                                            </i:Interaction.Behaviors>
                                 </StackPanel>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
@@ -1909,7 +1913,7 @@
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical">
                                             <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" EnableReordering="False" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                         </StackPanel>
                                     </ItemsPanelTemplate>
@@ -1995,7 +1999,7 @@
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical">
                                             <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" EnableReordering="False" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                         </StackPanel>
                                     </ItemsPanelTemplate>
@@ -2081,7 +2085,7 @@
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical">
                                             <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" />
+                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                         </StackPanel>
                                     </ItemsPanelTemplate>

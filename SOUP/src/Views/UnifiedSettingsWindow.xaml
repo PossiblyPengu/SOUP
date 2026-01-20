@@ -735,6 +735,9 @@
                     <!-- OrderLog Panel -->
                         <Border x:Name="PanelOrderLog" Grid.Row="1" Visibility="Collapsed" Margin="12" />
 
+                    <!-- About Panel (embedded) -->
+                        <Border x:Name="PanelAbout" Grid.Row="1" Visibility="Collapsed" Margin="12" />
+
                     <!-- External Data Panel -->
                     <Border x:Name="PanelExternalData" Visibility="Collapsed">
                         <local:ExternalDataSettingsView/>
