@@ -4385,9 +4385,6 @@
         <member name="P:SOUP.ViewModels.AllocationBuddySettingsViewModel.DictionaryFilePath">
             <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddySettingsViewModel._dictionaryFilePath"/>
         </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddySettingsViewModel.AutoSaveIntervalMinutes">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddySettingsViewModel._autoSaveIntervalMinutes"/>
-        </member>
         <member name="P:SOUP.ViewModels.AllocationBuddySettingsViewModel.ShowConfirmationDialogs">
             <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddySettingsViewModel._showConfirmationDialogs"/>
         </member>
@@ -4396,6 +4393,9 @@
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddySettingsViewModel.AutoLoadLastSession">
             <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddySettingsViewModel._autoLoadLastSession"/>
+        </member>
+        <member name="P:SOUP.ViewModels.AllocationBuddySettingsViewModel.AutoSaveIntervalMinutes">
+            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddySettingsViewModel._autoSaveIntervalMinutes"/>
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddySettingsViewModel.IncludeDescriptionsInCopy">
             <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddySettingsViewModel._includeDescriptionsInCopy"/>
@@ -5644,12 +5644,10 @@
             Gets or sets the filtered items for the current month view.
             </summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._availableMonths">
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._selectedItem">
             <summary>
             Gets or sets the available months that have expiring items.
             </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._selectedItem">
             <summary>
             Gets or sets the currently selected expiration item.
             </summary>
@@ -5749,7 +5747,7 @@
             Event raised when the GroupByStore property changes.
             </summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._analytics">
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._isInitialized">
             <summary>
             Gets or sets the analytics ViewModel for the analytics dashboard.
             </summary>
@@ -5859,6 +5857,9 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.AvailableMonths">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._availableMonths"/>
         </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Analytics">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._analytics"/>
+        </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedItem">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._selectedItem"/>
         </member>
@@ -5913,8 +5914,8 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._groupByStore"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Analytics">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._analytics"/>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.IsInitialized">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._isInitialized"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddSku">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddSku"/>
@@ -6075,11 +6076,11 @@
         <member name="P:SOUP.ViewModels.ExternalDataViewModel.MySqlTestResult">
             <inheritdoc cref="F:SOUP.ViewModels.ExternalDataViewModel._mySqlTestResult"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExternalDataViewModel.BcTestResult">
-            <inheritdoc cref="F:SOUP.ViewModels.ExternalDataViewModel._bcTestResult"/>
-        </member>
         <member name="P:SOUP.ViewModels.ExternalDataViewModel.MySqlTestSuccess">
             <inheritdoc cref="F:SOUP.ViewModels.ExternalDataViewModel._mySqlTestSuccess"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExternalDataViewModel.BcTestResult">
+            <inheritdoc cref="F:SOUP.ViewModels.ExternalDataViewModel._bcTestResult"/>
         </member>
         <member name="P:SOUP.ViewModels.ExternalDataViewModel.BcTestSuccess">
             <inheritdoc cref="F:SOUP.ViewModels.ExternalDataViewModel._bcTestSuccess"/>
@@ -6165,6 +6166,9 @@
         <member name="P:SOUP.ViewModels.InventoryItemDialogViewModel.BinCode">
             <inheritdoc cref="F:SOUP.ViewModels.InventoryItemDialogViewModel._binCode"/>
         </member>
+        <member name="P:SOUP.ViewModels.InventoryItemDialogViewModel.Category">
+            <inheritdoc cref="F:SOUP.ViewModels.InventoryItemDialogViewModel._category"/>
+        </member>
         <member name="P:SOUP.ViewModels.InventoryItemDialogViewModel.QuantityOnHand">
             <inheritdoc cref="F:SOUP.ViewModels.InventoryItemDialogViewModel._quantityOnHand"/>
         </member>
@@ -6173,9 +6177,6 @@
         </member>
         <member name="P:SOUP.ViewModels.InventoryItemDialogViewModel.MaximumThreshold">
             <inheritdoc cref="F:SOUP.ViewModels.InventoryItemDialogViewModel._maximumThreshold"/>
-        </member>
-        <member name="P:SOUP.ViewModels.InventoryItemDialogViewModel.Category">
-            <inheritdoc cref="F:SOUP.ViewModels.InventoryItemDialogViewModel._category"/>
         </member>
         <member name="P:SOUP.ViewModels.InventoryItemDialogViewModel.LastUpdated">
             <inheritdoc cref="F:SOUP.ViewModels.InventoryItemDialogViewModel._lastUpdated"/>
@@ -7165,9 +7166,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DictionaryFilePath">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DictionaryFilePath" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AutoSaveIntervalMinutes">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AutoSaveIntervalMinutes" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowConfirmationDialogs">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowConfirmationDialogs" generated properties.</summary>
         </member>
@@ -7176,6 +7174,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AutoLoadLastSession">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AutoLoadLastSession" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AutoSaveIntervalMinutes">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AutoSaveIntervalMinutes" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IncludeDescriptionsInCopy">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IncludeDescriptionsInCopy" generated properties.</summary>
@@ -7483,6 +7484,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AvailableMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AvailableMonths" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Analytics">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Analytics" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedItems">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedItems" generated properties.</summary>
         </member>
@@ -7516,9 +7520,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.GroupByStore">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Analytics">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Analytics" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddSku">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddSku" generated properties.</summary>
         </member>
@@ -7546,17 +7547,20 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.MySqlTestResult">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "MySqlTestResult" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BcTestResult">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BcTestResult" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.MySqlTestSuccess">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "MySqlTestSuccess" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BcTestResult">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BcTestResult" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BcTestSuccess">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BcTestSuccess" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BinCode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BinCode" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Category">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Category" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuantityOnHand">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuantityOnHand" generated properties.</summary>
@@ -7566,9 +7570,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.MaximumThreshold">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "MaximumThreshold" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Category">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Category" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LastUpdated">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LastUpdated" generated properties.</summary>
@@ -7789,9 +7790,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DictionaryFilePath">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DictionaryFilePath" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AutoSaveIntervalMinutes">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AutoSaveIntervalMinutes" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowConfirmationDialogs">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowConfirmationDialogs" generated properties.</summary>
         </member>
@@ -7800,6 +7798,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AutoLoadLastSession">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AutoLoadLastSession" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AutoSaveIntervalMinutes">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AutoSaveIntervalMinutes" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IncludeDescriptionsInCopy">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IncludeDescriptionsInCopy" generated properties.</summary>
@@ -8107,6 +8108,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AvailableMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AvailableMonths" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Analytics">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Analytics" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedItems">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedItems" generated properties.</summary>
         </member>
@@ -8140,9 +8144,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.GroupByStore">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Analytics">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Analytics" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddSku">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddSku" generated properties.</summary>
         </member>
@@ -8170,17 +8171,20 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.MySqlTestResult">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "MySqlTestResult" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BcTestResult">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BcTestResult" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.MySqlTestSuccess">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "MySqlTestSuccess" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BcTestResult">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BcTestResult" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BcTestSuccess">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BcTestSuccess" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BinCode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BinCode" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Category">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Category" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuantityOnHand">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuantityOnHand" generated properties.</summary>
@@ -8190,9 +8194,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.MaximumThreshold">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "MaximumThreshold" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Category">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Category" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LastUpdated">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LastUpdated" generated properties.</summary>

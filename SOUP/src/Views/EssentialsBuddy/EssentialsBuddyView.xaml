@@ -470,8 +470,11 @@
                                 <TextBlock Text="Sufficient" Foreground="{DynamicResource SufficientTextBrush}" FontSize="10"/>
                             </Border>
                             
-                            <Border Background="{DynamicResource NonEssentialIn990Brush}" CornerRadius="4" Padding="8,3">
-                                <TextBlock Text="Non-Essential in 9-90" Foreground="{DynamicResource NonEssentialIn990TextBrush}" FontSize="10"/>
+                            <Border Background="{DynamicResource DangerBrush}" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚠" FontSize="12" Foreground="{DynamicResource TextOnPrimaryBrush}" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Non-Essential in 9-90" Foreground="{DynamicResource TextOnPrimaryBrush}" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Border>
                         </StackPanel>
                     </StackPanel>
@@ -495,13 +498,6 @@
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}">
                             <Style.Triggers>
-                                <!-- Non-essential item in 9-90 bin (highest priority - pink) -->
-                                <DataTrigger Binding="{Binding IsNonEssentialIn990Bin}" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource NonEssentialIn990Brush}"/>
-                                    <Setter Property="BorderBrush" Value="{DynamicResource NonEssentialIn990AccentBrush}"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource NonEssentialIn990TextBrush}"/>
-                                    <Setter Property="ToolTip" Value="⚠️ Non-essential item in 9-90 bin"/>
-                                </DataTrigger>
                                 <!-- Out of Stock (red) -->
                                 <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
                                     <Setter Property="Background" Value="{DynamicResource OutOfStockBrush}"/>
@@ -534,12 +530,14 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="⚠" Width="40" IsReadOnly="True" SortMemberPath="IsNonEssentialIn990Bin">
+                        <DataGridTemplateColumn Header="⚠" Width="56" IsReadOnly="True" SortMemberPath="IsNonEssentialIn990Bin">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="⚠️" FontSize="14" HorizontalAlignment="Center"
-                                               Visibility="{Binding IsNonEssentialIn990Bin, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                               ToolTip="Non-essential item in 9-90 bin - should not be here!"/>
+                                    <Border Background="{DynamicResource DangerBrush}" CornerRadius="8" Padding="6" HorizontalAlignment="Center"
+                                            Visibility="{Binding IsNonEssentialIn990Bin, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            ToolTip="Non-essential item in 9-90 bin - should not be here!">
+                                        <TextBlock Text="⚠" FontSize="14" Foreground="{DynamicResource TextOnPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

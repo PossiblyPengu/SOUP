@@ -64,11 +64,15 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ObservableCollection<ExpirationItem> _filteredItems = new();
 
+    [ObservableProperty]
+    private ObservableCollection<MonthGroup> _availableMonths = new();
+
+    [ObservableProperty]
+    private ExpireWiseAnalyticsViewModel _analytics = new();
+
     /// <summary>
     /// Gets or sets the available months that have expiring items.
     /// </summary>
-    [ObservableProperty]
-
     /// <summary>
     /// Gets or sets the currently selected expiration item.
     /// </summary>

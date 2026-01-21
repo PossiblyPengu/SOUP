@@ -48,6 +48,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     private readonly ILogger<EssentialsBuddyViewModel>? _logger;
     private readonly Infrastructure.Services.SettingsService? _settingsService;
     private bool _isInitialized;
+    // Session file name for persisted session (set when importing a file)
+    private string? _sessionFileName;
 
     #endregion
 
@@ -153,9 +155,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> StatusFilters { get; } = new()
     {
         "All",
-        "Normal",
-        "Low",
         "OutOfStock",
+        "Low",
         "Sufficient"
     };
 
@@ -453,6 +454,21 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
                     await LoadItems();
 
+                    // Persist session filename based on imported file and save session immediately
+                    try
+                    {
+                        var baseName = Path.GetFileNameWithoutExtension(files[0]);
+                        _sessionFileName = $"{baseName}_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+                        var dataPath = GetDataPath();
+                        Directory.CreateDirectory(dataPath);
+                        await File.WriteAllTextAsync(GetLastSessionInfoFilePath(), _sessionFileName).ConfigureAwait(false);
+                        await SaveDataOnShutdownAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "Failed to persist session filename after Excel import");
+                    }
+
                     var essentialCount = items.Count(i => i.IsEssential);
                     var matchedCount = items.Count(i => i.DictionaryMatched);
                     var privateLabelCount = items.Count(i => i.IsPrivateLabel);
@@ -525,6 +541,21 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                     }
 
                     await LoadItems();
+
+                    // Persist session filename based on imported file and save session immediately
+                    try
+                    {
+                        var baseName = Path.GetFileNameWithoutExtension(files[0]);
+                        _sessionFileName = $"{baseName}_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+                        var dataPath = GetDataPath();
+                        Directory.CreateDirectory(dataPath);
+                        await File.WriteAllTextAsync(GetLastSessionInfoFilePath(), _sessionFileName).ConfigureAwait(false);
+                        await SaveDataOnShutdownAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "Failed to persist session filename after CSV import");
+                    }
 
                     var essentialCount = items.Count(i => i.IsEssential);
                     var matchedCount = items.Count(i => i.DictionaryMatched);
@@ -794,11 +825,32 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var filePath = GetDataFilePath();
-            if (File.Exists(filePath))
+            var dataPath = GetDataPath();
+            var lastInfoPath = GetLastSessionInfoFilePath();
+
+            // Delete named session file if present
+            if (!string.IsNullOrEmpty(_sessionFileName))
             {
-                File.Delete(filePath);
-                _logger?.LogInformation("Deleted session data file: {FilePath}", filePath);
+                var namedPath = Path.Combine(dataPath, _sessionFileName);
+                if (File.Exists(namedPath))
+                {
+                    File.Delete(namedPath);
+                    _logger?.LogInformation("Deleted session data file: {FilePath}", namedPath);
+                }
+            }
+
+            // Delete default session-data.json as well
+            var defaultPath = Path.Combine(dataPath, "session-data.json");
+            if (File.Exists(defaultPath))
+            {
+                File.Delete(defaultPath);
+                _logger?.LogInformation("Deleted session data file: {FilePath}", defaultPath);
+            }
+
+            // Remove last-session info file
+            if (File.Exists(lastInfoPath))
+            {
+                File.Delete(lastInfoPath);
             }
         }
         catch (Exception ex)
@@ -906,6 +958,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
 
     private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");
 
+    private static string GetLastSessionInfoFilePath() => Path.Combine(GetDataPath(), "last-session.txt");
+
     /// <summary>
     /// Saves current data on application shutdown.
     /// </summary>
@@ -941,9 +995,20 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             };
 
             var json = JsonSerializer.Serialize(data, s_jsonOptions);
-            await File.WriteAllTextAsync(GetDataFilePath(), json).ConfigureAwait(false);
 
-            _logger?.LogInformation("Saved EssentialsBuddy data: {Count} items", Items.Count);
+            // Use the session filename if set (created on import), otherwise fall back to default
+            var sessionFileName = _sessionFileName ?? "session-data.json";
+            var sessionPath = Path.Combine(dataPath, sessionFileName);
+
+            await File.WriteAllTextAsync(sessionPath, json).ConfigureAwait(false);
+
+            // Persist the last session filename for next startup
+            if (!string.IsNullOrEmpty(_sessionFileName))
+            {
+                await File.WriteAllTextAsync(GetLastSessionInfoFilePath(), _sessionFileName).ConfigureAwait(false);
+            }
+
+            _logger?.LogInformation("Saved EssentialsBuddy data: {Count} items to {Path}", Items.Count, sessionPath);
         }
         catch (Exception ex)
         {
@@ -958,7 +1023,26 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var filePath = GetDataFilePath();
+            var dataPath = GetDataPath();
+            Directory.CreateDirectory(dataPath);
+
+            // Prefer the last used session file if present
+            var lastInfoPath = GetLastSessionInfoFilePath();
+            string filePath = GetDataFilePath();
+            if (File.Exists(lastInfoPath))
+            {
+                try
+                {
+                    var lastName = await File.ReadAllTextAsync(lastInfoPath).ConfigureAwait(false);
+                    if (!string.IsNullOrWhiteSpace(lastName))
+                    {
+                        var candidate = Path.Combine(dataPath, lastName.Trim());
+                        if (File.Exists(candidate)) filePath = candidate;
+                    }
+                }
+                catch { /* ignore and fallback */ }
+            }
+
             if (!File.Exists(filePath)) return;
 
             var json = await File.ReadAllTextAsync(filePath);

@@ -382,8 +382,9 @@
                         </Grid>
                     </Border>
 
-                    <!-- Navigation -->
-                    <StackPanel Grid.Row="2" Margin="0,8,0,0">
+                    <!-- Navigation (scrollable) -->
+                    <ScrollViewer Grid.Row="2" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
                         <TextBlock Text="ACTIONS" FontSize="10" FontWeight="SemiBold" 
                                    Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
                         
@@ -479,7 +480,8 @@
                                 <TextBlock Text="Clear Search" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
 
                     <!-- Bottom Actions -->
                     <StackPanel Grid.Row="3" Margin="8,0,8,12">

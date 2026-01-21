@@ -34,11 +34,13 @@ public partial class ExternalDataViewModel : ObservableObject
     private string? _mySqlTestResult;
 
     [ObservableProperty]
-
-    [ObservableProperty]
     private bool _mySqlTestSuccess;
 
     [ObservableProperty]
+    private string? _bcTestResult;
+
+    [ObservableProperty]
+    private bool _bcTestSuccess;
 
     public ExternalDataViewModel(
         MySqlDataService mySqlService,

@@ -373,7 +373,7 @@
                 <Border Grid.Row="1" Padding="8">
                     <Grid MinHeight="320" Background="{DynamicResource SurfaceBrush}">
                         <StackPanel Margin="12">
-                            <TextBlock Text="Order Log Preview" FontSize="13" FontWeight="SemiBold"
+                            <TextBlock Text="Warehouse Order Preview" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
 
                             <!-- Not Ready group -->
@@ -388,14 +388,14 @@
                                     <Border Grid.Row="0" Background="{DynamicResource DangerBrush}" CornerRadius="8,8,0,0"/>
                                     <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="10">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="#1234 — Latte" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="#WH-1001 — Pallet A1 (Electronics)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <Border Background="{DynamicResource AccentBrush}" CornerRadius="10" Padding="6,2" Margin="8,0,0,0">
                                                 <TextBlock Text="1 order" FontSize="10" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
                                             </Border>
                                         </StackPanel>
                                     </Border>
                                     <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                        <TextBlock Text="Shot: Ristretto" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Qty: 50 — SKU: ELC-54321" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -412,14 +412,14 @@
                                     <Border Grid.Row="0" Background="{DynamicResource SuccessBrush}" CornerRadius="8,8,0,0"/>
                                     <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="10">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="#1235 — Cappuccino" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="#WH-1002 — Bin B12 — 30 units" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <Border Background="{DynamicResource AccentBrush}" CornerRadius="10" Padding="6,2" Margin="8,0,0,0">
                                                 <TextBlock Text="2 orders" FontSize="10" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
                                             </Border>
                                         </StackPanel>
                                     </Border>
                                     <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                        <TextBlock Text="Notes: add oat milk" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Pick: 30 units — Priority: High" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -436,14 +436,14 @@
                                     <Border Grid.Row="0" Background="{DynamicResource WarningBrush}" CornerRadius="8,8,0,0"/>
                                     <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="10">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="#1236 — Croissant" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="#WH-1003 — Pack: Widgets — 10 units" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <Border Background="{DynamicResource AccentBrush}" CornerRadius="10" Padding="6,2" Margin="8,0,0,0">
                                                 <TextBlock Text="1 order" FontSize="10" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
                                             </Border>
                                         </StackPanel>
                                     </Border>
                                     <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                        <TextBlock Text="Prep: warm" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Prep: kitting &amp; label" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
