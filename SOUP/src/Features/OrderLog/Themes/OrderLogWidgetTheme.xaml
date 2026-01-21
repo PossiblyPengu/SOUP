@@ -140,6 +140,9 @@
         <!-- Based on global `ElevatedCardStyle` from ModernStyles.xaml to keep shadows and base padding consistent. -->
         <Setter Property="CornerRadius" Value="{StaticResource WidgetCardCornerRadius}"/>
         <Setter Property="Margin" Value="{StaticResource WidgetCardMargin}"/>
+        <Setter Property="Padding" Value="{StaticResource WidgetCardPadding}"/>
+        <Setter Property="MinWidth" Value="{StaticResource WidgetCardMinWidth}"/>
+        <Setter Property="MaxWidth" Value="{StaticResource WidgetCardMaxWidth}"/>
         <!-- Keep widget-specific hover shadow overrides while reusing global ElevatedCardStyle defaults -->
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">

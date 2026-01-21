@@ -68,7 +68,7 @@
 
         <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" >
+            <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" ClipToBounds="True">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Set Status">
@@ -113,7 +113,8 @@
                                            Foreground="{DynamicResource TextDisabledBrush}"
                                            FontStyle="Italic"
                                            IsHitTestVisible="False"
-                                           VerticalAlignment="Center">
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -138,6 +139,8 @@
                                          SelectionBrush="{DynamicResource AccentBrush}"
                                          Padding="0"
                                          VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         MinWidth="0"
                                          TabIndex="0"
                                          GotFocus="EditableField_GotFocus"
                                          LostFocus="EditableField_LostFocus"/>
@@ -181,7 +184,8 @@
                                        Foreground="{DynamicResource TextDisabledBrush}"
                                        FontStyle="Italic"
                                        IsHitTestVisible="False"
-                                       VerticalAlignment="Center">
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -204,6 +208,8 @@
                                      CaretBrush="#00D4FF"
                                      SelectionBrush="{DynamicResource AccentBrush}"
                                      Padding="0"
+                                     HorizontalAlignment="Stretch"
+                                     MinWidth="0"
                                      TabIndex="2"
                                      GotFocus="EditableField_GotFocus"
                                      LostFocus="EditableField_LostFocus"/>
@@ -222,7 +228,8 @@
                                        Foreground="{DynamicResource TextDisabledBrush}"
                                        FontStyle="Italic"
                                        IsHitTestVisible="False"
-                                       VerticalAlignment="Center">
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -245,6 +252,8 @@
                                      CaretBrush="#00D4FF"
                                      SelectionBrush="{DynamicResource AccentBrush}"
                                      Padding="0"
+                                     HorizontalAlignment="Stretch"
+                                     MinWidth="0"
                                      TabIndex="3"
                                      GotFocus="EditableField_GotFocus"
                                      LostFocus="EditableField_LostFocus"/>
@@ -693,7 +702,7 @@
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{DynamicResource OrderLogWidgetElevatedCardStyle}">
+            <Border Style="{DynamicResource OrderLogWidgetElevatedCardStyle}" ClipToBounds="True">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -783,7 +792,8 @@
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextTertiaryBrush}"
-                                                       Visibility="{Binding DataContext.IsGroup, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBoolToVis}}"/>
+                                                       Visibility="{Binding DataContext.IsGroup, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBoolToVis}}"
+                                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
 
                                             <!-- Drag Handle (unified style) -->
                                             <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" HorizontalAlignment="Right"/>
@@ -821,6 +831,8 @@
                                                      CaretBrush="#00D4FF"
                                                      SelectionBrush="{DynamicResource AccentBrush}"
                                                      Padding="0"
+                                                     HorizontalAlignment="Stretch"
+                                                     MinWidth="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
                                         </Grid>
@@ -838,7 +850,8 @@
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
                                                        IsHitTestVisible="False"
-                                                       VerticalAlignment="Center">
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -861,6 +874,8 @@
                                                      CaretBrush="#00D4FF"
                                                      SelectionBrush="{DynamicResource AccentBrush}"
                                                      Padding="0"
+                                                     HorizontalAlignment="Stretch"
+                                                     MinWidth="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
                                         </Grid>
@@ -878,7 +893,8 @@
                                                        Foreground="{DynamicResource TextDisabledBrush}"
                                                        FontStyle="Italic"
                                                        IsHitTestVisible="False"
-                                                       VerticalAlignment="Center">
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -901,6 +917,8 @@
                                                      CaretBrush="#00D4FF"
                                                      SelectionBrush="{DynamicResource AccentBrush}"
                                                      Padding="0"
+                                                     HorizontalAlignment="Stretch"
+                                                     MinWidth="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
                                         </Grid>
