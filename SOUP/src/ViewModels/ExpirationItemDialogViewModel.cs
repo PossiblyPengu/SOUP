@@ -33,7 +33,6 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     private StoreOption? _selectedStore;
 
     [ObservableProperty]
-    private ObservableCollection<StoreOption> _availableStores = new();
 
     [ObservableProperty]
     private int _defaultUnits = 1;
@@ -485,7 +484,6 @@ public partial class ParsedSkuEntry : ObservableObject
     private bool _found;
 
     [ObservableProperty]
-    private bool _canAddSkuToItem;
 
     [ObservableProperty]
     private bool _skuWasAdded;

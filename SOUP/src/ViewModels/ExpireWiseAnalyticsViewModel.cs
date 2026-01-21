@@ -40,7 +40,6 @@ public partial class ExpireWiseAnalyticsViewModel : ObservableObject
     private int _goodItems;
 
     [ObservableProperty]
-    private double _averageShelfLife;
 
     [ObservableProperty]
     private string _mostCommonLocation = "N/A";

@@ -179,3 +179,8 @@ azure_config.json
 *.sqlite
 *.litedb
 !**/Shared/dictionaries.db
+
+# Ignore MSBuild/NuGet cache artifacts that may contain user-local paths
+# These are commonly created under obj/ and can leak local user folder names.
+**/obj/**/project.nuget.cache
+**/obj/**/project.assets.json

@@ -28,7 +28,6 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
     private string _dictionaryFilePath = string.Empty;
 
     [ObservableProperty]
-    private int _autoSaveIntervalMinutes = 5;
 
     [ObservableProperty]
     private bool _showConfirmationDialogs = true;

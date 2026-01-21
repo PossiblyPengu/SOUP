@@ -68,7 +68,6 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// Gets or sets the available months that have expiring items.
     /// </summary>
     [ObservableProperty]
-    private ObservableCollection<MonthGroup> _availableMonths = new();
 
     /// <summary>
     /// Gets or sets the currently selected expiration item.
@@ -203,7 +202,6 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// Gets or sets the analytics ViewModel for the analytics dashboard.
     /// </summary>
     [ObservableProperty]
-    private ExpireWiseAnalyticsViewModel _analytics = new();
 
     private bool _isInitialized;
 

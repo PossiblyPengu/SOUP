@@ -24,7 +24,6 @@ public partial class InventoryItemDialogViewModel : ObservableObject
     private string _description = string.Empty;
 
     [ObservableProperty]
-    private string _binCode = string.Empty;
 
     [ObservableProperty]
     private int _quantityOnHand;
@@ -36,7 +35,6 @@ public partial class InventoryItemDialogViewModel : ObservableObject
     private int? _maximumThreshold;
 
     [ObservableProperty]
-    private string _category = string.Empty;
 
     [ObservableProperty]
     private DateTime _lastUpdated = DateTime.Today;
