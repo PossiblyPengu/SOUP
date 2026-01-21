@@ -17,6 +17,14 @@ public sealed class UpdateService : IDisposable
     private readonly ILogger<UpdateService>? _logger;
     private readonly string _currentVersion;
     private bool _disposed;
+    private Timer? _schedulerTimer;
+    private CancellationTokenSource? _schedulerCts;
+    private UpdateInfo? _lastAvailableUpdate;
+
+    /// <summary>
+    /// Event raised when a scheduled update check completes. Argument is the available update info or null.
+    /// </summary>
+    public event Action<UpdateInfo?>? UpdateChecked;
 
     private const string GitHubOwner = "PossiblyPengu";
     private const string GitHubRepo = "SOUP";
@@ -35,6 +43,65 @@ public sealed class UpdateService : IDisposable
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version;
         _currentVersion = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "0.0.0";
+
+        // Start a shared scheduler so all consumers (main window, widget) get the same timing
+        try
+        {
+            _schedulerCts = new CancellationTokenSource();
+            _schedulerTimer = new Timer(async _ => await RunScheduledCheckAsync(), null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to start update scheduler");
+        }
+    }
+
+    /// <summary>
+    /// Last update info discovered by the scheduler (or null if none).
+    /// </summary>
+    public UpdateInfo? LastAvailableUpdate => _lastAvailableUpdate;
+
+    private async Task RunScheduledCheckAsync()
+    {
+        try
+        {
+            var cts = _schedulerCts;
+            if (cts?.IsCancellationRequested == true) return;
+
+            var info = await CheckForUpdatesAsync(cts?.Token ?? CancellationToken.None);
+
+            // If the discovered update differs from last, store and notify
+            var changed = false;
+            if (info == null && _lastAvailableUpdate != null)
+            {
+                changed = true;
+            }
+            else if (info != null && (_lastAvailableUpdate == null || info.Version != _lastAvailableUpdate.Version))
+            {
+                changed = true;
+            }
+
+            if (changed)
+            {
+                _lastAvailableUpdate = info;
+                try
+                {
+                    UpdateChecked?.Invoke(info);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Subscriber threw in UpdateChecked event");
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // expected on shutdown
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Scheduled update check failed");
+        }
     }
 
     /// <summary>
@@ -397,6 +464,13 @@ timeout /t 1 /nobreak >nul
     {
         if (_disposed) return;
         _httpClient.Dispose();
+        try
+        {
+            _schedulerCts?.Cancel();
+            _schedulerTimer?.Dispose();
+            _schedulerCts?.Dispose();
+        }
+        catch { }
         _disposed = true;
     }
 }

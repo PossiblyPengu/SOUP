@@ -25,7 +25,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly ThemeService _themeService;
     private readonly NavOrderService _navOrderService;
     private readonly UpdateService _updateService;
-    private readonly Timer _updateCheckTimer;
     private bool _disposed;
 
     [ObservableProperty]
@@ -87,8 +86,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         // Update title when navigating to modules
         NavigationService.ModuleChanged += OnModuleChanged;
 
-        // Start periodic update checking (check every 30 minutes, initial check after 5 seconds)
-        _updateCheckTimer = new Timer(async _ => await CheckForUpdatesAsync(), null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
+        // Subscribe to shared update scheduler
+        _updateService.UpdateChecked += OnUpdateChecked;
     }
 
     private async Task CheckForUpdatesAsync()
@@ -119,6 +118,26 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             _logger?.LogWarning(ex, "Failed to check for updates");
         }
+    }
+
+    private void OnUpdateChecked(UpdateInfo? updateInfo)
+    {
+        Application.Current?.Dispatcher.Invoke(() =>
+        {
+            if (updateInfo != null)
+            {
+                AvailableUpdate = updateInfo;
+                UpdateVersion = updateInfo.Version;
+                IsUpdateAvailable = true;
+                _logger?.LogInformation("Update available: v{Version}", updateInfo.Version);
+            }
+            else
+            {
+                IsUpdateAvailable = false;
+                AvailableUpdate = null;
+                UpdateVersion = "";
+            }
+        });
     }
 
     private void InitializeNavItems()
@@ -355,8 +374,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             if (disposing)
             {
-                // Stop update checking timer
-                _updateCheckTimer?.Dispose();
+                // Unsubscribe from shared update scheduler
+                _updateService.UpdateChecked -= OnUpdateChecked;
 
                 // Unsubscribe from events to prevent memory leaks
                 NavigationService.ModuleChanged -= OnModuleChanged;

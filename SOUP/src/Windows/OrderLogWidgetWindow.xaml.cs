@@ -36,9 +36,8 @@ public partial class OrderLogWidgetWindow : Window
     private readonly int _dockedWidth = 380;
 
     // Update checking
-    private Timer? _updateCheckTimer;
     private UpdateInfo? _availableUpdate;
-    private CancellationTokenSource? _updateCheckCts;
+    
 
     #region Windows API Imports
 
@@ -268,10 +267,26 @@ public partial class OrderLogWidgetWindow : Window
         try
         {
             await _viewModel.InitializeAsync();
-
-            // Start update check timer (check every 30 minutes, first check after 5 seconds)
-            _updateCheckCts = new();
-            _updateCheckTimer = new Timer(CheckForUpdatesCallback, null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
+            // Subscribe to the shared UpdateService scheduler and initialize UI from its last-known state
+            var updateService = _serviceProvider.GetService<UpdateService>();
+            if (updateService != null)
+            {
+                updateService.UpdateChecked += OnUpdateChecked;
+                var last = updateService.LastAvailableUpdate;
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _availableUpdate = last;
+                    if (last != null)
+                    {
+                        UpdateVersionText.Text = $"v{last.Version}";
+                        UpdateBadge.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        UpdateBadge.Visibility = Visibility.Collapsed;
+                    }
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -279,46 +294,21 @@ public partial class OrderLogWidgetWindow : Window
         }
     }
 
-    private async void CheckForUpdatesCallback(object? state)
+    private void OnUpdateChecked(UpdateInfo? updateInfo)
     {
-        try
+        Dispatcher.Invoke(() =>
         {
-            // Check if we should cancel
-            if (_updateCheckCts?.IsCancellationRequested == true)
-                return;
-
-            var updateService = _serviceProvider.GetService<UpdateService>();
-            if (updateService == null) return;
-
-            var updateInfo = await updateService.CheckForUpdatesAsync(_updateCheckCts?.Token ?? CancellationToken.None);
-
-            // Check again after async operation
-            if (_updateCheckCts?.IsCancellationRequested == true)
-                return;
-
-            // Update UI on the dispatcher thread
-            await Dispatcher.InvokeAsync(() =>
+            _availableUpdate = updateInfo;
+            if (updateInfo != null)
             {
-                _availableUpdate = updateInfo;
-                if (updateInfo != null)
-                {
-                    UpdateVersionText.Text = $"v{updateInfo.Version}";
-                    UpdateBadge.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    UpdateBadge.Visibility = Visibility.Collapsed;
-                }
-            });
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected during shutdown
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to check for updates in widget");
-        }
+                UpdateVersionText.Text = $"v{updateInfo.Version}";
+                UpdateBadge.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UpdateBadge.Visibility = Visibility.Collapsed;
+            }
+        });
     }
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -326,12 +316,16 @@ public partial class OrderLogWidgetWindow : Window
         // Clear taskbar overlay immediately
         ClearTaskbarOverlay();
 
-        // Cancel and stop update check timer first
-        _updateCheckCts?.Cancel();
-        _updateCheckTimer?.Dispose();
-        _updateCheckTimer = null;
-        _updateCheckCts?.Dispose();
-        _updateCheckCts = null;
+        // Unsubscribe from shared update scheduler
+        try
+        {
+            var us = _serviceProvider.GetService<UpdateService>();
+            if (us != null)
+            {
+                us.UpdateChecked -= OnUpdateChecked;
+            }
+        }
+        catch { }
 
         // Mark thread as background immediately so it won't block process exit
         if (_isRunningOnSeparateThread && Thread.CurrentThread.IsAlive)

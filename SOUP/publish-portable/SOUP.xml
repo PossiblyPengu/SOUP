@@ -3679,6 +3679,16 @@
             Service for checking and downloading updates from GitHub releases.
             </summary>
         </member>
+        <member name="E:SOUP.Services.UpdateService.UpdateChecked">
+            <summary>
+            Event raised when a scheduled update check completes. Argument is the available update info or null.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.UpdateService.LastAvailableUpdate">
+            <summary>
+            Last update info discovered by the scheduler (or null if none).
+            </summary>
+        </member>
         <member name="P:SOUP.Services.UpdateService.CurrentVersion">
             <summary>
             Gets the current application version.
