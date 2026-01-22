@@ -1742,6 +1742,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayCollection(Items, DisplayItems);
         RefreshStatusGroups();
         RefreshStickyNotes();
+        UpdateLinkedItemCounts();
     }
 
     /// <summary>
@@ -1754,6 +1755,31 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         foreach (var note in notes)
         {
             StickyNotes.Add(note);
+        }
+    }
+
+    /// <summary>
+    /// Update the LinkedItemCount property for all items based on their LinkedGroupId.
+    /// </summary>
+    private void UpdateLinkedItemCounts()
+    {
+        // Group all items by their LinkedGroupId
+        var linkedGroups = AllItems
+            .Where(i => i.LinkedGroupId != null)
+            .GroupBy(i => i.LinkedGroupId!.Value)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Update each item's count (count - 1 to exclude itself)
+        foreach (var item in AllItems)
+        {
+            if (item.LinkedGroupId != null && linkedGroups.TryGetValue(item.LinkedGroupId.Value, out var count))
+            {
+                item.LinkedItemCount = count - 1; // Exclude the item itself
+            }
+            else
+            {
+                item.LinkedItemCount = 0;
+            }
         }
     }
 

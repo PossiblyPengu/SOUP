@@ -10,7 +10,8 @@
 
 Implementing comprehensive quality-of-life improvements for the Order Log feature based on detailed analysis. Working through 4 high-priority phases focused on search/filter, keyboard shortcuts, bulk operations, and enhanced navigation.
 
-**Current Status**: Phases 1-4 Complete (High-Priority Sprint Complete!)
+**Current Status**: Phases 1-6 Complete
+(High-Priority Sprint + Advanced Filters + Visual Polish Complete!)
 
 ---
 
@@ -306,6 +307,164 @@ public event Action? HelpDialogRequested;
 
 ---
 
+### ✅ Phase 5: Advanced Filtering Dialog (COMPLETE)
+
+#### 1. Created OrderLogFilterDialog ✅
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogFilterDialog.xaml`
+
+**Features Implemented**:
+- Modern dialog matching existing design system (OrderColorPickerWindow pattern)
+- Draggable title bar
+- Status filter with checkboxes (Not Ready, On Deck, In Progress, Done)
+- Date range picker (From/To dates)
+- Note type filter (All, Orders Only, Sticky Notes Only)
+- Three-button layout: Clear All, Cancel, Apply
+- Proper validation and state management
+
+**UI Components**:
+- Status section with emoji-labeled checkboxes (🔴 🟡 🟢 ⚪)
+- Date pickers for start/end dates
+- Radio buttons for note type filtering
+- Styled with dynamic resources for theme compatibility
+
+#### 2. Created Code-Behind ✅
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogFilterDialog.xaml.cs`
+
+**Features**:
+- Constructor accepts current filter state for initialization
+- Collects user selections on Apply
+- Returns selections via properties: `SelectedStatuses`, `StartDate`,
+  `EndDate`, `SelectedNoteType`
+- Clear All button resets all filters
+- DialogResult pattern for OK/Cancel handling
+
+#### 3. Integrated with OrderLogWidgetView ✅
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml.cs`
+
+**Implementation**:
+- Added `ShowFilters_Click()` event handler
+- Opens dialog with current filter state
+- Applies dialog results to ViewModel properties
+- Shows status message with filter count feedback
+- Handles exceptions gracefully
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+
+**Changes**:
+- Added Click handler to filter button (⚙)
+- Removed "Future:" comment - now functional!
+
+---
+
+### ✅ Phase 6: Visual Polish & UX Improvements (COMPLETE)
+
+#### 1. Added Comprehensive Tooltips ✅
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+
+**Implementation**:
+
+- Added detailed tooltip to order card Border element
+- Tooltip shows on hover with MaxWidth="350" for readability
+- Displays full order information:
+  - Vendor name (bold, large font)
+  - Transfer numbers
+  - Shipment numbers
+  - Created timestamp
+  - Time in progress
+  - Current status
+- Uses dynamic resources for theme compatibility
+- Text wrapping enabled for long values
+
+**Benefits**:
+
+- Users can see full details without opening cards
+- Especially useful for truncated vendor names
+- Quick reference for timestamps and progress
+
+#### 2. Added Link Count Badges ✅
+
+**Files Modified**:
+
+- `SOUP/src/Features/OrderLog/Models/OrderItem.cs`
+- `SOUP/src/Features/OrderLog/ViewModels/OrderLogViewModel.cs`
+- `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+
+**Implementation**:
+
+- Added `LinkedItemCount` observable property to OrderItem model
+- Created `UpdateLinkedItemCounts()` method in ViewModel
+- Called from `RefreshDisplayItems()` to keep counts current
+- Added visual badge to card header (Grid.Column="2"):
+  - Blue pill-shaped badge with 🔗 icon
+  - Shows count of linked items (excluding self)
+  - Only visible when item has LinkedGroupId
+  - Positioned between vendor name and status dropdown
+  - Tooltip: "This order is linked with other orders"
+
+**Benefits**:
+
+- Immediate visual indication of linked orders
+- Shows how many other orders are in the link group
+- No need to click to check link status
+
+#### 3. Added Keyboard Shortcuts to Context Menus ✅
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+
+**Changes**:
+
+- Added `InputGestureText` to context menu items
+- Active order context menu:
+  - "Not Ready" → Ctrl+1
+  - "On Deck" → Ctrl+2
+  - "In Progress" → Ctrl+3
+  - "Done (Archive)" → Ctrl+A
+  - "Delete" → Ctrl+Del
+- Archived order context menu:
+  - "Delete" → Ctrl+Del
+
+**Benefits**:
+
+- Keyboard shortcuts are discoverable through UI
+- Users learn shortcuts through menu exploration
+- Consistent with standard application patterns
+
+#### 4. Added Empty State Messages ✅
+
+**File**: `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+
+**Implementation**:
+
+- **Active Orders Empty State**:
+  - Beautiful card-style empty state with border and background
+  - 📋 emoji icon (48px)
+  - "No Orders Yet" heading
+  - "Create your first order to get started" subtext
+  - Visible only when all status groups are empty
+    (InProgressCount=0, OnDeckCount=0, NotReadyCount=0)
+  - Centered with padding for breathing room
+
+- **Archived Orders Empty State**:
+  - Matching card-style design
+  - 📦 emoji icon (48px)
+  - "No Archived Orders" heading
+  - "Archived orders will appear here" subtext
+  - Visible when ArchivedItems.Count = 0
+  - Enhanced from simple TextBlock to full card
+
+**Benefits**:
+
+- Friendlier onboarding experience for new users
+- Clear visual feedback when sections are empty
+- Guides users on what to do next
+- Consistent visual design across empty states
+
+---
+
 ## HIGH-PRIORITY SPRINT COMPLETE! 🎉
 
 All 4 high-priority phases have been successfully implemented:
@@ -314,6 +473,9 @@ All 4 high-priority phases have been successfully implemented:
 2. ✅ Phase 2: Keyboard Shortcuts
 3. ✅ Phase 3: Bulk Operations
 4. ✅ Phase 4: Enhanced Navigation
+
+**BONUS**: Phase 5 (Advanced Filtering Dialog) + Phase 6 (Visual Polish)
+complete!
 
 ---
 
@@ -354,43 +516,60 @@ See main plan file
 ## FILES MODIFIED SO FAR
 
 ### Created (New Files):
+
 1. `SOUP/src/Features/OrderLog/Services/OrderSearchService.cs` (271 lines)
 2. `SOUP/src/Features/OrderLog/Helpers/KeyboardShortcutManager.cs` (292 lines)
 3. `SOUP/src/Features/OrderLog/Services/OrderBulkOperationsService.cs` (223 lines)
-4. `SOUP/docs/OrderLog-QOL-Progress.md` (this file)
+4. `SOUP/src/Features/OrderLog/Views/OrderLogFilterDialog.xaml` (191 lines)
+5. `SOUP/src/Features/OrderLog/Views/OrderLogFilterDialog.xaml.cs` (102 lines)
+6. `SOUP/docs/OrderLog-QOL-Progress.md` (this file)
 
 ### Modified:
-1. `SOUP/src/Features/OrderLog/ViewModels/OrderLogViewModel.cs`
+
+1. `SOUP/src/Features/OrderLog/Models/OrderItem.cs`
+   - Added `LinkedItemCount` property (Phase 6)
+
+2. `SOUP/src/Features/OrderLog/ViewModels/OrderLogViewModel.cs`
    - Added search service and bulk operations service fields
    - Added 7 search/filter properties with change handlers
    - Added `IsMultiSelectMode` property
-   - Added navigation properties: `CurrentNavigationItem`, `CurrentItemIndex`, `SavedScrollPosition`
+   - Added navigation properties: `CurrentNavigationItem`, `CurrentItemIndex`,
+     `SavedScrollPosition`
    - Modified `RefreshDisplayCollection()` to apply filters
    - Added search commands: `ClearSearchCommand`, `ClearFiltersCommand`
    - Added bulk operation commands (9 commands for multi-select operations)
    - Added navigation commands: `NavigateToItemCommand`, `NavigateNextCommand`,
      `NavigatePreviousCommand`, `NavigateToTopCommand`, `NavigateToBottomCommand`
+   - Added `UpdateLinkedItemCounts()` method (Phase 6)
 
-2. `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+3. `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
    - Updated Grid.RowDefinitions (6 rows → 7 rows)
    - Added search bar UI (Grid.Row="1")
    - Added multi-select mode toggle button
    - Added multi-select toolbar with bulk action buttons
    - Added checkboxes to order cards (visible in multi-select mode)
    - Updated all Grid.Row references for subsequent rows
+   - Added Click handler to filter button (Phase 5)
+   - Added comprehensive tooltips to order cards (Phase 6)
+   - Added link count badges to card headers (Phase 6)
+   - Added keyboard shortcuts to context menus (Phase 6)
+   - Added empty state messages for active and archived sections (Phase 6)
 
-3. `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml.cs`
+4. `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml.cs`
    - Added using for `Helpers` namespace
    - Added `_keyboardShortcutManager` field
-   - Added scroll position tracking fields: `_activeTabScrollPosition`, `_archivedTabScrollPosition`
+   - Added scroll position tracking fields: `_activeTabScrollPosition`,
+     `_archivedTabScrollPosition`
    - Integrated keyboard shortcuts in OnLoaded/OnUnloaded
    - Added keyboard shortcut helper methods (5 methods)
    - Added multi-select checkbox event handlers (2 methods)
-   - Added navigation support: `ViewModel_NavigationPropertyChanged`, `ScrollToItem()`
+   - Added navigation support: `ViewModel_NavigationPropertyChanged`,
+     `ScrollToItem()`
    - Updated tab click handlers to save/restore scroll positions
    - Added basic jump dialog implementation
+   - Added `ShowFilters_Click()` event handler for filter dialog (Phase 5)
 
-4. `SOUP/src/Features/OrderLog/Helpers/KeyboardShortcutManager.cs`
+5. `SOUP/src/Features/OrderLog/Helpers/KeyboardShortcutManager.cs`
    - Updated `HandleArrowUp()` to call `NavigatePreviousCommand`
    - Updated `HandleArrowDown()` to call `NavigateNextCommand`
    - Updated `HandleCtrlHome()` to call `NavigateToTopCommand`
@@ -461,23 +640,57 @@ See main plan file
 - [ ] Navigation works correctly with grouped items
 - [ ] Navigation wraps around (top→bottom, bottom→top)
 
+### Phase 5 (Advanced Filtering Dialog)
+
+- [ ] Filter button (⚙) opens dialog when clicked
+- [ ] Dialog shows current filter state
+- [ ] Status checkboxes can be selected/deselected
+- [ ] Multiple statuses can be selected simultaneously
+- [ ] Start date picker allows date selection
+- [ ] End date picker allows date selection
+- [ ] Note type radio buttons work (All/Orders/Notes)
+- [ ] Clear All button resets all filters
+- [ ] Cancel button closes dialog without applying changes
+- [ ] Apply button closes dialog and applies filters
+- [ ] Applied filters immediately filter the order list
+- [ ] Status message shows filter count ("X filters applied")
+- [ ] Filters persist when reopening dialog
+- [ ] Date range validation (start ≤ end)
+- [ ] Combined filters work correctly (AND logic)
+- [ ] Dialog is draggable by title bar
+- [ ] Dialog styling matches theme
+
+### Phase 6 (Visual Polish & UX Improvements)
+
+- [ ] Order cards show detailed tooltip on hover
+- [ ] Tooltip displays vendor name, transfer/shipment numbers, timestamps, status
+- [ ] Tooltip text wraps for long values
+- [ ] Link count badge appears on linked orders
+- [ ] Badge shows correct count of linked items (excluding self)
+- [ ] Badge only visible when item has LinkedGroupId
+- [ ] Badge positioned correctly between vendor name and status
+- [ ] Context menu items show keyboard shortcuts on the right
+- [ ] Shortcuts displayed: Ctrl+1/2/3, Ctrl+A, Ctrl+Del
+- [ ] Empty state appears when no active orders exist
+- [ ] Active empty state shows "No Orders Yet" message
+- [ ] Empty state appears when no archived orders exist
+- [ ] Archived empty state shows "No Archived Orders" message
+- [ ] Empty states have consistent card-style design
+- [ ] Empty states use appropriate emoji icons (📋, 📦)
+
 ---
 
 ## KNOWN ISSUES / LIMITATIONS
 
-1. **Advanced Filters Dialog**: Filter button (⚙) in search bar is present but not functional yet. Needs dialog implementation for:
-   - Status checkboxes
-   - Date range pickers
-   - Color filter
-   - Note type filter
+1. **Search Highlighting**: SearchMatch data is captured by `GetMatches()` but not yet used for UI highlighting
 
-2. **Search Highlighting**: SearchMatch data is captured by `GetMatches()` but not yet used for UI highlighting
+2. **Color Filter in Dialog**: Advanced filter dialog has status, date, and type filters, but color filtering not yet included in UI (backend supports it)
 
-3. **Keyboard Navigation**: Arrow Up/Down defined but not fully implemented (needs item selection tracking)
+3. **Jump Dialog**: Ctrl+G shortcut shows basic message but full dialog with search not created
 
-4. **Jump Dialog**: Ctrl+G shortcut defined but dialog not created
+4. **Keyboard Help**: F1 shortcut defined but help dialog not created
 
-5. **Keyboard Help**: F1 shortcut defined but help dialog not created
+5. **Filter Persistence**: Filters clear when application restarts (not saved to settings file yet)
 
 ---
 
@@ -551,8 +764,10 @@ See `C:\Users\acalabrese\.claude\plans\cryptic-imagining-toucan.md` for full pla
 3. **Optional**: Continue with lower-priority phases (5-15) as time allows
 4. **Test thoroughly**: Use the testing checklist above to verify all features
 
-**Total Time Invested**: ~7-8 hours (Phases 1-4 complete)
+**Total Time Invested**: ~9-10 hours (Phases 1-6 complete)
 **High-Priority Sprint**: COMPLETE! 🎉
+**Bonus Phases**: Phase 5 (Advanced Filtering) + Phase 6 (Visual Polish)
+COMPLETE!
 
 ---
 

@@ -1991,6 +1991,12 @@
             Stores the status before archiving, so it can be restored when unarchiving.
             </summary>
         </member>
+        <member name="F:SOUP.Features.OrderLog.Models.OrderItem._linkedItemCount">
+            <summary>
+            Number of other items linked to this item (excluding itself).
+            Updated by the ViewModel when linked groups change.
+            </summary>
+        </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.CreatedAtDisplay">
             <summary>
             Formatted display of the creation timestamp.
@@ -2096,6 +2102,9 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.LinkedGroupId">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._linkedGroupId"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.LinkedItemCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._linkedItemCount"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.IsArchived">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._isArchived"/>
@@ -2415,6 +2424,11 @@
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshStickyNotes">
             <summary>
             Refresh the sticky notes collection (separate from orders).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UpdateLinkedItemCounts">
+            <summary>
+            Update the LinkedItemCount property for all items based on their LinkedGroupId.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshStatusGroups">
@@ -2872,6 +2886,16 @@
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderColorPickerWindow.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Views.OrderLogFilterDialog">
+            <summary>
+            OrderLogFilterDialog
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogFilterDialog.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
@@ -7416,6 +7440,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LinkedGroupId">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LinkedGroupId" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LinkedItemCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LinkedItemCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsArchived" generated properties.</summary>
         </member>
@@ -8072,6 +8099,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LinkedGroupId">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LinkedGroupId" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LinkedItemCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LinkedItemCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsArchived" generated properties.</summary>

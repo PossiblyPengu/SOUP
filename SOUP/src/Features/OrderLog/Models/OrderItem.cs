@@ -60,6 +60,13 @@ public partial class OrderItem : ObservableObject
     [ObservableProperty]
     private Guid? _linkedGroupId;
 
+    /// <summary>
+    /// Number of other items linked to this item (excluding itself).
+    /// Updated by the ViewModel when linked groups change.
+    /// </summary>
+    [ObservableProperty]
+    private int _linkedItemCount = 0;
+
     [ObservableProperty]
     private bool _isArchived = false;
 

@@ -698,6 +698,52 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    private void ShowFilters_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (DataContext is not OrderLogViewModel viewModel)
+                return;
+
+            var dialog = new OrderLogFilterDialog(
+                viewModel.StatusFilters,
+                viewModel.FilterStartDate,
+                viewModel.FilterEndDate,
+                viewModel.NoteTypeFilter)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // Apply filters from dialog to ViewModel
+                viewModel.StatusFilters = dialog.SelectedStatuses;
+                viewModel.FilterStartDate = dialog.StartDate;
+                viewModel.FilterEndDate = dialog.EndDate;
+                viewModel.NoteTypeFilter = dialog.SelectedNoteType;
+
+                // Update status message
+                var filterCount = 0;
+                if (dialog.SelectedStatuses?.Length > 0) filterCount++;
+                if (dialog.StartDate.HasValue || dialog.EndDate.HasValue) filterCount++;
+                if (dialog.SelectedNoteType.HasValue) filterCount++;
+
+                if (filterCount > 0)
+                {
+                    viewModel.StatusMessage = $"{filterCount} filter{(filterCount > 1 ? "s" : "")} applied";
+                }
+                else
+                {
+                    viewModel.StatusMessage = "Filters cleared";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to show filter dialog");
+        }
+    }
+
     private void OnThemeChanged(object? sender, bool isDarkMode)
     {
         Dispatcher.Invoke(() =>

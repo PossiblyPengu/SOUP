@@ -69,12 +69,50 @@
         <!-- Template for a single Order card (active) -->
         <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
             <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" ClipToBounds="True">
+                <Border.ToolTip>
+                    <ToolTip>
+                        <StackPanel MaxWidth="350">
+                            <TextBlock Text="{Binding VendorName}" FontWeight="Bold" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2"
+                                       TextWrapping="Wrap">
+                                <Run Text="Transfer: "/>
+                                <Run Text="{Binding TransferNumbers, Mode=OneWay}"/>
+                            </TextBlock>
+
+                            <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2"
+                                       TextWrapping="Wrap">
+                                <Run Text="Shipment: "/>
+                                <Run Text="{Binding WhsShipmentNumbers, Mode=OneWay}"/>
+                            </TextBlock>
+
+                            <Separator Margin="0,8" Background="{DynamicResource BorderBrush}"/>
+
+                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2">
+                                <Run Text="Created: "/>
+                                <Run Text="{Binding CreatedAtDisplay, Mode=OneWay}"/>
+                            </TextBlock>
+
+                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2">
+                                <Run Text="Time: "/>
+                                <Run Text="{Binding TimeInProgressDisplay, Mode=OneWay}"/>
+                            </TextBlock>
+
+                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2">
+                                <Run Text="Status: "/>
+                                <Run Text="{Binding Status, Mode=OneWay}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </ToolTip>
+                </Border.ToolTip>
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Set Status">
-                            <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
-                            <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
-                            <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
+                            <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" InputGestureText="Ctrl+1"/>
+                            <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" InputGestureText="Ctrl+2"/>
+                            <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" InputGestureText="Ctrl+3"/>
                         </MenuItem>
                         <MenuItem Header="Move Up" Click="MoveUp_Click"/>
                         <MenuItem Header="Move Down" Click="MoveDown_Click"/>
@@ -82,8 +120,8 @@
                         <MenuItem Header="Link with..." Click="LinkWith_Click"/>
                         <MenuItem Header="Unlink" Click="Unlink_Click"/>
                         <Separator/>
-                        <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold"/>
-                        <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                        <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold" InputGestureText="Ctrl+A"/>
+                        <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}" InputGestureText="Ctrl+Del"/>
                     </ContextMenu>
                 </Border.ContextMenu>
 
@@ -102,6 +140,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
@@ -156,8 +195,27 @@
                                          LostFocus="EditableField_LostFocus"/>
                             </Grid>
 
+                            <!-- Link Count Badge -->
+                            <Border Grid.Column="2"
+                                    Background="{DynamicResource PrimaryBrush}"
+                                    CornerRadius="10"
+                                    Padding="8,4"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"
+                                    ToolTip="This order is linked with other orders"
+                                    Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔗" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LinkedItemCount}"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Status ComboBox -->
-                            <ComboBox Grid.Column="2"
+                            <ComboBox Grid.Column="3"
                                       HorizontalAlignment="Right"
                                       SelectedValue="{Binding Status, Mode=TwoWay}"
                                       SelectedValuePath="Tag"
@@ -176,7 +234,7 @@
                                 <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </ComboBox>
 
-                            <Button Grid.Column="3" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle" IsTabStop="False"/>
+                            <Button Grid.Column="4" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle" IsTabStop="False"/>
                         </Grid>
                     </Border>
 
@@ -557,7 +615,7 @@
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
                         <Separator/>
-                        <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                        <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}" InputGestureText="Ctrl+Del"/>
                     </ContextMenu>
                 </Border.ContextMenu>
 
@@ -640,7 +698,7 @@
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
                         <Separator/>
-                        <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                        <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" Foreground="{DynamicResource DangerBrush}" InputGestureText="Ctrl+Del"/>
                     </ContextMenu>
                 </Border.ContextMenu>
 
@@ -1253,13 +1311,14 @@
                             </Grid>
                         </Border>
 
-                        <!-- Filter Button (Future: Opens filter dialog) -->
+                        <!-- Filter Button -->
                         <Button Grid.Column="1"
                                 Width="36" Height="36"
                                 Background="{DynamicResource SurfaceHoverBrush}"
                                 BorderThickness="1"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 ToolTip="Advanced Filters"
+                                Click="ShowFilters_Click"
                                 Cursor="Hand">
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -2391,6 +2450,44 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </Expander>
+
+                        <!-- Empty State: No Active Orders -->
+                        <Border Margin="6,40,6,40" Padding="32,24"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding InProgressCount}" Value="0"/>
+                                                <Condition Binding="{Binding OnDeckCount}" Value="0"/>
+                                                <Condition Binding="{Binding NotReadyCount}" Value="0"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="📋" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                                <TextBlock Text="No Orders Yet"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Text="Create your first order to get started"
+                                           FontSize="13"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           HorizontalAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </StackPanel>
 
@@ -2500,15 +2597,15 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    
-                    <!-- Empty state for archived -->
-                    <TextBlock Text="No archived items"
-                               FontSize="{DynamicResource CardFontSize}"
-                               Foreground="{DynamicResource TextTertiaryBrush}"
-                               HorizontalAlignment="Center"
-                               Margin="0,20,0,0">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+
+                    <!-- Empty State: No Archived Orders -->
+                    <Border Margin="6,40,6,40" Padding="32,24"
+                            Background="{DynamicResource SurfaceBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                        <Border.Style>
+                            <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding ArchivedItems.Count}" Value="0">
@@ -2516,8 +2613,23 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📦" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                            <TextBlock Text="No Archived Orders"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="Archived orders will appear here"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
         </ScrollViewer>
