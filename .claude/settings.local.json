@@ -27,7 +27,8 @@
       "Bash(Select-String -Pattern \"error|warning|succeeded|failed\")",
       "Bash(dotnet --list-sdks:*)",
       "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" --version)",
-      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" build:*)"
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" build:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

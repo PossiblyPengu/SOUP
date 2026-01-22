@@ -30,4 +30,10 @@ public interface IExpireWiseRepository : IRepository<ExpirationItem>
     /// <param name="end">End date (inclusive).</param>
     /// <returns>A collection of items within the date range.</returns>
     Task<IEnumerable<ExpirationItem>> GetByDateRangeAsync(DateTime start, DateTime end);
+
+    /// <summary>
+    /// Replace all items in the repository with the provided collection in a single transaction.
+    /// Returns true on success, false on failure (transaction rolled back).
+    /// </summary>
+    Task<bool> ReplaceAllAsync(List<ExpirationItem> newItems);
 }

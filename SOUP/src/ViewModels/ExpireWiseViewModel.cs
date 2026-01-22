@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SOUP.Core.Entities.ExpireWise;
@@ -18,43 +18,31 @@ using SOUP.Views.ExpireWise;
 
 namespace SOUP.ViewModels;
 
-/// <summary>
-/// ViewModel for the ExpireWise module, tracking product expiration dates with month-based navigation.
-/// </summary>
-/// <remarks>
-/// <para>
-/// This module provides comprehensive expiration tracking including:
-/// <list type="bullet">
-///   <item>Month-by-month navigation of expiring items</item>
-///   <item>Visual indicators for critical (≤7 days), warning (≤30 days), and expired items</item>
-///   <item>Import of expiration data from Excel or CSV files</item>
-///   <item>Manual entry of expiration items</item>
-///   <item>Analytics dashboard with expiration trends</item>
-///   <item>Persistent storage of data between sessions</item>
-/// </list>
-/// </para>
-/// </remarks>
 public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 {
-    #region Private Fields
+    #region Fields
 
-    private static readonly JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
-
+    // Core services and dependencies
     private readonly IExpireWiseRepository _repository;
     private readonly IFileImportExportService _fileService;
-    private readonly ExpireWiseParser _parser;
+    private readonly SOUP.Infrastructure.Services.Parsers.ExpireWiseParser _parser;
     private readonly DialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ExpireWiseViewModel>? _logger;
-    private readonly Infrastructure.Services.SettingsService? _settingsService;
 
-    #endregion
+    // Feature services
+    private readonly SOUP.Features.ExpireWise.Services.ExpireWiseSearchService _searchService;
+    private readonly SOUP.Features.ExpireWise.Services.ExpireWiseMonthNavigationService _navigationService;
+    private readonly SOUP.Features.ExpireWise.Services.ExpireWiseImportExportService _importExportService;
+    private readonly SOUP.Features.ExpireWise.Services.ExpireWiseNotificationService _notificationService;
+    private readonly SOUP.Features.ExpireWise.Services.ExpireWiseItemService _itemService;
 
-    #region Observable Properties
-
-    /// <summary>
-    /// Gets or sets the full collection of expiration items.
-    /// </summary>
+    // Settings / timers
+    private Infrastructure.Services.SettingsService? _settingsService;
+    private int _autoRefreshMinutes = 0;
+    private DispatcherTimer? _notificationTimer;
+    private EventHandler? _notificationTimerHandler;
+    private string _dateDisplayFormat = "MMMM yyyy";
     [ObservableProperty]
     private ObservableCollection<ExpirationItem> _items = new();
 
@@ -66,6 +54,9 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private ObservableCollection<MonthGroup> _availableMonths = new();
+
+    [ObservableProperty]
+    private ObservableCollection<ExpirationItem> _notifications = new();
 
     [ObservableProperty]
     private ExpireWiseAnalyticsViewModel _analytics = new();
@@ -277,12 +268,21 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// <param name="fileService">The service for file import/export operations.</param>
     /// <param name="dialogService">The service for displaying dialogs.</param>
     /// <param name="serviceProvider">The service provider for dependency resolution.</param>
+    /// <param name="searchService">The search/filter service for ExpireWise.</param>
+    /// <param name="navigationService">The month navigation service for ExpireWise.</param>
+    /// <param name="importExportService">The import/export helper service for ExpireWise.</param>
+    /// <param name="notificationService">The notification service for ExpireWise.</param>
     /// <param name="logger">Optional logger for diagnostic output.</param>
     public ExpireWiseViewModel(
         IExpireWiseRepository repository,
         IFileImportExportService fileService,
         DialogService dialogService,
         IServiceProvider serviceProvider,
+        SOUP.Features.ExpireWise.Services.ExpireWiseSearchService searchService,
+        SOUP.Features.ExpireWise.Services.ExpireWiseMonthNavigationService navigationService,
+        SOUP.Features.ExpireWise.Services.ExpireWiseImportExportService importExportService,
+        SOUP.Features.ExpireWise.Services.ExpireWiseNotificationService notificationService,
+        SOUP.Features.ExpireWise.Services.ExpireWiseItemService itemService,
         ILogger<ExpireWiseViewModel>? logger = null)
     {
         _repository = repository;
@@ -291,6 +291,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
         _logger = logger;
+
+        _searchService = searchService;
+        _navigationService = navigationService;
+        _importExportService = importExportService;
+        _notificationService = notificationService;
+        _itemService = itemService;
 
         // Subscribe to settings changes for dynamic updates
         _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
@@ -318,13 +324,32 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task InitializeAsync()
     {
-        if (_isInitialized) return;
-        _isInitialized = true;
+        if (IsInitialized) return;
+        IsInitialized = true;
 
         // Load and apply settings for expiration thresholds
         await LoadAndApplySettingsAsync();
         await LoadItems();
         UpdateAnalytics();
+
+        // Set up periodic notification checks if configured
+        try
+        {
+            if (_autoRefreshMinutes > 0)
+            {
+                _notificationTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(_autoRefreshMinutes) };
+                _notificationTimerHandler = async (s, e) => await CheckNotifications();
+                _notificationTimer.Tick += _notificationTimerHandler;
+                _notificationTimer.Start();
+
+                // Perform an initial check
+                await CheckNotifications();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to start notification timer");
+        }
     }
 
     /// <summary>
@@ -346,6 +371,14 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 // Apply default filter settings
                 StatusFilter = settings.DefaultStatusFilter;
 
+                // Cache date display format
+                _dateDisplayFormat = settings.DateDisplayFormat ?? _dateDisplayFormat;
+                // Cache auto-refresh interval
+                _autoRefreshMinutes = settings.AutoRefreshIntervalMinutes;
+
+                // Refresh month display to apply new date format
+                UpdateMonthDisplay();
+
                 _logger?.LogInformation("Applied ExpireWise settings: Critical={Critical} days, Warning={Warning} days, Filter={Filter}",
                     settings.CriticalThresholdDays, settings.WarningThresholdDays, settings.DefaultStatusFilter);
             }
@@ -354,6 +387,16 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         {
             _logger?.LogWarning(ex, "Failed to load ExpireWise settings, using defaults");
         }
+    }
+
+    private string FormatExpirationDate(DateTime date)
+    {
+        return _dateDisplayFormat switch
+        {
+            "Short" => date.ToString("MM/yyyy"),
+            "Long" => date.ToString("MMMM yyyy"),
+            _ => date.ToString("MMMM yyyy"),
+        };
     }
 
     private void UpdateAnalytics()
@@ -365,6 +408,46 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// Event raised when search box should be focused (triggered by Ctrl+F)
     /// </summary>
     public event Action? FocusSearchRequested;
+
+    [RelayCommand]
+    private async Task CheckNotifications()
+    {
+        try
+        {
+            var settingsService = _serviceProvider.GetService<Infrastructure.Services.SettingsService>();
+            var settings = settingsService != null ? await settingsService.LoadSettingsAsync<Core.Entities.Settings.ExpireWiseSettings>("ExpireWise") : null;
+            var enabled = settings?.ShowExpirationNotifications ?? true;
+            var threshold = settings?.WarningThresholdDays ?? ExpirationItem.WarningDaysThreshold;
+
+            var list = await _notificationService.GetNotificationsAsync(Items, threshold, enabled);
+            Notifications.Clear();
+            foreach (var it in list)
+                Notifications.Add(it);
+
+            if (Notifications.Count > 0)
+            {
+                StatusMessage = $"{Notifications.Count} upcoming expiration(s)";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to check notifications");
+            StatusMessage = "Failed to check notifications";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveNotification(ExpirationItem? item)
+    {
+        if (item == null) return;
+        Notifications.Remove(item);
+    }
+
+    [RelayCommand]
+    private void ClearNotifications()
+    {
+        Notifications.Clear();
+    }
 
     [RelayCommand]
     private void FocusSearch()
@@ -429,8 +512,11 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     private void BuildAvailableMonths()
     {
-        // Build the visible month pills around the current month
-        RebuildVisibleMonths();
+        // Build the visible month pills around the current month via navigation service
+        var groups = _navigationService.BuildMonthGroups(Items, CurrentMonth, _dateDisplayFormat);
+        AvailableMonths.Clear();
+        foreach (var g in groups)
+            AvailableMonths.Add(g);
     }
 
     /// <summary>
@@ -439,48 +525,24 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RebuildVisibleMonths()
     {
+        var groups = _navigationService.BuildMonthGroups(Items, CurrentMonth, _dateDisplayFormat);
         AvailableMonths.Clear();
-
-        // Show 6 months before and 6 months after current month (13 total)
-        var startMonth = CurrentMonth.AddMonths(-6);
-        var endMonth = CurrentMonth.AddMonths(6);
-
-        // Pre-group all items by month once (O(n) instead of O(13n))
-        var itemsByMonth = Items
-            .GroupBy(i => (i.ExpiryDate.Year, i.ExpiryDate.Month))
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        var currentMonthIter = startMonth;
-        while (currentMonthIter <= endMonth)
-        {
-            var key = (currentMonthIter.Year, currentMonthIter.Month);
-            var itemsInMonth = itemsByMonth.TryGetValue(key, out var list) ? list : new List<ExpirationItem>();
-
-            AvailableMonths.Add(new MonthGroup
-            {
-                Month = currentMonthIter,
-                DisplayName = currentMonthIter.ToString("MMMM yyyy"),
-                ItemCount = itemsInMonth.Count,
-                TotalUnits = itemsInMonth.Sum(i => i.Units),
-                CriticalCount = itemsInMonth.Count(i => i.Status == ExpirationStatus.Critical),
-                ExpiredCount = itemsInMonth.Count(i => i.Status == ExpirationStatus.Expired),
-                IsCurrentMonth = currentMonthIter == CurrentMonth
-            });
-
-            currentMonthIter = currentMonthIter.AddMonths(1);
-        }
+        foreach (var g in groups)
+            AvailableMonths.Add(g);
     }
 
     [RelayCommand]
     private void PreviousMonth()
     {
-        CurrentMonth = CurrentMonth.AddMonths(-1);
+        _navigationService.NavigatePrevious();
+        CurrentMonth = _navigationService.CurrentMonth;
     }
 
     [RelayCommand]
     private void NextMonth()
     {
-        CurrentMonth = CurrentMonth.AddMonths(1);
+        _navigationService.NavigateNext();
+        CurrentMonth = _navigationService.CurrentMonth;
     }
 
     [RelayCommand]
@@ -488,20 +550,23 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     {
         if (monthGroup != null)
         {
-            CurrentMonth = monthGroup.Month;
+            _navigationService.NavigateToMonth(monthGroup.Month.Year, monthGroup.Month.Month);
+            CurrentMonth = _navigationService.CurrentMonth;
         }
     }
 
     partial void OnCurrentMonthChanged(DateTime value)
     {
-        UpdateMonthDisplay();
-        RebuildVisibleMonths();
-        ApplyFilters();
+           // Keep navigation service in sync and refresh UI
+           _navigationService.NavigateToMonth(value.Year, value.Month);
+           UpdateMonthDisplay();
+           RebuildVisibleMonths();
+           ApplyFilters();
     }
 
     private void UpdateMonthDisplay()
     {
-        CurrentMonthDisplay = CurrentMonth.ToString("MMMM yyyy");
+        CurrentMonthDisplay = FormatExpirationDate(CurrentMonth);
     }
 
     // Navigation is always available - endless carousel
@@ -525,37 +590,37 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             var result = await _dialogService.ShowContentDialogAsync<List<ExpirationItem>?>(dialog);
 
-            if (result != null && result.Count > 0)
-            {
-                foreach (var item in result)
+                if (result != null && result.Count > 0)
                 {
-                    var addedItem = await _repository.AddAsync(item);
-                    Items.Add(addedItem);
+                    foreach (var item in result)
+                    {
+                        var addedItem = await _itemService.AddAsync(item);
+                        Items.Add(addedItem);
+                    }
+
+                    // Recalculate counts and refresh
+                    TotalMonths = Items
+                        .Select(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
+                        .Distinct()
+                        .Count();
+                    TotalItems = Items.Count;
+
+                    BuildAvailableMonths();
+                    ApplyFilters();
+
+                    UpdateLastSaved();
+
+                    if (result.Count == 1)
+                    {
+                        StatusMessage = $"Added item {result[0].ItemNumber}";
+                        _logger?.LogInformation("Added new item {ItemNumber}", result[0].ItemNumber);
+                    }
+                    else
+                    {
+                        StatusMessage = $"Added {result.Count} items";
+                        _logger?.LogInformation("Added {Count} new items", result.Count);
+                    }
                 }
-
-                // Recalculate total months
-                TotalMonths = Items
-                    .Select(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
-                    .Distinct()
-                    .Count();
-                TotalItems = Items.Count;
-
-                BuildAvailableMonths();
-                ApplyFilters();
-
-                UpdateLastSaved();
-
-                if (result.Count == 1)
-                {
-                    StatusMessage = $"Added item {result[0].ItemNumber}";
-                    _logger?.LogInformation("Added new item {ItemNumber}", result[0].ItemNumber);
-                }
-                else
-                {
-                    StatusMessage = $"Added {result.Count} items";
-                    _logger?.LogInformation("Added {Count} new items", result.Count);
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -587,21 +652,21 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             var result = await _dialogService.ShowContentDialogAsync<List<ExpirationItem>?>(dialog);
 
-            if (result != null && result.Count > 0)
-            {
-                var updatedItem = await _repository.UpdateAsync(result[0]);
-                var index = Items.IndexOf(SelectedItem);
-                if (index >= 0)
+                if (result != null && result.Count > 0)
                 {
-                    Items[index] = updatedItem;
-                }
+                    var updatedItem = await _itemService.UpdateAsync(result[0]);
+                    var index = Items.IndexOf(SelectedItem);
+                    if (index >= 0)
+                    {
+                        Items[index] = updatedItem;
+                    }
 
-                BuildAvailableMonths();
-                ApplyFilters();
-                StatusMessage = $"Updated item {updatedItem.ItemNumber}";
-                UpdateLastSaved();
-                _logger?.LogInformation("Updated item {ItemNumber}", updatedItem.ItemNumber);
-            }
+                    BuildAvailableMonths();
+                    ApplyFilters();
+                    StatusMessage = $"Updated item {updatedItem.ItemNumber}";
+                    UpdateLastSaved();
+                    _logger?.LogInformation("Updated item {ItemNumber}", updatedItem.ItemNumber);
+                }
         }
         catch (Exception ex)
         {
@@ -672,15 +737,11 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             if (!confirm) return;
 
             var deleted = 0;
-            foreach (var item in toDelete)
-            {
-                var success = await _repository.DeleteAsync(item.Id);
-                if (success)
+                deleted = await _itemService.DeleteRangeAsync(toDelete);
+                foreach (var item in toDelete.Where(i => Items.Contains(i)))
                 {
                     Items.Remove(item);
-                    deleted++;
                 }
-            }
 
             // Refresh views
             BuildAvailableMonths();
@@ -696,15 +757,16 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             StatusMessage = $"Error deleting items: {ex.Message}";
             _logger?.LogError(ex, "Exception while deleting selected items");
         }
-    }
-
-    [RelayCommand]
-    private async Task ImportFromExcel()
-    {
         _logger?.LogInformation("Import from Excel clicked");
 
         try
         {
+            if (_dialogService == null)
+            {
+                StatusMessage = "Import failed: dialog service unavailable";
+                return;
+            }
+
             var files = await _dialogService.ShowOpenFileDialogAsync(
                 "Select Excel file to import",
                 "Excel Files (*.xlsx)|*.xlsx");
@@ -714,25 +776,32 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 IsLoading = true;
                 StatusMessage = "Importing from Excel...";
 
+                if (_dialogService == null)
+                {
+                    StatusMessage = "Import failed: dialog service unavailable";
+                    IsLoading = false;
+                    return;
+                }
+
                 var result = await _parser.ParseExcelAsync(files[0]);
 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    var existing = await _repository.GetAllAsync();
-                    foreach (var item in existing)
-                    {
-                        await _repository.DeleteAsync(item.Id);
-                    }
+                    var items = result.Value.ToList();
+                    var importResult = await _importExportService.ImportItemsAsync(items);
 
-                    foreach (var item in result.Value)
+                    if (importResult.IsSuccess)
                     {
-                        await _repository.AddAsync(item);
+                        await LoadItems();
+                        StatusMessage = $"Imported {importResult.Value} items";
+                        UpdateLastSaved();
+                        _logger?.LogInformation("Imported {Count} items from Excel (transactional)", importResult.Value);
                     }
-
-                    await LoadItems();
-                    StatusMessage = $"Imported {result.Value.Count} items";
-                    UpdateLastSaved();
-                    _logger?.LogInformation("Imported {Count} items from Excel", result.Value.Count);
+                    else
+                    {
+                        StatusMessage = $"Import failed: {importResult.ErrorMessage}";
+                        _logger?.LogWarning("Excel import failed: {Error}", importResult.ErrorMessage);
+                    }
                 }
                 else
                 {
@@ -761,29 +830,37 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 "Select CSV file to import",
                 "CSV Files (*.csv)|*.csv");
 
-            if (files != null && files.Length > 0)
-            {
-                IsLoading = true;
-                StatusMessage = "Importing from CSV...";
+                if (files != null && files.Length > 0)
+                {
+                    IsLoading = true;
+                    StatusMessage = "Importing from CSV...";
 
-                var result = await _parser.ParseCsvAsync(files[0]);
+                    if (_dialogService == null)
+                    {
+                        StatusMessage = "Import failed: dialog service unavailable";
+                        IsLoading = false;
+                        return;
+                    }
+
+                    var result = await _parser.ParseCsvAsync(files[0]);
 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    var existing = await _repository.GetAllAsync();
-                    foreach (var item in existing)
-                    {
-                        await _repository.DeleteAsync(item.Id);
-                    }
+                    var items = result.Value.ToList();
+                    var importResult = await _importExportService.ImportItemsAsync(items);
 
-                    foreach (var item in result.Value)
+                    if (importResult.IsSuccess)
                     {
-                        await _repository.AddAsync(item);
+                        await LoadItems();
+                        StatusMessage = $"Imported {importResult.Value} items";
+                        UpdateLastSaved();
+                        _logger?.LogInformation("Imported {Count} items from CSV (transactional)", importResult.Value);
                     }
-
-                    await LoadItems();
-                    StatusMessage = $"Imported {result.Value.Count} items";
-                    UpdateLastSaved();
+                    else
+                    {
+                        StatusMessage = $"Import failed: {importResult.ErrorMessage}";
+                        _logger?.LogWarning("CSV import failed: {Error}", importResult.ErrorMessage);
+                    }
                 }
                 else
                 {
@@ -829,7 +906,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             IsLoading = true;
             StatusMessage = "Exporting to Excel...";
 
-            var result = await _fileService.ExportToExcelAsync(Items.ToList(), filePath);
+            var result = await _importExportService.ExportToExcelAsync(filePath, Items);
 
             if (result.IsSuccess)
             {
@@ -882,7 +959,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             IsLoading = true;
             StatusMessage = "Exporting to CSV...";
 
-            var result = await _fileService.ExportToCsvAsync(Items.ToList(), filePath);
+            var result = await _importExportService.ExportToCsvAsync(filePath, Items);
 
             if (result.IsSuccess)
             {
@@ -924,36 +1001,43 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     private void ApplyFilters()
     {
-        // Filter by current month
-        var filtered = Items.Where(i =>
-            i.ExpiryDate.Year == CurrentMonth.Year &&
-            i.ExpiryDate.Month == CurrentMonth.Month);
+        // Start from all active items
+        var all = Items.Where(i => !i.IsDeleted).AsEnumerable();
+
+        // Filter to current month via navigation service range
+        var start = CurrentMonth;
+        var end = CurrentMonth.AddMonths(1).AddDays(-1);
+        if (_navigationService != null)
+        {
+            var range = _navigationService.GetMonthRange();
+            start = range.start;
+            end = range.end;
+        }
+        var filtered = all.Where(i => i.ExpiryDate >= start && i.ExpiryDate <= end);
 
         // Apply status filter
         if (StatusFilter != "All")
         {
-            filtered = StatusFilter switch
+            var status = StatusFilter switch
             {
-                "Good" => filtered.Where(i => i.Status == ExpirationStatus.Good),
-                "Warning" => filtered.Where(i => i.Status == ExpirationStatus.Warning),
-                "Critical" => filtered.Where(i => i.Status == ExpirationStatus.Critical),
-                "Expired" => filtered.Where(i => i.Status == ExpirationStatus.Expired),
-                _ => filtered
+                "Good" => ExpirationStatus.Good,
+                "Warning" => ExpirationStatus.Warning,
+                "Critical" => ExpirationStatus.Critical,
+                "Expired" => ExpirationStatus.Expired,
+                _ => (ExpirationStatus?)null
             };
+
+            filtered = _searchService.FilterByExpirationStatus(filtered, status, ExpirationItem.WarningDaysThreshold);
         }
 
-        // Apply search filter
+        // Apply text search
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            var search = SearchText;
-            filtered = filtered.Where(i =>
-                i.ItemNumber.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                i.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (i.Location?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+            filtered = _searchService.Search(filtered, SearchText);
         }
 
+        // Final sort and populate
         FilteredItems.Clear();
-        // When showing filtered items for a month, sort by Location (store) then expiry date
         foreach (var item in filtered.OrderBy(i => i.Location ?? string.Empty).ThenBy(i => i.ExpiryDate))
         {
             FilteredItems.Add(item);
@@ -977,9 +1061,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     private void UpdateMonthStats()
     {
-        var monthItems = Items.Where(i =>
-            i.ExpiryDate.Year == CurrentMonth.Year &&
-            i.ExpiryDate.Month == CurrentMonth.Month).ToList();
+        var monthItems = _navigationService.GetItemsForCurrentMonth(Items).ToList();
 
         MonthItemCount = monthItems.Count;
         MonthTotalUnits = monthItems.Sum(i => i.Units);
@@ -1012,115 +1094,14 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
     #region Data Persistence
 
-    private static string GetDataPath() => Core.AppPaths.ExpireWiseDir;
-
-    private static string GetDataFilePath() => Path.Combine(GetDataPath(), "session-data.json");
-
     /// <summary>
-    /// Saves current data on application shutdown.
+    /// JSON session persistence has been removed. The SQLite repository is the source
+    /// of truth and handles persistence; this method is a no-op to keep the shutdown
+    /// lifecycle stable where callers expect an async save method.
     /// </summary>
-    public async Task SaveDataOnShutdownAsync()
+    public Task SaveDataOnShutdownAsync()
     {
-        if (Items.Count == 0) return;
-
-        try
-        {
-            var dataPath = GetDataPath();
-            Directory.CreateDirectory(dataPath);
-
-            var data = new ExpireWiseData
-            {
-                SavedAt = DateTime.Now,
-                Items = Items.Select(i => new SavedExpirationItem
-                {
-                    ItemNumber = i.ItemNumber,
-                    Upc = i.Upc,
-                    Description = i.Description,
-                    Location = i.Location,
-                    Units = i.Units,
-                    ExpiryDate = i.ExpiryDate,
-                    Notes = i.Notes,
-                    Category = i.Category
-                }).ToList()
-            };
-
-            var json = JsonSerializer.Serialize(data, s_jsonOptions);
-            await File.WriteAllTextAsync(GetDataFilePath(), json).ConfigureAwait(false);
-
-            _logger?.LogInformation("Saved ExpireWise data: {Count} items", Items.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to save ExpireWise data");
-        }
-    }
-
-    /// <summary>
-    /// Loads persisted data on startup.
-    /// </summary>
-    public async Task LoadPersistedDataAsync()
-    {
-        try
-        {
-            var filePath = GetDataFilePath();
-            if (!File.Exists(filePath)) return;
-
-            var json = await File.ReadAllTextAsync(filePath);
-            var data = JsonSerializer.Deserialize<ExpireWiseData>(json);
-
-            if (data?.Items == null || data.Items.Count == 0) return;
-
-            Items.Clear();
-            foreach (var saved in data.Items)
-            {
-                Items.Add(new ExpirationItem
-                {
-                    ItemNumber = saved.ItemNumber,
-                    Upc = saved.Upc,
-                    Description = saved.Description,
-                    Location = saved.Location,
-                    Units = saved.Units,
-                    ExpiryDate = saved.ExpiryDate,
-                    Notes = saved.Notes,
-                    Category = saved.Category
-                });
-            }
-
-            RebuildVisibleMonths();
-            ApplyFilters();
-            HasData = Items.Count > 0;
-            TotalItems = Items.Count;
-            TotalMonths = Items
-                .Select(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
-                .Distinct()
-                .Count();
-            BuildAvailableMonths();
-            UpdateMonthStats();
-            StatusMessage = $"Restored {Items.Count} items from previous session";
-            _logger?.LogInformation("Loaded ExpireWise persisted data: {Count} items", Items.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to load ExpireWise persisted data");
-        }
-    }
-
-    private sealed class ExpireWiseData
-    {
-        public DateTime SavedAt { get; set; }
-        public List<SavedExpirationItem> Items { get; set; } = new();
-    }
-
-    private sealed class SavedExpirationItem
-    {
-        public string ItemNumber { get; set; } = string.Empty;
-        public string Upc { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string? Location { get; set; }
-        public int Units { get; set; }
-        public DateTime ExpiryDate { get; set; }
-        public string? Notes { get; set; }
-        public string? Category { get; set; }
+        return Task.CompletedTask;
     }
 
     #endregion
@@ -1154,6 +1135,14 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             // Dispose managed resources
             (_repository as IDisposable)?.Dispose();
+            if (_notificationTimer != null)
+            {
+                if (_notificationTimerHandler != null)
+                    _notificationTimer.Tick -= _notificationTimerHandler;
+                _notificationTimer.Stop();
+                _notificationTimer = null;
+                _notificationTimerHandler = null;
+            }
         }
         _disposed = true;
     }

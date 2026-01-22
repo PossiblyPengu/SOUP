@@ -362,6 +362,56 @@
                             <TextBlock Text="Settings" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding CheckNotificationsCommand}" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔔" FontSize="16" Margin="0,0,12,0"/>
+                            <TextBlock Text="Check Notifications" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Inline notification list (hidden when empty) -->
+                    <StackPanel Margin="8,8,8,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Command="{Binding ClearNotificationsCommand}" Style="{StaticResource SidebarActionButton}" Padding="8,6" Margin="0,0,0,8">
+                                <TextBlock Text="Clear" FontSize="12"/>
+                            </Button>
+                        </StackPanel>
+                        <ListBox ItemsSource="{Binding Notifications}">
+                        <ListBox.Style>
+                            <Style TargetType="ListBox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Notifications.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Notifications.Count}" Value="1">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.Style>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="8" Margin="0,2,0,2">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding ItemNumber}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding ExpiryDate, StringFormat='Expires: {0:MMM d, yyyy}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Command="{Binding RemoveNotificationCommand}" CommandParameter="{Binding}" Style="{StaticResource SidebarActionButton}" Width="56" Height="28">
+                                                <TextBlock Text="Dismiss" FontSize="11"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
                     
                     <!-- Last Saved Status -->
                     <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="12,8" Margin="8,8,8,0"

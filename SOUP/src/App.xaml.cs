@@ -188,6 +188,13 @@ public partial class App : Application
         // ViewModels - ExpireWise (Singleton persists data across navigation)
         if (moduleConfig.ExpireWiseEnabled)
         {
+            // ExpireWise services
+            services.AddSingleton<SOUP.Features.ExpireWise.Services.ExpireWiseSearchService>();
+            services.AddSingleton<SOUP.Features.ExpireWise.Services.ExpireWiseMonthNavigationService>();
+            services.AddSingleton<SOUP.Features.ExpireWise.Services.ExpireWiseImportExportService>();
+            services.AddSingleton<SOUP.Features.ExpireWise.Services.ExpireWiseNotificationService>();
+                services.AddSingleton<SOUP.Features.ExpireWise.Services.ExpireWiseItemService>();
+
             services.AddSingleton<ExpireWiseViewModel>();
             services.AddTransient<ExpirationItemDialogViewModel>();
             services.AddTransient<ExpireWiseSettingsViewModel>();
@@ -319,8 +326,8 @@ public partial class App : Application
                     if (expireWiseViewModel != null)
                     {
                         splash?.SetStatus("Loading ExpireWise...");
-                        await expireWiseViewModel.LoadPersistedDataAsync();
-                        Log.Information("ExpireWise data loaded");
+                        await expireWiseViewModel.InitializeAsync();
+                        Log.Information("ExpireWise initialized");
                     }
                 }
 

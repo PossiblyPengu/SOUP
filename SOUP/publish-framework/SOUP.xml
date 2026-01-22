@@ -1276,6 +1276,12 @@
             <param name="end">End date (inclusive).</param>
             <returns>A collection of items within the date range.</returns>
         </member>
+        <member name="M:SOUP.Core.Interfaces.IExpireWiseRepository.ReplaceAllAsync(System.Collections.Generic.List{SOUP.Core.Entities.ExpireWise.ExpirationItem})">
+            <summary>
+            Replace all items in the repository with the provided collection in a single transaction.
+            Returns true on success, false on failure (transaction rolled back).
+            </summary>
+        </member>
         <member name="T:SOUP.Core.Interfaces.IFileImportExportService">
             <summary>
             Service interface for importing and exporting data to/from files.
@@ -3091,6 +3097,12 @@
         <member name="T:SOUP.Infrastructure.Repositories.ExpireWiseRepository">
             <summary>
             ExpireWise repository implementation
+            </summary>
+        </member>
+        <member name="M:SOUP.Infrastructure.Repositories.ExpireWiseRepository.ReplaceAllAsync(System.Collections.Generic.List{SOUP.Core.Entities.ExpireWise.ExpirationItem})">
+            <summary>
+            Replaces all items in the ExpirationItem table with the provided collection.
+            Uses a transaction to ensure all-or-nothing semantics to prevent partial imports.
             </summary>
         </member>
         <member name="T:SOUP.Infrastructure.Repositories.SqliteRepository`1">
@@ -6017,22 +6029,6 @@
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseSettingsViewModel.ClearAllDataAsync"/>.</summary>
         </member>
         <member name="T:SOUP.ViewModels.ExpireWiseViewModel">
-            <summary>
-            ViewModel for the ExpireWise module, tracking product expiration dates with month-based navigation.
-            </summary>
-            <remarks>
-            <para>
-            This module provides comprehensive expiration tracking including:
-            <list type="bullet">
-              <item>Month-by-month navigation of expiring items</item>
-              <item>Visual indicators for critical (≤7 days), warning (≤30 days), and expired items</item>
-              <item>Import of expiration data from Excel or CSV files</item>
-              <item>Manual entry of expiration items</item>
-              <item>Analytics dashboard with expiration trends</item>
-              <item>Persistent storage of data between sessions</item>
-            </list>
-            </para>
-            </remarks>
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
@@ -6048,11 +6044,8 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._items">
-            <summary>
-            Gets or sets the full collection of expiration items.
-            </summary>
+            <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._filteredItems">
             <summary>
@@ -6207,7 +6200,7 @@
             Available years for quick add dropdown.
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.#ctor(SOUP.Core.Interfaces.IExpireWiseRepository,SOUP.Core.Interfaces.IFileImportExportService,SOUP.Services.DialogService,System.IServiceProvider,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.ExpireWiseViewModel})">
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.#ctor(SOUP.Core.Interfaces.IExpireWiseRepository,SOUP.Core.Interfaces.IFileImportExportService,SOUP.Services.DialogService,System.IServiceProvider,SOUP.Features.ExpireWise.Services.ExpireWiseSearchService,SOUP.Features.ExpireWise.Services.ExpireWiseMonthNavigationService,SOUP.Features.ExpireWise.Services.ExpireWiseImportExportService,SOUP.Features.ExpireWise.Services.ExpireWiseNotificationService,SOUP.Features.ExpireWise.Services.ExpireWiseItemService,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.ExpireWiseViewModel})">
             <summary>
             Initializes a new instance of the <see cref="T:SOUP.ViewModels.ExpireWiseViewModel"/> class.
             </summary>
@@ -6215,6 +6208,10 @@
             <param name="fileService">The service for file import/export operations.</param>
             <param name="dialogService">The service for displaying dialogs.</param>
             <param name="serviceProvider">The service provider for dependency resolution.</param>
+            <param name="searchService">The search/filter service for ExpireWise.</param>
+            <param name="navigationService">The month navigation service for ExpireWise.</param>
+            <param name="importExportService">The import/export helper service for ExpireWise.</param>
+            <param name="notificationService">The notification service for ExpireWise.</param>
             <param name="logger">Optional logger for diagnostic output.</param>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnSettingsChanged(System.Object,SOUP.Infrastructure.Services.SettingsChangedEventArgs)">
@@ -6245,12 +6242,9 @@
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.SaveDataOnShutdownAsync">
             <summary>
-            Saves current data on application shutdown.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadPersistedDataAsync">
-            <summary>
-            Loads persisted data on startup.
+            JSON session persistence has been removed. The SQLite repository is the source
+            of truth and handles persistence; this method is a no-op to keep the shutdown
+            lifecycle stable where callers expect an async save method.
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.Dispose">
@@ -6271,6 +6265,9 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.AvailableMonths">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._availableMonths"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Notifications">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._notifications"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Analytics">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._analytics"/>
@@ -6370,6 +6367,24 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore"/> is changed.</remarks>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.checkNotificationsCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.CheckNotificationsCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.CheckNotificationsCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.CheckNotifications"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.removeNotificationCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.RemoveNotificationCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.RemoveNotificationCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.RemoveNotification(SOUP.Core.Entities.ExpireWise.ExpirationItem)"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.clearNotificationsCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ClearNotificationsCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ClearNotificationsCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ClearNotifications"/>.</summary>
+        </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.focusSearchCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.FocusSearchCommand"/>.</summary>
         </member>
@@ -6423,12 +6438,6 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.DeleteSelectedCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.DeleteSelected"/>.</summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.importFromExcelCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ImportFromExcelCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ImportFromExcelCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ImportFromExcel"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.importFromCsvCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ImportFromCsvCommand"/>.</summary>
@@ -7935,6 +7944,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AvailableMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AvailableMonths" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Notifications">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Notifications" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Analytics">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Analytics" generated properties.</summary>
         </member>
@@ -8594,6 +8606,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AvailableMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AvailableMonths" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Notifications">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Notifications" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Analytics">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Analytics" generated properties.</summary>
