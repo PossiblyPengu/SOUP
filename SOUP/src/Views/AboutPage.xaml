@@ -61,6 +61,28 @@
                         </Style>
                     </Button.Style>
                 </Button>
+
+                <!-- Update Progress Panel -->
+                <Border x:Name="UpdateProgressPanel" Visibility="Collapsed"
+                        Background="{DynamicResource SurfaceHoverBrush}"
+                        BorderBrush="{DynamicResource PrimaryBrush}"
+                        BorderThickness="2"
+                        CornerRadius="8"
+                        Padding="16,12"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock x:Name="UpdateStatusText" Text="Downloading update..."
+                                   FontSize="12" FontWeight="Medium"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,8"/>
+                        <ProgressBar x:Name="UpdateProgressBar"
+                                     Width="250" Height="6"
+                                     Minimum="0" Maximum="100"
+                                     Value="0"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             <!-- Build Info Card -->

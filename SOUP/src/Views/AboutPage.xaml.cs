@@ -1,7 +1,9 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.Extensions.DependencyInjection;
 using SOUP.Core;
 using SOUP.Services;
 using SOUP.Windows;
@@ -133,8 +135,7 @@ public partial class AboutPage : UserControl
 
                 if (shouldUpdate)
                 {
-                    // Initiate update flow similar to AboutWindow
-                    CheckUpdateButton.Content = "Downloading...";
+                    await DownloadAndApplyUpdate(updateService, updateInfo);
                 }
             }
             else
@@ -151,6 +152,101 @@ public partial class AboutPage : UserControl
         {
             CheckUpdateButton.IsEnabled = true;
             CheckUpdateButton.Content = "🔄 Check for Updates";
+        }
+    }
+
+    private async Task DownloadAndApplyUpdate(UpdateService updateService, UpdateInfo updateInfo)
+    {
+        try
+        {
+            // Show progress UI
+            UpdateProgressPanel.Visibility = Visibility.Visible;
+            UpdateStatusText.Text = "Downloading update...";
+            UpdateProgressBar.Value = 0;
+            CheckUpdateButton.IsEnabled = false;
+
+            var progress = new Progress<double>(percent =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateProgressBar.Value = percent;
+                    UpdateStatusText.Text = $"Downloading... {percent:F0}%";
+                });
+            });
+
+            var zipPath = await updateService.DownloadUpdateAsync(updateInfo, progress);
+
+            if (string.IsNullOrEmpty(zipPath))
+            {
+                MessageDialog.ShowWarning(Window.GetWindow(this), "Failed to download update. Please try again later.", "Download Failed");
+                return;
+            }
+
+            UpdateStatusText.Text = "Applying update...";
+            UpdateProgressBar.IsIndeterminate = true;
+
+            // Close the widget process first so the update can replace files
+            try
+            {
+                var widgetService = App.GetService<WidgetProcessService>();
+                if (widgetService?.IsWidgetOpen == true)
+                {
+                    UpdateStatusText.Text = "Closing widget...";
+                    await widgetService.CloseWidgetAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error closing widget before update");
+            }
+
+            // Apply the update
+            if (updateService.ApplyUpdate(zipPath))
+            {
+                UpdateStatusText.Text = "Update ready! Restarting...";
+
+                // Set global flag to bypass closing confirmations
+                App.IsUpdating = true;
+
+                // Give the updater script time to start
+                await Task.Delay(1000);
+
+                // Shutdown the entire application immediately
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        // Dispose tray icon to remove it from system tray
+                        var trayService = App.GetService<TrayIconService>();
+                        trayService?.Dispose();
+
+                        // Shutdown the application
+                        Application.Current?.Shutdown();
+                    }
+                    catch { }
+                });
+
+                // Give shutdown time to complete
+                await Task.Delay(500);
+
+                // Force exit to ensure all threads terminate
+                Environment.Exit(0);
+            }
+            else
+            {
+                MessageDialog.ShowWarning(Window.GetWindow(this), "Failed to apply update. Please try downloading manually.", "Update Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to download/apply update");
+            MessageDialog.ShowWarning(Window.GetWindow(this), $"Failed to update: {ex.Message}", "Update Error");
+        }
+        finally
+        {
+            UpdateProgressPanel.Visibility = Visibility.Collapsed;
+            UpdateProgressBar.IsIndeterminate = false;
+            CheckUpdateButton.IsEnabled = true;
         }
     }
 
