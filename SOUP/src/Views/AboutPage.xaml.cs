@@ -11,8 +11,6 @@ namespace SOUP.Views;
 
 public partial class AboutPage : UserControl
 {
-    public event Action? BackRequested;
-
     public AboutPage()
     {
         InitializeComponent();
@@ -156,8 +154,4 @@ public partial class AboutPage : UserControl
         }
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e)
-    {
-        BackRequested?.Invoke();
-    }
 }

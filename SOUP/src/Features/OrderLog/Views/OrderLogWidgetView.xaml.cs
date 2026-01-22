@@ -14,6 +14,7 @@ using Serilog;
 using SOUP.Features.OrderLog.Constants;
 using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.ViewModels;
+using SOUP.Features.OrderLog.Helpers;
 using SOUP.Services;
 
 namespace SOUP.Features.OrderLog.Views;
@@ -26,6 +27,8 @@ public partial class OrderLogWidgetView : UserControl
     private bool _nowPlayingExpanded = false;
     private bool _notesExpanded = true;
     private bool _showingArchivedTab = false;
+    private double _activeTabScrollPosition = 0;
+    private double _archivedTabScrollPosition = 0;
     private SpotifyService? _spotifyService;
     private System.Windows.Threading.DispatcherTimer? _equalizerTimer;
     private System.Windows.Threading.DispatcherTimer? _marqueeTimer;
@@ -33,6 +36,7 @@ public partial class OrderLogWidgetView : UserControl
     private bool _isMarqueeRunning = false;
     private Random _random = new();
     private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
+    private KeyboardShortcutManager? _keyboardShortcutManager;
 
     public OrderLogWidgetView()
     {
@@ -45,14 +49,44 @@ public partial class OrderLogWidgetView : UserControl
 
     private void ActiveTab_Click(object sender, RoutedEventArgs e)
     {
+        // Save archived tab scroll position before switching
+        if (_showingArchivedTab && MainScrollViewer != null)
+        {
+            _archivedTabScrollPosition = MainScrollViewer.VerticalOffset;
+        }
+
         _showingArchivedTab = false;
         UpdateTabState();
+
+        // Restore active tab scroll position
+        if (MainScrollViewer != null)
+        {
+            _ = Dispatcher.BeginInvoke(new Action(() =>
+            {
+                MainScrollViewer.ScrollToVerticalOffset(_activeTabScrollPosition);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
     }
 
     private void ArchivedTab_Click(object sender, RoutedEventArgs e)
     {
+        // Save active tab scroll position before switching
+        if (!_showingArchivedTab && MainScrollViewer != null)
+        {
+            _activeTabScrollPosition = MainScrollViewer.VerticalOffset;
+        }
+
         _showingArchivedTab = true;
         UpdateTabState();
+
+        // Restore archived tab scroll position
+        if (MainScrollViewer != null)
+        {
+            _ = Dispatcher.BeginInvoke(new Action(() =>
+            {
+                MainScrollViewer.ScrollToVerticalOffset(_archivedTabScrollPosition);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
     }
 
     private void UpdateTabState()
@@ -339,6 +373,20 @@ public partial class OrderLogWidgetView : UserControl
         {
             viewModel.PropertyChanged += ViewModel_PropertyChanged;
             viewModel.ItemAdded += ViewModel_ItemAdded;
+
+            // Initialize keyboard shortcuts
+            _keyboardShortcutManager = new KeyboardShortcutManager(viewModel);
+            _keyboardShortcutManager.RegisterShortcuts(this);
+
+            // Wire up keyboard shortcut events
+            _keyboardShortcutManager.SearchFocusRequested += FocusSearchBox;
+            _keyboardShortcutManager.ScrollToTopRequested += ScrollToTop;
+            _keyboardShortcutManager.ScrollToBottomRequested += ScrollToBottom;
+            _keyboardShortcutManager.JumpToDialogRequested += ShowJumpDialog;
+            _keyboardShortcutManager.HelpDialogRequested += ShowKeyboardHelp;
+
+            // Subscribe to navigation changes
+            viewModel.PropertyChanged += ViewModel_NavigationPropertyChanged;
         }
     }
 
@@ -347,6 +395,17 @@ public partial class OrderLogWidgetView : UserControl
         if (e.PropertyName == nameof(OrderLogViewModel.ShowNowPlaying))
         {
             Dispatcher.Invoke(() => UpdateNowPlayingUI());
+        }
+    }
+
+    private void ViewModel_NavigationPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(OrderLogViewModel.CurrentNavigationItem))
+        {
+            if (DataContext is OrderLogViewModel vm && vm.CurrentNavigationItem != null)
+            {
+                ScrollToItem(vm.CurrentNavigationItem);
+            }
         }
     }
 
@@ -576,6 +635,7 @@ public partial class OrderLogWidgetView : UserControl
         if (DataContext is OrderLogViewModel viewModel)
         {
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            viewModel.PropertyChanged -= ViewModel_NavigationPropertyChanged;
             viewModel.ItemAdded -= ViewModel_ItemAdded;
         }
 
@@ -584,6 +644,18 @@ public partial class OrderLogWidgetView : UserControl
         {
             _fluidDragBehavior.ReorderComplete -= OnFluidDragReorderComplete;
             _fluidDragBehavior.LinkComplete -= OnFluidDragLinkComplete;
+        }
+
+        // Cleanup keyboard shortcuts
+        if (_keyboardShortcutManager != null)
+        {
+            _keyboardShortcutManager.SearchFocusRequested -= FocusSearchBox;
+            _keyboardShortcutManager.ScrollToTopRequested -= ScrollToTop;
+            _keyboardShortcutManager.ScrollToBottomRequested -= ScrollToBottom;
+            _keyboardShortcutManager.JumpToDialogRequested -= ShowJumpDialog;
+            _keyboardShortcutManager.HelpDialogRequested -= ShowKeyboardHelp;
+            _keyboardShortcutManager.UnregisterShortcuts();
+            _keyboardShortcutManager = null;
         }
 
         // Unsubscribe from theme changes
@@ -2158,6 +2230,142 @@ public partial class OrderLogWidgetView : UserControl
         {
             Log.Warning(ex, "Container drop failed");
         }
+    }
+
+    #endregion
+
+    #region Multi-Select Helpers
+
+    /// <summary>
+    /// Handles when a multi-select checkbox is checked - adds item to selection
+    /// </summary>
+    private void MultiSelectCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkBox && checkBox.Tag is OrderItem item)
+        {
+            if (DataContext is OrderLogViewModel vm && !vm.SelectedItems.Contains(item))
+            {
+                vm.SelectedItems.Add(item);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles when a multi-select checkbox is unchecked - removes item from selection
+    /// </summary>
+    private void MultiSelectCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkBox && checkBox.Tag is OrderItem item)
+        {
+            if (DataContext is OrderLogViewModel vm && vm.SelectedItems.Contains(item))
+            {
+                vm.SelectedItems.Remove(item);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Keyboard Shortcut Helpers
+
+    /// <summary>
+    /// Focuses the search box and selects all text for quick editing
+    /// </summary>
+    private void FocusSearchBox()
+    {
+        try
+        {
+            SearchBox?.Focus();
+            SearchBox?.SelectAll();
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to focus search box");
+        }
+    }
+
+    /// <summary>
+    /// Scrolls the main content to the top
+    /// </summary>
+    private void ScrollToTop()
+    {
+        try
+        {
+            MainScrollViewer?.ScrollToTop();
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to scroll to top");
+        }
+    }
+
+    /// <summary>
+    /// Scrolls the main content to the bottom
+    /// </summary>
+    private void ScrollToBottom()
+    {
+        try
+        {
+            MainScrollViewer?.ScrollToEnd();
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to scroll to bottom");
+        }
+    }
+
+    /// <summary>
+    /// Scrolls to a specific item in the list
+    /// </summary>
+    private void ScrollToItem(OrderItem item)
+    {
+        try
+        {
+            // Find the ListBoxItem container for this item
+            var container = ActiveItemsListBox?.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
+            if (container != null)
+            {
+                container.BringIntoView();
+                return;
+            }
+
+            // If not found in active items, check if we need to switch tabs
+            if (DataContext is OrderLogViewModel vm)
+            {
+                // If item is archived, might need to switch to archived tab
+                if (item.IsArchived)
+                {
+                    Log.Debug("Item is archived, would need to switch to archived tab");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to scroll to item");
+        }
+    }
+
+    /// <summary>
+    /// Shows the jump-to-item dialog for quick navigation
+    /// </summary>
+    private void ShowJumpDialog()
+    {
+        // Future implementation: Show quick jump dialog to navigate to specific order
+        // For now, users can use Ctrl+F to search and then Arrow Up/Down to navigate
+        if (DataContext is OrderLogViewModel vm)
+        {
+            vm.StatusMessage = "Use Ctrl+F to search, then Arrow Up/Down to navigate";
+        }
+        Log.Debug("Jump dialog requested (not yet fully implemented - use search + arrows)");
+    }
+
+    /// <summary>
+    /// Shows the keyboard shortcuts help dialog (future implementation)
+    /// </summary>
+    private void ShowKeyboardHelp()
+    {
+        // Future implementation: Show keyboard shortcuts help dialog
+        Log.Debug("Keyboard help requested (not yet implemented)");
     }
 
     #endregion

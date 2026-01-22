@@ -1917,6 +1917,21 @@
             Used to avoid repeating the same vendor name inside merged cards.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Helpers.KeyboardShortcutManager">
+            <summary>
+            Manages keyboard shortcuts for the Order Log widget
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.KeyboardShortcutManager.RegisterShortcuts(System.Windows.UIElement)">
+            <summary>
+            Registers keyboard shortcuts on the specified UI element
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.KeyboardShortcutManager.UnregisterShortcuts">
+            <summary>
+            Unregisters keyboard shortcuts
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Helpers.TextFormattingHelper">
             <summary>
             Helper class for text formatting operations on note content TextBoxes.
@@ -2096,6 +2111,69 @@
             Uses debouncing to avoid excessive file writes.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.BulkOperationResult">
+            <summary>
+            Result of a bulk operation
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderBulkOperationsService">
+            <summary>
+            Service for performing bulk operations on order items
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.SetStatusBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem.OrderStatus)">
+            <summary>
+            Sets the status for multiple items at once
+            </summary>
+            <param name="items">Items to update</param>
+            <param name="newStatus">New status to apply</param>
+            <returns>Result of the operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.ArchiveBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Archives multiple items at once
+            </summary>
+            <param name="items">Items to archive</param>
+            <returns>Result of the operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.UnarchiveBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Unarchives multiple items at once
+            </summary>
+            <param name="items">Items to unarchive</param>
+            <returns>Result of the operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.DeleteBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.Generic.ICollection{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Deletes multiple items (marks them for removal)
+            </summary>
+            <param name="items">Items to delete</param>
+            <param name="itemsCollection">The collection to remove items from</param>
+            <returns>Result of the operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.SetColorBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String)">
+            <summary>
+            Sets the color for multiple sticky notes at once
+            </summary>
+            <param name="items">Items to update (must be sticky notes)</param>
+            <param name="colorHex">Hex color to apply (e.g., "#FF5733")</param>
+            <returns>Result of the operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.LinkItemsBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Nullable{System.Guid})">
+            <summary>
+            Links multiple items together with a shared group ID
+            </summary>
+            <param name="items">Items to link</param>
+            <param name="groupId">Optional group ID (generates new one if null)</param>
+            <returns>Result of the operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderBulkOperationsService.UnlinkItemsBulk(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Unlinks multiple items (clears their LinkedGroupId)
+            </summary>
+            <param name="items">Items to unlink</param>
+            <returns>Result of the operation</returns>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.OrderGroupingService">
             <summary>
             Helper service to build grouped display collections and status groups
@@ -2127,6 +2205,83 @@
             Gets or creates the singleton instance of the repository.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.SearchMatch">
+            <summary>
+            Represents a search match within an order item
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderSearchService">
+            <summary>
+            Service for searching and filtering order items
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.Search(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String)">
+            <summary>
+            Searches items by query string. Searches vendor name, transfer numbers, shipment numbers, and note content.
+            </summary>
+            <param name="items">Items to search</param>
+            <param name="query">Search query (case-insensitive)</param>
+            <returns>Filtered items matching the query</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.FilterByStatus(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[])">
+            <summary>
+            Filters items by status (multi-select)
+            </summary>
+            <param name="items">Items to filter</param>
+            <param name="statuses">Statuses to include (empty = all)</param>
+            <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.FilterByDateRange(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Filters items by date range
+            </summary>
+            <param name="items">Items to filter</param>
+            <param name="start">Start date (inclusive, null = no start limit)</param>
+            <param name="end">End date (inclusive, null = no end limit)</param>
+            <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.FilterByColor(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String[])">
+            <summary>
+            Filters items by color hex values
+            </summary>
+            <param name="items">Items to filter</param>
+            <param name="colorHexes">Color hex values to include (empty = all)</param>
+            <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.FilterByNoteType(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Nullable{SOUP.Features.OrderLog.Models.NoteType})">
+            <summary>
+            Filters items by note type (Order vs StickyNote)
+            </summary>
+            <param name="items">Items to filter</param>
+            <param name="noteType">Type to filter by (null = all)</param>
+            <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ApplyAllFilters(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType})">
+            <summary>
+            Applies all filters in sequence
+            </summary>
+            <param name="items">Items to filter</param>
+            <param name="query">Search query</param>
+            <param name="statuses">Status filter</param>
+            <param name="startDate">Start date filter</param>
+            <param name="endDate">End date filter</param>
+            <param name="colorHexes">Color filter</param>
+            <param name="noteType">Note type filter</param>
+            <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.GetMatches(SOUP.Features.OrderLog.Models.OrderItem,System.String)">
+            <summary>
+            Gets all search matches within an item for highlighting purposes
+            </summary>
+            <param name="item">Item to analyze</param>
+            <param name="query">Search query</param>
+            <returns>List of match locations</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.HasActiveFilters(System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType})">
+            <summary>
+            Checks if any filters are currently active
+            </summary>
+        </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderItemGroup.ShouldRenderMerged">
             <summary>
             Determines whether this group should use the merged/linked UI.
@@ -2135,6 +2290,22 @@
             </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel">
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
@@ -2197,6 +2368,16 @@
             Quick add a sticky note with specified content
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveScrollPosition(System.Double)">
+            <summary>
+            Saves the current scroll position for persistence
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.GetSavedScrollPosition">
+            <summary>
+            Restores the saved scroll position
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SwapOrders(SOUP.Features.OrderLog.Models.OrderItem,SOUP.Features.OrderLog.Models.OrderItem)">
             <summary>
             Swap two orders' positions in the collection. Used for iOS-style slide-past reordering.
@@ -2251,6 +2432,7 @@
             Shared helper to build grouped display items from a source collection.
             Groups linked items together and optionally sorts groups by status.
             Sticky notes are excluded from sorting and appended in original order.
+            Applies search/filter before grouping.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddToItems(SOUP.Features.OrderLog.Models.OrderItem,System.Boolean)">
@@ -2287,6 +2469,39 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesOnlyMode">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notesOnlyMode"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SearchQuery">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._searchQuery"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.IsSearchActive">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._isSearchActive"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusFilters">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._statusFilters"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.FilterStartDate">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._filterStartDate"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.FilterEndDate">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._filterEndDate"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ColorFilters">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._colorFilters"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteTypeFilter">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._noteTypeFilter"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.IsMultiSelectMode">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._isMultiSelectMode"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CurrentNavigationItem">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._currentNavigationItem"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CurrentItemIndex">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._currentItemIndex"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SavedScrollPosition">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._savedScrollPosition"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SelectedItem">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._selectedItem"/>
@@ -2363,6 +2578,36 @@
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesOnlyMode"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesOnlyMode"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnSearchQueryChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SearchQuery"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SearchQuery"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnStatusFiltersChanged(SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[])">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusFilters"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusFilters"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnFilterStartDateChanged(System.Nullable{System.DateTime})">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.FilterStartDate"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.FilterStartDate"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnFilterEndDateChanged(System.Nullable{System.DateTime})">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.FilterEndDate"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.FilterEndDate"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnColorFiltersChanged(System.String[])">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ColorFilters"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ColorFilters"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNoteTypeFilterChanged(System.Nullable{SOUP.Features.OrderLog.Models.NoteType})">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteTypeFilter"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteTypeFilter"/> is changed.</remarks>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnStatusMessageChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusMessage"/> just changed.</summary>
@@ -2509,6 +2754,102 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ToggleArchivedCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ToggleArchived"/>.</summary>
         </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.clearSearchCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearSearchCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearSearchCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearSearch"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.clearFiltersCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearFiltersCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearFiltersCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearFilters"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.toggleMultiSelectModeCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ToggleMultiSelectModeCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ToggleMultiSelectModeCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ToggleMultiSelectMode"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.clearSelectionCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearSelectionCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearSelectionCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearSelection"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkArchiveCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkArchiveCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkArchiveCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkArchiveAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkUnarchiveCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkUnarchiveCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkUnarchiveCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkUnarchiveAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkDeleteCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkDeleteCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkDeleteCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkDeleteAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkSetStatusCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkSetStatusCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkSetStatusCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkSetStatusAsync(SOUP.Features.OrderLog.Models.OrderItem.OrderStatus)"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkSetColorCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkSetColorCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkSetColorCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkSetColorAsync(System.String)"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkLinkCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkLinkCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkLinkCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkLinkAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.bulkUnlinkCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkUnlinkCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkUnlinkCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.BulkUnlinkAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.navigateToItemCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToItemCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToItemCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToItem(SOUP.Features.OrderLog.Models.OrderItem)"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.navigateNextCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateNextCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateNextCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateNext"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.navigatePreviousCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigatePreviousCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigatePreviousCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigatePrevious"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.navigateToTopCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToTopCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToTopCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToTop"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.navigateToBottomCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToBottomCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToBottomCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NavigateToBottom"/>.</summary>
+        </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.exportToCsvCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ExportToCsvCommand"/>.</summary>
         </member>
@@ -2556,6 +2897,46 @@
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.GetOrderItemFromContextMenu(System.Object)">
             <summary>
             Resolves an OrderItem from a context menu sender, handling WPF's ContextMenu DataContext inheritance issues.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.MultiSelectCheckBox_Checked(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Handles when a multi-select checkbox is checked - adds item to selection
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.MultiSelectCheckBox_Unchecked(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Handles when a multi-select checkbox is unchecked - removes item from selection
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.FocusSearchBox">
+            <summary>
+            Focuses the search box and selects all text for quick editing
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ScrollToTop">
+            <summary>
+            Scrolls the main content to the top
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ScrollToBottom">
+            <summary>
+            Scrolls the main content to the bottom
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ScrollToItem(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Scrolls to a specific item in the list
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ShowJumpDialog">
+            <summary>
+            Shows the jump-to-item dialog for quick navigation
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ShowKeyboardHelp">
+            <summary>
+            Shows the keyboard shortcuts help dialog (future implementation)
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.InitializeComponent">
@@ -7053,6 +7434,39 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotesOnlyMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotesOnlyMode" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SearchQuery">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SearchQuery" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsSearchActive">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsSearchActive" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.StatusFilters">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "StatusFilters" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.FilterStartDate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "FilterStartDate" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.FilterEndDate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "FilterEndDate" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ColorFilters">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ColorFilters" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteTypeFilter">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteTypeFilter" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsMultiSelectMode">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsMultiSelectMode" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CurrentNavigationItem">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CurrentNavigationItem" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CurrentItemIndex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CurrentItemIndex" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SavedScrollPosition">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SavedScrollPosition" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedItem">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedItem" generated properties.</summary>
         </member>
@@ -7676,6 +8090,39 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotesOnlyMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotesOnlyMode" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SearchQuery">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SearchQuery" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsSearchActive">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsSearchActive" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.StatusFilters">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "StatusFilters" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.FilterStartDate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "FilterStartDate" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.FilterEndDate">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "FilterEndDate" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ColorFilters">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ColorFilters" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteTypeFilter">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteTypeFilter" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsMultiSelectMode">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsMultiSelectMode" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CurrentNavigationItem">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CurrentNavigationItem" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CurrentItemIndex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CurrentItemIndex" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SavedScrollPosition">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SavedScrollPosition" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedItem">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedItem" generated properties.</summary>

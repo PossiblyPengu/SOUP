@@ -137,12 +137,6 @@ public partial class UnifiedSettingsWindow : Window
             if (PanelAbout.Child == null)
             {
                 var aboutPage = new AboutPage();
-                aboutPage.BackRequested += () =>
-                {
-                    PanelAbout.Child = null;
-                    PanelAbout.Visibility = Visibility.Collapsed;
-                    SelectFirstVisibleTab();
-                };
                 PanelAbout.Child = aboutPage;
             }
             PanelAbout.Visibility = Visibility.Visible;

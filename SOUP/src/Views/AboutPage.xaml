@@ -6,122 +6,168 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="28,24">
-            <StackPanel>
-                <!-- App Icon and Name -->
-                <Border Width="88" Height="88" CornerRadius="20"
-                        HorizontalAlignment="Center" Margin="0,0,0,20"
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel MaxWidth="700">
+            <!-- Header Section - Centered -->
+            <StackPanel HorizontalAlignment="Center" Margin="0,0,0,24">
+                <!-- App Icon -->
+                <Border Width="72" Height="72" CornerRadius="16"
+                        HorizontalAlignment="Center" Margin="0,0,0,16"
                         Background="{DynamicResource DialogTitleBarGradient}">
-                    <Image Source="/Assets/soup-logo.png" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Image Source="/Assets/soup-logo.png" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
-                <TextBlock Text="S.O.U.P" FontSize="32" FontWeight="Bold" 
-                           Foreground="{DynamicResource TextPrimaryBrush}" 
+                <TextBlock Text="S.O.U.P" FontSize="28" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            HorizontalAlignment="Center"/>
-                <TextBlock Text="S.A.M. Operations Utilities Pack" FontSize="13" 
-                           Foreground="{DynamicResource TextSecondaryBrush}" 
-                           HorizontalAlignment="Center" Margin="0,4,0,8"/>
+                <TextBlock Text="S.A.M. Operations Utilities Pack" FontSize="13"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           HorizontalAlignment="Center" Margin="0,4,0,12"/>
 
                 <!-- Version Badge -->
-                <Border HorizontalAlignment="Center" Margin="0,0,0,24" CornerRadius="16" Padding="16,8"
+                <Border HorizontalAlignment="Center" Margin="0,0,0,16" CornerRadius="16" Padding="14,7"
                         Background="{DynamicResource DialogTitleBarGradient}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}" 
-                                   Foreground="{DynamicResource SectionTitleTextBrush}" FontSize="14" FontWeight="Bold"/>
-                        <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="14"/>
-                        <TextBlock Text="{x:Static core:AppVersion.Channel}" 
-                                   Foreground="{DynamicResource SuccessLightBrush}" FontSize="14" FontWeight="SemiBold"/>
+                        <TextBlock Text="{x:Static core:AppVersion.DisplayVersion}"
+                                   Foreground="{DynamicResource SectionTitleTextBrush}" FontSize="13" FontWeight="Bold"/>
+                        <TextBlock Text="  •  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="13"/>
+                        <TextBlock Text="{x:Static core:AppVersion.Channel}"
+                                   Foreground="{DynamicResource SuccessLightBrush}" FontSize="13" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Build Info Cards (simplified) -->
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Check for Updates Button -->
+                <Button x:Name="CheckUpdateButton" Content="🔄 Check for Updates" Click="CheckForUpdates_Click"
+                        Padding="18,9" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                        Background="{DynamicResource PrimaryBrush}" Foreground="{DynamicResource TextOnPrimaryBrush}"
+                        BorderThickness="0" HorizontalAlignment="Center">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Border" Background="{TemplateBinding Background}"
+                                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryDarkBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
 
-                    <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="14,12">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="📅" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                            <TextBlock Text="BUILD DATE" FontSize="9" FontWeight="Bold" 
-                                       Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="BuildDateText" Text="N/A" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </Border>
+            <!-- Build Info Card -->
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="ℹ️" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="Build Information" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
 
-                    <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="10" Padding="14,12">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="⚡" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                            <TextBlock Text="RUNTIME" FontSize="9" FontWeight="Bold" 
-                                       Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="RuntimeText" Text=".NET" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock Text="INSTALLED MODULES" FontSize="10" FontWeight="Bold"
-                           Foreground="{DynamicResource TextDisabledBrush}" Margin="0,4,0,10"/>
-
-                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="8" Margin="0,0,0,16">
-                    <StackPanel x:Name="ModulesPanel" />
-                </Border>
-
-                <TextBlock Text="WHAT'S NEW" FontSize="10" FontWeight="Bold"
-                           Foreground="{DynamicResource TextDisabledBrush}" Margin="0,4,0,10"/>
-
-                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="16">
-                    <StackPanel>
-                        <Border CornerRadius="8" Padding="10,6" HorizontalAlignment="Left" Margin="0,0,0,12">
-                            <Border.Background>
-                                <SolidColorBrush Color="{DynamicResource DialogTitleBarShadowColor}" Opacity="0.15"/>
-                            </Border.Background>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="ChangelogVersionText" Text="vX.X.X" FontSize="12" FontWeight="Bold"
-                                           Foreground="{DynamicResource PrimaryBrush}"/>
-                                <TextBlock Text="  —  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
-                                <TextBlock x:Name="ChangelogTitleText" Text="Latest" FontSize="12" FontWeight="Medium"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <Border Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="14,12">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="📅" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                <TextBlock Text="BUILD DATE" FontSize="9" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="BuildDateText" Text="N/A" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
-                        <ItemsControl x:Name="ChangelogItems">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" FontSize="12" 
-                                               Foreground="{DynamicResource TextTertiaryBrush}"
-                                               TextWrapping="Wrap" Margin="4,3"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+
+                        <Border Grid.Column="2" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="14,12">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="⚡" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                <TextBlock Text="RUNTIME" FontSize="9" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="RuntimeText" Text=".NET" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Installed Modules Card -->
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="📦" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="Installed Modules" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </StackPanel>
-                </Border>
 
-                <TextBlock Text="© 2024-2026 PossiblyPengu" FontSize="11" 
-                           Foreground="{DynamicResource TextTertiaryBrush}" 
-                           HorizontalAlignment="Center" Margin="0,24,0,0"/>
-            </StackPanel>
-        </ScrollViewer>
+                    <StackPanel x:Name="ModulesPanel" />
+                </StackPanel>
+            </Border>
 
-        <!-- Footer Buttons -->
-        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="20,14" 
-                CornerRadius="0,0,8,8" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="CheckUpdateButton" Content="🔄 Check for Updates" Click="CheckForUpdates_Click"
-                        Padding="20,10" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
-                        Background="{DynamicResource PrimaryBrush}" Foreground="{DynamicResource TextOnPrimaryBrush}"
-                        BorderThickness="0" Margin="0,0,12,0"/>
-                <Button Content="Back" Click="Back_Click" Padding="32,10" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
-                        Background="{DynamicResource SurfaceHoverBrush}" BorderBrush="{DynamicResource BorderLightBrush}" BorderThickness="1"/>
-            </StackPanel>
-        </Border>
-    </Grid>
+            <!-- What's New Card -->
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="✨" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="What's New" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <Border CornerRadius="8" Padding="10,6" HorizontalAlignment="Left" Margin="0,0,0,12">
+                        <Border.Background>
+                            <SolidColorBrush Color="{DynamicResource DialogTitleBarShadowColor}" Opacity="0.15"/>
+                        </Border.Background>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="ChangelogVersionText" Text="vX.X.X" FontSize="12" FontWeight="Bold"
+                                       Foreground="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="  —  " Foreground="{DynamicResource TextDisabledBrush}" FontSize="12"/>
+                            <TextBlock x:Name="ChangelogTitleText" Text="Latest" FontSize="12" FontWeight="Medium"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ItemsControl x:Name="ChangelogItems">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="12"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           TextWrapping="Wrap" Margin="4,3"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Copyright -->
+            <TextBlock Text="© 2024-2026 PossiblyPengu" FontSize="11"
+                       Foreground="{DynamicResource TextTertiaryBrush}"
+                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

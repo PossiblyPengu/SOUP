@@ -29,6 +29,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly SettingsService _settingsService;
     private readonly DialogService _dialogService;
     private readonly ILogger<OrderLogViewModel>? _logger;
+    private readonly OrderSearchService _searchService;
+    private readonly OrderBulkOperationsService _bulkOperationsService;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
     private DispatcherTimer? _undoTimer;
@@ -76,6 +78,73 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty]
     private bool _notesOnlyMode = false;
+
+    // Search & Filter Properties
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    private bool _isSearchActive = false;
+
+    [ObservableProperty]
+    private OrderItem.OrderStatus[]? _statusFilters = null;
+
+    [ObservableProperty]
+    private DateTime? _filterStartDate = null;
+
+    [ObservableProperty]
+    private DateTime? _filterEndDate = null;
+
+    [ObservableProperty]
+    private string[]? _colorFilters = null;
+
+    [ObservableProperty]
+    private NoteType? _noteTypeFilter = null;
+
+    // Multi-select mode for bulk operations
+    [ObservableProperty]
+    private bool _isMultiSelectMode = false;
+
+    // Navigation properties for enhanced navigation
+    [ObservableProperty]
+    private OrderItem? _currentNavigationItem = null;
+
+    [ObservableProperty]
+    private int _currentItemIndex = -1;
+
+    [ObservableProperty]
+    private double _savedScrollPosition = 0;
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        IsSearchActive = !string.IsNullOrWhiteSpace(value);
+        RefreshDisplayItems();
+    }
+
+    partial void OnStatusFiltersChanged(OrderItem.OrderStatus[]? value)
+    {
+        RefreshDisplayItems();
+    }
+
+    partial void OnFilterStartDateChanged(DateTime? value)
+    {
+        RefreshDisplayItems();
+    }
+
+    partial void OnFilterEndDateChanged(DateTime? value)
+    {
+        RefreshDisplayItems();
+    }
+
+    partial void OnColorFiltersChanged(string[]? value)
+    {
+        RefreshDisplayItems();
+    }
+
+    partial void OnNoteTypeFilterChanged(NoteType? value)
+    {
+        RefreshDisplayItems();
+    }
 
     [ObservableProperty]
     private OrderItem? _selectedItem;
@@ -152,6 +221,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _settingsService = settingsService;
         _dialogService = dialogService;
         _logger = logger;
+        _searchService = new OrderSearchService();
+        _bulkOperationsService = new OrderBulkOperationsService();
 
         _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
         _timer.Tick += OnTimerTick;
@@ -1033,6 +1104,387 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchQuery = string.Empty;
+        IsSearchActive = false;
+    }
+
+    [RelayCommand]
+    private void ClearFilters()
+    {
+        SearchQuery = string.Empty;
+        StatusFilters = null;
+        FilterStartDate = null;
+        FilterEndDate = null;
+        ColorFilters = null;
+        NoteTypeFilter = null;
+        IsSearchActive = false;
+        StatusMessage = "Filters cleared";
+    }
+
+    // Bulk Operations Commands
+
+    [RelayCommand]
+    private void ToggleMultiSelectMode()
+    {
+        IsMultiSelectMode = !IsMultiSelectMode;
+        if (!IsMultiSelectMode)
+        {
+            SelectedItems.Clear();
+        }
+        StatusMessage = IsMultiSelectMode ? "Multi-select mode enabled" : "Multi-select mode disabled";
+    }
+
+    [RelayCommand]
+    private void ClearSelection()
+    {
+        SelectedItems.Clear();
+        StatusMessage = "Selection cleared";
+    }
+
+    [RelayCommand]
+    private async Task BulkArchiveAsync()
+    {
+        if (SelectedItems.Count == 0)
+        {
+            StatusMessage = "No items selected";
+            return;
+        }
+
+        var itemsToArchive = SelectedItems.ToList();
+        var result = _bulkOperationsService.ArchiveBulk(itemsToArchive);
+
+        if (result.IsSuccess)
+        {
+            // Move items from Items to ArchivedItems
+            foreach (var item in itemsToArchive)
+            {
+                Items.Remove(item);
+                if (!ArchivedItems.Contains(item))
+                {
+                    ArchivedItems.Add(item);
+                }
+            }
+
+            SelectedItems.Clear();
+            RefreshDisplayItems();
+            await SaveAsync();
+            StatusMessage = $"Archived {result.SuccessCount} item(s)";
+        }
+        else
+        {
+            StatusMessage = $"Archived {result.SuccessCount}, failed {result.FailureCount}";
+            _logger?.LogWarning("Bulk archive had {FailureCount} failures: {Errors}",
+                result.FailureCount, string.Join(", ", result.Errors));
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkUnarchiveAsync()
+    {
+        if (SelectedItems.Count == 0)
+        {
+            StatusMessage = "No items selected";
+            return;
+        }
+
+        var itemsToUnarchive = SelectedItems.ToList();
+        var result = _bulkOperationsService.UnarchiveBulk(itemsToUnarchive);
+
+        if (result.IsSuccess)
+        {
+            // Move items from ArchivedItems to Items
+            foreach (var item in itemsToUnarchive)
+            {
+                ArchivedItems.Remove(item);
+                if (!Items.Contains(item))
+                {
+                    Items.Add(item);
+                }
+            }
+
+            SelectedItems.Clear();
+            RefreshDisplayItems();
+            await SaveAsync();
+            StatusMessage = $"Unarchived {result.SuccessCount} item(s)";
+        }
+        else
+        {
+            StatusMessage = $"Unarchived {result.SuccessCount}, failed {result.FailureCount}";
+            _logger?.LogWarning("Bulk unarchive had {FailureCount} failures: {Errors}",
+                result.FailureCount, string.Join(", ", result.Errors));
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkDeleteAsync()
+    {
+        if (SelectedItems.Count == 0)
+        {
+            StatusMessage = "No items selected";
+            return;
+        }
+
+        var count = SelectedItems.Count;
+        var confirmResult = MessageBox.Show(
+            $"Are you sure you want to delete {count} selected item(s)? This cannot be undone.",
+            "Delete Items",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (confirmResult != MessageBoxResult.Yes)
+        {
+            StatusMessage = "Delete cancelled";
+            return;
+        }
+
+        var itemsToDelete = SelectedItems.ToList();
+
+        // Delete from both collections
+        var resultItems = _bulkOperationsService.DeleteBulk(itemsToDelete, Items);
+        var resultArchived = _bulkOperationsService.DeleteBulk(itemsToDelete, ArchivedItems);
+
+        var totalSuccess = resultItems.SuccessCount + resultArchived.SuccessCount;
+        var totalFailure = resultItems.FailureCount + resultArchived.FailureCount;
+
+        SelectedItems.Clear();
+        RefreshDisplayItems();
+        await SaveAsync();
+
+        if (totalFailure == 0)
+        {
+            StatusMessage = $"Deleted {totalSuccess} item(s)";
+        }
+        else
+        {
+            StatusMessage = $"Deleted {totalSuccess}, failed {totalFailure}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkSetStatusAsync(OrderItem.OrderStatus newStatus)
+    {
+        if (SelectedItems.Count == 0)
+        {
+            StatusMessage = "No items selected";
+            return;
+        }
+
+        var itemsToUpdate = SelectedItems.Where(i => !i.IsArchived).ToList();
+        if (itemsToUpdate.Count == 0)
+        {
+            StatusMessage = "No active items selected";
+            return;
+        }
+
+        var result = _bulkOperationsService.SetStatusBulk(itemsToUpdate, newStatus);
+
+        if (result.IsSuccess)
+        {
+            // If setting to Done, archive the items
+            if (newStatus == OrderItem.OrderStatus.Done)
+            {
+                foreach (var item in itemsToUpdate)
+                {
+                    item.PreviousStatus = item.Status;
+                    Items.Remove(item);
+                    if (!ArchivedItems.Contains(item))
+                    {
+                        ArchivedItems.Add(item);
+                    }
+                }
+            }
+
+            SelectedItems.Clear();
+            RefreshDisplayItems();
+            await SaveAsync();
+            StatusMessage = $"Updated {result.SuccessCount} item(s) to {newStatus}";
+        }
+        else
+        {
+            StatusMessage = $"Updated {result.SuccessCount}, failed {result.FailureCount}";
+            _logger?.LogWarning("Bulk status update had {FailureCount} failures: {Errors}",
+                result.FailureCount, string.Join(", ", result.Errors));
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkSetColorAsync(string colorHex)
+    {
+        if (SelectedItems.Count == 0)
+        {
+            StatusMessage = "No items selected";
+            return;
+        }
+
+        var stickyNotes = SelectedItems.Where(i => i.NoteType == NoteType.StickyNote).ToList();
+        if (stickyNotes.Count == 0)
+        {
+            StatusMessage = "No sticky notes selected (color only applies to sticky notes)";
+            return;
+        }
+
+        var result = _bulkOperationsService.SetColorBulk(stickyNotes, colorHex);
+
+        if (result.IsSuccess)
+        {
+            RefreshDisplayItems();
+            await SaveAsync();
+            StatusMessage = $"Updated color for {result.SuccessCount} sticky note(s)";
+        }
+        else
+        {
+            StatusMessage = $"Updated {result.SuccessCount}, failed {result.FailureCount}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkLinkAsync()
+    {
+        if (SelectedItems.Count < 2)
+        {
+            StatusMessage = "Select at least 2 items to link";
+            return;
+        }
+
+        var itemsToLink = SelectedItems.ToList();
+        var result = _bulkOperationsService.LinkItemsBulk(itemsToLink);
+
+        if (result.IsSuccess)
+        {
+            RefreshDisplayItems();
+            await SaveAsync();
+            StatusMessage = $"Linked {result.SuccessCount} item(s)";
+        }
+        else
+        {
+            StatusMessage = $"Linked {result.SuccessCount}, failed {result.FailureCount}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task BulkUnlinkAsync()
+    {
+        if (SelectedItems.Count == 0)
+        {
+            StatusMessage = "No items selected";
+            return;
+        }
+
+        var itemsToUnlink = SelectedItems.Where(i => i.LinkedGroupId != null).ToList();
+        if (itemsToUnlink.Count == 0)
+        {
+            StatusMessage = "No linked items selected";
+            return;
+        }
+
+        var result = _bulkOperationsService.UnlinkItemsBulk(itemsToUnlink);
+
+        if (result.IsSuccess)
+        {
+            RefreshDisplayItems();
+            await SaveAsync();
+            StatusMessage = $"Unlinked {result.SuccessCount} item(s)";
+        }
+        else
+        {
+            StatusMessage = $"Unlinked {result.SuccessCount}, failed {result.FailureCount}";
+        }
+    }
+
+    // Navigation Commands
+
+    [RelayCommand]
+    private void NavigateToItem(OrderItem? item)
+    {
+        if (item == null) return;
+        CurrentNavigationItem = item;
+
+        // Find the index in DisplayItems
+        for (int i = 0; i < DisplayItems.Count; i++)
+        {
+            if (DisplayItems[i].Members.Contains(item))
+            {
+                CurrentItemIndex = i;
+                break;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void NavigateNext()
+    {
+        if (DisplayItems.Count == 0) return;
+
+        if (CurrentItemIndex < DisplayItems.Count - 1)
+        {
+            CurrentItemIndex++;
+            var nextGroup = DisplayItems[CurrentItemIndex];
+            CurrentNavigationItem = nextGroup.First;
+        }
+        else
+        {
+            // Wrap around to the beginning
+            CurrentItemIndex = 0;
+            CurrentNavigationItem = DisplayItems[0].First;
+        }
+    }
+
+    [RelayCommand]
+    private void NavigatePrevious()
+    {
+        if (DisplayItems.Count == 0) return;
+
+        if (CurrentItemIndex > 0)
+        {
+            CurrentItemIndex--;
+            var prevGroup = DisplayItems[CurrentItemIndex];
+            CurrentNavigationItem = prevGroup.First;
+        }
+        else
+        {
+            // Wrap around to the end
+            CurrentItemIndex = DisplayItems.Count - 1;
+            CurrentNavigationItem = DisplayItems[CurrentItemIndex].First;
+        }
+    }
+
+    [RelayCommand]
+    private void NavigateToTop()
+    {
+        if (DisplayItems.Count == 0) return;
+
+        CurrentItemIndex = 0;
+        CurrentNavigationItem = DisplayItems[0].First;
+    }
+
+    [RelayCommand]
+    private void NavigateToBottom()
+    {
+        if (DisplayItems.Count == 0) return;
+
+        CurrentItemIndex = DisplayItems.Count - 1;
+        CurrentNavigationItem = DisplayItems[CurrentItemIndex].First;
+    }
+
+    /// <summary>
+    /// Saves the current scroll position for persistence
+    /// </summary>
+    public void SaveScrollPosition(double position)
+    {
+        SavedScrollPosition = position;
+    }
+
+    /// <summary>
+    /// Restores the saved scroll position
+    /// </summary>
+    public double GetSavedScrollPosition()
+    {
+        return SavedScrollPosition;
+    }
+
+    [RelayCommand]
     private async Task ExportToCsv()
     {
         try
@@ -1328,13 +1780,32 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// Shared helper to build grouped display items from a source collection.
     /// Groups linked items together and optionally sorts groups by status.
     /// Sticky notes are excluded from sorting and appended in original order.
+    /// Applies search/filter before grouping.
     /// </summary>
     private void RefreshDisplayCollection(
         ObservableCollection<OrderItem> source,
         ObservableCollection<OrderItemGroup> display)
     {
+        // Apply search and filters first
+        IEnumerable<OrderItem> filtered = source;
+
+        if (_searchService.HasActiveFilters(SearchQuery, StatusFilters, FilterStartDate, FilterEndDate, ColorFilters, NoteTypeFilter))
+        {
+            filtered = _searchService.ApplyAllFilters(
+                source,
+                SearchQuery,
+                StatusFilters,
+                FilterStartDate,
+                FilterEndDate,
+                ColorFilters,
+                NoteTypeFilter);
+        }
+
+        // Convert to ObservableCollection for grouping service
+        var filteredCollection = new ObservableCollection<OrderItem>(filtered);
+
         // Use grouping service to build ordered display collection and apply it
-        var built = _groupingService.BuildDisplayCollection(source, SortByStatus, SortStatusDescending, SortModeEnum);
+        var built = _groupingService.BuildDisplayCollection(filteredCollection, SortByStatus, SortStatusDescending, SortModeEnum);
         display.Clear();
         foreach (var g in built)
         {
