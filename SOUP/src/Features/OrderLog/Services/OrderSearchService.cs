@@ -124,6 +124,23 @@ public class OrderSearchService
     }
 
     /// <summary>
+    /// Filters sticky notes by category (General, Todo, Reminder, Log, Idea)
+    /// </summary>
+    /// <param name="items">Items to filter</param>
+    /// <param name="noteCategory">Category to filter by (null = all)</param>
+    /// <returns>Filtered items</returns>
+    public IEnumerable<OrderItem> FilterByNoteCategory(IEnumerable<OrderItem> items, NoteCategory? noteCategory)
+    {
+        if (!noteCategory.HasValue)
+            return items;
+
+        // Only filter sticky notes by category
+        return items.Where(item =>
+            item.NoteType == NoteType.StickyNote &&
+            item.NoteCategory == noteCategory.Value);
+    }
+
+    /// <summary>
     /// Applies all filters in sequence
     /// </summary>
     /// <param name="items">Items to filter</param>
@@ -133,6 +150,7 @@ public class OrderSearchService
     /// <param name="endDate">End date filter</param>
     /// <param name="colorHexes">Color filter</param>
     /// <param name="noteType">Note type filter</param>
+    /// <param name="noteCategory">Note category filter (only applies to sticky notes)</param>
     /// <returns>Filtered items</returns>
     public IEnumerable<OrderItem> ApplyAllFilters(
         IEnumerable<OrderItem> items,
@@ -141,7 +159,8 @@ public class OrderSearchService
         DateTime? startDate = null,
         DateTime? endDate = null,
         string[]? colorHexes = null,
-        NoteType? noteType = null)
+        NoteType? noteType = null,
+        NoteCategory? noteCategory = null)
     {
         var result = items;
 
@@ -168,6 +187,11 @@ public class OrderSearchService
         if (noteType.HasValue)
         {
             result = FilterByNoteType(result, noteType);
+        }
+
+        if (noteCategory.HasValue)
+        {
+            result = FilterByNoteCategory(result, noteCategory);
         }
 
         return result;
@@ -281,13 +305,15 @@ public class OrderSearchService
         DateTime? startDate,
         DateTime? endDate,
         string[]? colorHexes,
-        NoteType? noteType)
+        NoteType? noteType,
+        NoteCategory? noteCategory = null)
     {
         return !string.IsNullOrWhiteSpace(query) ||
                (statuses != null && statuses.Length > 0) ||
                startDate.HasValue ||
                endDate.HasValue ||
                (colorHexes != null && colorHexes.Length > 0) ||
-               noteType.HasValue;
+               noteType.HasValue ||
+               noteCategory.HasValue;
     }
 }

@@ -162,6 +162,59 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Note Category Filter (only for Sticky Notes) -->
+                    <Border x:Name="NoteCategorySection"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Note Category"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Margin="0,0,0,12"/>
+
+                            <Border Background="{DynamicResource SurfaceHoverBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="14,10"
+                                    Margin="0,0,0,20">
+                                <StackPanel>
+                                    <RadioButton x:Name="CategoryAllRadio"
+                                                 Content="All Categories"
+                                                 GroupName="NoteCategory"
+                                                 IsChecked="True"
+                                                 FontSize="13"
+                                                 Margin="0,4"/>
+                                    <RadioButton x:Name="CategoryGeneralRadio"
+                                                 Content="📝 General"
+                                                 GroupName="NoteCategory"
+                                                 FontSize="13"
+                                                 Margin="0,4"/>
+                                    <RadioButton x:Name="CategoryTodoRadio"
+                                                 Content="✅ To-Do"
+                                                 GroupName="NoteCategory"
+                                                 FontSize="13"
+                                                 Margin="0,4"/>
+                                    <RadioButton x:Name="CategoryReminderRadio"
+                                                 Content="⏰ Reminder"
+                                                 GroupName="NoteCategory"
+                                                 FontSize="13"
+                                                 Margin="0,4"/>
+                                    <RadioButton x:Name="CategoryLogRadio"
+                                                 Content="📓 Log"
+                                                 GroupName="NoteCategory"
+                                                 FontSize="13"
+                                                 Margin="0,4"/>
+                                    <RadioButton x:Name="CategoryIdeaRadio"
+                                                 Content="💡 Idea"
+                                                 GroupName="NoteCategory"
+                                                 FontSize="13"
+                                                 Margin="0,4"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Buttons -->
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>

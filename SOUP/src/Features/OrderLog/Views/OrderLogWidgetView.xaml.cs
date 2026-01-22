@@ -709,7 +709,8 @@ public partial class OrderLogWidgetView : UserControl
                 viewModel.StatusFilters,
                 viewModel.FilterStartDate,
                 viewModel.FilterEndDate,
-                viewModel.NoteTypeFilter)
+                viewModel.NoteTypeFilter,
+                viewModel.NoteCategoryFilter)
             {
                 Owner = Window.GetWindow(this)
             };
@@ -721,12 +722,14 @@ public partial class OrderLogWidgetView : UserControl
                 viewModel.FilterStartDate = dialog.StartDate;
                 viewModel.FilterEndDate = dialog.EndDate;
                 viewModel.NoteTypeFilter = dialog.SelectedNoteType;
+                viewModel.NoteCategoryFilter = dialog.SelectedNoteCategory;
 
                 // Update status message
                 var filterCount = 0;
                 if (dialog.SelectedStatuses?.Length > 0) filterCount++;
                 if (dialog.StartDate.HasValue || dialog.EndDate.HasValue) filterCount++;
                 if (dialog.SelectedNoteType.HasValue) filterCount++;
+                if (dialog.SelectedNoteCategory.HasValue) filterCount++;
 
                 if (filterCount > 0)
                 {

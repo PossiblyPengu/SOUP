@@ -10,12 +10,28 @@ public enum NoteType
     StickyNote = 1
 }
 
+public enum NoteCategory
+{
+    General = 0,
+    Todo = 1,
+    Reminder = 2,
+    Log = 3,
+    Idea = 4
+}
+
 public partial class OrderItem : ObservableObject
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [ObservableProperty]
     private NoteType _noteType = NoteType.Order;
+
+    /// <summary>
+    /// Category for sticky notes (General, Todo, Reminder, Log, Idea).
+    /// Only applies when NoteType is StickyNote.
+    /// </summary>
+    [ObservableProperty]
+    private NoteCategory _noteCategory = NoteCategory.General;
 
     [ObservableProperty]
     private string _vendorName = string.Empty;

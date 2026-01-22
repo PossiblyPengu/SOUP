@@ -13,12 +13,14 @@ public partial class OrderLogFilterDialog : Window
     public DateTime? StartDate { get; private set; }
     public DateTime? EndDate { get; private set; }
     public NoteType? SelectedNoteType { get; private set; }
+    public NoteCategory? SelectedNoteCategory { get; private set; }
 
     public OrderLogFilterDialog(
         OrderItem.OrderStatus[]? currentStatuses = null,
         DateTime? currentStartDate = null,
         DateTime? currentEndDate = null,
-        NoteType? currentNoteType = null)
+        NoteType? currentNoteType = null,
+        NoteCategory? currentNoteCategory = null)
     {
         InitializeComponent();
 
@@ -42,6 +44,50 @@ public partial class OrderLogFilterDialog : Window
             else
                 TypeNotesOnlyRadio.IsChecked = true;
         }
+
+        if (currentNoteCategory.HasValue)
+        {
+            CategoryAllRadio.IsChecked = false;
+            switch (currentNoteCategory.Value)
+            {
+                case NoteCategory.General:
+                    CategoryGeneralRadio.IsChecked = true;
+                    break;
+                case NoteCategory.Todo:
+                    CategoryTodoRadio.IsChecked = true;
+                    break;
+                case NoteCategory.Reminder:
+                    CategoryReminderRadio.IsChecked = true;
+                    break;
+                case NoteCategory.Log:
+                    CategoryLogRadio.IsChecked = true;
+                    break;
+                case NoteCategory.Idea:
+                    CategoryIdeaRadio.IsChecked = true;
+                    break;
+            }
+        }
+
+        // Wire up event handlers for note type changes
+        TypeAllRadio.Checked += NoteTypeRadio_Changed;
+        TypeOrdersOnlyRadio.Checked += NoteTypeRadio_Changed;
+        TypeNotesOnlyRadio.Checked += NoteTypeRadio_Changed;
+
+        // Update category section visibility based on initial state
+        UpdateCategorySectionVisibility();
+    }
+
+    private void NoteTypeRadio_Changed(object sender, RoutedEventArgs e)
+    {
+        UpdateCategorySectionVisibility();
+    }
+
+    private void UpdateCategorySectionVisibility()
+    {
+        // Only show category section when "Sticky Notes Only" is selected
+        NoteCategorySection.Visibility = TypeNotesOnlyRadio.IsChecked == true
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
@@ -77,6 +123,27 @@ public partial class OrderLogFilterDialog : Window
         else
             SelectedNoteType = null;
 
+        // Note category (only applicable for sticky notes)
+        if (TypeNotesOnlyRadio.IsChecked == true)
+        {
+            if (CategoryGeneralRadio.IsChecked == true)
+                SelectedNoteCategory = NoteCategory.General;
+            else if (CategoryTodoRadio.IsChecked == true)
+                SelectedNoteCategory = NoteCategory.Todo;
+            else if (CategoryReminderRadio.IsChecked == true)
+                SelectedNoteCategory = NoteCategory.Reminder;
+            else if (CategoryLogRadio.IsChecked == true)
+                SelectedNoteCategory = NoteCategory.Log;
+            else if (CategoryIdeaRadio.IsChecked == true)
+                SelectedNoteCategory = NoteCategory.Idea;
+            else
+                SelectedNoteCategory = null;
+        }
+        else
+        {
+            SelectedNoteCategory = null;
+        }
+
         DialogResult = true;
         Close();
     }
@@ -101,5 +168,8 @@ public partial class OrderLogFilterDialog : Window
 
         // Reset to "All" for note type
         TypeAllRadio.IsChecked = true;
+
+        // Reset to "All" for note category
+        CategoryAllRadio.IsChecked = true;
     }
 }

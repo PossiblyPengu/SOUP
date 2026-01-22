@@ -101,6 +101,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private NoteType? _noteTypeFilter = null;
 
+    [ObservableProperty]
+    private NoteCategory? _noteCategoryFilter = null;
+
     // Multi-select mode for bulk operations
     [ObservableProperty]
     private bool _isMultiSelectMode = false;
@@ -142,6 +145,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     }
 
     partial void OnNoteTypeFilterChanged(NoteType? value)
+    {
+        RefreshDisplayItems();
+    }
+
+    partial void OnNoteCategoryFilterChanged(NoteCategory? value)
     {
         RefreshDisplayItems();
     }
@@ -1119,6 +1127,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         FilterEndDate = null;
         ColorFilters = null;
         NoteTypeFilter = null;
+        NoteCategoryFilter = null;
         IsSearchActive = false;
         StatusMessage = "Filters cleared";
     }
@@ -1815,7 +1824,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Apply search and filters first
         IEnumerable<OrderItem> filtered = source;
 
-        if (_searchService.HasActiveFilters(SearchQuery, StatusFilters, FilterStartDate, FilterEndDate, ColorFilters, NoteTypeFilter))
+        if (_searchService.HasActiveFilters(SearchQuery, StatusFilters, FilterStartDate, FilterEndDate, ColorFilters, NoteTypeFilter, NoteCategoryFilter))
         {
             filtered = _searchService.ApplyAllFilters(
                 source,
@@ -1824,7 +1833,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 FilterStartDate,
                 FilterEndDate,
                 ColorFilters,
-                NoteTypeFilter);
+                NoteTypeFilter,
+                NoteCategoryFilter);
         }
 
         // Convert to ObservableCollection for grouping service
