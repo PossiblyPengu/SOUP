@@ -805,21 +805,21 @@
             <local:ExpireWiseAnalyticsView DataContext="{Binding Analytics}"
                                            Visibility="{Binding IsChecked, ElementName=AnalyticsTab, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <!-- Quick Add Panel Overlay (Slide-out from right) -->
-            <Border x:Name="QuickAddOverlay"
+                <!-- Quick Add Panel Overlay (Slide-out from left) -->
+                    <Border x:Name="QuickAddOverlay"
                     Grid.RowSpan="5"
                     Panel.ZIndex="100"
-                    HorizontalAlignment="Right"
-                    Width="500"
+                        HorizontalAlignment="Left"
+                        Width="520"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1,0,0,0"
+                    BorderThickness="0,0,1,0"
                     Visibility="{Binding QuickAddExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Border.Effect>
                     <DropShadowEffect Color="Black" Opacity="0.3" BlurRadius="20" ShadowDepth="0"/>
                 </Border.Effect>
                 <Border.RenderTransform>
-                    <TranslateTransform x:Name="QuickAddTransform" X="500"/>
+                    <TranslateTransform x:Name="QuickAddTransform" X="-520"/>
                 </Border.RenderTransform>
                 <Border.Triggers>
                     <EventTrigger RoutedEvent="Border.Loaded">
@@ -827,7 +827,7 @@
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="QuickAddTransform"
                                                 Storyboard.TargetProperty="X"
-                                                To="0" Duration="0:0:0.3">
+                                                From="-520" To="0" Duration="0:0:0.28">
                                     <DoubleAnimation.EasingFunction>
                                         <CubicEase EasingMode="EaseOut"/>
                                     </DoubleAnimation.EasingFunction>

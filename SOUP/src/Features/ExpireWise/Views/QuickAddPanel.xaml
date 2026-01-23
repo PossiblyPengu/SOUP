@@ -18,8 +18,8 @@
         <SolidColorBrush x:Key="ExpireWiseAccentDarkBrush" Color="{StaticResource ExpireWiseAccentDarkColor}"/>
     </UserControl.Resources>
 
-    <!-- Quick Add Content (now inside slide-out overlay) -->
-    <Grid Margin="20">
+    <!-- Quick Add Content -->
+    <Grid Margin="16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
