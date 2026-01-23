@@ -115,6 +115,18 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private bool _isLoading;
 
     /// <summary>
+    /// Gets or sets whether a long-running operation is in progress (shows loading overlay).
+    /// </summary>
+    [ObservableProperty]
+    private bool _isBusy;
+
+    /// <summary>
+    /// Gets or sets the message to display during busy operations.
+    /// </summary>
+    [ObservableProperty]
+    private string _busyMessage = "Loading...";
+
+    /// <summary>
     /// Gets or sets the current status message displayed to the user.
     /// </summary>
     [ObservableProperty]
@@ -153,6 +165,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty]
     private int _expiredCount;
+
+    /// <summary>
+    /// Gets or sets the count of items expiring soon (within warning threshold).
+    /// </summary>
+    [ObservableProperty]
+    private int _expiringSoonCount;
 
     /// <summary>
     /// Gets or sets the total count of all items.
@@ -397,6 +415,39 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             "Long" => date.ToString("MMMM yyyy"),
             _ => date.ToString("MMMM yyyy"),
         };
+    }
+
+    /// <summary>
+    /// Validates an expiration item for required fields and reasonable date ranges.
+    /// </summary>
+    private bool ValidateItem(ExpirationItem item, out string errorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(item.ItemNumber) && string.IsNullOrWhiteSpace(item.Description))
+        {
+            errorMessage = "Item must have either an Item Number or Description.";
+            return false;
+        }
+
+        if (item.ExpiryDate < DateTime.Today.AddYears(-1))
+        {
+            errorMessage = "Expiration date cannot be more than 1 year in the past.\n\nPlease verify the date is correct.";
+            return false;
+        }
+
+        if (item.ExpiryDate > DateTime.Today.AddYears(10))
+        {
+            errorMessage = "Expiration date cannot be more than 10 years in the future.\n\nPlease verify the date is correct.";
+            return false;
+        }
+
+        if (item.Units < 0)
+        {
+            errorMessage = "Units cannot be negative.";
+            return false;
+        }
+
+        errorMessage = string.Empty;
+        return true;
     }
 
     private void UpdateAnalytics()
@@ -832,6 +883,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
                 if (files != null && files.Length > 0)
                 {
+                    IsBusy = true;
+                    BusyMessage = "Importing items from CSV...";
                     IsLoading = true;
                     StatusMessage = "Importing from CSV...";
 
@@ -839,6 +892,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                     {
                         StatusMessage = "Import failed: dialog service unavailable";
                         IsLoading = false;
+                        IsBusy = false;
                         return;
                     }
 
@@ -847,10 +901,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 if (result.IsSuccess && result.Value != null)
                 {
                     var items = result.Value.ToList();
+                    BusyMessage = $"Importing {items.Count} items...";
                     var importResult = await _importExportService.ImportItemsAsync(items);
 
                     if (importResult.IsSuccess)
                     {
+                        BusyMessage = "Refreshing data...";
                         await LoadItems();
                         StatusMessage = $"Imported {importResult.Value} items";
                         UpdateLastSaved();
@@ -868,6 +924,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 }
 
                 IsLoading = false;
+                IsBusy = false;
             }
         }
         catch (Exception ex)
@@ -875,6 +932,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             StatusMessage = $"Import error: {ex.Message}";
             _logger?.LogError(ex, "Exception during CSV import");
             IsLoading = false;
+            IsBusy = false;
         }
     }
 
@@ -903,6 +961,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 return;
             }
 
+            IsBusy = true;
+            BusyMessage = $"Exporting {Items.Count} items to Excel...";
             IsLoading = true;
             StatusMessage = "Exporting to Excel...";
 
@@ -928,6 +988,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         finally
         {
             IsLoading = false;
+            IsBusy = false;
         }
     }
 
@@ -956,6 +1017,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 return;
             }
 
+            IsBusy = true;
+            BusyMessage = $"Exporting {Items.Count} items to CSV...";
             IsLoading = true;
             StatusMessage = "Exporting to CSV...";
 
@@ -981,6 +1044,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         finally
         {
             IsLoading = false;
+            IsBusy = false;
         }
     }
 
@@ -1067,6 +1131,22 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         MonthTotalUnits = monthItems.Sum(i => i.Units);
         CriticalCount = monthItems.Count(i => i.Status == ExpirationStatus.Critical);
         ExpiredCount = monthItems.Count(i => i.Status == ExpirationStatus.Expired);
+
+        // Update global statistics
+        UpdateGlobalStatistics();
+    }
+
+    /// <summary>
+    /// Updates global statistics across all items (not just current month).
+    /// </summary>
+    private void UpdateGlobalStatistics()
+    {
+        var today = DateTime.Today;
+        var warningDate = today.AddDays(ExpirationItem.WarningDaysThreshold);
+
+        TotalItems = Items.Count;
+        ExpiredCount = Items.Count(i => i.ExpiryDate < today);
+        ExpiringSoonCount = Items.Count(i => i.ExpiryDate >= today && i.ExpiryDate <= warningDate);
     }
 
     [RelayCommand]

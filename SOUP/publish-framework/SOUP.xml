@@ -1728,6 +1728,19 @@
             Get the database path for diagnostic purposes
             </summary>
         </member>
+        <member name="T:SOUP.Features.ExpireWise.Helpers.KeyboardShortcutManager">
+            <summary>
+            Manages keyboard shortcuts for the ExpireWise module.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Helpers.KeyboardShortcutManager.RegisterShortcuts(System.Windows.UIElement,SOUP.ViewModels.ExpireWiseViewModel,System.Action)">
+            <summary>
+            Registers keyboard shortcuts for the ExpireWise view.
+            </summary>
+            <param name="element">The UI element to register shortcuts on (typically the View).</param>
+            <param name="viewModel">The ExpireWiseViewModel to invoke commands on.</param>
+            <param name="focusSearchAction">Optional action to focus the search box (Ctrl+F).</param>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Behaviors.CardGridPlacement">
              <summary>
              Helper that maps card visuals into a simple 2-column grid and computes
@@ -1982,6 +1995,12 @@
         <member name="T:SOUP.Features.OrderLog.Models.OrderItem">
             <inheritdoc/>
         </member>
+        <member name="F:SOUP.Features.OrderLog.Models.OrderItem._noteCategory">
+            <summary>
+            Category for sticky notes (General, Todo, Reminder, Log, Idea).
+            Only applies when NoteType is StickyNote.
+            </summary>
+        </member>
         <member name="F:SOUP.Features.OrderLog.Models.OrderItem._noteTitle">
             <summary>
             Title for sticky notes (e.g., "Quick Note", "TODO", etc.)
@@ -2081,6 +2100,9 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.NoteType">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._noteType"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.NoteCategory">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._noteCategory"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.VendorName">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._vendorName"/>
@@ -2271,7 +2293,15 @@
             <param name="noteType">Type to filter by (null = all)</param>
             <returns>Filtered items</returns>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ApplyAllFilters(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType})">
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.FilterByNoteCategory(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
+            <summary>
+            Filters sticky notes by category (General, Todo, Reminder, Log, Idea)
+            </summary>
+            <param name="items">Items to filter</param>
+            <param name="noteCategory">Category to filter by (null = all)</param>
+            <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ApplyAllFilters(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
             <summary>
             Applies all filters in sequence
             </summary>
@@ -2282,6 +2312,7 @@
             <param name="endDate">End date filter</param>
             <param name="colorHexes">Color filter</param>
             <param name="noteType">Note type filter</param>
+            <param name="noteCategory">Note category filter (only applies to sticky notes)</param>
             <returns>Filtered items</returns>
         </member>
         <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.GetMatches(SOUP.Features.OrderLog.Models.OrderItem,System.String)">
@@ -2292,9 +2323,99 @@
             <param name="query">Search query</param>
             <returns>List of match locations</returns>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.HasActiveFilters(System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType})">
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.HasActiveFilters(System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
             <summary>
             Checks if any filters are currently active
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.UndoableAction">
+            <summary>
+            Base class for all undoable actions
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoableAction.Execute">
+            <summary>
+            Executes the action
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoableAction.Undo">
+            <summary>
+            Undoes the action
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoableAction.Redo">
+            <summary>
+            Re-executes the action (default implementation calls Execute)
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.StatusChangeAction">
+            <summary>
+            Action for changing item status
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.ArchiveAction">
+            <summary>
+            Action for archiving items
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.UnarchiveAction">
+            <summary>
+            Action for unarchiving items
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.FieldEditAction">
+            <summary>
+            Action for editing a field value
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.LinkAction">
+            <summary>
+            Action for linking items
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.UnlinkAction">
+            <summary>
+            Action for unlinking items
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.DeleteAction">
+            <summary>
+            Action for deleting items
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.ReorderAction">
+            <summary>
+            Action for reordering items (move up/down)
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.ColorChangeAction">
+            <summary>
+            Action for changing sticky note color
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.UndoRedoStack">
+            <summary>
+            Manages undo/redo stack with history
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoRedoStack.ExecuteAction(SOUP.Features.OrderLog.Services.UndoableAction)">
+            <summary>
+            Executes an action and adds it to the undo stack
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoRedoStack.Undo">
+            <summary>
+            Undoes the last action
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoRedoStack.Redo">
+            <summary>
+            Redoes the last undone action
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.UndoRedoStack.Clear">
+            <summary>
+            Clears all history
             </summary>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderItemGroup.ShouldRenderMerged">
@@ -2337,7 +2458,6 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-            <inheritdoc/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AllItems">
             <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
@@ -2345,6 +2465,16 @@
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notesOnlyMode">
             <summary>
             Gets or sets whether the widget is in notes-only mode (hides order functionality).
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoHistory">
+            <summary>
+            Gets the undo history for display in UI
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoHistory">
+            <summary>
+            Gets the redo history for display in UI
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DebouncedSaveAsync">
@@ -2370,7 +2500,17 @@
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoAsync">
             <summary>
-            Unified undo command that handles both status and archive changes
+            Undo the last action
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoAsync">
+            <summary>
+            Redo the last undone action
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.EditFieldAsync(SOUP.Features.OrderLog.Models.OrderItem,System.String,System.Object,System.Object,System.Action{System.Object})">
+            <summary>
+            Helper method to edit a field with undo support
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddStickyNoteAsync">
@@ -2511,6 +2651,9 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteTypeFilter">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._noteTypeFilter"/>
         </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteCategoryFilter">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._noteCategoryFilter"/>
+        </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.IsMultiSelectMode">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._isMultiSelectMode"/>
         </member>
@@ -2537,6 +2680,18 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoMessage">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._undoMessage"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoAvailable">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._redoAvailable"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoMessage">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._redoMessage"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoStackCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._undoStackCount"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoStackCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._redoStackCount"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NewNoteVendorName">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._newNoteVendorName"/>
@@ -2629,6 +2784,11 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteTypeFilter"/> is changed.</remarks>
         </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNoteCategoryFilterChanged(System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteCategoryFilter"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteCategoryFilter"/> is changed.</remarks>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnStatusMessageChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusMessage"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -2708,12 +2868,6 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveOrderCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveOrderAsync(SOUP.Features.OrderLog.Models.OrderItem)"/>.</summary>
         </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.undoArchiveCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoArchiveCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoArchiveCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoArchiveAsync"/>.</summary>
-        </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.deleteSelectedCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DeleteSelectedCommand"/>.</summary>
         </member>
@@ -2744,11 +2898,11 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoAsync"/>.</summary>
         </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.undoStatusChangeCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoStatusChangeCommand"/>.</summary>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.redoCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoCommand"/>.</summary>
         </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoStatusChangeCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoStatusChangeAsync"/>.</summary>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoAsync"/>.</summary>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.startCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StartCommand"/>.</summary>
@@ -2970,6 +3124,19 @@
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Views.UndoHistoryPanel">
+            <summary>
+            Interaction logic for UndoHistoryPanel.xaml
+            </summary>
+            <summary>
+            UndoHistoryPanel
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.UndoHistoryPanel.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
@@ -6095,6 +6262,16 @@
             Gets or sets whether data is currently being loaded.
             </summary>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._isBusy">
+            <summary>
+            Gets or sets whether a long-running operation is in progress (shows loading overlay).
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._busyMessage">
+            <summary>
+            Gets or sets the message to display during busy operations.
+            </summary>
+        </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._statusMessage">
             <summary>
             Gets or sets the current status message displayed to the user.
@@ -6123,6 +6300,11 @@
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._expiredCount">
             <summary>
             Gets or sets the count of expired items.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._expiringSoonCount">
+            <summary>
+            Gets or sets the count of items expiring soon (within warning threshold).
             </summary>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._totalItems">
@@ -6229,6 +6411,11 @@
             Loads settings from the settings service and applies expiration thresholds globally.
             </summary>
         </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ValidateItem(SOUP.Core.Entities.ExpireWise.ExpirationItem,System.String@)">
+            <summary>
+            Validates an expiration item for required fields and reasonable date ranges.
+            </summary>
+        </member>
         <member name="E:SOUP.ViewModels.ExpireWiseViewModel.FocusSearchRequested">
             <summary>
             Event raised when search box should be focused (triggered by Ctrl+F)
@@ -6238,6 +6425,11 @@
             <summary>
             Rebuilds the visible month pills centered around the current month
             Shows 6 months before and 6 months after current selection
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.UpdateGlobalStatistics">
+            <summary>
+            Updates global statistics across all items (not just current month).
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.SaveDataOnShutdownAsync">
@@ -6293,6 +6485,12 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.IsLoading">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._isLoading"/>
         </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.IsBusy">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._isBusy"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.BusyMessage">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._busyMessage"/>
+        </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.StatusMessage">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._statusMessage"/>
         </member>
@@ -6310,6 +6508,9 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ExpiredCount">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._expiredCount"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ExpiringSoonCount">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._expiringSoonCount"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.TotalItems">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._totalItems"/>
@@ -7422,6 +7623,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteType">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteType" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteCategory">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteCategory" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.VendorName">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "VendorName" generated properties.</summary>
         </member>
@@ -7491,6 +7695,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteTypeFilter">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteTypeFilter" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteCategoryFilter">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteCategoryFilter" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsMultiSelectMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsMultiSelectMode" generated properties.</summary>
         </member>
@@ -7517,6 +7724,18 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UndoMessage">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UndoMessage" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.RedoAvailable">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "RedoAvailable" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.RedoMessage">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "RedoMessage" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UndoStackCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UndoStackCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.RedoStackCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "RedoStackCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewNoteVendorName">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewNoteVendorName" generated properties.</summary>
@@ -7959,6 +8178,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CurrentMonthDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CurrentMonthDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsBusy">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsBusy" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.BusyMessage">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "BusyMessage" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.MonthItemCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "MonthItemCount" generated properties.</summary>
         </member>
@@ -7970,6 +8195,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ExpiredCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ExpiredCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ExpiringSoonCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ExpiringSoonCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalMonths" generated properties.</summary>
@@ -8085,6 +8313,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteType">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteType" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteCategory">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteCategory" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.VendorName">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "VendorName" generated properties.</summary>
         </member>
@@ -8154,6 +8385,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteTypeFilter">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteTypeFilter" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteCategoryFilter">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteCategoryFilter" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsMultiSelectMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsMultiSelectMode" generated properties.</summary>
         </member>
@@ -8180,6 +8414,18 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UndoMessage">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UndoMessage" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.RedoAvailable">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "RedoAvailable" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.RedoMessage">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "RedoMessage" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UndoStackCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UndoStackCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.RedoStackCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "RedoStackCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewNoteVendorName">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewNoteVendorName" generated properties.</summary>
@@ -8622,6 +8868,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CurrentMonthDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CurrentMonthDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsBusy">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsBusy" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.BusyMessage">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "BusyMessage" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.MonthItemCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "MonthItemCount" generated properties.</summary>
         </member>
@@ -8633,6 +8885,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ExpiredCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ExpiredCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ExpiringSoonCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ExpiringSoonCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalMonths">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalMonths" generated properties.</summary>

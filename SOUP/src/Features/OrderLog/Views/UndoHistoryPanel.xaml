@@ -1,0 +1,146 @@
+<UserControl x:Class="SOUP.Features.OrderLog.Views.UndoHistoryPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="250"
+             Background="#F5F5F5">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2D2D30" Padding="12,8">
+            <StackPanel>
+                <TextBlock Text="Undo History" FontWeight="Bold" Foreground="White" FontSize="14"/>
+                <TextBlock FontSize="11" Foreground="#B0B0B0" Margin="0,2,0,0">
+                    <Run Text="Undo: "/>
+                    <Run Text="{Binding UndoCount, FallbackValue=0}"/>
+                    <Run Text=" • Redo: "/>
+                    <Run Text="{Binding RedoCount, FallbackValue=0}"/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- History List -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="8">
+                <!-- Redo Actions (shown in reverse order, grayed out) -->
+                <ItemsControl ItemsSource="{Binding RedoHistory}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#E0E0E0"
+                                    Margin="0,2"
+                                    Padding="8,6"
+                                    BorderBrush="#CCCCCC"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Redo Icon -->
+                                    <TextBlock Grid.Column="0"
+                                               Text="↻"
+                                               FontSize="14"
+                                               Foreground="#999999"
+                                               Margin="0,0,8,0"
+                                               VerticalAlignment="Center"/>
+
+                                    <!-- Action Description -->
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Description}"
+                                               FontSize="12"
+                                               Foreground="#666666"
+                                               TextWrapping="Wrap"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Current State Indicator -->
+                <Border Background="#4CAF50"
+                        Margin="0,4"
+                        Padding="8,4"
+                        Visibility="{Binding HasHistory, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="← Current State"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Undo Actions (shown in order, normal styling) -->
+                <ItemsControl ItemsSource="{Binding UndoHistory}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    Margin="0,2"
+                                    Padding="8,6"
+                                    BorderBrush="#007ACC"
+                                    BorderThickness="1"
+                                    Cursor="Hand"
+                                    ToolTip="Click to undo to this point">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#E3F2FD"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Undo Icon -->
+                                    <TextBlock Grid.Column="0"
+                                               Text="↶"
+                                               FontSize="14"
+                                               Foreground="#007ACC"
+                                               Margin="0,0,8,0"
+                                               VerticalAlignment="Center"/>
+
+                                    <!-- Action Description -->
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Description}"
+                                               FontSize="12"
+                                               Foreground="#333333"
+                                               TextWrapping="Wrap"
+                                               VerticalAlignment="Center"/>
+
+                                    <!-- Timestamp -->
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                               FontSize="10"
+                                               Foreground="#999999"
+                                               Margin="8,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Empty State -->
+                <TextBlock Text="No undo history"
+                           FontSize="12"
+                           Foreground="#999999"
+                           HorizontalAlignment="Center"
+                           Margin="0,20"
+                           Visibility="{Binding HasNoHistory, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

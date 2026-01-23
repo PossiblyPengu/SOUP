@@ -10,8 +10,8 @@
 
 Implementing comprehensive quality-of-life improvements for the Order Log feature based on detailed analysis. Working through 4 high-priority phases focused on search/filter, keyboard shortcuts, bulk operations, and enhanced navigation.
 
-**Current Status**: Phases 1-6 Complete
-(High-Priority Sprint + Advanced Filters + Visual Polish Complete!)
+**Current Status**: Phases 1-8 Complete
+(High-Priority Sprint + Enhanced Undo/Redo Complete!)
 
 ---
 
@@ -571,9 +571,111 @@ public IEnumerable<OrderItem> FilterByNoteCategory(
 
 ---
 
+### ✅ Phase 8: Enhanced Undo/Redo Stack (COMPLETE)
+
+#### 1. Created UndoRedoService with Action Architecture ✅
+
+**File**: `SOUP/src/Features/OrderLog/Services/UndoRedoService.cs`
+
+**Features Implemented**:
+
+- Abstract `UndoableAction` base class with Execute/Undo/Redo methods
+- 9 specific action types:
+  - `StatusChangeAction` - Undo status changes for items
+  - `ArchiveAction` - Undo archiving operations
+  - `UnarchiveAction` - Undo unarchive operations
+  - `FieldEditAction` - Undo field edits (vendor name, notes, etc.)
+  - `LinkAction` - Undo linking items together
+  - `UnlinkAction` - Undo unlinking items
+  - `DeleteAction` - Undo item deletion (with position restoration)
+  - `ColorChangeAction` - Undo color changes
+  - `ReorderAction` - Undo move up/down operations
+- `UndoRedoStack` class managing history:
+  - Configurable max history size (default 50)
+  - Separate undo and redo stacks
+  - StackChanged event for UI updates
+  - Automatic redo stack clearing on new action
+
+**Key Classes**:
+
+```csharp
+public abstract class UndoableAction
+{
+    public DateTime Timestamp { get; init; }
+    public abstract string Description { get; }
+    public abstract void Execute();
+    public abstract void Undo();
+    public virtual void Redo() => Execute();
+}
+
+public class UndoRedoStack
+{
+    public bool CanUndo => _undoStack.Count > 0;
+    public bool CanRedo => _redoStack.Count > 0;
+    public IEnumerable<UndoableAction> UndoHistory { get; }
+    public IEnumerable<UndoableAction> RedoHistory { get; }
+    public void ExecuteAction(UndoableAction action);
+    public void Undo();
+    public void Redo();
+}
+```
+
+#### 2. Integrated UndoRedoStack into OrderLogViewModel ✅
+
+**File**: `SOUP/src/Features/OrderLog/ViewModels/OrderLogViewModel.cs`
+
+**Changes Made**:
+
+- Replaced old undo system (_lastStatusChanges, _lastArchiveChanges) with UndoRedoStack
+- Added properties: `RedoAvailable`, `RedoMessage`, `UndoStackCount`, `RedoStackCount`
+- Added history properties: `UndoHistory`, `RedoHistory` for UI binding
+- Updated all operations to use UndoableAction pattern:
+  - Archive/Unarchive operations
+  - Status changes
+  - Bulk operations (archive, unarchive, delete, status, color, link, unlink)
+  - Reordering (move up/down)
+  - Color changes
+- Added `OnUndoRedoStackChanged()` handler to update UI
+- Added new `RedoCommand` for redo functionality
+- Simplified `UndoCommand` to use stack.Undo()
+
+#### 3. Created Visual Undo History Panel ✅
+
+**Files**:
+- `SOUP/src/Features/OrderLog/Views/UndoHistoryPanel.xaml`
+- `SOUP/src/Features/OrderLog/Views/UndoHistoryPanel.xaml.cs`
+
+**Features**:
+
+- Beautiful side panel showing undo/redo history
+- Header with undo/redo counts
+- Separate sections for undo and redo actions
+- Visual distinction:
+  - Redo actions shown grayed out with ↻ icon
+  - Undo actions shown with blue border and ↶ icon
+  - Current state indicator between sections
+- Each history item shows:
+  - Action description
+  - Timestamp (HH:mm:ss)
+  - Hover effects for interactivity
+- Empty state message when no history
+
+**Benefits**:
+
+- ✅ Comprehensive undo support for all operations
+- ✅ Redo functionality (previously unavailable)
+- ✅ Visual history showing all undoable actions
+- ✅ Descriptive action names (e.g., "Archive 3 items", "Change note color")
+- ✅ Timestamp tracking for each action
+- ✅ 50-action history buffer
+- ✅ Automatic redo stack clearing on new actions
+- ✅ Thread-safe collection handling
+
+---
+
 ## HIGH-PRIORITY SPRINT COMPLETE! 🎉
 
-All 7 phases have been successfully implemented:
+All 8 phases have been successfully implemented:
 
 1. ✅ Phase 1: Search & Filter Infrastructure
 2. ✅ Phase 2: Keyboard Shortcuts
@@ -582,8 +684,9 @@ All 7 phases have been successfully implemented:
 5. ✅ Phase 5: Advanced Filtering Dialog
 6. ✅ Phase 6: Visual Polish & UX Improvements
 7. ✅ Phase 7: Notes vs Orders Separation
+8. ✅ Phase 8: Enhanced Undo/Redo Stack
 
-**Current Status**: 7 of 15 phases complete!
+**Current Status**: 8 of 15 phases complete!
 
 ---
 
@@ -591,23 +694,7 @@ All 7 phases have been successfully implemented:
 
 These phases are lower priority and can be implemented as time allows:
 
-### Phase 5: Advanced Filtering Dialog
-
-**Estimated Time**: 1-2 hours
-
-- Create FilterDialog.xaml with UI for status, date range, color filters
-- Wire up filter controls to ViewModel filter properties
-- Already have backend support through OrderSearchService
-
-### Phase 6: Undo/Redo Stack Enhancement
-
-**Estimated Time**: 2-3 hours
-
-- Expand undo system beyond status changes
-- Support undo for field edits, reordering, linking
-- Add visual undo history
-
-### Phase 7-15: Additional Enhancements
+### Phase 9-15: Additional Enhancements
 
 See main plan file
 (`C:\Users\acalabrese\.claude\plans\cryptic-imagining-toucan.md`) for:
@@ -630,7 +717,10 @@ See main plan file
 3. `SOUP/src/Features/OrderLog/Services/OrderBulkOperationsService.cs` (223 lines)
 4. `SOUP/src/Features/OrderLog/Views/OrderLogFilterDialog.xaml` (191 lines)
 5. `SOUP/src/Features/OrderLog/Views/OrderLogFilterDialog.xaml.cs` (102 lines)
-6. `SOUP/docs/OrderLog-QOL-Progress.md` (this file)
+6. `SOUP/src/Features/OrderLog/Services/UndoRedoService.cs` (492 lines) - Phase 8
+7. `SOUP/src/Features/OrderLog/Views/UndoHistoryPanel.xaml` (115 lines) - Phase 8
+8. `SOUP/src/Features/OrderLog/Views/UndoHistoryPanel.xaml.cs` (105 lines) - Phase 8
+9. `SOUP/docs/OrderLog-QOL-Progress.md` (this file)
 
 ### Modified:
 

@@ -31,13 +31,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly ILogger<OrderLogViewModel>? _logger;
     private readonly OrderSearchService _searchService;
     private readonly OrderBulkOperationsService _bulkOperationsService;
+    private readonly UndoRedoStack _undoRedoStack;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
     private DispatcherTimer? _undoTimer;
     private DispatcherTimer? _statusClearTimer;
     private System.Threading.CancellationTokenSource? _saveDebounceCts;
-    private List<(Guid id, OrderItem.OrderStatus previous)> _lastStatusChanges = new();
-    private List<(Guid id, bool wasArchived)> _lastArchiveChanges = new();
 
     // Lock for thread-safe access to HashSets
     private readonly Lock _collectionLock = new();
@@ -200,6 +199,28 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private string _undoMessage = string.Empty;
 
     [ObservableProperty]
+    private bool _redoAvailable;
+
+    [ObservableProperty]
+    private string _redoMessage = string.Empty;
+
+    [ObservableProperty]
+    private int _undoStackCount;
+
+    [ObservableProperty]
+    private int _redoStackCount;
+
+    /// <summary>
+    /// Gets the undo history for display in UI
+    /// </summary>
+    public IEnumerable<UndoableAction> UndoHistory => _undoRedoStack.UndoHistory;
+
+    /// <summary>
+    /// Gets the redo history for display in UI
+    /// </summary>
+    public IEnumerable<UndoableAction> RedoHistory => _undoRedoStack.RedoHistory;
+
+    [ObservableProperty]
     private string _newNoteVendorName = string.Empty;
 
     [ObservableProperty]
@@ -231,10 +252,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger = logger;
         _searchService = new OrderSearchService();
         _bulkOperationsService = new OrderBulkOperationsService();
+        _undoRedoStack = new UndoRedoStack(maxHistorySize: 50);
 
         _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
+
+        // Wire up undo/redo stack changes to update UI
+        _undoRedoStack.StackChanged += OnUndoRedoStackChanged;
 
         // grouping helper service (extracted to simplify VM)
         _groupingService = new OrderGroupingService();
@@ -413,6 +438,39 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
     }
 
+    private void OnUndoRedoStackChanged()
+    {
+        UndoAvailable = _undoRedoStack.CanUndo;
+        RedoAvailable = _undoRedoStack.CanRedo;
+        UndoStackCount = _undoRedoStack.UndoCount;
+        RedoStackCount = _undoRedoStack.RedoCount;
+
+        // Notify property changes for history collections
+        OnPropertyChanged(nameof(UndoHistory));
+        OnPropertyChanged(nameof(RedoHistory));
+
+        // Update messages
+        if (_undoRedoStack.CanUndo)
+        {
+            var lastAction = _undoRedoStack.UndoHistory.FirstOrDefault();
+            UndoMessage = lastAction != null ? $"Undo: {lastAction.Description}" : "Undo available";
+        }
+        else
+        {
+            UndoMessage = string.Empty;
+        }
+
+        if (_undoRedoStack.CanRedo)
+        {
+            var lastAction = _undoRedoStack.RedoHistory.FirstOrDefault();
+            RedoMessage = lastAction != null ? $"Redo: {lastAction.Description}" : "Redo available";
+        }
+        else
+        {
+            RedoMessage = string.Empty;
+        }
+    }
+
     public async Task InitializeAsync()
     {
         // load persisted widget settings
@@ -555,13 +613,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         if (item == null) return;
 
-        item.IsArchived = true;
+        var action = new ArchiveAction(new[] { item });
+        _undoRedoStack.ExecuteAction(action);
+
         RemoveFromItems(item);
         AddToArchived(item);
         await SaveAsync();
 
-        // Setup undo for archive
-        SetupArchiveUndo(new List<(Guid, bool)> { (item.Id, false) }, "Archived 1 item");
+        StartUndoTimer("Archived 1 item");
         StatusMessage = "Order archived - tap Undo to restore";
     }
 
@@ -573,17 +632,17 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var itemList = items.ToList();
         if (itemList.Count == 0) return;
 
-        var changes = new List<(Guid id, bool wasArchived)>();
+        var action = new ArchiveAction(itemList);
+        _undoRedoStack.ExecuteAction(action);
+
         foreach (var item in itemList)
         {
-            changes.Add((item.Id, item.IsArchived));
-            item.IsArchived = true;
             RemoveFromItems(item);
             AddToArchived(item);
         }
 
         await SaveAsync();
-        SetupArchiveUndo(changes, $"Archived {itemList.Count} item(s)");
+        StartUndoTimer($"Archived {itemList.Count} item(s)");
         StatusMessage = $"Archived {itemList.Count} item(s) - tap Undo to restore";
     }
 
@@ -595,10 +654,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Prevent duplication if already in Items (O(1) check)
         if (_itemIds.Contains(item.Id)) return;
 
-        item.IsArchived = false;
-        // Restore to previous status if available, otherwise default to InProgress
-        item.Status = item.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
-        item.PreviousStatus = null;
+        var action = new UnarchiveAction(new[] { item });
+        _undoRedoStack.ExecuteAction(action);
 
         RemoveFromArchived(item);
         AddToItems(item, insertAtTop: true);
@@ -606,8 +663,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshArchivedDisplayItems();
         await SaveAsync();
 
-        // Setup undo for unarchive  
-        SetupArchiveUndo(new List<(Guid, bool)> { (item.Id, true) }, "Restored 1 item");
+        StartUndoTimer("Restored 1 item");
         StatusMessage = "Order restored - tap Undo to re-archive";
     }
 
@@ -619,18 +675,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var itemList = items.ToList();
         if (itemList.Count == 0) return;
 
-        var changes = new List<(Guid id, bool wasArchived)>();
+        var itemsToUnarchive = new List<OrderItem>();
         foreach (var item in itemList)
         {
             // O(1) membership check
             if (_itemIds.Contains(item.Id)) continue;
+            itemsToUnarchive.Add(item);
+        }
 
-            changes.Add((item.Id, item.IsArchived));
-            item.IsArchived = false;
-            // Restore to previous status if available, otherwise default to InProgress
-            item.Status = item.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
-            item.PreviousStatus = null;
+        if (itemsToUnarchive.Count == 0) return;
 
+        var action = new UnarchiveAction(itemsToUnarchive);
+        _undoRedoStack.ExecuteAction(action);
+
+        foreach (var item in itemsToUnarchive)
+        {
             RemoveFromArchived(item);
             AddToItems(item, insertAtTop: true);
         }
@@ -638,8 +697,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
         RefreshArchivedDisplayItems();
         await SaveAsync();
-        SetupArchiveUndo(changes, $"Restored {changes.Count} item(s)");
-        StatusMessage = $"Restored {changes.Count} item(s) - tap Undo to re-archive";
+        StartUndoTimer($"Restored {itemsToUnarchive.Count} item(s)");
+        StatusMessage = $"Restored {itemsToUnarchive.Count} item(s) - tap Undo to re-archive";
     }
 
     /// <summary>
@@ -661,50 +720,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger?.LogInformation("Cleared {Count} archived items", toRemove.Count);
     }
 
-    private void SetupArchiveUndo(List<(Guid id, bool wasArchived)> changes, string message)
-    {
-        _lastArchiveChanges = changes;
-        _lastStatusChanges.Clear(); // Clear status changes when setting archive undo
-        StartUndoTimer(message);
-    }
-
-    [RelayCommand]
-    private async Task UndoArchiveAsync()
-    {
-        if (_lastArchiveChanges == null || _lastArchiveChanges.Count == 0) return;
-
-        foreach (var (id, wasArchived) in _lastArchiveChanges)
-        {
-            var item = AllItems.FirstOrDefault(i => i.Id == id);
-            if (item == null) continue;
-
-            if (wasArchived)
-            {
-                // Was archived before, re-archive it
-                item.IsArchived = true;
-                item.Status = OrderItem.OrderStatus.Done;
-                RemoveFromItems(item);
-                AddToArchived(item);
-            }
-            else
-            {
-                // Was not archived before, unarchive it and restore previous status
-                item.IsArchived = false;
-                item.Status = item.PreviousStatus ?? OrderItem.OrderStatus.InProgress;
-                item.PreviousStatus = null;
-                RemoveFromArchived(item);
-                AddToItems(item, insertAtTop: true);
-            }
-        }
-
-        RefreshDisplayItems();
-        RefreshArchivedDisplayItems();
-        await SaveAsync();
-        _lastArchiveChanges.Clear();
-        UndoAvailable = false;
-        _undoTimer?.Stop();
-        StatusMessage = "Undo applied";
-    }
 
     [RelayCommand]
     private async Task DeleteSelectedAsync()
@@ -733,7 +748,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var idx = Items.IndexOf(item);
         if (idx > 0)
         {
-            Items.Move(idx, idx - 1);
+            var action = new ReorderAction(item, Items as IList<OrderItem> ?? Items.ToList(), idx, idx - 1);
+            _undoRedoStack.ExecuteAction(action);
             await DebouncedSaveAsync();
             StatusMessage = "Moved up";
             return;
@@ -743,7 +759,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var aidx = ArchivedItems.IndexOf(item);
         if (aidx > 0)
         {
-            ArchivedItems.Move(aidx, aidx - 1);
+            var action = new ReorderAction(item, ArchivedItems as IList<OrderItem> ?? ArchivedItems.ToList(), aidx, aidx - 1);
+            _undoRedoStack.ExecuteAction(action);
             await DebouncedSaveAsync();
             StatusMessage = "Moved up (archived)";
         }
@@ -758,7 +775,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var idx = Items.IndexOf(item);
         if (idx >= 0 && idx < Items.Count - 1)
         {
-            Items.Move(idx, idx + 1);
+            var action = new ReorderAction(item, Items as IList<OrderItem> ?? Items.ToList(), idx, idx + 1);
+            _undoRedoStack.ExecuteAction(action);
             await DebouncedSaveAsync();
             StatusMessage = "Moved down";
             return;
@@ -768,7 +786,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var aidx = ArchivedItems.IndexOf(item);
         if (aidx >= 0 && aidx < ArchivedItems.Count - 1)
         {
-            ArchivedItems.Move(aidx, aidx + 1);
+            var action = new ReorderAction(item, ArchivedItems as IList<OrderItem> ?? ArchivedItems.ToList(), aidx, aidx + 1);
+            _undoRedoStack.ExecuteAction(action);
             await DebouncedSaveAsync();
             StatusMessage = "Moved down (archived)";
         }
@@ -787,17 +806,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         StatusMessage = "Deleted item";
     }
 
-    private void SetupUndo(List<(Guid id, OrderItem.OrderStatus previous)> changes, string message)
-    {
-        _lastStatusChanges = changes;
-        _lastArchiveChanges.Clear(); // Clear archive changes when setting status undo
-        StartUndoTimer(message);
-    }
-
     private void StartUndoTimer(string message)
     {
-        UndoMessage = message;
-        UndoAvailable = true;
+        StatusMessage = message + " - tap Undo to revert";
 
         // Reuse existing timer instead of creating new one each time
         if (_undoTimer == null)
@@ -814,52 +825,44 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     private void OnUndoTimerTick(object? sender, EventArgs e)
     {
-        UndoAvailable = false;
-        _lastStatusChanges.Clear();
-        _lastArchiveChanges.Clear();
+        // Timer expired - no action needed, stack remains available
         _undoTimer?.Stop();
     }
 
     /// <summary>
-    /// Unified undo command that handles both status and archive changes
+    /// Undo the last action
     /// </summary>
     [RelayCommand]
     private async Task UndoAsync()
     {
-        // Handle archive undo first (takes priority if both are set)
-        if (_lastArchiveChanges != null && _lastArchiveChanges.Count > 0)
-        {
-            await UndoArchiveAsync();
-            return;
-        }
+        if (!_undoRedoStack.CanUndo) return;
 
-        // Handle status undo
-        if (_lastStatusChanges != null && _lastStatusChanges.Count > 0)
-        {
-            await UndoStatusChangeAsync();
-            return;
-        }
+        _undoRedoStack.Undo();
+
+        // Sync UI with model changes
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+
+        StatusMessage = "Undo applied";
     }
 
+    /// <summary>
+    /// Redo the last undone action
+    /// </summary>
     [RelayCommand]
-    private async Task UndoStatusChangeAsync()
+    private async Task RedoAsync()
     {
-        if (_lastStatusChanges == null || _lastStatusChanges.Count == 0) return;
+        if (!_undoRedoStack.CanRedo) return;
 
-        foreach (var (id, prev) in _lastStatusChanges)
-        {
-            var item = AllItems.FirstOrDefault(i => i.Id == id);
-            if (item != null)
-            {
-                item.Status = prev;
-            }
-        }
+        _undoRedoStack.Redo();
 
+        // Sync UI with model changes
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
-        _lastStatusChanges.Clear();
-        UndoAvailable = false;
-        _undoTimer?.Stop();
-        StatusMessage = "Undo applied";
+
+        StatusMessage = "Redo applied";
     }
 
     [RelayCommand]
@@ -887,8 +890,22 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     public async Task SetColorAsync(OrderItem item, string colorHex)
     {
-        item.ColorHex = colorHex;
+        var oldColor = item.ColorHex;
+        var action = new ColorChangeAction(new[] { item }, colorHex);
+        _undoRedoStack.ExecuteAction(action);
         await SaveAsync();
+        StartUndoTimer("Changed item color");
+    }
+
+    /// <summary>
+    /// Helper method to edit a field with undo support
+    /// </summary>
+    public async Task EditFieldAsync(OrderItem item, string fieldName, object? oldValue, object? newValue, Action<object?> setter)
+    {
+        var action = new FieldEditAction(item, fieldName, oldValue, newValue, setter);
+        _undoRedoStack.ExecuteAction(action);
+        await SaveAsync();
+        StartUndoTimer($"Edited {fieldName}");
     }
 
     public async Task SetStatusAsync(OrderItem item, OrderItem.OrderStatus status, OrderItem.OrderStatus? previousStatus = null)
@@ -907,23 +924,17 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             _logger?.LogDebug("Group {GroupId} members: {MemberIds}", gid, string.Join(',', members.Select(m => m.Id)));
 
             var shouldBeArchived = status == OrderItem.OrderStatus.Done;
-            var archiveChanges = new List<(Guid id, bool wasArchived)>();
 
-            foreach (var m in members)
+            // Create appropriate action based on whether we're archiving or changing status
+            if (shouldBeArchived)
             {
-                _logger?.LogDebug("Setting member {MemberId} status from {OldStatus} to {NewStatus}", m.Id, m.Status, status);
-
-                // Track for undo
-                archiveChanges.Add((m.Id, m.IsArchived));
-
-                // Store previous status before archiving
-                if (shouldBeArchived && !m.IsArchived)
-                {
-                    m.PreviousStatus = m.Status;
-                }
-
-                m.Status = status;
-                m.IsArchived = shouldBeArchived;
+                var action = new ArchiveAction(members);
+                _undoRedoStack.ExecuteAction(action);
+            }
+            else
+            {
+                var action = new StatusChangeAction(members, status);
+                _undoRedoStack.ExecuteAction(action);
             }
 
             // Move members between collections based on IsArchived flag
@@ -951,47 +962,45 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             RefreshArchivedDisplayItems();
             await SaveAsync();
 
-            // Set up undo for group archive
-            if (shouldBeArchived && archiveChanges.Any(c => !c.wasArchived))
-            {
-                SetupArchiveUndo(archiveChanges, $"Archived {members.Count} item(s)");
-                StatusMessage = $"Archived {members.Count} item(s) - tap Undo to restore";
-            }
+            StartUndoTimer(shouldBeArchived ? $"Archived {members.Count} item(s)" : $"Changed status of {members.Count} item(s)");
             return;
         }
 
-        // Note: item.Status may already be updated by TwoWay binding, so we need to 
+        // Note: item.Status may already be updated by TwoWay binding, so we need to
         // determine archival based on whether status IS Done, not was/will-be.
         var willBeArchived = status == OrderItem.OrderStatus.Done;
         var isCurrentlyInItems = _itemIds.Contains(item.Id);
         var isCurrentlyInArchived = _archivedItemIds.Contains(item.Id);
 
-        // Store previous status before archiving
-        if (willBeArchived && isCurrentlyInItems)
-        {
-            item.PreviousStatus = item.Status;
-        }
-
-        item.Status = status;
-        item.IsArchived = willBeArchived;
-
-        // Move between collections based on where it should be vs where it is
+        // Create appropriate action
         if (willBeArchived && isCurrentlyInItems)
         {
             // Moving to Done - archive it
+            var action = new ArchiveAction(new[] { item });
+            _undoRedoStack.ExecuteAction(action);
             RemoveFromItems(item);
             AddToArchived(item);
         }
         else if (!willBeArchived && isCurrentlyInArchived)
         {
             // Moving away from Done - unarchive it
+            var action = new UnarchiveAction(new[] { item });
+            _undoRedoStack.ExecuteAction(action);
             RemoveFromArchived(item);
             AddToItems(item, insertAtTop: true);
+        }
+        else
+        {
+            // Just changing status, not archiving/unarchiving
+            var action = new StatusChangeAction(new[] { item }, status);
+            _undoRedoStack.ExecuteAction(action);
         }
 
         RefreshDisplayItems();
         RefreshArchivedDisplayItems();
         await SaveAsync();
+
+        StartUndoTimer(willBeArchived ? "Archived item" : "Changed status");
     }
 
     public async Task AddOrderAsync(OrderItem order)
@@ -1162,31 +1171,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         var itemsToArchive = SelectedItems.ToList();
-        var result = _bulkOperationsService.ArchiveBulk(itemsToArchive);
+        var action = new ArchiveAction(itemsToArchive);
+        _undoRedoStack.ExecuteAction(action);
 
-        if (result.IsSuccess)
+        // Move items from Items to ArchivedItems
+        foreach (var item in itemsToArchive)
         {
-            // Move items from Items to ArchivedItems
-            foreach (var item in itemsToArchive)
-            {
-                Items.Remove(item);
-                if (!ArchivedItems.Contains(item))
-                {
-                    ArchivedItems.Add(item);
-                }
-            }
+            RemoveFromItems(item);
+            AddToArchived(item);
+        }
 
-            SelectedItems.Clear();
-            RefreshDisplayItems();
-            await SaveAsync();
-            StatusMessage = $"Archived {result.SuccessCount} item(s)";
-        }
-        else
-        {
-            StatusMessage = $"Archived {result.SuccessCount}, failed {result.FailureCount}";
-            _logger?.LogWarning("Bulk archive had {FailureCount} failures: {Errors}",
-                result.FailureCount, string.Join(", ", result.Errors));
-        }
+        SelectedItems.Clear();
+        RefreshDisplayItems();
+        await SaveAsync();
+        StartUndoTimer($"Archived {itemsToArchive.Count} item(s)");
+        StatusMessage = $"Archived {itemsToArchive.Count} item(s)";
     }
 
     [RelayCommand]
@@ -1199,31 +1198,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         var itemsToUnarchive = SelectedItems.ToList();
-        var result = _bulkOperationsService.UnarchiveBulk(itemsToUnarchive);
+        var action = new UnarchiveAction(itemsToUnarchive);
+        _undoRedoStack.ExecuteAction(action);
 
-        if (result.IsSuccess)
+        // Move items from ArchivedItems to Items
+        foreach (var item in itemsToUnarchive)
         {
-            // Move items from ArchivedItems to Items
-            foreach (var item in itemsToUnarchive)
-            {
-                ArchivedItems.Remove(item);
-                if (!Items.Contains(item))
-                {
-                    Items.Add(item);
-                }
-            }
+            RemoveFromArchived(item);
+            AddToItems(item, insertAtTop: true);
+        }
 
-            SelectedItems.Clear();
-            RefreshDisplayItems();
-            await SaveAsync();
-            StatusMessage = $"Unarchived {result.SuccessCount} item(s)";
-        }
-        else
-        {
-            StatusMessage = $"Unarchived {result.SuccessCount}, failed {result.FailureCount}";
-            _logger?.LogWarning("Bulk unarchive had {FailureCount} failures: {Errors}",
-                result.FailureCount, string.Join(", ", result.Errors));
-        }
+        SelectedItems.Clear();
+        RefreshDisplayItems();
+        await SaveAsync();
+        StartUndoTimer($"Unarchived {itemsToUnarchive.Count} item(s)");
+        StatusMessage = $"Unarchived {itemsToUnarchive.Count} item(s)";
     }
 
     [RelayCommand]
@@ -1237,7 +1226,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         var count = SelectedItems.Count;
         var confirmResult = MessageBox.Show(
-            $"Are you sure you want to delete {count} selected item(s)? This cannot be undone.",
+            $"Are you sure you want to delete {count} selected item(s)?",
             "Delete Items",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
@@ -1250,25 +1239,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         var itemsToDelete = SelectedItems.ToList();
 
-        // Delete from both collections
-        var resultItems = _bulkOperationsService.DeleteBulk(itemsToDelete, Items);
-        var resultArchived = _bulkOperationsService.DeleteBulk(itemsToDelete, ArchivedItems);
-
-        var totalSuccess = resultItems.SuccessCount + resultArchived.SuccessCount;
-        var totalFailure = resultItems.FailureCount + resultArchived.FailureCount;
+        // Determine which collection to use for delete action
+        var collection = itemsToDelete.Any(i => _itemIds.Contains(i.Id)) ? Items : ArchivedItems;
+        var action = new DeleteAction(itemsToDelete, collection);
+        _undoRedoStack.ExecuteAction(action);
 
         SelectedItems.Clear();
         RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
         await SaveAsync();
 
-        if (totalFailure == 0)
-        {
-            StatusMessage = $"Deleted {totalSuccess} item(s)";
-        }
-        else
-        {
-            StatusMessage = $"Deleted {totalSuccess}, failed {totalFailure}";
-        }
+        StartUndoTimer($"Deleted {itemsToDelete.Count} item(s)");
+        StatusMessage = $"Deleted {itemsToDelete.Count} item(s)";
     }
 
     [RelayCommand]
@@ -1287,35 +1269,31 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var result = _bulkOperationsService.SetStatusBulk(itemsToUpdate, newStatus);
-
-        if (result.IsSuccess)
+        // If setting to Done, archive the items
+        if (newStatus == OrderItem.OrderStatus.Done)
         {
-            // If setting to Done, archive the items
-            if (newStatus == OrderItem.OrderStatus.Done)
-            {
-                foreach (var item in itemsToUpdate)
-                {
-                    item.PreviousStatus = item.Status;
-                    Items.Remove(item);
-                    if (!ArchivedItems.Contains(item))
-                    {
-                        ArchivedItems.Add(item);
-                    }
-                }
-            }
+            var action = new ArchiveAction(itemsToUpdate);
+            _undoRedoStack.ExecuteAction(action);
 
-            SelectedItems.Clear();
-            RefreshDisplayItems();
-            await SaveAsync();
-            StatusMessage = $"Updated {result.SuccessCount} item(s) to {newStatus}";
+            foreach (var item in itemsToUpdate)
+            {
+                RemoveFromItems(item);
+                AddToArchived(item);
+            }
         }
         else
         {
-            StatusMessage = $"Updated {result.SuccessCount}, failed {result.FailureCount}";
-            _logger?.LogWarning("Bulk status update had {FailureCount} failures: {Errors}",
-                result.FailureCount, string.Join(", ", result.Errors));
+            var action = new StatusChangeAction(itemsToUpdate, newStatus);
+            _undoRedoStack.ExecuteAction(action);
         }
+
+        SelectedItems.Clear();
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+
+        StartUndoTimer($"Updated {itemsToUpdate.Count} item(s) to {newStatus}");
+        StatusMessage = $"Updated {itemsToUpdate.Count} item(s) to {newStatus}";
     }
 
     [RelayCommand]
@@ -1334,18 +1312,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var result = _bulkOperationsService.SetColorBulk(stickyNotes, colorHex);
+        var action = new ColorChangeAction(stickyNotes, colorHex);
+        _undoRedoStack.ExecuteAction(action);
 
-        if (result.IsSuccess)
-        {
-            RefreshDisplayItems();
-            await SaveAsync();
-            StatusMessage = $"Updated color for {result.SuccessCount} sticky note(s)";
-        }
-        else
-        {
-            StatusMessage = $"Updated {result.SuccessCount}, failed {result.FailureCount}";
-        }
+        RefreshDisplayItems();
+        await SaveAsync();
+        StartUndoTimer($"Updated color for {stickyNotes.Count} sticky note(s)");
+        StatusMessage = $"Updated color for {stickyNotes.Count} sticky note(s)";
     }
 
     [RelayCommand]
@@ -1358,18 +1331,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         var itemsToLink = SelectedItems.ToList();
-        var result = _bulkOperationsService.LinkItemsBulk(itemsToLink);
+        var groupId = Guid.NewGuid();
+        var action = new LinkAction(itemsToLink, groupId);
+        _undoRedoStack.ExecuteAction(action);
 
-        if (result.IsSuccess)
-        {
-            RefreshDisplayItems();
-            await SaveAsync();
-            StatusMessage = $"Linked {result.SuccessCount} item(s)";
-        }
-        else
-        {
-            StatusMessage = $"Linked {result.SuccessCount}, failed {result.FailureCount}";
-        }
+        RefreshDisplayItems();
+        await SaveAsync();
+        StartUndoTimer($"Linked {itemsToLink.Count} item(s)");
+        StatusMessage = $"Linked {itemsToLink.Count} item(s)";
     }
 
     [RelayCommand]
@@ -1388,18 +1357,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var result = _bulkOperationsService.UnlinkItemsBulk(itemsToUnlink);
+        var action = new UnlinkAction(itemsToUnlink);
+        _undoRedoStack.ExecuteAction(action);
 
-        if (result.IsSuccess)
-        {
-            RefreshDisplayItems();
-            await SaveAsync();
-            StatusMessage = $"Unlinked {result.SuccessCount} item(s)";
-        }
-        else
-        {
-            StatusMessage = $"Unlinked {result.SuccessCount}, failed {result.FailureCount}";
-        }
+        RefreshDisplayItems();
+        await SaveAsync();
+        StartUndoTimer($"Unlinked {itemsToUnlink.Count} item(s)");
+        StatusMessage = $"Unlinked {itemsToUnlink.Count} item(s)";
     }
 
     // Navigation Commands

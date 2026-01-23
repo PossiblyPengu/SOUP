@@ -6,12 +6,15 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using Serilog;
 using SOUP.Core.Entities.ExpireWise;
+using SOUP.Features.ExpireWise.Helpers;
 using SOUP.ViewModels;
 
 namespace SOUP.Views.ExpireWise;
 
 public partial class ExpireWiseView : UserControl
 {
+    private KeyboardShortcutManager? _shortcutManager;
+
     public ExpireWiseView()
     {
         InitializeComponent();
@@ -29,6 +32,10 @@ public partial class ExpireWiseView : UserControl
 
             // Apply initial grouping state
             UpdateGrouping(vm.GroupByStore);
+
+            // Register keyboard shortcuts
+            _shortcutManager = new KeyboardShortcutManager();
+            _shortcutManager.RegisterShortcuts(this, vm, OnFocusSearchRequested);
         }
     }
 

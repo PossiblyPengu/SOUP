@@ -432,10 +432,11 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
+
                 <!-- Header with Month Navigator -->
                 <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="20,16">
                     <Grid>
@@ -589,9 +590,57 @@
                         </ToggleButton>
                     </Grid>
                 </Border>
-                
+
+                <!-- Statistics Bar -->
+                <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12" Margin="0,0,0,0"
+                        Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <!-- Total Items -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,24,0">
+                            <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,12,0"
+                                    Background="{DynamicResource SurfaceHoverBrush}">
+                                <TextBlock Text="📦" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TotalItems}" FontSize="18" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Total Items" FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Expiring Soon -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,24,0">
+                            <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,12,0"
+                                    Background="{DynamicResource WarningBrush}" Opacity="0.15">
+                                <TextBlock Text="⚠️" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="18" FontWeight="Bold"
+                                           Foreground="{DynamicResource WarningBrush}"/>
+                                <TextBlock Text="Expiring Soon" FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Expired -->
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,12,0"
+                                    Background="{DynamicResource DangerBrush}" Opacity="0.15">
+                                <TextBlock Text="❌" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ExpiredCount}" FontSize="18" FontWeight="Bold"
+                                           Foreground="{DynamicResource DangerBrush}"/>
+                                <TextBlock Text="Expired" FontSize="11"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Data Grid Area -->
-                <Grid Grid.Row="2" Margin="20">
+                <Grid Grid.Row="3" Margin="20">
                     <!-- Empty State -->
                     <Border Visibility="{Binding HasData, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                             Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="40">
@@ -739,7 +788,7 @@
                 </Grid>
 
                 <!-- Status Bar -->
-                <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
+                <Border Grid.Row="4" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
                     <Grid>
                         <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
@@ -755,5 +804,62 @@
             <local:ExpireWiseAnalyticsView DataContext="{Binding Analytics}"
                                            Visibility="{Binding IsChecked, ElementName=AnalyticsTab, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>
+
+        <!-- Loading Overlay -->
+        <Border Grid.ColumnSpan="2"
+                Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+                Background="#CC000000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        CornerRadius="16"
+                        Padding="40,32"
+                        MinWidth="250">
+                    <StackPanel>
+                        <!-- Spinner Animation -->
+                        <Border Width="48" Height="48" Margin="0,0,0,20" HorizontalAlignment="Center">
+                            <Border.RenderTransform>
+                                <RotateTransform x:Name="SpinnerRotate" CenterX="24" CenterY="24"/>
+                            </Border.RenderTransform>
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(RotateTransform.Angle)"
+                                                           From="0" To="360" Duration="0:0:1.5" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="0.5"/>
+                                    <GradientStop Color="Transparent" Offset="0.5"/>
+                                    <GradientStop Color="Transparent" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.OpacityMask>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="Transparent" Offset="0.5"/>
+                                    <GradientStop Color="Black" Offset="0.75"/>
+                                    <GradientStop Color="Black" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Border.OpacityMask>
+                        </Border>
+
+                        <!-- Loading Message -->
+                        <TextBlock Text="{Binding BusyMessage}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
