@@ -667,6 +667,15 @@ public partial class OrderLogWidgetView : UserControl
         ThemeService.Instance.ToggleTheme();
     }
 
+    private void ExportImportMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.ContextMenu != null)
+        {
+            button.ContextMenu.PlacementTarget = button;
+            button.ContextMenu.IsOpen = true;
+        }
+    }
+
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
         try

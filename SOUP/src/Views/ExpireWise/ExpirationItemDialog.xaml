@@ -186,20 +186,6 @@
                                                              Style="{StaticResource ModernTextBox}"
                                                              HorizontalContentAlignment="Center"
                                                              FontSize="11" Padding="4,3"/>
-                                                    
-                                                    <Button Content="+" ToolTip="Add to dictionary"
-                                                            Command="{Binding DataContext.StartAddToDictCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}"
-                                                            Visibility="{Binding Found, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"
-                                                            Style="{StaticResource IconButton}"
-                                                            Width="22" Height="22" FontSize="12" Margin="6,0,0,0"/>
-                                                    
-                                                    <Button Content="🔗" ToolTip="Link SKU"
-                                                            Command="{Binding DataContext.AddSkuToItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}"
-                                                            Visibility="{Binding CanAddSkuToItem, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                            Style="{StaticResource IconButton}"
-                                                            Width="22" Height="22" FontSize="10" Margin="4,0,0,0"/>
                                                 </StackPanel>
                                             </Grid>
                                         </Border>
@@ -235,71 +221,6 @@
                         Style="{StaticResource PrimaryButton}"
                         Padding="20,10"/>
             </StackPanel>
-
-            <!-- Add to Dictionary Overlay -->
-            <Border Grid.RowSpan="7" Visibility="{Binding ShowAddToDictionaryPanel, Converter={StaticResource BoolToVisibilityConverter}}"
-                    Background="{DynamicResource OverlayDarkBrush}" CornerRadius="12">
-                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" 
-                        Padding="20" MaxWidth="360" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <StackPanel>
-                        <TextBlock Text="Add to Dictionary" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,0,16">
-                            <Run Text="SKU: "/><Run Text="{Binding ItemToAddToDict.InputSku, Mode=OneWay}" 
-                                 Foreground="{StaticResource ExpireWiseAccentBrush}"/>
-                        </TextBlock>
-
-                        <TextBlock Text="Item Number" Style="{StaticResource FormLabel}"/>
-                        <TextBox Text="{Binding NewDictItemNumber, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}" Margin="0,0,0,12"/>
-
-                        <TextBlock Text="Description" Style="{StaticResource FormLabel}"/>
-                        <TextBox Text="{Binding NewDictDescription, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}" Margin="0,0,0,16"/>
-
-                        <!-- Suggestions -->
-                        <Border Visibility="{Binding ShowDictSuggestions, Converter={StaticResource BoolToVisibilityConverter}}"
-                                Background="{DynamicResource BackgroundBrush}" CornerRadius="6"
-                                MaxHeight="100" Margin="0,0,0,16" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <ItemsControl ItemsSource="{Binding DictSuggestions}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border x:Name="SugBorder" Padding="10,8" Cursor="Hand" Background="Transparent"
-                                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
-                                                <Border.InputBindings>
-                                                    <MouseBinding MouseAction="LeftClick"
-                                                                  Command="{Binding DataContext.SelectDictSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding}"/>
-                                                </Border.InputBindings>
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding Number}" FontWeight="SemiBold" FontSize="12"
-                                                               Foreground="{StaticResource ExpireWiseAccentBrush}"/>
-                                                    <TextBlock Text="{Binding Description}" FontSize="10"
-                                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                                               TextTrimming="CharacterEllipsis"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <DataTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="SugBorder" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                                </Trigger>
-                                            </DataTemplate.Triggers>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </Border>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="Cancel" Command="{Binding CancelAddToDictCommand}"
-                                    Style="{StaticResource SecondaryButton}" Padding="16,8" Margin="0,0,8,0"/>
-                            <Button Content="Save" Command="{Binding SaveNewDictItemCommand}"
-                                    Style="{StaticResource PrimaryButton}" Padding="16,8"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </Border>
         </Grid>
     </Border>
 </UserControl>

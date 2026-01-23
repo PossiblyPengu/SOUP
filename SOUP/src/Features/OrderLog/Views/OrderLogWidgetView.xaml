@@ -1505,7 +1505,7 @@
                                     Width="32" Height="32" Margin="4,0"
                                     Background="{DynamicResource SurfaceBrush}"
                                     BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="📦" FontSize="14"/>
+                                <TextBlock Text="📦" FontSize="14" Foreground="White"/>
                             </Button>
 
                             <Button Command="{Binding BulkDeleteCommand}"
@@ -1513,7 +1513,7 @@
                                     Width="32" Height="32" Margin="4,0"
                                     Background="{DynamicResource SurfaceBrush}"
                                     BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="🗑️" FontSize="14"/>
+                                <TextBlock Text="🗑️" FontSize="14" Foreground="White"/>
                             </Button>
 
                             <Button Command="{Binding BulkLinkCommand}"
@@ -1521,7 +1521,7 @@
                                     Width="32" Height="32" Margin="4,0"
                                     Background="{DynamicResource SurfaceBrush}"
                                     BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="🔗" FontSize="14"/>
+                                <TextBlock Text="🔗" FontSize="14" Foreground="White"/>
                             </Button>
 
                             <Button Command="{Binding BulkUnlinkCommand}"
@@ -1529,7 +1529,7 @@
                                     Width="32" Height="32" Margin="4,0"
                                     Background="{DynamicResource SurfaceBrush}"
                                     BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="⛓️‍💥" FontSize="14"/>
+                                <TextBlock Text="⛓️‍💥" FontSize="14" Foreground="White"/>
                             </Button>
 
                             <!-- Status menu button -->
@@ -1537,7 +1537,7 @@
                                     Width="32" Height="32" Margin="4,0"
                                     Background="{DynamicResource SurfaceBrush}"
                                     BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="✓" FontSize="14" FontWeight="Bold"/>
+                                <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Foreground="White"/>
                                 <Button.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Not Ready" Command="{Binding BulkSetStatusCommand}"
@@ -3040,10 +3040,29 @@
                             Margin="0,0,4,0">
                         <TextBlock x:Name="ThemeToggleIcon" Text="🌙" FontSize="{DynamicResource CardFontSize}"/>
                     </Button>
-                    <Button Command="{Binding ExportToCsvCommand}"
+                    <Button x:Name="ExportImportMenuButton"
+                            Click="ExportImportMenu_Click"
                             Style="{StaticResource WidgetIconButtonStyle}"
-                            ToolTip="Export to CSV">
+                            ToolTip="Export/Import Options"
+                            Margin="0,0,0,0">
                         <TextBlock Text="📤" FontSize="{DynamicResource CardFontSize}"/>
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="ExportImportMenu">
+                                <MenuItem Header="📄 Export to CSV"
+                                          Command="{Binding ExportToCsvCommand}"
+                                          InputGestureText="Ctrl+Shift+E"
+                                          ToolTip="Export items to CSV format"/>
+                                <MenuItem Header="📋 Export to JSON"
+                                          Command="{Binding ExportToJsonCommand}"
+                                          InputGestureText="Ctrl+Shift+J"
+                                          ToolTip="Export items to JSON format"/>
+                                <Separator/>
+                                <MenuItem Header="📥 Import from CSV"
+                                          Command="{Binding ImportFromCsvCommand}"
+                                          InputGestureText="Ctrl+Shift+I"
+                                          ToolTip="Import items from CSV file"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
                     </Button>
                 </StackPanel>
             </Grid>

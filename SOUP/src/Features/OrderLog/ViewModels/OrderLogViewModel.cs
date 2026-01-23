@@ -1505,6 +1505,114 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand]
+    private async Task ExportToJson()
+    {
+        try
+        {
+            var itemsToExport = ShowArchived ? ArchivedItems : Items;
+            if (itemsToExport.Count == 0)
+            {
+                StatusMessage = "No items to export";
+                return;
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var defaultFileName = $"OrderLog_Export_{timestamp}.json";
+
+            var filePath = await _dialogService.ShowSaveFileDialogAsync(
+                "Export to JSON",
+                defaultFileName,
+                "JSON Files (*.json)|*.json|All Files (*.*)|*.*");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                StatusMessage = "Export cancelled";
+                return;
+            }
+
+            IsLoading = true;
+            StatusMessage = "Exporting to JSON...";
+
+            var exportService = new Services.OrderLogExportService();
+            await exportService.ExportToJsonAsync(itemsToExport, filePath);
+
+            var fileName = System.IO.Path.GetFileName(filePath);
+            StatusMessage = $"Exported {itemsToExport.Count} item(s) to JSON";
+            _dialogService.ShowExportSuccessDialog(fileName, filePath, itemsToExport.Count);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export error: {ex.Message}";
+            _logger?.LogError(ex, "Failed to export to JSON");
+            _dialogService.ShowExportErrorDialog(ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportFromCsv()
+    {
+        try
+        {
+            var filePaths = await _dialogService.ShowOpenFileDialogAsync(
+                "Import from CSV",
+                "CSV Files",
+                "csv");
+
+            if (filePaths == null || filePaths.Length == 0)
+            {
+                StatusMessage = "Import cancelled";
+                return;
+            }
+
+            var filePath = filePaths[0]; // Take first file
+
+            IsLoading = true;
+            StatusMessage = "Importing from CSV...";
+
+            var exportService = new Services.OrderLogExportService();
+            var (success, items, errorMessage) = await exportService.ImportFromCsvAsync(filePath);
+
+            if (!success)
+            {
+                StatusMessage = $"Import failed: {errorMessage}";
+                _dialogService.ShowImportErrorDialog(errorMessage);
+                return;
+            }
+
+            // Save all imported items
+            var importedCount = 0;
+            foreach (var item in items)
+            {
+                Items.Add(item);
+                _itemIds.Add(item.Id);
+                importedCount++;
+            }
+
+            await SaveAsync();
+
+            var fileName = System.IO.Path.GetFileName(filePath);
+            StatusMessage = $"Imported {importedCount} item(s) from CSV";
+            _dialogService.ShowImportSuccessDialog(fileName, importedCount);
+
+            RefreshDisplayItems();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import error: {ex.Message}";
+            _logger?.LogError(ex, "Failed to import from CSV");
+            _dialogService.ShowImportErrorDialog(ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
     public async Task MoveOrderAsync(OrderItem dropped, OrderItem? target)
     {
         if (dropped == target) return;

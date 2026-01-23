@@ -250,4 +250,54 @@ public class DialogService
     {
         MessageDialog.ShowWarning(null!, $"Export failed:\n\n{errorMessage}", "Export Error");
     }
+
+    /// <summary>
+    /// Shows a themed import success dialog.
+    /// </summary>
+    /// <param name="fileName">The name of the imported file.</param>
+    /// <param name="itemCount">The number of items imported.</param>
+    public void ShowImportSuccessDialog(string fileName, int itemCount)
+    {
+        var message = $"Successfully imported {itemCount} item(s) from:\n\n{fileName}";
+        MessageDialog.Show(message, "Import Complete", DialogType.Information, DialogButtons.OK);
+    }
+
+    /// <summary>
+    /// Shows a themed import error dialog.
+    /// </summary>
+    /// <param name="errorMessage">The error message to display.</param>
+    public void ShowImportErrorDialog(string errorMessage)
+    {
+        MessageDialog.ShowWarning(null!, $"Import failed:\n\n{errorMessage}", "Import Error");
+    }
+
+    /// <summary>
+    /// Shows a generic error dialog with custom message.
+    /// </summary>
+    /// <param name="message">The error message to display.</param>
+    /// <param name="title">The dialog title.</param>
+    public void ShowError(string message, string title = "Error")
+    {
+        MessageDialog.ShowError(null!, message, title);
+    }
+
+    /// <summary>
+    /// Shows a generic warning dialog with custom message.
+    /// </summary>
+    /// <param name="message">The warning message to display.</param>
+    /// <param name="title">The dialog title.</param>
+    public void ShowWarning(string message, string title = "Warning")
+    {
+        MessageDialog.ShowWarning(null!, message, title);
+    }
+
+    /// <summary>
+    /// Shows a generic info dialog with custom message.
+    /// </summary>
+    /// <param name="message">The info message to display.</param>
+    /// <param name="title">The dialog title.</param>
+    public void ShowInfo(string message, string title = "Information")
+    {
+        MessageDialog.ShowInfo(null!, message, title);
+    }
 }

@@ -111,10 +111,28 @@ public class KeyboardShortcutManager
                     return true;
 
                 case Key.E:
-                    // Ctrl+Shift+E: Export
+                    // Ctrl+Shift+E: Export to CSV
                     if (modifiers.HasFlag(ModifierKeys.Shift))
                     {
                         HandleCtrlShiftE();
+                        return true;
+                    }
+                    break;
+
+                case Key.J:
+                    // Ctrl+Shift+J: Export to JSON
+                    if (modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        HandleCtrlShiftJ();
+                        return true;
+                    }
+                    break;
+
+                case Key.I:
+                    // Ctrl+Shift+I: Import from CSV
+                    if (modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        HandleCtrlShiftI();
                         return true;
                     }
                     break;
@@ -244,8 +262,20 @@ public class KeyboardShortcutManager
 
     private void HandleCtrlShiftE()
     {
-        // Trigger export
+        // Trigger CSV export
         _viewModel.ExportToCsvCommand?.Execute(null);
+    }
+
+    private void HandleCtrlShiftJ()
+    {
+        // Trigger JSON export
+        _viewModel.ExportToJsonCommand?.Execute(null);
+    }
+
+    private void HandleCtrlShiftI()
+    {
+        // Trigger CSV import
+        _viewModel.ImportFromCsvCommand?.Execute(null);
     }
 
     private void HandleStatusShortcut(OrderItem.OrderStatus status)

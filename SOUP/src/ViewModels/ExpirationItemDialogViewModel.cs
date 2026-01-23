@@ -85,28 +85,6 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
 
     #endregion
 
-    #region Add to Dictionary Panel
-
-    [ObservableProperty]
-    private bool _showAddToDictionaryPanel;
-
-    [ObservableProperty]
-    private ParsedSkuEntry? _itemToAddToDict;
-
-    [ObservableProperty]
-    private string _newDictItemNumber = string.Empty;
-
-    [ObservableProperty]
-    private string _newDictDescription = string.Empty;
-
-    [ObservableProperty]
-    private ObservableCollection<DictionaryItem> _dictSuggestions = new();
-
-    [ObservableProperty]
-    private bool _showDictSuggestions;
-
-    #endregion
-
     public ObservableCollection<MonthOption> AvailableMonths { get; } = new()
     {
         new(1, "January"), new(2, "February"), new(3, "March"),
@@ -325,129 +303,6 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     /// </summary>
     public bool CanSubmit => IsVerified && ParsedItems.Count > 0;
 
-    #region Add to Dictionary
-
-    [RelayCommand]
-    private void StartAddToDict(ParsedSkuEntry item)
-    {
-        if (item == null || item.Found) return;
-
-        ItemToAddToDict = item;
-        NewDictItemNumber = string.Empty;
-        NewDictDescription = string.Empty;
-        DictSuggestions.Clear();
-        ShowDictSuggestions = false;
-        ShowAddToDictionaryPanel = true;
-    }
-
-    [RelayCommand]
-    private void CancelAddToDict()
-    {
-        ShowAddToDictionaryPanel = false;
-        ItemToAddToDict = null;
-    }
-
-    partial void OnNewDictItemNumberChanged(string value)
-    {
-        SearchDictSuggestions(value);
-    }
-
-    private void SearchDictSuggestions(string search)
-    {
-        DictSuggestions.Clear();
-        if (string.IsNullOrWhiteSpace(search) || search.Length < 2)
-        {
-            ShowDictSuggestions = false;
-            return;
-        }
-
-        var results = InternalItemDictionary.SearchByDescription(search, 5);
-        foreach (var item in results)
-        {
-            DictSuggestions.Add(item);
-        }
-
-        var byNumber = InternalItemDictionary.FindByNumber(search);
-        if (byNumber != null && !DictSuggestions.Any(d => d.Number == byNumber.Number))
-        {
-            DictSuggestions.Insert(0, byNumber);
-        }
-
-        ShowDictSuggestions = DictSuggestions.Count > 0;
-    }
-
-    [RelayCommand]
-    private void SelectDictSuggestion(DictionaryItem item)
-    {
-        if (item == null || ItemToAddToDict == null) return;
-
-        // Link the SKU to the existing item
-        var skus = item.Skus?.ToList() ?? new List<string>();
-        if (!skus.Contains(ItemToAddToDict.InputSku, StringComparer.OrdinalIgnoreCase))
-        {
-            skus.Add(ItemToAddToDict.InputSku);
-            item.Skus = skus;
-            InternalItemDictionary.UpsertItem(item);
-        }
-
-        // Update the parsed entry
-        ItemToAddToDict.ItemNumber = item.Number;
-        ItemToAddToDict.Description = item.Description;
-        ItemToAddToDict.Found = true;
-        ItemToAddToDict.CanAddSkuToItem = false;
-
-        // Refresh counts
-        RefreshCounts();
-
-        ShowAddToDictionaryPanel = false;
-        ShowDictSuggestions = false;
-    }
-
-    [RelayCommand]
-    private void SaveNewDictItem()
-    {
-        if (ItemToAddToDict == null) return;
-        if (string.IsNullOrWhiteSpace(NewDictItemNumber) || string.IsNullOrWhiteSpace(NewDictDescription))
-            return;
-
-        var newItem = new DictionaryItem
-        {
-            Number = NewDictItemNumber,
-            Description = NewDictDescription,
-            Skus = new() { ItemToAddToDict.InputSku }
-        };
-
-        InternalItemDictionary.UpsertItem(newItem);
-
-        // Update parsed entry
-        ItemToAddToDict.ItemNumber = NewDictItemNumber;
-        ItemToAddToDict.Description = NewDictDescription;
-        ItemToAddToDict.Found = true;
-
-        RefreshCounts();
-        ShowAddToDictionaryPanel = false;
-    }
-
-    [RelayCommand]
-    private void AddSkuToItem(ParsedSkuEntry entry)
-    {
-        if (entry == null || !entry.Found || !entry.CanAddSkuToItem) return;
-
-        var existingItem = InternalItemDictionary.FindByNumber(entry.ItemNumber);
-        if (existingItem == null) return;
-
-        var skus = existingItem.Skus?.ToList() ?? new List<string>();
-        if (!skus.Contains(entry.InputSku, StringComparer.OrdinalIgnoreCase))
-        {
-            skus.Add(entry.InputSku);
-            existingItem.Skus = skus;
-            InternalItemDictionary.UpsertItem(existingItem);
-        }
-
-        entry.CanAddSkuToItem = false;
-        entry.SkuWasAdded = true;
-    }
-
     private void RefreshCounts()
     {
         FoundCount = ParsedItems.Count(p => p.Found);
@@ -460,8 +315,6 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
         else
             StatusMessage = $"✓ {FoundCount} found, ⚠ {NotFoundCount} not found";
     }
-
-    #endregion
 }
 
 /// <summary>

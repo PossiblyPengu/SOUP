@@ -673,9 +673,125 @@ public class UndoRedoStack
 
 ---
 
+## PHASE 9: Advanced Export/Import ✅
+
+**Completed**: 2026-01-23
+
+### 9.1 JSON Export Format
+
+**Implementation**: Added `ExportToJsonAsync` method to OrderLogExportService
+
+**Details**:
+- Exports order items to JSON format with pretty-printing
+- Uses camelCase property naming for consistency
+- Preserves all order/note properties
+- Includes metadata like timestamps, status, links
+
+**Files Modified**:
+- `OrderLogExportService.cs`: Added `ExportToJsonAsync` method
+- `OrderLogViewModel.cs`: Added `ExportToJsonCommand`
+
+### 9.2 CSV Import Functionality
+
+**Implementation**: Added `ImportFromCsvAsync` method to OrderLogExportService
+
+**Details**:
+- Imports order items from CSV files
+- Robust CSV parsing with support for:
+  - Quoted fields with commas
+  - Escaped quotes
+  - Multi-line content
+- Error handling with detailed messages
+- Validation for required fields
+- Parses both orders and sticky notes
+- Auto-generates new GUIDs for imported items
+- Shows detailed error messages for failed rows
+
+**Features**:
+- Line-by-line validation
+- Graceful handling of malformed rows
+- Returns imported items to ViewModel for saving
+- Success/error reporting with counts
+
+**Files Modified**:
+- `OrderLogExportService.cs`: Added `ImportFromCsvAsync` and helper methods
+- `OrderLogViewModel.cs`: Added `ImportFromCsvCommand`
+- `DialogService.cs`: Added `ShowImportSuccessDialog` and `ShowImportErrorDialog`
+
+### 9.3 Export/Import Menu
+
+**Implementation**: Context menu button in widget action bar
+
+**Details**:
+- Single 📤 button with dropdown menu
+- Menu items:
+  - 📄 Export to CSV (Ctrl+Shift+E)
+  - 📋 Export to JSON (Ctrl+Shift+J)
+  - 📥 Import from CSV (Ctrl+Shift+I)
+- Shows keyboard shortcuts on menu items
+- Replaces old single-purpose export button
+
+**Files Modified**:
+- `OrderLogWidgetView.xaml`: Added export/import context menu
+- `OrderLogWidgetView.xaml.cs`: Added `ExportImportMenu_Click` handler
+
+### 9.4 Keyboard Shortcuts
+
+**Implementation**: Added three new keyboard shortcuts
+
+**Shortcuts**:
+- `Ctrl+Shift+E`: Export to CSV
+- `Ctrl+Shift+J`: Export to JSON
+- `Ctrl+Shift+I`: Import from CSV
+
+**Files Modified**:
+- `KeyboardShortcutManager.cs`: Added handlers for new shortcuts
+
+### 9.5 User Experience
+
+**Export Flow**:
+1. Click 📤 button or use keyboard shortcut
+2. Choose format (CSV or JSON)
+3. Select save location
+4. Loading indicator during export
+5. Success dialog with "Open folder" option
+6. Status message shows export count
+
+**Import Flow**:
+1. Click "Import from CSV" or press Ctrl+Shift+I
+2. Select CSV file
+3. Loading indicator during import
+4. Validation and parsing
+5. Items added to current view
+6. Success dialog shows import count
+7. Status message confirms completion
+8. Display refreshes automatically
+
+**Error Handling**:
+- File not found errors
+- Empty file warnings
+- CSV parsing errors with line numbers
+- Detailed error dialogs
+- Graceful fallback for partial imports
+
+**Benefits**:
+
+- ✅ Multiple export formats (CSV and JSON)
+- ✅ CSV import functionality
+- ✅ Robust CSV parsing with error handling
+- ✅ Keyboard shortcuts for all operations
+- ✅ Context menu with organized options
+- ✅ Success/error dialogs with details
+- ✅ Loading indicators for long operations
+- ✅ Preserves all order/note properties
+- ✅ Validation and error reporting
+- ✅ Automatic display refresh after import
+
+---
+
 ## HIGH-PRIORITY SPRINT COMPLETE! 🎉
 
-All 8 phases have been successfully implemented:
+All 9 phases have been successfully implemented:
 
 1. ✅ Phase 1: Search & Filter Infrastructure
 2. ✅ Phase 2: Keyboard Shortcuts
@@ -685,8 +801,9 @@ All 8 phases have been successfully implemented:
 6. ✅ Phase 6: Visual Polish & UX Improvements
 7. ✅ Phase 7: Notes vs Orders Separation
 8. ✅ Phase 8: Enhanced Undo/Redo Stack
+9. ✅ Phase 9: Advanced Export/Import
 
-**Current Status**: 8 of 15 phases complete!
+**Current Status**: 9 of 15 phases complete!
 
 ---
 
