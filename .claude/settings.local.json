@@ -35,7 +35,13 @@
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \".\\\\scripts\\\\run.ps1\")",
       "Bash(.run-debug.bat)",
       "Bash(cmd /c \"d:\\\\CODE\\\\Cshp\\\\run-debug.bat\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git status:*)",
+      "Bash(Select-String -Pattern \"\\(error|warning|succeeded|failed\\)\")",
+      "Bash(Select-Object -First 20)",
+      "Bash(tasklist:*)",
+      "Bash(git commit:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

@@ -877,9 +877,20 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     private void ShowSuccessToast(string message)
     {
-        // Simple status message for now - could be enhanced with actual toast
-        // notification in the future
+        if (_settings?.ShowToastNotifications == false)
+            return;
+
         StatusMessage = $"✓ {message}";
+
+        // Auto-clear status message after 3 seconds
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+        timer.Tick += (s, e) =>
+        {
+            if (StatusMessage == $"✓ {message}")
+                StatusMessage = string.Empty;
+            timer.Stop();
+        };
+        timer.Start();
     }
 
     [RelayCommand]
