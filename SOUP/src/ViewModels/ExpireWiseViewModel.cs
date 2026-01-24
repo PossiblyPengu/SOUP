@@ -696,6 +696,26 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             var dialogViewModel = new ExpirationItemDialogViewModel();
             dialogViewModel.InitializeForAdd();
 
+            // Apply sticky settings if available
+            if (_settings != null)
+            {
+                dialogViewModel.RememberSettings = _settings.RememberLastLocation || _settings.RememberLastExpiryDate;
+
+                if (_settings.RememberLastLocation && !string.IsNullOrEmpty(_settings.LastSelectedStore))
+                {
+                    dialogViewModel.SelectedStore = dialogViewModel.AvailableStores
+                        .FirstOrDefault(s => s.Code == _settings.LastSelectedStore);
+                }
+
+                if (_settings.RememberLastExpiryDate && _settings.LastExpiryMonth.HasValue && _settings.LastExpiryYear.HasValue)
+                {
+                    dialogViewModel.ExpiryMonth = _settings.LastExpiryMonth.Value;
+                    dialogViewModel.ExpiryYear = _settings.LastExpiryYear.Value;
+                }
+
+                dialogViewModel.DefaultUnits = _settings.DefaultUnits;
+            }
+
             var dialog = new ExpirationItemDialog
             {
                 DataContext = dialogViewModel
@@ -775,6 +795,21 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                     BuildAvailableMonths();
                     ApplyFilters();
                     UpdateLastSaved();
+
+                    // Save sticky settings if RememberSettings is enabled
+                    if (_settings != null && dialogViewModel.RememberSettings)
+                    {
+                        if (dialogViewModel.SelectedStore != null)
+                        {
+                            _settings.LastSelectedStore = dialogViewModel.SelectedStore.Code;
+                        }
+                        _settings.LastExpiryMonth = dialogViewModel.ExpiryMonth;
+                        _settings.LastExpiryYear = dialogViewModel.ExpiryYear;
+                        _settings.DefaultUnits = dialogViewModel.DefaultUnits;
+
+                        // Persist to disk
+                        await SaveQuickAddSettings();
+                    }
                 }
 
                 // Show results
