@@ -44,6 +44,9 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     [ObservableProperty]
     private int _expiryYear = DateTime.Today.AddMonths(1).Year;
 
+    [ObservableProperty]
+    private bool _rememberSettings = true;
+
     #endregion
 
     #region Parsed Items
@@ -245,11 +248,9 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
             {
                 InputSku = sku,
                 ItemNumber = dictItem?.Number ?? sku,
-                Description = dictItem?.Description ?? "Not in database",
+                Description = dictItem?.Description ?? "Not found in Business Central",
                 Units = qty ?? DefaultUnits,
-                Found = dictItem != null,
-                CanAddSkuToItem = dictItem != null && dictItemBySku == null
-                    && !string.Equals(sku, dictItem.Number, StringComparison.OrdinalIgnoreCase)
+                Found = dictItem != null
             };
 
             ParsedItems.Add(entry);
@@ -264,11 +265,11 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
         IsVerified = true;
 
         if (NotFoundCount == 0)
-            StatusMessage = $"✓ All {FoundCount} items found in database";
+            StatusMessage = $"✓ All {FoundCount} items verified in Business Central";
         else if (FoundCount == 0)
-            StatusMessage = $"⚠ {NotFoundCount} items not found";
+            StatusMessage = $"❌ {NotFoundCount} item(s) not found in Business Central - cannot proceed";
         else
-            StatusMessage = $"✓ {FoundCount} found, ⚠ {NotFoundCount} not found";
+            StatusMessage = $"✓ {FoundCount} found, ❌ {NotFoundCount} not found - cannot proceed";
     }
 
     /// <summary>
@@ -286,7 +287,7 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
             {
                 Id = IsEditMode && EditItemId.HasValue ? EditItemId.Value : Guid.NewGuid(),
                 ItemNumber = parsed.ItemNumber,
-                Description = parsed.Description != "Not in database" ? parsed.Description : parsed.InputSku,
+                Description = parsed.Description != "Not found in Business Central" ? parsed.Description : parsed.InputSku,
                 Units = parsed.Units,
                 ExpiryDate = expiryDate,
                 Location = location,
@@ -299,9 +300,9 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Check if the dialog can be submitted
+    /// Check if the dialog can be submitted (strict BC validation - all items must be found)
     /// </summary>
-    public bool CanSubmit => IsVerified && ParsedItems.Count > 0;
+    public bool CanSubmit => IsVerified && ParsedItems.Count > 0 && NotFoundCount == 0;
 
     private void RefreshCounts()
     {
@@ -309,11 +310,11 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
         NotFoundCount = ParsedItems.Count(p => !p.Found);
 
         if (NotFoundCount == 0)
-            StatusMessage = $"✓ All {FoundCount} items found in database";
+            StatusMessage = $"✓ All {FoundCount} items verified in Business Central";
         else if (FoundCount == 0)
-            StatusMessage = $"⚠ {NotFoundCount} items not found";
+            StatusMessage = $"❌ {NotFoundCount} item(s) not found in Business Central - cannot proceed";
         else
-            StatusMessage = $"✓ {FoundCount} found, ⚠ {NotFoundCount} not found";
+            StatusMessage = $"✓ {FoundCount} found, ❌ {NotFoundCount} not found - cannot proceed";
     }
 }
 
@@ -336,11 +337,6 @@ public partial class ParsedSkuEntry : ObservableObject
 
     [ObservableProperty]
     private bool _found;
-    [ObservableProperty]
-    private bool _canAddSkuToItem;
-
-    [ObservableProperty]
-    private bool _skuWasAdded;
 }
 
 /// <summary>

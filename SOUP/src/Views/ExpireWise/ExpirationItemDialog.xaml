@@ -51,6 +51,11 @@
 
             <!-- Location & Month Row -->
             <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="16"/>
@@ -58,7 +63,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Store -->
-                <StackPanel Grid.Column="0">
+                <StackPanel Grid.Row="0" Grid.Column="0">
                     <TextBlock Text="Location" Style="{StaticResource FormLabel}"/>
                     <ComboBox ItemsSource="{Binding AvailableStores}"
                               SelectedItem="{Binding SelectedStore}"
@@ -67,7 +72,7 @@
                 </StackPanel>
 
                 <!-- Expiry Month -->
-                <StackPanel Grid.Column="2">
+                <StackPanel Grid.Row="0" Grid.Column="2">
                     <TextBlock Text="Expiry" Style="{StaticResource FormLabel}"/>
                     <StackPanel Orientation="Horizontal">
                         <ComboBox ItemsSource="{Binding AvailableMonths}"
@@ -80,6 +85,16 @@
                                   Style="{StaticResource ModernComboBox}" Width="80" Margin="8,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
+
+                <!-- Sticky Settings Checkbox -->
+                <CheckBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                          IsChecked="{Binding RememberSettings}"
+                          FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+                    <TextBlock>
+                        <Run Text="💾"/>
+                        <Run Text="Remember location and expiry date for next time"/>
+                    </TextBlock>
+                </CheckBox>
             </Grid>
 
             <!-- SKU Input & Results -->
