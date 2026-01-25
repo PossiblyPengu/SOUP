@@ -1821,6 +1821,61 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    private void Copy_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                vm.SelectedItem = order;
+                vm.CopyCommand?.Execute(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to copy order");
+        }
+    }
+
+    private async void Paste_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var order = GetOrderItemFromContextMenu(sender);
+            if (DataContext is OrderLogViewModel vm)
+            {
+                // Set insertion context if an order was right-clicked
+                if (order != null)
+                {
+                    vm.SelectedItem = order;
+                }
+                await vm.PasteCommand.ExecuteAsync(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to paste order");
+        }
+    }
+
+    private async void Duplicate_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                vm.SelectedItem = order;
+                await vm.DuplicateCommand.ExecuteAsync(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to duplicate order");
+        }
+    }
+
     private async void UnarchiveNote_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -2424,6 +2479,107 @@ public partial class OrderLogWidgetView : UserControl
     {
         // Future implementation: Show keyboard shortcuts help dialog
         Log.Debug("Keyboard help requested (not yet implemented)");
+    }
+
+    /// <summary>
+    /// Save selected order as a template
+    /// </summary>
+    private async void SaveAsTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var order = GetOrderItemFromContextMenu(sender);
+            if (order != null && DataContext is OrderLogViewModel vm)
+            {
+                vm.SelectedItem = order;
+                await vm.SaveAsTemplateCommand.ExecuteAsync(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to save order as template");
+        }
+    }
+
+    /// <summary>
+    /// Show templates dropdown menu
+    /// </summary>
+    private void TemplatesButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (DataContext is not OrderLogViewModel vm) return;
+
+            // Build context menu dynamically
+            var menu = new ContextMenu();
+
+            // Add top templates
+            if (vm.TopTemplates.Count > 0)
+            {
+                for (int i = 0; i < vm.TopTemplates.Count; i++)
+                {
+                    var template = vm.TopTemplates[i];
+                    var menuItem = new MenuItem
+                    {
+                        Header = template.Name,
+                        Tag = template
+                    };
+
+                    // Add color indicator icon
+                    var colorBorder = new Border
+                    {
+                        Width = 12,
+                        Height = 12,
+                        Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(template.ColorHex)),
+                        CornerRadius = new CornerRadius(2)
+                    };
+                    menuItem.Icon = colorBorder;
+
+                    // Add keyboard shortcut hint
+                    if (i < 3)
+                    {
+                        menuItem.InputGestureText = $"Ctrl+Shift+{i + 1}";
+                    }
+
+                    // Click handler
+                    menuItem.Click += async (s, args) =>
+                    {
+                        if (s is MenuItem mi && mi.Tag is OrderTemplate t)
+                        {
+                            await vm.ApplyTemplateCommand.ExecuteAsync(t);
+                        }
+                    };
+
+                    menu.Items.Add(menuItem);
+                }
+
+                menu.Items.Add(new Separator());
+            }
+
+            // Add "Manage Templates..." option
+            var manageItem = new MenuItem
+            {
+                Header = "Manage Templates...",
+                InputGestureText = "Ctrl+Shift+T"
+            };
+            manageItem.Click += async (s, args) =>
+            {
+                await vm.ManageTemplatesCommand.ExecuteAsync(null);
+            };
+            menu.Items.Add(manageItem);
+
+            // Show menu at button
+            if (sender is Button button)
+            {
+                menu.PlacementTarget = button;
+                menu.Placement = PlacementMode.Bottom;
+                menu.IsOpen = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to show templates menu");
+        }
     }
 
     #endregion

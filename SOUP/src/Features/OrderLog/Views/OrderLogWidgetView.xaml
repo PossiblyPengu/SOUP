@@ -109,6 +109,10 @@
                 </Border.ToolTip>
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Copy" Click="Copy_Click" InputGestureText="Ctrl+C"/>
+                        <MenuItem Header="Paste" Click="Paste_Click" InputGestureText="Ctrl+V"/>
+                        <MenuItem Header="Duplicate" Click="Duplicate_Click" InputGestureText="Ctrl+D"/>
+                        <Separator/>
                         <MenuItem Header="Set Status">
                             <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" InputGestureText="Ctrl+1"/>
                             <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" InputGestureText="Ctrl+2"/>
@@ -119,6 +123,8 @@
                         <Separator/>
                         <MenuItem Header="Link with..." Click="LinkWith_Click"/>
                         <MenuItem Header="Unlink" Click="Unlink_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Save as Template..." Click="SaveAsTemplate_Click"/>
                         <Separator/>
                         <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold" InputGestureText="Ctrl+A"/>
                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}" InputGestureText="Ctrl+Del"/>
@@ -1356,6 +1362,8 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="8"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Add Order button -->
@@ -1472,6 +1480,15 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
+                    </Button>
+
+                    <!-- Templates dropdown button -->
+                    <Button x:Name="TemplatesButton" Grid.Column="8" ToolTip="Quick Templates (Ctrl+Shift+T)"
+                            Width="36" Height="36"
+                            Style="{StaticResource WidgetIconButtonStyle}"
+                            Click="TemplatesButton_Click"
+                            Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}">
+                        <TextBlock Text="📋" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </Button>
                 </Grid>
 
@@ -2523,6 +2540,10 @@
                                 <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                                     <Border.ContextMenu>
                                         <ContextMenu>
+                                            <MenuItem Header="Copy" Click="Copy_Click" DataContext="{Binding First}" InputGestureText="Ctrl+C"/>
+                                            <MenuItem Header="Paste" Click="Paste_Click" DataContext="{Binding First}" InputGestureText="Ctrl+V"/>
+                                            <MenuItem Header="Duplicate" Click="Duplicate_Click" DataContext="{Binding First}" InputGestureText="Ctrl+D"/>
+                                            <Separator/>
                                             <MenuItem Header="Restore" Click="QuickArchive_Click" DataContext="{Binding First}"/>
                                             <Separator/>
                                             <MenuItem Header="Delete" Click="DeleteArchivedNote_Click" DataContext="{Binding First}" Foreground="{DynamicResource DangerBrush}"/>

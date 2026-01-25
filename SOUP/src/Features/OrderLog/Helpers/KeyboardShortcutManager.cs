@@ -105,6 +105,33 @@ public class KeyboardShortcutManager
                     }
                     break;
 
+                case Key.C:
+                    // Ctrl+C: Copy selected items (only if not in TextBox)
+                    if (!(Keyboard.FocusedElement is System.Windows.Controls.TextBox))
+                    {
+                        HandleCtrlC();
+                        return true;
+                    }
+                    break;
+
+                case Key.V:
+                    // Ctrl+V: Paste items (only if not in TextBox)
+                    if (!(Keyboard.FocusedElement is System.Windows.Controls.TextBox))
+                    {
+                        HandleCtrlV();
+                        return true;
+                    }
+                    break;
+
+                case Key.D:
+                    // Ctrl+D: Duplicate selected items (only if not in TextBox)
+                    if (!(Keyboard.FocusedElement is System.Windows.Controls.TextBox))
+                    {
+                        HandleCtrlD();
+                        return true;
+                    }
+                    break;
+
                 case Key.Delete:
                     // Ctrl+Delete: Delete selected
                     HandleCtrlDelete();
@@ -161,21 +188,48 @@ public class KeyboardShortcutManager
 
                 case Key.D1:
                 case Key.NumPad1:
-                    // Ctrl+1: Set status to NotReady (alternative)
+                    // Ctrl+Shift+1: Apply template #1
+                    // Ctrl+1: Set status to NotReady
+                    if (modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        HandleApplyTemplate(0);
+                        return true;
+                    }
                     HandleStatusShortcut(OrderItem.OrderStatus.NotReady);
                     return true;
 
                 case Key.D2:
                 case Key.NumPad2:
+                    // Ctrl+Shift+2: Apply template #2
                     // Ctrl+2: Set status to OnDeck
+                    if (modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        HandleApplyTemplate(1);
+                        return true;
+                    }
                     HandleStatusShortcut(OrderItem.OrderStatus.OnDeck);
                     return true;
 
                 case Key.D3:
                 case Key.NumPad3:
+                    // Ctrl+Shift+3: Apply template #3
                     // Ctrl+3: Set status to InProgress
+                    if (modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        HandleApplyTemplate(2);
+                        return true;
+                    }
                     HandleStatusShortcut(OrderItem.OrderStatus.InProgress);
                     return true;
+
+                case Key.T:
+                    // Ctrl+Shift+T: Manage templates
+                    if (modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        HandleManageTemplates();
+                        return true;
+                    }
+                    break;
             }
         }
         // Arrow key navigation (without Ctrl)
@@ -260,6 +314,24 @@ public class KeyboardShortcutManager
         }
     }
 
+    private void HandleCtrlC()
+    {
+        // Copy selected item(s)
+        _viewModel.CopyCommand?.Execute(null);
+    }
+
+    private void HandleCtrlV()
+    {
+        // Paste item(s)
+        _viewModel.PasteCommand?.Execute(null);
+    }
+
+    private void HandleCtrlD()
+    {
+        // Duplicate selected item(s)
+        _viewModel.DuplicateCommand?.Execute(null);
+    }
+
     private void HandleCtrlShiftE()
     {
         // Trigger CSV export
@@ -323,6 +395,22 @@ public class KeyboardShortcutManager
     {
         // Show keyboard shortcuts help dialog (future implementation)
         HelpDialogRequested?.Invoke();
+    }
+
+    private void HandleApplyTemplate(int templateIndex)
+    {
+        // Apply template by index (0-based) from TopTemplates
+        if (templateIndex < _viewModel.TopTemplates.Count)
+        {
+            var template = _viewModel.TopTemplates[templateIndex];
+            _viewModel.ApplyTemplateCommand?.Execute(template);
+        }
+    }
+
+    private void HandleManageTemplates()
+    {
+        // Open template manager dialog
+        _viewModel.ManageTemplatesCommand?.Execute(null);
     }
 
     // Events for View to subscribe to

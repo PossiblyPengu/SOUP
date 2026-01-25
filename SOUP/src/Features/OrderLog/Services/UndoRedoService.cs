@@ -420,6 +420,66 @@ public class ColorChangeAction : UndoableAction
 }
 
 /// <summary>
+/// Action for pasting/duplicating items with undo support
+/// </summary>
+public class PasteAction : UndoableAction
+{
+    private readonly List<OrderItem> _pastedItems;
+    private readonly ICollection<OrderItem> _collection;
+    private readonly int _insertIndex;
+
+    public override string Description =>
+        _pastedItems.Count == 1
+            ? "Paste item"
+            : $"Paste {_pastedItems.Count} items";
+
+    public PasteAction(List<OrderItem> pastedItems, ICollection<OrderItem> collection, int insertIndex)
+    {
+        _pastedItems = pastedItems;
+        _collection = collection;
+        _insertIndex = insertIndex;
+    }
+
+    public override void Execute()
+    {
+        // Insert items at specified index
+        if (_collection is IList<OrderItem> list)
+        {
+            int index = _insertIndex;
+            foreach (var item in _pastedItems)
+            {
+                if (index <= list.Count)
+                {
+                    list.Insert(index, item);
+                    index++;
+                }
+                else
+                {
+                    list.Add(item);
+                }
+            }
+        }
+        else
+        {
+            // Fallback for non-list collections
+            foreach (var item in _pastedItems)
+            {
+                _collection.Add(item);
+            }
+        }
+    }
+
+    public override void Undo()
+    {
+        // Remove all pasted items
+        foreach (var item in _pastedItems)
+        {
+            _collection.Remove(item);
+        }
+    }
+}
+
+/// <summary>
 /// Manages undo/redo stack with history
 /// </summary>
 public class UndoRedoStack

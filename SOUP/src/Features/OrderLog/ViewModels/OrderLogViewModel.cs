@@ -31,6 +31,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly ILogger<OrderLogViewModel>? _logger;
     private readonly OrderSearchService _searchService;
     private readonly OrderBulkOperationsService _bulkOperationsService;
+    private readonly OrderLogClipboardService _clipboardService;
+    private readonly OrderTemplateService _templateService;
     private readonly UndoRedoStack _undoRedoStack;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
@@ -51,6 +53,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> StickyNotes { get; } = new(); // Dedicated sticky notes collection
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
+    public ObservableCollection<OrderTemplate> Templates { get; } = new(); // All templates
+    public ObservableCollection<OrderTemplate> TopTemplates { get; } = new(); // Top 3 by use count
 
     // Grouping helper service (extracted to simplify VM)
     private readonly OrderGroupingService _groupingService;
@@ -252,6 +256,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger = logger;
         _searchService = new OrderSearchService();
         _bulkOperationsService = new OrderBulkOperationsService();
+        _clipboardService = new OrderLogClipboardService(null);
+        _templateService = new OrderTemplateService(null);
         _undoRedoStack = new UndoRedoStack(maxHistorySize: 50);
 
         _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
@@ -499,6 +505,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             _logger?.LogWarning(ex, "Failed to load widget settings, using defaults");
         }
 
+        await LoadTemplatesAsync();
         await LoadAsync();
     }
 
@@ -1610,6 +1617,214 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Copy selected item(s) to clipboard
+    /// </summary>
+    [RelayCommand]
+    private void Copy()
+    {
+        var itemsToCopy = SelectedItems.Count > 0
+            ? SelectedItems.ToList()
+            : (SelectedItem != null ? new List<OrderItem> { SelectedItem } : new List<OrderItem>());
+
+        if (itemsToCopy.Count == 0)
+        {
+            StatusMessage = "No items selected to copy";
+                return;
+        }
+
+        _clipboardService.CopyToClipboard(itemsToCopy);
+        StatusMessage = $"Copied {itemsToCopy.Count} item(s) to clipboard";
+        _logger?.LogInformation("Copied {Count} items to clipboard", itemsToCopy.Count);
+    }
+
+    /// <summary>
+    /// Paste item(s) from clipboard
+    /// </summary>
+    [RelayCommand]
+    private async Task PasteAsync()
+    {
+        if (!_clipboardService.TryPasteFromClipboard(out var pastedItems))
+        {
+            StatusMessage = "Clipboard does not contain valid order data";
+                return;
+        }
+
+        if (pastedItems.Count == 0)
+        {
+            StatusMessage = "No items to paste";
+                return;
+        }
+
+        // Determine insertion index: after selected item or at top
+        int insertIndex = 0;
+        if (SelectedItem != null && _itemIds.Contains(SelectedItem.Id))
+        {
+            insertIndex = Items.IndexOf(SelectedItem) + 1;
+        }
+
+        // Execute with undo support
+        var action = new PasteAction(pastedItems, Items, insertIndex);
+        _undoRedoStack.ExecuteAction(action);
+
+        RefreshDisplayItems();
+        await SaveAsync();
+
+        StartUndoTimer($"Pasted {pastedItems.Count} item(s)");
+        StatusMessage = $"Pasted {pastedItems.Count} item(s)";
+        _logger?.LogInformation("Pasted {Count} items", pastedItems.Count);
+    }
+
+    /// <summary>
+    /// Duplicate selected item(s) (copy + paste in one action)
+    /// </summary>
+    [RelayCommand]
+    private async Task DuplicateAsync()
+    {
+        var itemsToDuplicate = SelectedItems.Count > 0
+            ? SelectedItems.ToList()
+            : (SelectedItem != null ? new List<OrderItem> { SelectedItem } : new List<OrderItem>());
+
+        if (itemsToDuplicate.Count == 0)
+        {
+            StatusMessage = "No items selected to duplicate";
+                return;
+        }
+
+        var duplicatedItems = _clipboardService.CloneItems(itemsToDuplicate);
+
+        // Determine insertion index: after selected item or at top
+        int insertIndex = 0;
+        if (SelectedItem != null && _itemIds.Contains(SelectedItem.Id))
+        {
+            insertIndex = Items.IndexOf(SelectedItem) + 1;
+        }
+
+        // Execute with undo support
+        var action = new PasteAction(duplicatedItems, Items, insertIndex);
+        _undoRedoStack.ExecuteAction(action);
+
+        RefreshDisplayItems();
+        await SaveAsync();
+
+        StartUndoTimer($"Duplicated {duplicatedItems.Count} item(s)");
+        StatusMessage = $"Duplicated {duplicatedItems.Count} item(s)";
+        _logger?.LogInformation("Duplicated {Count} items", duplicatedItems.Count);
+    }
+
+    /// <summary>
+    /// Apply a template to create a new order
+    /// </summary>
+    [RelayCommand]
+    private async Task ApplyTemplateAsync(OrderTemplate template)
+    {
+        if (template == null)
+        {
+            StatusMessage = "No template selected";
+            return;
+        }
+
+        try
+        {
+            var order = await _templateService.CreateOrderFromTemplateAsync(template.Id);
+            await AddOrderAsync(order);
+
+            StatusMessage = $"Created order from template '{template.Name}'";
+            await LoadTemplatesAsync(); // Refresh to update UseCount
+
+            _logger?.LogInformation("Created order from template {Name}", template.Name);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to create order from template: {ex.Message}";
+            _logger?.LogError(ex, "Failed to create order from template");
+        }
+    }
+
+    /// <summary>
+    /// Save the selected order as a template
+    /// </summary>
+    [RelayCommand]
+    private async Task SaveAsTemplateAsync()
+    {
+        if (SelectedItem == null)
+        {
+            StatusMessage = "No order selected to save as template";
+            return;
+        }
+
+        try
+        {
+            var dialog = new Views.OrderTemplateEditorDialog(SelectedItem);
+            if (dialog.ShowDialog() == true)
+            {
+                var template = dialog.Template;
+                await _templateService.AddTemplateAsync(template);
+                await LoadTemplatesAsync();
+
+                StatusMessage = $"Template '{template.Name}' saved";
+                _logger?.LogInformation("Saved template {Name}", template.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to save template: {ex.Message}";
+            _logger?.LogError(ex, "Failed to save template");
+        }
+    }
+
+    /// <summary>
+    /// Open the template manager dialog
+    /// </summary>
+    [RelayCommand]
+    private async Task ManageTemplatesAsync()
+    {
+        try
+        {
+            var dialog = new Views.OrderTemplateManagerDialog(_templateService);
+            dialog.ShowDialog();
+
+            // Refresh templates after dialog closes
+            await LoadTemplatesAsync();
+            StatusMessage = "Template manager closed";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to manage templates: {ex.Message}";
+            _logger?.LogError(ex, "Failed to manage templates");
+        }
+    }
+
+    /// <summary>
+    /// Load templates from service and update UI collections
+    /// </summary>
+    private async Task LoadTemplatesAsync()
+    {
+        try
+        {
+            var templates = await _templateService.LoadTemplatesAsync();
+            Templates.Clear();
+            foreach (var template in templates)
+            {
+                Templates.Add(template);
+            }
+
+            // Update top templates (top 3 by use count)
+            var topTemplates = _templateService.GetTopTemplates(3);
+            TopTemplates.Clear();
+            foreach (var template in topTemplates)
+            {
+                TopTemplates.Add(template);
+            }
+
+            _logger?.LogInformation("Loaded {Count} templates ({TopCount} in top list)", templates.Count, topTemplates.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load templates");
         }
     }
 

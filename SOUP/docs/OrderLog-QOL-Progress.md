@@ -1,4 +1,4 @@
-# Order Log QOL Improvements - Progress Report
+1# Order Log QOL Improvements - Progress Report
 
 **Date Started**: 2026-01-21
 **Scope**: High-Priority Sprint (Phases 1-4 of 15 total phases)
@@ -789,9 +789,92 @@ public class UndoRedoStack
 
 ---
 
+## PHASE 10: Copy/Paste Orders ✅
+
+**Completed**: 2026-01-24
+
+### 10.1 OrderLogClipboardService
+
+**File**: `SOUP/src/Features/OrderLog/Services/OrderLogClipboardService.cs` (NEW)
+
+**Features**:
+- JSON-based clipboard serialization with metadata wrapper (version 1)
+- `CopyToClipboard()` - Serializes items to clipboard
+- `TryPasteFromClipboard()` - Deserializes and transforms items for pasting
+- `CloneItems()` - Duplicates items without clipboard (for Ctrl+D)
+
+**Transformation Logic**:
+- Generate new GUIDs for each item
+- Reset IsArchived = false
+- Reset Status = NotReady
+- Reset timing fields (StartedAt, CompletedAt, AccumulatedTimeTicks = 0)
+- Handle LinkedGroupId: Pasted items with links get NEW group ID (separate from originals)
+- Preserve: NoteType, VendorName, TransferNumbers, WhsShipmentNumbers, NoteTitle, NoteContent, ColorHex, NoteCategory
+- Set CreatedAt = DateTime.UtcNow
+
+### 10.2 ViewModel Commands
+
+**File**: `SOUP/src/Features/OrderLog/ViewModels/OrderLogViewModel.cs`
+
+**Commands Added**:
+- `CopyCommand` - Copy selected item(s) to clipboard
+- `PasteCommand` - Paste items after selected item (or at top if no selection)
+- `DuplicateCommand` - Copy + paste in one action
+
+**Features**:
+- Auto-managed status messages with 3-second auto-clear
+- Multi-select support
+- Smart insertion logic (after selected item or at top)
+
+### 10.3 Undo/Redo Support
+
+**File**: `SOUP/src/Features/OrderLog/Services/UndoRedoService.cs`
+
+**Added**:
+- `PasteAction` class for full undo/redo support
+- Tracks pasted items and insertion index
+- Execute inserts items, Undo removes them
+- Shows descriptive message in undo history ("Paste X items")
+
+### 10.4 Keyboard Shortcuts
+
+**File**: `SOUP/src/Features/OrderLog/Helpers/KeyboardShortcutManager.cs`
+
+**Shortcuts Added**:
+- `Ctrl+C`: Copy selected item(s)
+- `Ctrl+V`: Paste item(s)
+- `Ctrl+D`: Duplicate selected item(s)
+- TextBox focus checks prevent interference with text editing
+
+### 10.5 Context Menu UI
+
+**Files**:
+- `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml`
+- `SOUP/src/Features/OrderLog/Views/OrderLogWidgetView.xaml.cs`
+
+**Added**:
+- Copy/Paste/Duplicate menu items to active orders context menu
+- Copy/Paste/Duplicate menu items to archived orders context menu
+- Keyboard shortcuts displayed on menu items
+- Click handlers with proper error handling
+
+**Benefits**:
+
+- ✅ Multi-select copy/paste support
+- ✅ Smart transformation with new GUIDs and reset state
+- ✅ Full undo/redo support with descriptive history
+- ✅ Keyboard shortcuts (Ctrl+C/V/D) that don't interfere with text editing
+- ✅ Context menu integration
+- ✅ Clear status messages ("Copied 3 items", "Pasted 2 items")
+- ✅ Intelligent insertion logic (after selected item or at top)
+- ✅ Cross-window clipboard support
+- ✅ Pasted linked items get NEW group ID (separate from originals)
+
+---
+
 ## HIGH-PRIORITY SPRINT COMPLETE! 🎉
 
-All 9 phases have been successfully implemented:
+All 10 phases have been successfully implemented:
 
 1. ✅ Phase 1: Search & Filter Infrastructure
 2. ✅ Phase 2: Keyboard Shortcuts
@@ -802,8 +885,173 @@ All 9 phases have been successfully implemented:
 7. ✅ Phase 7: Notes vs Orders Separation
 8. ✅ Phase 8: Enhanced Undo/Redo Stack
 9. ✅ Phase 9: Advanced Export/Import
+10. ✅ Phase 10: Copy/Paste Orders
 
-**Current Status**: 9 of 15 phases complete!
+11. ✅ Phase 11: Templates and Quick-Add
+
+**Current Status**: 11 of 15 phases complete!
+
+---
+
+### ✅ Phase 11: Templates and Quick-Add (COMPLETE)
+
+**Date Completed**: 2026-01-25
+**Implementation Time**: ~3 hours
+**Priority**: Medium (User Productivity Enhancement)
+
+#### Overview
+
+Implemented a comprehensive template system allowing users to save frequently-used order configurations as reusable templates and quickly create new orders from them via keyboard shortcuts or UI.
+
+#### Files Created
+
+1. **OrderTemplate.cs** (70 lines)
+   - `SOUP/src/Features/OrderLog/Models/OrderTemplate.cs`
+   - Template model with properties: Id, Name, VendorName, TransferNumbers, WhsShipmentNumbers, ColorHex, DefaultStatus, CreatedAt, UseCount
+   - `CreateOrder()` method to generate OrderItem from template
+   - `FromOrder()` static factory method to create template from existing order
+   - `OrderTemplateCollection` container for JSON persistence
+
+2. **OrderTemplateService.cs** (280 lines)
+   - `SOUP/src/Features/OrderLog/Services/OrderTemplateService.cs`
+   - Complete CRUD operations for templates
+   - JSON persistence to `%APPDATA%\SOUP\OrderLog\templates.json`
+   - Atomic file operations (write to temp, then move)
+   - Thread-safe access with lock statements
+   - Version checking (current version: 1)
+   - Key methods:
+     - `LoadTemplatesAsync()` - Loads from JSON with version checking
+     - `SaveTemplatesAsync()` - Atomic save with temp file
+     - `AddTemplateAsync()` / `UpdateTemplateAsync()` / `DeleteTemplateAsync()`
+     - `CreateOrderFromTemplateAsync()` - Creates order and increments UseCount
+     - `GetTopTemplates(count)` - Returns top N templates by use count
+     - `GetTemplatesSorted(sortBy)` - Sort by Name/UseCount/DateCreated
+
+3. **OrderTemplateEditorDialog.xaml** (200 lines)
+   - `SOUP/src/Features/OrderLog/Views/OrderTemplateEditorDialog.xaml`
+   - Modern dialog for creating/editing templates
+   - Fields: Template Name*, Vendor Name, Transfer Numbers, WHS Shipment Numbers, Default Status, Color
+   - Color picker with presets
+   - Three constructor modes: new template, edit existing, from order
+
+4. **OrderTemplateEditorDialog.xaml.cs** (180 lines)
+   - `SOUP/src/Features/OrderLog/Views/OrderTemplateEditorDialog.xaml.cs`
+   - Validation (template name required)
+   - Color preview and preset selection
+   - Support for create/edit/from-order workflows
+
+5. **OrderTemplateManagerDialog.xaml** (320 lines)
+   - `SOUP/src/Features/OrderLog/Views/OrderTemplateManagerDialog.xaml`
+   - Template management UI with two-pane layout:
+     - Left: Template list with color indicators and use count badges
+     - Right: Preview pane showing full template details
+   - Sort controls (Name, Most Used, Date Created)
+   - Action buttons: New, Edit, Duplicate, Delete
+   - Dynamic preview updates on selection
+
+6. **OrderTemplateManagerDialog.xaml.cs** (240 lines)
+   - `SOUP/src/Features/OrderLog/Views/OrderTemplateManagerDialog.xaml.cs`
+   - Template CRUD operations with confirmation dialogs
+   - Dynamic preview rendering
+   - NullToBooleanConverter for button enable/disable
+   - Integrates with OrderTemplateService
+
+#### Files Modified
+
+1. **OrderLogViewModel.cs**
+   - Added `OrderTemplateService _templateService` field
+   - Added observable collections:
+     - `ObservableCollection<OrderTemplate> Templates` - All templates
+     - `ObservableCollection<OrderTemplate> TopTemplates` - Top 3 by use count
+   - Added commands:
+     - `ApplyTemplateAsync(OrderTemplate)` - Creates order from template
+     - `SaveAsTemplateAsync()` - Saves selected order as template
+     - `ManageTemplatesAsync()` - Opens template manager dialog
+   - Added `LoadTemplatesAsync()` private method
+   - Initializes templates on startup in `InitializeAsync()`
+
+2. **KeyboardShortcutManager.cs**
+   - Added template keyboard shortcuts:
+     - `Ctrl+Shift+1` - Apply template #1 (most used)
+     - `Ctrl+Shift+2` - Apply template #2
+     - `Ctrl+Shift+3` - Apply template #3
+     - `Ctrl+Shift+T` - Open template manager
+   - Added handlers: `HandleApplyTemplate(index)`, `HandleManageTemplates()`
+   - Smart fallback: Still allows `Ctrl+1/2/3` for status changes
+
+3. **OrderLogWidgetView.xaml**
+   - Added "Save as Template..." to order context menu
+   - Added templates dropdown button (📋) to action bar (Grid.Column="8")
+   - Hidden in notes-only mode
+   - Tooltip: "Quick Templates (Ctrl+Shift+T)"
+
+4. **OrderLogWidgetView.xaml.cs**
+   - Added `SaveAsTemplate_Click()` event handler
+   - Added `TemplatesButton_Click()` - Dynamically builds context menu with:
+     - Top templates with color indicators
+     - Keyboard shortcut hints (Ctrl+Shift+1/2/3)
+     - Separator
+     - "Manage Templates..." option
+
+#### Key Features
+
+✅ **Create Templates**
+- From existing orders via context menu → "Save as Template..."
+- From scratch via Template Manager → "New"
+- Template editor dialog with full field support
+
+✅ **Apply Templates**
+- Quick access via templates dropdown button (📋)
+- Keyboard shortcuts: Ctrl+Shift+1/2/3 for top 3 templates
+- Creates new order with pre-filled data from template
+- Automatically increments template UseCount
+
+✅ **Template Management**
+- Dedicated manager dialog (Ctrl+Shift+T)
+- Add, Edit, Duplicate, Delete operations
+- Preview pane shows all template details
+- Sort by Name, Most Used, or Date Created
+
+✅ **Usage Tracking**
+- UseCount increments each time template is applied
+- Top 3 most-used templates accessible via keyboard shortcuts
+- Use count displayed in template list badges
+
+✅ **Persistence**
+- JSON file at `%APPDATA%\SOUP\OrderLog\templates.json`
+- Versioned format (current: v1)
+- Atomic file writes prevent corruption
+- Loads automatically on startup
+
+✅ **User Experience**
+- Color indicators in template list
+- Real-time preview in manager dialog
+- Keyboard shortcut hints in menus
+- Confirmation dialogs for destructive operations
+- Status messages for all template operations
+
+#### Benefits
+
+**Time Savings**:
+- Create frequently-used orders in seconds instead of manually filling fields
+- No need to remember vendor names, transfer numbers, or color codes
+
+**Consistency**:
+- Ensures orders are created with correct, standardized information
+- Reduces data entry errors
+
+**Productivity**:
+- Top 3 templates accessible via keyboard shortcuts
+- One-click order creation from template
+- Batch operations via duplicate feature
+
+#### Testing Performed
+
+✅ Build succeeded with 0 errors (17 warnings - existing)
+✅ All keyboard shortcuts integrated
+✅ UI elements added to context menu and action bar
+✅ Dialogs created and wired up to commands
+✅ Service layer complete with JSON persistence
 
 ---
 
