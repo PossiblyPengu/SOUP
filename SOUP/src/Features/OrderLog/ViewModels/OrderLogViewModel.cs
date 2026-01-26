@@ -33,6 +33,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly OrderBulkOperationsService _bulkOperationsService;
     private readonly OrderLogClipboardService _clipboardService;
     private readonly OrderTemplateService _templateService;
+    private readonly VendorColorService _vendorColorService;
     private readonly UndoRedoStack _undoRedoStack;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
@@ -111,6 +112,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _isMultiSelectMode = false;
 
+    // Vendor auto-coloring feature
+    [ObservableProperty]
+    private bool _autoColorByVendor = true;
+
     // Navigation properties for enhanced navigation
     [ObservableProperty]
     private OrderItem? _currentNavigationItem = null;
@@ -155,6 +160,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     partial void OnNoteCategoryFilterChanged(NoteCategory? value)
     {
         RefreshDisplayItems();
+    }
+
+    partial void OnAutoColorByVendorChanged(bool value)
+    {
+        SaveWidgetSettings();
     }
 
     [ObservableProperty]
@@ -258,6 +268,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _bulkOperationsService = new OrderBulkOperationsService();
         _clipboardService = new OrderLogClipboardService(null);
         _templateService = new OrderTemplateService(null);
+        _vendorColorService = new VendorColorService(null);
         _undoRedoStack = new UndoRedoStack(maxHistorySize: 50);
 
         _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
@@ -429,6 +440,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             NotesOnlyMode = NotesOnlyMode,
             SortByStatus = SortByStatus,
             SortStatusDescending = SortStatusDescending,
+            AutoColorByVendor = AutoColorByVendor,
             NotReadyGroupExpanded = NotReadyGroupExpanded,
             OnDeckGroupExpanded = OnDeckGroupExpanded,
             InProgressGroupExpanded = InProgressGroupExpanded
@@ -494,6 +506,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             // Sorting preferences
             SortByStatus = s.SortByStatus;
             SortStatusDescending = s.SortStatusDescending;
+            // Vendor auto-coloring
+            AutoColorByVendor = s.AutoColorByVendor;
             // Status group expand/collapse state
             NotReadyGroupExpanded = s.NotReadyGroupExpanded;
             OnDeckGroupExpanded = s.OnDeckGroupExpanded;
@@ -506,6 +520,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         await LoadTemplatesAsync();
+        await _vendorColorService.LoadMappingsAsync();
         await LoadAsync();
     }
 
@@ -1027,12 +1042,19 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             return false;
         }
 
+        // Apply auto-coloring if enabled and vendor name is set
+        var colorToUse = _newNoteColorHex;
+        if (AutoColorByVendor && !string.IsNullOrWhiteSpace(NewNoteVendorName))
+        {
+            colorToUse = _vendorColorService.GetColorForVendor(NewNoteVendorName.Trim());
+        }
+
         var order = new OrderItem
         {
             VendorName = NewNoteVendorName.Trim(),
             TransferNumbers = NewNoteTransferNumbers?.Trim() ?? string.Empty,
             WhsShipmentNumbers = NewNoteWhsShipmentNumbers?.Trim() ?? string.Empty,
-            ColorHex = _newNoteColorHex,
+            ColorHex = colorToUse,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -1659,6 +1681,15 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 return;
         }
 
+        // Apply auto-coloring to pasted items if enabled
+        if (AutoColorByVendor)
+        {
+            foreach (var item in pastedItems.Where(i => i.NoteType == NoteType.Order && !string.IsNullOrWhiteSpace(i.VendorName)))
+            {
+                item.ColorHex = _vendorColorService.GetColorForVendor(item.VendorName!);
+            }
+        }
+
         // Determine insertion index: after selected item or at top
         int insertIndex = 0;
         if (SelectedItem != null && _itemIds.Contains(SelectedItem.Id))
@@ -1696,6 +1727,15 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         var duplicatedItems = _clipboardService.CloneItems(itemsToDuplicate);
 
+        // Apply auto-coloring to duplicated items if enabled
+        if (AutoColorByVendor)
+        {
+            foreach (var item in duplicatedItems.Where(i => i.NoteType == NoteType.Order && !string.IsNullOrWhiteSpace(i.VendorName)))
+            {
+                item.ColorHex = _vendorColorService.GetColorForVendor(item.VendorName!);
+            }
+        }
+
         // Determine insertion index: after selected item or at top
         int insertIndex = 0;
         if (SelectedItem != null && _itemIds.Contains(SelectedItem.Id))
@@ -1730,6 +1770,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         try
         {
             var order = await _templateService.CreateOrderFromTemplateAsync(template.Id);
+
+            // Apply auto-coloring if enabled and vendor name is set
+            if (AutoColorByVendor && !string.IsNullOrWhiteSpace(order.VendorName))
+            {
+                order.ColorHex = _vendorColorService.GetColorForVendor(order.VendorName);
+            }
+
             await AddOrderAsync(order);
 
             StatusMessage = $"Created order from template '{template.Name}'";
