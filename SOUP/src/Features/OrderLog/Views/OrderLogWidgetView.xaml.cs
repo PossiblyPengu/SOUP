@@ -79,6 +79,29 @@ public partial class OrderLogWidgetView : UserControl
         _showingArchivedTab = true;
         UpdateTabState();
 
+        // Ensure the archived display collection is refreshed when showing the Archived tab
+        if (DataContext is OrderLogViewModel vm)
+        {
+            try
+            {
+                var countBefore = vm.ArchivedItems?.Count ?? 0;
+                Log.Debug("Opening Archived tab - archived count={Count}", countBefore);
+                _ = vm.RefreshArchivedDisplayItemsAsync().ContinueWith(t =>
+                {
+                    try
+                    {
+                        var countAfter = vm.DisplayArchivedItems?.Sum(g => g.Members.Count) ?? 0;
+                        Log.Debug("Archived refresh completed - displayCount={Count}", countAfter);
+                    }
+                    catch { }
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to start async archived refresh");
+            }
+        }
+
         // Restore archived tab scroll position
         if (MainScrollViewer != null)
         {
@@ -2354,11 +2377,28 @@ public partial class OrderLogWidgetView : UserControl
     /// </summary>
     private void MultiSelectCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox checkBox && checkBox.Tag is OrderItem item)
+        if (sender is CheckBox checkBox)
         {
-            if (DataContext is OrderLogViewModel vm && !vm.SelectedItems.Contains(item))
+            if (checkBox.Tag is OrderItem item)
             {
-                vm.SelectedItems.Add(item);
+                if (DataContext is OrderLogViewModel vm && !vm.SelectedItems.Contains(item))
+                {
+                    vm.SelectedItems.Add(item);
+                }
+            }
+            else if (checkBox.Tag is OrderItemGroup grp)
+            {
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    foreach (var m in grp.Members)
+                    {
+                        if (!vm.SelectedItems.Contains(m)) vm.SelectedItems.Add(m);
+                    }
+                }
+            }
+            else if (checkBox.Tag is OrderItem item2)
+            {
+                if (DataContext is OrderLogViewModel vm && !vm.SelectedItems.Contains(item2)) vm.SelectedItems.Add(item2);
             }
         }
     }
@@ -2368,11 +2408,28 @@ public partial class OrderLogWidgetView : UserControl
     /// </summary>
     private void MultiSelectCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox checkBox && checkBox.Tag is OrderItem item)
+        if (sender is CheckBox checkBox)
         {
-            if (DataContext is OrderLogViewModel vm && vm.SelectedItems.Contains(item))
+            if (checkBox.Tag is OrderItem item)
             {
-                vm.SelectedItems.Remove(item);
+                if (DataContext is OrderLogViewModel vm && vm.SelectedItems.Contains(item))
+                {
+                    vm.SelectedItems.Remove(item);
+                }
+            }
+            else if (checkBox.Tag is ViewModels.OrderItemGroup grp)
+            {
+                if (DataContext is OrderLogViewModel vm)
+                {
+                    foreach (var m in grp.Members.ToList())
+                    {
+                        if (vm.SelectedItems.Contains(m)) vm.SelectedItems.Remove(m);
+                    }
+                }
+            }
+            else if (checkBox.Tag is Models.OrderItem item2)
+            {
+                if (DataContext is OrderLogViewModel vm && vm.SelectedItems.Contains(item2)) vm.SelectedItems.Remove(item2);
             }
         }
     }

@@ -63,73 +63,10 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
-        <!-- Card styles centralized in Themes/ModernStyles.xaml -->
 
-        <!-- Template for a single Order card (active) -->
-        <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" ClipToBounds="True">
-                <Border.ToolTip>
-                    <ToolTip>
-                        <StackPanel MaxWidth="350">
-                            <TextBlock Text="{Binding VendorName}" FontWeight="Bold" FontSize="14"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
-                                       TextWrapping="Wrap"/>
-
-                            <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2"
-                                       TextWrapping="Wrap">
-                                <Run Text="Transfer: "/>
-                                <Run Text="{Binding TransferNumbers, Mode=OneWay}"/>
-                            </TextBlock>
-
-                            <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2"
-                                       TextWrapping="Wrap">
-                                <Run Text="Shipment: "/>
-                                <Run Text="{Binding WhsShipmentNumbers, Mode=OneWay}"/>
-                            </TextBlock>
-
-                            <Separator Margin="0,8" Background="{DynamicResource BorderBrush}"/>
-
-                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2">
-                                <Run Text="Created: "/>
-                                <Run Text="{Binding CreatedAtDisplay, Mode=OneWay}"/>
-                            </TextBlock>
-
-                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2">
-                                <Run Text="Time: "/>
-                                <Run Text="{Binding TimeInProgressDisplay, Mode=OneWay}"/>
-                            </TextBlock>
-
-                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2">
-                                <Run Text="Status: "/>
-                                <Run Text="{Binding Status, Mode=OneWay}"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </ToolTip>
-                </Border.ToolTip>
-                <Border.ContextMenu>
-                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                        <MenuItem Header="Copy" Click="Copy_Click" InputGestureText="Ctrl+C"/>
-                        <MenuItem Header="Paste" Click="Paste_Click" InputGestureText="Ctrl+V"/>
-                        <MenuItem Header="Duplicate" Click="Duplicate_Click" InputGestureText="Ctrl+D"/>
-                        <Separator/>
-                        <MenuItem Header="Set Status">
-                            <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" InputGestureText="Ctrl+1"/>
-                            <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" InputGestureText="Ctrl+2"/>
-                            <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" InputGestureText="Ctrl+3"/>
-                        </MenuItem>
-                        <MenuItem Header="Move Up" Click="MoveUp_Click"/>
-                        <MenuItem Header="Move Down" Click="MoveDown_Click"/>
-                        <Separator/>
-                        <MenuItem Header="Link with..." Click="LinkWith_Click"/>
-                        <MenuItem Header="Unlink" Click="Unlink_Click"/>
-                        <Separator/>
-                        <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold" InputGestureText="Ctrl+A"/>
-                        <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}" InputGestureText="Ctrl+Del"/>
-                    </ContextMenu>
-                </Border.ContextMenu>
-
-                <Grid>
+                <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
+                    <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" ClipToBounds="True">
+                        <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -143,8 +80,8 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
@@ -152,14 +89,31 @@
                             <!-- Multi-select checkbox (visible when multi-select mode is active) -->
                             <CheckBox Grid.Column="0"
                                       Tag="{Binding}"
-                                      Checked="MultiSelectCheckBox_Checked"
-                                      Unchecked="MultiSelectCheckBox_Unchecked"
                                       Margin="0,0,12,0"
                                       VerticalAlignment="Center"
-                                      Visibility="{Binding DataContext.IsMultiSelectMode, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                      Visibility="Collapsed"/>
+
+                            <!-- Link Count Badge -->
+                            <Border Grid.Column="1"
+                                    Background="{DynamicResource PrimaryBrush}"
+                                    CornerRadius="10"
+                                    Padding="8,4"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"
+                                    ToolTip="This order is linked with other orders"
+                                    Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔗" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LinkedItemCount}"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
 
                             <!-- Vendor Name Display -->
-                            <Grid Grid.Column="1">
+                            <Grid Grid.Column="2">
                                 <TextBlock Text="Vendor name..."
                                            FontSize="{DynamicResource CardFontSize}"
                                            FontWeight="SemiBold"
@@ -199,25 +153,6 @@
                                          LostFocus="EditableField_LostFocus"/>
                             </Grid>
 
-                            <!-- Link Count Badge -->
-                            <Border Grid.Column="2"
-                                    Background="{DynamicResource PrimaryBrush}"
-                                    CornerRadius="10"
-                                    Padding="8,4"
-                                    Margin="0,0,8,0"
-                                    VerticalAlignment="Center"
-                                    ToolTip="This order is linked with other orders"
-                                    Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🔗" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding LinkedItemCount}"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="White"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-
                             <!-- Status ComboBox -->
                             <ComboBox Grid.Column="3"
                                       HorizontalAlignment="Right"
@@ -231,7 +166,7 @@
                                       MinHeight="28"
                                       MinWidth="120"
                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                      Style="{DynamicResource ModernComboBoxStyle}">
+                                      Style="{StaticResource ModernComboBoxStyle}">
                                 <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
                                 <ComboBoxItem Content="On Deck" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}" Foreground="{DynamicResource WarningBrush}"/>
                                 <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
@@ -687,9 +622,8 @@
                     </StackPanel>
                     
                     <!-- Footer with timestamp -->
-                    <TextBox Grid.Row="3" Text="{Binding CreatedAtDisplay}" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}"
-                             Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam"
-                             HorizontalAlignment="Right" Margin="0,4,16,8" Padding="0"/>
+                    <TextBlock Grid.Row="3" Text="{Binding CreatedAtDisplay}" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}"
+                               HorizontalAlignment="Right" Margin="0,4,16,8"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -710,6 +644,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="6"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Thin color accent bar -->
@@ -718,7 +653,19 @@
 
                     <!-- Note content area (read-only for archived) -->
                     <Grid Grid.Row="1" Margin="14,12,14,10">
-                        <TextBox Text="{Binding NoteContent}" 
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Column="0"
+                                  Tag="{Binding}"
+                                  Margin="0,0,12,0"
+                                  VerticalAlignment="Center"
+                                  Visibility="Collapsed"/>
+
+                        <TextBox Grid.Column="1" Text="{Binding NoteContent}" 
                                  Foreground="{DynamicResource TextSecondaryBrush}" 
                                  FontSize="{DynamicResource CardFontSize}" 
                                  TextWrapping="Wrap" 
@@ -726,7 +673,7 @@
                                  Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
                         
                         <!-- Restore button (show on hover) -->
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
+                        <Button Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
                                 Click="QuickArchive_Click" ToolTip="Restore" Cursor="Hand">
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -768,6 +715,10 @@
                             </Button.Style>
                         </Button>
                     </Grid>
+
+                    <!-- Footer with timestamp -->
+                    <TextBlock Grid.Row="2" Text="{Binding CreatedAtDisplay}" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}"
+                               HorizontalAlignment="Right" Margin="0,4,12,8"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -1459,126 +1410,12 @@
                         </TextBlock>
                     </Button>
 
-                    <!-- Multi-select mode toggle button -->
-                    <Button Grid.Column="6" Command="{Binding ToggleMultiSelectModeCommand}"
-                            ToolTip="Toggle multi-select mode"
-                            Width="36" Height="36"
-                            Style="{StaticResource WidgetIconButtonStyle}">
-                        <TextBlock FontSize="16" FontWeight="Bold">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="☐"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMultiSelectMode}" Value="True">
-                                            <Setter Property="Text" Value="☑"/>
-                                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Button>
+                    <!-- Multi-select removed: toggle button omitted -->
 
                     
                 </Grid>
 
-                <!-- Multi-Select Toolbar (appears when IsMultiSelectMode is true) -->
-                <Border Grid.Row="2" Margin="16,0,16,14"
-                        Background="{DynamicResource AccentBrush}"
-                        CornerRadius="8"
-                        Padding="12,10"
-                        Visibility="{Binding IsMultiSelectMode, Converter={StaticResource BoolToVis}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Selection info -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding SelectedItems.Count}"
-                                       FontSize="14" FontWeight="Bold"
-                                       Foreground="White" Margin="0,0,4,0"/>
-                            <TextBlock Text="selected"
-                                       FontSize="13"
-                                       Foreground="White"/>
-                        </StackPanel>
-
-                        <!-- Bulk action buttons -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Command="{Binding BulkArchiveCommand}"
-                                    ToolTip="Archive selected items"
-                                    Width="32" Height="32" Margin="4,0"
-                                    Background="{DynamicResource SurfaceBrush}"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="📦" FontSize="14" Foreground="White"/>
-                            </Button>
-
-                            <Button Command="{Binding BulkDeleteCommand}"
-                                    ToolTip="Delete selected items"
-                                    Width="32" Height="32" Margin="4,0"
-                                    Background="{DynamicResource SurfaceBrush}"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="🗑️" FontSize="14" Foreground="White"/>
-                            </Button>
-
-                            <Button Command="{Binding BulkLinkCommand}"
-                                    ToolTip="Link selected items"
-                                    Width="32" Height="32" Margin="4,0"
-                                    Background="{DynamicResource SurfaceBrush}"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="🔗" FontSize="14" Foreground="White"/>
-                            </Button>
-
-                            <Button Command="{Binding BulkUnlinkCommand}"
-                                    ToolTip="Unlink selected items"
-                                    Width="32" Height="32" Margin="4,0"
-                                    Background="{DynamicResource SurfaceBrush}"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="⛓️‍💥" FontSize="14" Foreground="White"/>
-                            </Button>
-
-                            <!-- Status menu button -->
-                            <Button ToolTip="Set status for selected items"
-                                    Width="32" Height="32" Margin="4,0"
-                                    Background="{DynamicResource SurfaceBrush}"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Foreground="White"/>
-                                <Button.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Not Ready" Command="{Binding BulkSetStatusCommand}"
-                                                  CommandParameter="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
-                                        <MenuItem Header="On Deck" Command="{Binding BulkSetStatusCommand}"
-                                                  CommandParameter="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
-                                        <MenuItem Header="In Progress" Command="{Binding BulkSetStatusCommand}"
-                                                  CommandParameter="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
-                                    </ContextMenu>
-                                </Button.ContextMenu>
-                            </Button>
-                        </StackPanel>
-
-                        <!-- Close and clear buttons -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <Button Command="{Binding ClearSelectionCommand}"
-                                    ToolTip="Clear selection"
-                                    Width="32" Height="32" Margin="0,0,4,0"
-                                    Background="Transparent"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="White"/>
-                            </Button>
-
-                            <Button Command="{Binding ToggleMultiSelectModeCommand}"
-                                    ToolTip="Exit multi-select mode"
-                                    Width="32" Height="32"
-                                    Background="Transparent"
-                                    BorderThickness="0" Cursor="Hand">
-                                <TextBlock Text="☰" FontSize="14" Foreground="White"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <!-- Multi-select removed -->
 
                 <!-- Row 3: Notes Header -->
                 <Border Grid.Row="3"
@@ -2545,6 +2382,7 @@
                                             <RowDefinition Height="8"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Color Bar (muted for archived) -->
@@ -2555,15 +2393,24 @@
                                         <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}" Padding="14,10">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding First.VendorName, FallbackValue='Archived'}"
-                                                           FontSize="{DynamicResource CardFontSize}"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                <Button Grid.Column="1" Click="QuickArchive_Click" DataContext="{Binding First}"
-                                                        ToolTip="Restore" Cursor="Hand">
+                                                <CheckBox Grid.Column="0"
+                                                          Tag="{Binding First}"
+                                                          Margin="0,0,12,0"
+                                                          VerticalAlignment="Center"
+                                                          Visibility="Collapsed"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding First.VendorName, FallbackValue='Archived'}"
+                                                       FontSize="{DynamicResource CardFontSize}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <Button Grid.Column="2" Click="QuickArchive_Click" DataContext="{Binding First}"
+                                                    ToolTip="Restore" Cursor="Hand"
+                                                    Margin="0,0,12,0"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding DataContext.IsMultiSelectMode, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}">
                                                     <Button.Style>
                                                         <Style TargetType="Button">
                                                             <Setter Property="Background" Value="Transparent"/>
@@ -2604,6 +2451,9 @@
                                                        FontSize="{DynamicResource CardFontSize}"
                                                        FontFamily="Consolas"/>
                                         </StackPanel>
+                                        <!-- Footer with timestamp -->
+                                        <TextBlock Grid.Row="3" Text="{Binding First.CreatedAtDisplay}" FontSize="10" Foreground="{DynamicResource TextDisabledBrush}"
+                                                   HorizontalAlignment="Right" Margin="0,4,16,8"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

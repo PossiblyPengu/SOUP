@@ -51,9 +51,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> Items { get; } = new();
     public ObservableCollection<OrderItem> ArchivedItems { get; } = new();
     public ObservableCollection<OrderItem> SelectedItems { get; } = new();
+
+    [ObservableProperty]
+    private int _selectedItemsCount;
     public ObservableCollection<OrderItem> StickyNotes { get; } = new(); // Dedicated sticky notes collection
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
+    private Task? _archivedRefreshTask;
     
 
     // Grouping helper service (extracted to simplify VM)
@@ -330,6 +334,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Ensure counts update when display collections change
         DisplayItems.CollectionChanged += (s, e) => UpdateDisplayCounts();
         DisplayArchivedItems.CollectionChanged += (s, e) => UpdateDisplayCounts();
+
+        // Ensure selection count updates when selection changes
+        SelectedItems.CollectionChanged += (s, e) => SelectedItemsCount = SelectedItems.Count;
 
         UpdateDisplayCounts();
 
@@ -1761,7 +1768,66 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Refresh the archived display items from the ArchivedItems collection.
     /// </summary>
-    public void RefreshArchivedDisplayItems() => RefreshDisplayCollection(ArchivedItems, DisplayArchivedItems);
+    /// <summary>
+    /// Schedule a non-blocking refresh of the archived display items.
+    /// If a refresh is already running, this call returns immediately.
+    /// </summary>
+    public void RefreshArchivedDisplayItems()
+    {
+        if (_archivedRefreshTask != null && !_archivedRefreshTask.IsCompleted) return;
+        _archivedRefreshTask = RefreshArchivedDisplayItemsAsync();
+    }
+
+    /// <summary>
+    /// Asynchronously rebuilds the archived display groups off the UI thread
+    /// then applies the resulting groups back on the UI thread to avoid freezes.
+    /// </summary>
+    public async Task RefreshArchivedDisplayItemsAsync()
+    {
+        // Snapshot source and apply filters on calling thread (fast)
+        IEnumerable<OrderItem> filtered = ArchivedItems;
+
+        if (_searchService.HasActiveFilters(SearchQuery, StatusFilters, FilterStartDate, FilterEndDate, ColorFilters, NoteTypeFilter, NoteCategoryFilter))
+        {
+            filtered = _searchService.ApplyAllFilters(
+                ArchivedItems,
+                SearchQuery,
+                StatusFilters,
+                FilterStartDate,
+                FilterEndDate,
+                ColorFilters,
+                NoteTypeFilter,
+                NoteCategoryFilter);
+        }
+
+        var snapshot = filtered.ToList();
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        // Build groups on background thread
+        var built = await Task.Run(() =>
+        {
+            var filteredCollection = new ObservableCollection<OrderItem>(snapshot);
+            return _groupingService.BuildDisplayCollection(filteredCollection, SortByStatus, SortStatusDescending, SortModeEnum);
+        }).ConfigureAwait(false);
+        sw.Stop();
+
+        // Apply results back on UI thread
+        try
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                DisplayArchivedItems.Clear();
+                foreach (var g in built)
+                    DisplayArchivedItems.Add(g);
+                UpdateDisplayCounts();
+            });
+            _logger?.LogInformation("RefreshArchivedDisplayItemsAsync built {Groups} groups from {Items} items in {Ms}ms", built.Count, snapshot.Count, sw.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to apply archived display items");
+        }
+    }
 
     /// <summary>
     /// Shared helper to build grouped display items from a source collection.

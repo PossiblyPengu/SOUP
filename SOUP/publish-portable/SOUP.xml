@@ -2894,6 +2894,16 @@
             <summary>
             Refresh the archived display items from the ArchivedItems collection.
             </summary>
+            <summary>
+            Schedule a non-blocking refresh of the archived display items.
+            If a refresh is already running, this call returns immediately.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshArchivedDisplayItemsAsync">
+            <summary>
+            Asynchronously rebuilds the archived display groups off the UI thread
+            then applies the resulting groups back on the UI thread to avoid freezes.
+            </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshDisplayCollection(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup})">
             <summary>
@@ -2922,6 +2932,9 @@
             <summary>
             Removes an item from the ArchivedItems collection with O(1) membership tracking.
             </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SelectedItemsCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._selectedItemsCount"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DisplayItemsCount">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._displayItemsCount"/>
@@ -8106,6 +8119,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsArchived" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedItemsCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedItemsCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DisplayItemsCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DisplayItemsCount" generated properties.</summary>
         </member>
@@ -8795,6 +8811,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsArchived" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedItemsCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedItemsCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DisplayItemsCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DisplayItemsCount" generated properties.</summary>
