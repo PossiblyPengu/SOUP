@@ -2777,14 +2777,6 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AllItems">
             <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
@@ -2804,27 +2796,6 @@
             Gets the redo history for display in UI
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DebouncedSaveAsync">
-            <summary>
-            Debounced save - waits 300ms for additional changes before saving.
-            Use for rapid operations like move up/down, status changes, etc.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchiveItemsAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
-            <summary>
-            Archive multiple items at once with undo support
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveItemsAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
-            <summary>
-            Restore multiple items from archive with undo support
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearAllArchivedAsync">
-            <summary>
-            Permanently delete all archived items
-            </summary>
-        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoAsync">
             <summary>
             Undo the last action
@@ -2833,11 +2804,6 @@
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoAsync">
             <summary>
             Redo the last undone action
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.EditFieldAsync(SOUP.Features.OrderLog.Models.OrderItem,System.String,System.Object,System.Object,System.Action{System.Object})">
-            <summary>
-            Helper method to edit a field with undo support
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddStickyNoteAsync">
@@ -2873,26 +2839,6 @@
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateAsync">
             <summary>
             Duplicate selected item(s) (copy + paste in one action)
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateAsync(SOUP.Features.OrderLog.Models.OrderTemplate)">
-            <summary>
-            Apply a template to create a new order
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateAsync">
-            <summary>
-            Save the selected order as a template
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesAsync">
-            <summary>
-            Open the template manager dialog
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadTemplatesAsync">
-            <summary>
-            Load templates from service and update UI collections
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SwapOrders(SOUP.Features.OrderLog.Models.OrderItem,SOUP.Features.OrderLog.Models.OrderItem)">
@@ -2989,6 +2935,45 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._showArchived"/>
         </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._cardFontSize"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._showNowPlaying"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._undoTimeoutSeconds"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultOrderColor"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultNoteColor"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortByStatus"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortStatusDescending"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notReadyGroupExpanded"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._onDeckGroupExpanded"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._inProgressGroupExpanded"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notReadyCount"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._onDeckCount"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressCount">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._inProgressCount"/>
+        </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesOnlyMode">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notesOnlyMode"/>
         </member>
@@ -3070,50 +3055,6 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StickyNoteContent">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._stickyNoteContent"/>
         </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._cardFontSize"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._showNowPlaying"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._undoTimeoutSeconds"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultOrderColor"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._defaultNoteColor"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortByStatus"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._sortStatusDescending"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notReadyGroupExpanded"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._onDeckGroupExpanded"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._inProgressGroupExpanded"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyCount">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notReadyCount"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckCount">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._onDeckCount"/>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressCount">
-            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._inProgressCount"/>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowArchivedChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowArchived"/> is changed.</remarks>
-        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotesOnlyModeChanged(System.Boolean)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesOnlyMode"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -3164,68 +3105,6 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusMessage"/> is changed.</remarks>
         </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnCardFontSizeChanged(System.Double)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CardFontSize"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnShowNowPlayingChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ShowNowPlaying"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnUndoTimeoutSecondsChanged(System.Int32)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDefaultOrderColorChanged(System.String)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultOrderColor"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDefaultNoteColorChanged(System.String)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DefaultNoteColor"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnSortByStatusChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortByStatus"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnSortStatusDescendingChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SortStatusDescending"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotReadyGroupExpandedChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnOnDeckGroupExpandedChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnInProgressGroupExpandedChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded"/> is changed.</remarks>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.loadCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadAsync"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.saveCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsync"/>.</summary>
-        </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.archiveOrderCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchiveOrderCommand"/>.</summary>
         </member>
@@ -3237,12 +3116,6 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveOrderCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveOrderAsync(SOUP.Features.OrderLog.Models.OrderItem)"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.deleteSelectedCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DeleteSelectedCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DeleteSelectedCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DeleteSelectedAsync"/>.</summary>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.moveUpCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.MoveUpCommand"/>.</summary>
@@ -3273,24 +3146,6 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoAsync"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.startCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StartCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StartCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StartAsync(SOUP.Features.OrderLog.Models.OrderItem)"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.stopCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StopCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StopCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StopAsync(SOUP.Features.OrderLog.Models.OrderItem)"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.resetGroupsCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ResetGroupsCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ResetGroupsCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ResetGroups"/>.</summary>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.toggleArchivedCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ToggleArchivedCommand"/>.</summary>
@@ -3430,23 +3285,11 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateAsync"/>.</summary>
         </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.applyTemplateCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateCommand"/>.</summary>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.clearAllArchivedCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearAllArchivedCommand"/>.</summary>
         </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateAsync(SOUP.Features.OrderLog.Models.OrderTemplate)"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.saveAsTemplateCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateAsync"/>.</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.manageTemplatesCommand">
-            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesAsync"/>.</summary>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearAllArchivedCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ClearAllArchivedAsync"/>.</summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.Views.LinkOrdersWindow">
             <summary>
@@ -3539,16 +3382,6 @@
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ShowKeyboardHelp">
             <summary>
             Shows the keyboard shortcuts help dialog (future implementation)
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.SaveAsTemplate_Click(System.Object,System.Windows.RoutedEventArgs)">
-            <summary>
-            Save selected order as a template
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.TemplatesButton_Click(System.Object,System.Windows.RoutedEventArgs)">
-            <summary>
-            Show templates dropdown menu
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.InitializeComponent">
@@ -8277,6 +8110,45 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowArchived" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CardFontSize">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CardFontSize" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowNowPlaying">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowNowPlaying" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UndoTimeoutSeconds">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UndoTimeoutSeconds" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultOrderColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultOrderColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultNoteColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortByStatus">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortByStatus" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortStatusDescending">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotReadyGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotReadyGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.OnDeckGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "OnDeckGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotReadyCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotReadyCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.OnDeckCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "OnDeckCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotesOnlyMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotesOnlyMode" generated properties.</summary>
         </member>
@@ -8357,45 +8229,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.StickyNoteContent">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "StickyNoteContent" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CardFontSize">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CardFontSize" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowNowPlaying">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowNowPlaying" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UndoTimeoutSeconds">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UndoTimeoutSeconds" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultOrderColor">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultOrderColor" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultNoteColor">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortByStatus">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortByStatus" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SortStatusDescending">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotReadyGroupExpanded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotReadyGroupExpanded" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.OnDeckGroupExpanded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "OnDeckGroupExpanded" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressGroupExpanded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotReadyCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotReadyCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.OnDeckCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "OnDeckCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsVisible" generated properties.</summary>
@@ -8964,6 +8797,45 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowArchived">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowArchived" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CardFontSize">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CardFontSize" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowNowPlaying">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowNowPlaying" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UndoTimeoutSeconds">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UndoTimeoutSeconds" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultOrderColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultOrderColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultNoteColor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortByStatus">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortByStatus" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortStatusDescending">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotReadyGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotReadyGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.OnDeckGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "OnDeckGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressGroupExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotReadyCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotReadyCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.OnDeckCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "OnDeckCount" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotesOnlyMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotesOnlyMode" generated properties.</summary>
         </member>
@@ -9044,45 +8916,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.StickyNoteContent">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "StickyNoteContent" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CardFontSize">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CardFontSize" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowNowPlaying">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowNowPlaying" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UndoTimeoutSeconds">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UndoTimeoutSeconds" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultOrderColor">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultOrderColor" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultNoteColor">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultNoteColor" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortByStatus">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortByStatus" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SortStatusDescending">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SortStatusDescending" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotReadyGroupExpanded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotReadyGroupExpanded" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.OnDeckGroupExpanded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "OnDeckGroupExpanded" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressGroupExpanded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotReadyCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotReadyCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.OnDeckCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "OnDeckCount" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressCount">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressCount" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsVisible">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsVisible" generated properties.</summary>

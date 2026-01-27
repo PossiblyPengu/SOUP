@@ -399,18 +399,12 @@ public class KeyboardShortcutManager
 
     private void HandleApplyTemplate(int templateIndex)
     {
-        // Apply template by index (0-based) from TopTemplates
-        if (templateIndex < _viewModel.TopTemplates.Count)
-        {
-            var template = _viewModel.TopTemplates[templateIndex];
-            _viewModel.ApplyTemplateCommand?.Execute(template);
-        }
+        // Templates feature removed: no-op
     }
 
     private void HandleManageTemplates()
     {
-        // Open template manager dialog
-        _viewModel.ManageTemplatesCommand?.Execute(null);
+        // Templates feature removed: no-op
     }
 
     // Events for View to subscribe to

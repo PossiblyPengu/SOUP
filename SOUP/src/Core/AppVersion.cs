@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.32.0";
+    public const string Version = "4.32.3";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.32.3", "2026-01-27", "Release Update", new[]
+        {
+            "1"
+        }),
         new("4.30.2", "2026-01-22", "Release Update", new[]
         {
             "feat: Add notification system and import/export functionality for expiration items- Implemented a notification system to check and notify users of expiring items.- Added ExpireWiseImportExportService for importing from CSV and exporting to CSV/Excel.- Created ExpireWiseItemService for managing expiration items (add, update, delete).- Developed ExpireWiseMonthNavigationService for month navigation and item grouping.- Introduced ExpireWiseSearchService for searching and filtering expiration items.- Added unit tests for import/export and month navigation functionalities.- Updated ExpireWiseView.xaml to include a notification button and inline notification list."

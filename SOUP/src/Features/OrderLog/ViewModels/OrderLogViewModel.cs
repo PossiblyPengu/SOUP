@@ -32,7 +32,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly OrderSearchService _searchService;
     private readonly OrderBulkOperationsService _bulkOperationsService;
     private readonly OrderLogClipboardService _clipboardService;
-    private readonly OrderTemplateService _templateService;
     private readonly VendorColorService _vendorColorService;
     private readonly UndoRedoStack _undoRedoStack;
     private readonly DispatcherTimer _timer;
@@ -54,8 +53,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItem> StickyNotes { get; } = new(); // Dedicated sticky notes collection
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
-    public ObservableCollection<OrderTemplate> Templates { get; } = new(); // All templates
-    public ObservableCollection<OrderTemplate> TopTemplates { get; } = new(); // Top 3 by use count
+    
 
     // Grouping helper service (extracted to simplify VM)
     private readonly OrderGroupingService _groupingService;
@@ -76,6 +74,51 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private bool _showArchived = false;
+
+    // UI settings persisted for widget
+    [ObservableProperty]
+    private double _cardFontSize = DefaultCardFontSize;
+
+    [ObservableProperty]
+    private bool _showNowPlaying = true;
+
+    [ObservableProperty]
+    private int _undoTimeoutSeconds = DefaultUndoTimeoutSeconds;
+
+    [ObservableProperty]
+    private string _defaultOrderColor = OrderLogColors.DefaultOrder;
+
+    [ObservableProperty]
+    private string _defaultNoteColor = OrderLogColors.DefaultNote;
+
+    [ObservableProperty]
+    private bool _sortByStatus = true;
+
+    [ObservableProperty]
+    private bool _sortStatusDescending = false;
+
+    [ObservableProperty]
+    private bool _notReadyGroupExpanded = true;
+
+    [ObservableProperty]
+    private bool _onDeckGroupExpanded = true;
+
+    [ObservableProperty]
+    private bool _inProgressGroupExpanded = true;
+
+    // Status-grouped collections used by the view
+    public ObservableCollection<OrderItemGroup> NotReadyItems { get; } = new();
+    public ObservableCollection<OrderItemGroup> OnDeckItems { get; } = new();
+    public ObservableCollection<OrderItemGroup> InProgressItems { get; } = new();
+
+    [ObservableProperty]
+    private int _notReadyCount;
+
+    [ObservableProperty]
+    private int _onDeckCount;
+
+    [ObservableProperty]
+    private int _inProgressCount;
 
     /// <summary>
     /// Gets or sets whether the widget is in notes-only mode (hides order functionality).
@@ -267,7 +310,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _searchService = new OrderSearchService();
         _bulkOperationsService = new OrderBulkOperationsService();
         _clipboardService = new OrderLogClipboardService(null);
-        _templateService = new OrderTemplateService(null);
         _vendorColorService = new VendorColorService(null);
         _undoRedoStack = new UndoRedoStack(maxHistorySize: 50);
 
@@ -290,139 +332,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger?.LogInformation("OrderLogViewModel initialized");
     }
 
-    [ObservableProperty]
-    private double _cardFontSize = DefaultCardFontSize;
-
-    [ObservableProperty]
-    private bool _showNowPlaying = true;
-
-    [ObservableProperty]
-    private int _undoTimeoutSeconds = DefaultUndoTimeoutSeconds;
-
-    [ObservableProperty]
-    private string _defaultOrderColor = OrderLogColors.DefaultOrder;
-
-    [ObservableProperty]
-    private string _defaultNoteColor = OrderLogColors.DefaultNote;
-
-    [ObservableProperty]
-    private bool _sortByStatus = true; // Always true - status headers always visible
-
-    [ObservableProperty]
-    private bool _sortStatusDescending = false;
-
-    partial void OnSortStatusDescendingChanged(bool value)
-    {
-        RefreshDisplayItems();
-    }
-
-    public void CycleSortMode()
-    {
-        SortModeEnum = SortModeEnum switch
-        {
-            OrderGroupingService.OrderLogSortMode.Status => OrderGroupingService.OrderLogSortMode.CreatedAt,
-            OrderGroupingService.OrderLogSortMode.CreatedAt => OrderGroupingService.OrderLogSortMode.VendorName,
-            _ => OrderGroupingService.OrderLogSortMode.Status
-        };
-        RefreshDisplayItems();
-    }
-
-    // Status group expand/collapse state
-    [ObservableProperty]
-    private bool _notReadyGroupExpanded = true;
-
-    [ObservableProperty]
-    private bool _onDeckGroupExpanded = true;
-
-    [ObservableProperty]
-    private bool _inProgressGroupExpanded = true;
-
-    // Status-grouped items for collapsible view
-    public ObservableCollection<OrderItemGroup> NotReadyItems { get; } = new();
-    public ObservableCollection<OrderItemGroup> OnDeckItems { get; } = new();
-    public ObservableCollection<OrderItemGroup> InProgressItems { get; } = new();
-
-    // Count properties for status groups (ObservableCollection.Count doesn't raise PropertyChanged)
-    [ObservableProperty]
-    private int _notReadyCount;
-
-    [ObservableProperty]
-    private int _onDeckCount;
-
-    [ObservableProperty]
-    private int _inProgressCount;
-
-    partial void OnCardFontSizeChanged(double value)
-    {
-        try
-        {
-            if (Application.Current != null)
-            {
-                // Update app-level resources
-                Application.Current.Resources["CardFontSize"] = value;
-
-                // Also update any open OrderLogWidgetWindow instances
-                foreach (var window in Application.Current.Windows.OfType<SOUP.Windows.OrderLogWidgetWindow>())
-                {
-                    window.Resources["CardFontSize"] = value;
-                }
-            }
-
-            // persist
-            SaveWidgetSettings();
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "Failed to update card font size");
-        }
-    }
-
-    partial void OnShowNowPlayingChanged(bool value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnShowArchivedChanged(bool value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnUndoTimeoutSecondsChanged(int value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnDefaultOrderColorChanged(string value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnDefaultNoteColorChanged(string value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnSortByStatusChanged(bool value)
-    {
-        RefreshDisplayItems();
-    }
-
     partial void OnNotesOnlyModeChanged(bool value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnNotReadyGroupExpandedChanged(bool value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnOnDeckGroupExpandedChanged(bool value)
-    {
-        SaveWidgetSettings();
-    }
-
-    partial void OnInProgressGroupExpandedChanged(bool value)
     {
         SaveWidgetSettings();
     }
@@ -510,66 +420,51 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             AutoColorByVendor = s.AutoColorByVendor;
             // Status group expand/collapse state
             NotReadyGroupExpanded = s.NotReadyGroupExpanded;
-            OnDeckGroupExpanded = s.OnDeckGroupExpanded;
-            InProgressGroupExpanded = s.InProgressGroupExpanded;
-            if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
+        if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to load widget settings, using defaults");
         }
 
-        await LoadTemplatesAsync();
+        // Templates removed: skip loading templates
         await _vendorColorService.LoadMappingsAsync();
         await LoadAsync();
     }
 
-    [RelayCommand]
-    private async Task LoadAsync()
+    public async Task LoadAsync()
     {
-        // Capture dispatcher BEFORE any await - this ensures we post back to the calling thread
-        var dispatcher = Dispatcher.CurrentDispatcher;
-
-        IsLoading = true;
-        StatusMessage = "Loading orders...";
-
         try
         {
-            var items = await _orderLogService.LoadAsync();
+            IsLoading = true;
+            var all = await _orderLogService.LoadAsync();
 
-            // Must update collections on UI thread that owns them
-            await dispatcher.InvokeAsync(() =>
+            Items.Clear();
+            ArchivedItems.Clear();
+            _itemIds.Clear();
+            _archivedItemIds.Clear();
+
+            foreach (var it in all.OrderBy(i => i.Order))
             {
-                Items.Clear();
-                ArchivedItems.Clear();
-                _itemIds.Clear();
-                _archivedItemIds.Clear();
-
-                foreach (var item in items)
+                if (it.IsArchived)
                 {
-                    if (item.IsArchived)
-                    {
-                        ArchivedItems.Add(item);
-                        _archivedItemIds.Add(item.Id);
-                    }
-                    else
-                    {
-                        Items.Add(item);
-                        _itemIds.Add(item.Id);
-                    }
+                    ArchivedItems.Add(it);
+                    _archivedItemIds.Add(it.Id);
                 }
+                else
+                {
+                    Items.Add(it);
+                    _itemIds.Add(it.Id);
+                }
+            }
 
-                RefreshDisplayItems();
-                RefreshArchivedDisplayItems();
-            });
-
+            RefreshDisplayItems();
+            RefreshArchivedDisplayItems();
             UpdateDefaultStatus();
-            _logger?.LogInformation("Loaded {Count} orders into view", items.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to load orders: {ex.Message}";
-            _logger?.LogError(ex, "Failed to load orders");
+            _logger?.LogError(ex, "Failed to load order log items");
         }
         finally
         {
@@ -577,56 +472,30 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
+    private async Task DebouncedSaveAsync(int debounceMs = 300)
+    {
+        try
+        {
+            _saveDebounceCts?.Cancel();
+            _saveDebounceCts = new System.Threading.CancellationTokenSource();
+            var token = _saveDebounceCts.Token;
+            await Task.Delay(debounceMs, token);
+            if (token.IsCancellationRequested) return;
+            await SaveAsync();
+        }
+        catch (TaskCanceledException) { }
+    }
+
     public async Task SaveAsync()
     {
         try
         {
-            // Snapshot collections to avoid race conditions
-            var itemsSnapshot = Items.ToList();
-            var archivedSnapshot = ArchivedItems.ToList();
-
-            for (int i = 0; i < itemsSnapshot.Count; i++)
-            {
-                itemsSnapshot[i].Order = i;
-            }
-
-            for (int i = 0; i < archivedSnapshot.Count; i++)
-            {
-                archivedSnapshot[i].Order = itemsSnapshot.Count + i;
-            }
-
-            var allItems = itemsSnapshot.Concat(archivedSnapshot).ToList();
-            await _orderLogService.SaveAsync(allItems);
-            StatusMessage = $"Saved {Items.Count} orders ({ArchivedItems.Count} archived)";
-            RefreshDisplayItems();
-            RefreshArchivedDisplayItems();
-            _logger?.LogInformation("Saved {Count} orders", allItems.Count);
+            var all = Items.Concat(ArchivedItems).ToList();
+            await _orderLogService.SaveAsync(all);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to save: {ex.Message}";
-            _logger?.LogError(ex, "Failed to save orders");
-        }
-    }
-
-    /// <summary>
-    /// Debounced save - waits 300ms for additional changes before saving.
-    /// Use for rapid operations like move up/down, status changes, etc.
-    /// </summary>
-    private async Task DebouncedSaveAsync()
-    {
-        _saveDebounceCts?.Cancel();
-        _saveDebounceCts = new();
-
-        try
-        {
-            await Task.Delay(300, _saveDebounceCts.Token);
-            await SaveAsync();
-        }
-        catch (TaskCanceledException)
-        {
-            // Expected when another save is triggered within debounce window
+            _logger?.LogError(ex, "Failed to save order log items");
         }
     }
 
@@ -634,133 +503,43 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public async Task ArchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
-
-        var action = new ArchiveAction(new[] { item });
-        _undoRedoStack.ExecuteAction(action);
-
-        RemoveFromItems(item);
-        AddToArchived(item);
-        await SaveAsync();
-
-        StartUndoTimer("Archived 1 item");
-        StatusMessage = "Order archived - tap Undo to restore";
-    }
-
-    /// <summary>
-    /// Archive multiple items at once with undo support
-    /// </summary>
-    public async Task ArchiveItemsAsync(IEnumerable<OrderItem> items)
-    {
-        var itemList = items.ToList();
-        if (itemList.Count == 0) return;
-
-        var action = new ArchiveAction(itemList);
-        _undoRedoStack.ExecuteAction(action);
-
-        foreach (var item in itemList)
+        if (_itemIds.Contains(item.Id))
         {
             RemoveFromItems(item);
             AddToArchived(item);
+            RefreshDisplayItems();
+            RefreshArchivedDisplayItems();
+            await SaveAsync();
+            StatusMessage = "Archived item";
         }
-
-        await SaveAsync();
-        StartUndoTimer($"Archived {itemList.Count} item(s)");
-        StatusMessage = $"Archived {itemList.Count} item(s) - tap Undo to restore";
     }
 
     [RelayCommand]
     public async Task UnarchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
-
-        // Prevent duplication if already in Items (O(1) check)
-        if (_itemIds.Contains(item.Id)) return;
-
-        var action = new UnarchiveAction(new[] { item });
-        _undoRedoStack.ExecuteAction(action);
-
-        RemoveFromArchived(item);
-        AddToItems(item, insertAtTop: true);
-        RefreshDisplayItems();
-        RefreshArchivedDisplayItems();
-        await SaveAsync();
-
-        StartUndoTimer("Restored 1 item");
-        StatusMessage = "Order restored - tap Undo to re-archive";
-    }
-
-    /// <summary>
-    /// Restore multiple items from archive with undo support
-    /// </summary>
-    public async Task UnarchiveItemsAsync(IEnumerable<OrderItem> items)
-    {
-        var itemList = items.ToList();
-        if (itemList.Count == 0) return;
-
-        var itemsToUnarchive = new List<OrderItem>();
-        foreach (var item in itemList)
-        {
-            // O(1) membership check
-            if (_itemIds.Contains(item.Id)) continue;
-            itemsToUnarchive.Add(item);
-        }
-
-        if (itemsToUnarchive.Count == 0) return;
-
-        var action = new UnarchiveAction(itemsToUnarchive);
-        _undoRedoStack.ExecuteAction(action);
-
-        foreach (var item in itemsToUnarchive)
+        if (_archivedItemIds.Contains(item.Id))
         {
             RemoveFromArchived(item);
             AddToItems(item, insertAtTop: true);
+            RefreshDisplayItems();
+            RefreshArchivedDisplayItems();
+            await SaveAsync();
+            StatusMessage = "Unarchived item";
         }
+    }
 
+    public void CycleSortMode()
+    {
+        SortModeEnum = SortModeEnum switch
+        {
+            OrderGroupingService.OrderLogSortMode.Status => OrderGroupingService.OrderLogSortMode.CreatedAt,
+            OrderGroupingService.OrderLogSortMode.CreatedAt => OrderGroupingService.OrderLogSortMode.VendorName,
+            _ => OrderGroupingService.OrderLogSortMode.Status
+        };
         RefreshDisplayItems();
-        RefreshArchivedDisplayItems();
-        await SaveAsync();
-        StartUndoTimer($"Restored {itemsToUnarchive.Count} item(s)");
-        StatusMessage = $"Restored {itemsToUnarchive.Count} item(s) - tap Undo to re-archive";
     }
-
-    /// <summary>
-    /// Permanently delete all archived items
-    /// </summary>
-    public async Task ClearAllArchivedAsync()
-    {
-        if (ArchivedItems.Count == 0) return;
-
-        var toRemove = ArchivedItems.ToList();
-        foreach (var item in toRemove)
-        {
-            RemoveFromArchived(item);
-        }
-
-        RefreshArchivedDisplayItems();
-        await SaveAsync();
-
-        _logger?.LogInformation("Cleared {Count} archived items", toRemove.Count);
-    }
-
-
-    [RelayCommand]
-    private async Task DeleteSelectedAsync()
-    {
-        if (SelectedItems.Count == 0) return;
-
-        var count = SelectedItems.Count;
-        var toRemove = SelectedItems.ToList();
-        foreach (var item in toRemove)
-        {
-            RemoveFromItems(item);
-            RemoveFromArchived(item);
-        }
-        SelectedItems.Clear();
-
-        await SaveAsync();
-        StatusMessage = $"Deleted {count} order(s)";
-    }
-
+    
     [RelayCommand]
     public async Task MoveUpAsync(OrderItem? item)
     {
@@ -887,135 +666,42 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         StatusMessage = "Redo applied";
     }
 
-    [RelayCommand]
-    public async Task StartAsync(OrderItem? item)
-    {
-        if (item == null) return;
-        item.Status = OrderItem.OrderStatus.InProgress;
-        await SaveAsync();
-    }
-
-    [RelayCommand]
-    public async Task StopAsync(OrderItem? item)
-    {
-        if (item == null) return;
-        await SetStatusAsync(item, OrderItem.OrderStatus.Done);
-    }
-
-    [RelayCommand]
-    private void ResetGroups()
-    {
-        _groupStateStore.ResetAll();
-        GroupStatesReset?.Invoke();
-        StatusMessage = "Group states reset";
-    }
-
-    public async Task SetColorAsync(OrderItem item, string colorHex)
-    {
-        var oldColor = item.ColorHex;
-        var action = new ColorChangeAction(new[] { item }, colorHex);
-        _undoRedoStack.ExecuteAction(action);
-        await SaveAsync();
-        StartUndoTimer("Changed item color");
-    }
-
-    /// <summary>
-    /// Helper method to edit a field with undo support
-    /// </summary>
-    public async Task EditFieldAsync(OrderItem item, string fieldName, object? oldValue, object? newValue, Action<object?> setter)
-    {
-        var action = new FieldEditAction(item, fieldName, oldValue, newValue, setter);
-        _undoRedoStack.ExecuteAction(action);
-        await SaveAsync();
-        StartUndoTimer($"Edited {fieldName}");
-    }
-
-    public async Task SetStatusAsync(OrderItem item, OrderItem.OrderStatus status, OrderItem.OrderStatus? previousStatus = null)
+    public async Task SetStatusAsync(OrderItem? item, OrderItem.OrderStatus status, OrderItem.OrderStatus? previousStatus = null)
     {
         if (item == null) return;
 
-        _logger?.LogDebug("SetStatusAsync called for Item={ItemId} Status={Status} PreviousStatus={PreviousStatus} LinkedGroupId={LinkedGroupId}",
-            item.Id, status, previousStatus, item.LinkedGroupId);
-
-        // If this item is part of a linked group, apply the status change to all members
+        // Determine affected items (linked group vs single)
+        List<OrderItem> itemsToChange;
         if (item.LinkedGroupId != null)
         {
             var gid = item.LinkedGroupId.Value;
-            var members = AllItems.Where(i => i.LinkedGroupId == gid).ToList();
-
-            _logger?.LogDebug("Group {GroupId} members: {MemberIds}", gid, string.Join(',', members.Select(m => m.Id)));
-
-            var shouldBeArchived = status == OrderItem.OrderStatus.Done;
-
-            // Create appropriate action based on whether we're archiving or changing status
-            if (shouldBeArchived)
-            {
-                var action = new ArchiveAction(members);
-                _undoRedoStack.ExecuteAction(action);
-            }
-            else
-            {
-                var action = new StatusChangeAction(members, status);
-                _undoRedoStack.ExecuteAction(action);
-            }
-
-            // Move members between collections based on IsArchived flag
-            foreach (var m in members)
-            {
-                _logger?.LogDebug("Member {MemberId} pre-sync IsArchived={IsArchived} inItems={InItems} inArchived={InArchived}",
-                    m.Id, m.IsArchived, _itemIds.Contains(m.Id), _archivedItemIds.Contains(m.Id));
-
-                if (m.IsArchived)
-                {
-                    RemoveFromItems(m);
-                    AddToArchived(m);
-                }
-                else
-                {
-                    RemoveFromArchived(m);
-                    AddToItems(m, insertAtTop: true);
-                }
-
-                _logger?.LogDebug("Member {MemberId} post-sync IsArchived={IsArchived} inItems={InItems} inArchived={InArchived}",
-                    m.Id, m.IsArchived, _itemIds.Contains(m.Id), _archivedItemIds.Contains(m.Id));
-            }
-
-            RefreshDisplayItems();
-            RefreshArchivedDisplayItems();
-            await SaveAsync();
-
-            StartUndoTimer(shouldBeArchived ? $"Archived {members.Count} item(s)" : $"Changed status of {members.Count} item(s)");
-            return;
-        }
-
-        // Note: item.Status may already be updated by TwoWay binding, so we need to
-        // determine archival based on whether status IS Done, not was/will-be.
-        var willBeArchived = status == OrderItem.OrderStatus.Done;
-        var isCurrentlyInItems = _itemIds.Contains(item.Id);
-        var isCurrentlyInArchived = _archivedItemIds.Contains(item.Id);
-
-        // Create appropriate action
-        if (willBeArchived && isCurrentlyInItems)
-        {
-            // Moving to Done - archive it
-            var action = new ArchiveAction(new[] { item });
-            _undoRedoStack.ExecuteAction(action);
-            RemoveFromItems(item);
-            AddToArchived(item);
-        }
-        else if (!willBeArchived && isCurrentlyInArchived)
-        {
-            // Moving away from Done - unarchive it
-            var action = new UnarchiveAction(new[] { item });
-            _undoRedoStack.ExecuteAction(action);
-            RemoveFromArchived(item);
-            AddToItems(item, insertAtTop: true);
+            itemsToChange = AllItems.Where(i => i.LinkedGroupId == gid).ToList();
         }
         else
         {
-            // Just changing status, not archiving/unarchiving
-            var action = new StatusChangeAction(new[] { item }, status);
+            itemsToChange = new List<OrderItem> { item };
+        }
+
+        var willBeArchived = status == OrderItem.OrderStatus.Done;
+
+        if (willBeArchived)
+        {
+            var action = new ArchiveAction(itemsToChange);
             _undoRedoStack.ExecuteAction(action);
+            foreach (var it in itemsToChange)
+            {
+                RemoveFromItems(it);
+                AddToArchived(it);
+            }
+        }
+        else
+        {
+            var action = new StatusChangeAction(itemsToChange, status);
+            _undoRedoStack.ExecuteAction(action);
+            foreach (var it in itemsToChange)
+            {
+                it.Status = status;
+            }
         }
 
         RefreshDisplayItems();
@@ -1755,125 +1441,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger?.LogInformation("Duplicated {Count} items", duplicatedItems.Count);
     }
 
-    /// <summary>
-    /// Apply a template to create a new order
-    /// </summary>
-    [RelayCommand]
-    private async Task ApplyTemplateAsync(OrderTemplate template)
-    {
-        if (template == null)
-        {
-            StatusMessage = "No template selected";
-            return;
-        }
-
-        try
-        {
-            var order = await _templateService.CreateOrderFromTemplateAsync(template.Id);
-
-            // Apply auto-coloring if enabled and vendor name is set
-            if (AutoColorByVendor && !string.IsNullOrWhiteSpace(order.VendorName))
-            {
-                order.ColorHex = _vendorColorService.GetColorForVendor(order.VendorName);
-            }
-
-            await AddOrderAsync(order);
-
-            StatusMessage = $"Created order from template '{template.Name}'";
-            await LoadTemplatesAsync(); // Refresh to update UseCount
-
-            _logger?.LogInformation("Created order from template {Name}", template.Name);
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Failed to create order from template: {ex.Message}";
-            _logger?.LogError(ex, "Failed to create order from template");
-        }
-    }
-
-    /// <summary>
-    /// Save the selected order as a template
-    /// </summary>
-    [RelayCommand]
-    private async Task SaveAsTemplateAsync()
-    {
-        if (SelectedItem == null)
-        {
-            StatusMessage = "No order selected to save as template";
-            return;
-        }
-
-        try
-        {
-            var dialog = new Views.OrderTemplateEditorDialog(SelectedItem);
-            if (dialog.ShowDialog() == true)
-            {
-                var template = dialog.Template;
-                await _templateService.AddTemplateAsync(template);
-                await LoadTemplatesAsync();
-
-                StatusMessage = $"Template '{template.Name}' saved";
-                _logger?.LogInformation("Saved template {Name}", template.Name);
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Failed to save template: {ex.Message}";
-            _logger?.LogError(ex, "Failed to save template");
-        }
-    }
-
-    /// <summary>
-    /// Open the template manager dialog
-    /// </summary>
-    [RelayCommand]
-    private async Task ManageTemplatesAsync()
-    {
-        try
-        {
-            var dialog = new Views.OrderTemplateManagerDialog(_templateService);
-            dialog.ShowDialog();
-
-            // Refresh templates after dialog closes
-            await LoadTemplatesAsync();
-            StatusMessage = "Template manager closed";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Failed to manage templates: {ex.Message}";
-            _logger?.LogError(ex, "Failed to manage templates");
-        }
-    }
-
-    /// <summary>
-    /// Load templates from service and update UI collections
-    /// </summary>
-    private async Task LoadTemplatesAsync()
-    {
-        try
-        {
-            var templates = await _templateService.LoadTemplatesAsync();
-            Templates.Clear();
-            foreach (var template in templates)
-            {
-                Templates.Add(template);
-            }
-
-            // Update top templates (top 3 by use count)
-            var topTemplates = _templateService.GetTopTemplates(3);
-            TopTemplates.Clear();
-            foreach (var template in topTemplates)
-            {
-                TopTemplates.Add(template);
-            }
-
-            _logger?.LogInformation("Loaded {Count} templates ({TopCount} in top list)", templates.Count, topTemplates.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to load templates");
-        }
-    }
+    
 
     public async Task MoveOrderAsync(OrderItem dropped, OrderItem? target)
     {
@@ -2298,5 +1866,32 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
 
         _disposed = true;
+    }
+
+    [RelayCommand]
+    public async Task ClearAllArchivedAsync()
+    {
+        if (ArchivedItems.Count == 0)
+        {
+            StatusMessage = "No archived items to clear";
+            return;
+        }
+
+        var confirm = MessageBox.Show("Are you sure you want to permanently delete all archived items?", "Clear Archived", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (confirm != MessageBoxResult.Yes)
+        {
+            StatusMessage = "Clear archived cancelled";
+            return;
+        }
+
+        var toDelete = ArchivedItems.ToList();
+        foreach (var it in toDelete)
+        {
+            RemoveFromArchived(it);
+        }
+
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+        StatusMessage = "Cleared archived items";
     }
 }

@@ -124,8 +124,6 @@
                         <MenuItem Header="Link with..." Click="LinkWith_Click"/>
                         <MenuItem Header="Unlink" Click="Unlink_Click"/>
                         <Separator/>
-                        <MenuItem Header="Save as Template..." Click="SaveAsTemplate_Click"/>
-                        <Separator/>
                         <MenuItem Header="Done (Archive)" Click="ArchiveNote_Click" FontWeight="SemiBold" InputGestureText="Ctrl+A"/>
                         <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}" InputGestureText="Ctrl+Del"/>
                     </ContextMenu>
@@ -1482,14 +1480,7 @@
                         </TextBlock>
                     </Button>
 
-                    <!-- Templates dropdown button -->
-                    <Button x:Name="TemplatesButton" Grid.Column="8" ToolTip="Quick Templates (Ctrl+Shift+T)"
-                            Width="36" Height="36"
-                            Style="{StaticResource WidgetIconButtonStyle}"
-                            Click="TemplatesButton_Click"
-                            Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}">
-                        <TextBlock Text="📋" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    </Button>
+                    
                 </Grid>
 
                 <!-- Multi-Select Toolbar (appears when IsMultiSelectMode is true) -->
