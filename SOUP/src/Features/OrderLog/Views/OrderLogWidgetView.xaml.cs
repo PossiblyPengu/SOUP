@@ -37,6 +37,11 @@ public partial class OrderLogWidgetView : UserControl
     private Random _random = new();
     private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
     private KeyboardShortcutManager? _keyboardShortcutManager;
+    // Toolbar open/pin state and animation helpers
+    private bool _toolbarPinned = false;
+    private System.Windows.Threading.DispatcherTimer? _toolbarCollapseTimer;
+    private Storyboard? _expandStoryboard;
+    private Storyboard? _collapseStoryboard;
 
     public OrderLogWidgetView()
     {
@@ -45,6 +50,21 @@ public partial class OrderLogWidgetView : UserControl
         Unloaded += OnUnloaded;
         InitializeEqualizerTimer();
         InitializeMarqueeTimer();
+
+        // Toolbar animations and hover handling
+        try
+        {
+            _expandStoryboard = TryFindResource("ToolbarExpandStoryboard") as Storyboard;
+            _collapseStoryboard = TryFindResource("ToolbarCollapseStoryboard") as Storyboard;
+        }
+        catch { }
+
+        _toolbarCollapseTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _toolbarCollapseTimer.Tick += ToolbarCollapseTimer_Tick;
+
+        // Wire hover events (TopToolbarHost defined in XAML)
+        TopToolbarHost.MouseEnter += TopToolbarHost_MouseEnter;
+        TopToolbarHost.MouseLeave += TopToolbarHost_MouseLeave;
     }
 
     private void ActiveTab_Click(object sender, RoutedEventArgs e)
@@ -140,6 +160,65 @@ public partial class OrderLogWidgetView : UserControl
             AddButtonsPanel.Visibility = Visibility.Visible;
             NotesHeaderPanel.Visibility = Visibility.Visible;
         }
+    }
+
+    // DependencyProperty to expose whether the toolbar is currently open (hovered or pinned).
+    public static readonly DependencyProperty IsToolbarOpenProperty = DependencyProperty.Register(
+        nameof(IsToolbarOpen), typeof(bool), typeof(OrderLogWidgetView), new PropertyMetadata(false));
+
+    public bool IsToolbarOpen
+    {
+        get => (bool)GetValue(IsToolbarOpenProperty);
+        set => SetValue(IsToolbarOpenProperty, value);
+    }
+
+    private void TopToolbarHost_MouseEnter(object? sender, MouseEventArgs e)
+    {
+        _toolbarCollapseTimer?.Stop();
+        SetToolbarOpen(true);
+    }
+
+    private void TopToolbarHost_MouseLeave(object? sender, MouseEventArgs e)
+    {
+        // start collapse timer unless pinned
+        if (!_toolbarPinned)
+        {
+            _toolbarCollapseTimer?.Stop();
+            _toolbarCollapseTimer?.Start();
+        }
+    }
+
+    private void ToolbarCollapseTimer_Tick(object? sender, EventArgs e)
+    {
+        _toolbarCollapseTimer?.Stop();
+        if (!_toolbarPinned) SetToolbarOpen(false);
+    }
+
+    private void ToolbarExpandHandle_Click(object sender, RoutedEventArgs e)
+    {
+        _toolbarPinned = !_toolbarPinned;
+        SetToolbarOpen(_toolbarPinned || TopToolbarHost.IsMouseOver);
+    }
+
+    private void SetToolbarOpen(bool open)
+    {
+        if (IsToolbarOpen == open) return;
+        IsToolbarOpen = open;
+
+        try
+        {
+            if (open)
+            {
+                _collapseStoryboard?.Stop(this);
+                _expandStoryboard?.Begin(this, true);
+            }
+            else
+            {
+                _expandStoryboard?.Stop(this);
+                _collapseStoryboard?.Begin(this, true);
+            }
+        }
+        catch { }
     }
 
     private void AnimateTabTransition(FrameworkElement outgoing, FrameworkElement incoming)
