@@ -3012,7 +3012,7 @@
                 </StackPanel>
                 
                 <!-- Countdown indicator -->
-                <TextBlock Text="(5s)"
+                <TextBlock Text="{Binding UndoSecondsRemaining, StringFormat='({0}s)'}"
                            Foreground="{DynamicResource TextOnOverlayDimBrush}"
                            FontSize="10"
                            HorizontalAlignment="Right"

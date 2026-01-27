@@ -37,6 +37,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _timer;
     private bool _disposed;
     private DispatcherTimer? _undoTimer;
+    private DispatcherTimer? _undoCountdownTimer;
     private DispatcherTimer? _statusClearTimer;
     private System.Threading.CancellationTokenSource? _saveDebounceCts;
 
@@ -256,6 +257,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private string _undoMessage = string.Empty;
 
     [ObservableProperty]
+    private int _undoSecondsRemaining;
+
+    [ObservableProperty]
     private bool _redoAvailable;
 
     [ObservableProperty]
@@ -334,6 +338,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
     partial void OnNotesOnlyModeChanged(bool value)
     {
+        SaveWidgetSettings();
+    }
+
+    partial void OnUndoTimeoutSecondsChanged(int value)
+    {
+        // If undo timer exists, update its interval to reflect new setting
+        if (_undoTimer != null)
+        {
+            try
+            {
+                _undoTimer.Interval = TimeSpan.FromSeconds(value);
+            }
+            catch { }
+        }
+
         SaveWidgetSettings();
     }
 
@@ -612,6 +631,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         StatusMessage = message + " - tap Undo to revert";
 
         // Reuse existing timer instead of creating new one each time
+        // Ensure the main timer fires after the configured timeout
         if (_undoTimer == null)
         {
             _undoTimer = new() { Interval = TimeSpan.FromSeconds(UndoTimeoutSeconds) };
@@ -620,14 +640,44 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         else
         {
             _undoTimer.Stop();
+            _undoTimer.Interval = TimeSpan.FromSeconds(UndoTimeoutSeconds);
         }
         _undoTimer.Start();
+
+        // Initialize and start a 1s countdown timer for the UI
+        UndoSecondsRemaining = UndoTimeoutSeconds;
+        if (_undoCountdownTimer == null)
+        {
+            _undoCountdownTimer = new() { Interval = TimeSpan.FromSeconds(1) };
+            _undoCountdownTimer.Tick += (s, e) =>
+            {
+                try
+                {
+                    if (UndoSecondsRemaining > 0) UndoSecondsRemaining--;
+                    if (UndoSecondsRemaining <= 0)
+                    {
+                        _undoCountdownTimer?.Stop();
+                    }
+                }
+                catch { }
+            };
+        }
+        else
+        {
+            _undoCountdownTimer.Stop();
+        }
+        _undoCountdownTimer.Start();
     }
 
     private void OnUndoTimerTick(object? sender, EventArgs e)
     {
-        // Timer expired - no action needed, stack remains available
+        // Timer expired - hide the UI undo bar while leaving history intact
         _undoTimer?.Stop();
+        _undoCountdownTimer?.Stop();
+        UndoSecondsRemaining = 0;
+        UndoAvailable = false;
+        UndoMessage = string.Empty;
+        UpdateDefaultStatus();
     }
 
     /// <summary>
