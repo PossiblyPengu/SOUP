@@ -1728,6 +1728,11 @@
             Get the database path for diagnostic purposes
             </summary>
         </member>
+        <member name="T:SOUP.Features.ExpireWise.Converters.DateFormatConverter">
+            <summary>
+            Converter for formatting dates based on a configurable format string.
+            </summary>
+        </member>
         <member name="T:SOUP.Features.ExpireWise.Helpers.KeyboardShortcutManager">
             <summary>
             Manages keyboard shortcuts for the ExpireWise module.
@@ -1740,6 +1745,133 @@
             <param name="element">The UI element to register shortcuts on (typically the View).</param>
             <param name="viewModel">The ExpireWiseViewModel to invoke commands on.</param>
             <param name="focusSearchAction">Optional action to focus the search box (Ctrl+F).</param>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Models.ExpireWiseSettings">
+            <summary>
+            Settings for ExpireWise feature including sticky preferences and Quick Add state.
+            Persisted using SettingsService.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.LastSelectedStore">
+            <summary>
+            Last selected store location (saved between sessions if RememberLastLocation is true)
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.LastExpiryMonth">
+            <summary>
+            Last selected expiry month (1-12)
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.LastExpiryYear">
+            <summary>
+            Last selected expiry year
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.DefaultUnits">
+            <summary>
+            Default units/quantity for new items
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.QuickAddExpanded">
+            <summary>
+            Whether the Quick Add panel is expanded or collapsed
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.RememberLastLocation">
+            <summary>
+            Remember last selected location between adds
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.RememberLastExpiryDate">
+            <summary>
+            Remember last selected expiry date between adds
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.BlockUnknownItems">
+            <summary>
+            Block adding items not found in Business Central dictionary
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.ShowWarningForUnknownItems">
+            <summary>
+            Show warning dialog when attempting to add unknown items
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.ShowToastNotifications">
+            <summary>
+            Show toast notifications after adding items
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.AutoFocusSearchAfterAdd">
+            <summary>
+            Auto-focus search box after adding item via Quick Add
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Models.ExpireWiseSettings.CreateDefault">
+            <summary>
+            Create default settings instance
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Services.ItemLookupService">
+            <summary>
+            Service for looking up items in the Business Central dictionary.
+            Provides efficient search methods for ExpireWise SKU validation.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Services.ItemLookupService.LookupResult">
+            <summary>
+            Lookup result containing the matched item and match details
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Services.ItemLookupService.Search(System.String)">
+            <summary>
+            Search for an item by SKU, item number, or description.
+            Searches in order: exact item number → SKU match → nothing found
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Services.ItemLookupService.BatchSearch(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Batch lookup for multiple SKUs.
+            Returns dictionary of query → lookup result.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Services.ItemLookupService.GetStats">
+            <summary>
+            Get statistics about the dictionary
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Services.ItemLookupService.DictionaryStats">
+            <summary>
+            Dictionary statistics
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Views.QuickAddPanel">
+            <summary>
+            Quick Add panel for fast single-item entry in ExpireWise
+            </summary>
+            <summary>
+            QuickAddPanel
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddPanel.NumericTextBox_PreviewTextInput(System.Object,System.Windows.Input.TextCompositionEventArgs)">
+            <summary>
+            Restrict quantity input to numeric values only
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddPanel.FocusSkuInput">
+            <summary>
+            Focus the SKU input programmatically (called from parent view)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddPanel.ClearAndRefocus">
+            <summary>
+            Clear the SKU input and refocus (called after "Add and Continue")
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddPanel.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.Behaviors.CardGridPlacement">
              <summary>
@@ -2142,6 +2274,26 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.Models.OrderItem.Status"/> is changed.</remarks>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Models.OrderTemplate">
+            <summary>
+            Represents a reusable template for creating orders
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderTemplate.CreateOrder">
+            <summary>
+            Create an OrderItem from this template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderTemplate.FromOrder(SOUP.Features.OrderLog.Models.OrderItem,System.String)">
+            <summary>
+            Create a template from an existing OrderItem
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Models.OrderTemplateCollection">
+            <summary>
+            Container for template persistence
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.GroupStateStore">
             <summary>
             Persists group expand/collapse states for the orders UI.
@@ -2218,6 +2370,44 @@
             simplify view-model responsibilities and make grouping logic testable.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderLogClipboardService">
+            <summary>
+            Service for copying and pasting OrderLog items via clipboard.
+            Serializes items to JSON format with metadata wrapper for version compatibility.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogClipboardService.CopyToClipboard(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Copy items to clipboard as JSON with metadata wrapper
+            </summary>
+            <param name="items">Items to copy</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogClipboardService.TryPasteFromClipboard(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem}@)">
+            <summary>
+            Try to paste items from clipboard
+            </summary>
+            <param name="items">Output list of pasted items (transformed for pasting)</param>
+            <returns>True if successful, false if clipboard doesn't contain valid OrderLog data</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogClipboardService.CloneItems(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Clone items without using clipboard (for Duplicate command)
+            </summary>
+            <param name="items">Items to clone</param>
+            <returns>Cloned items with new GUIDs and reset state</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogClipboardService.TransformForPasting(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Transform items for pasting: generate new GUIDs, reset state, handle linked groups
+            </summary>
+            <param name="originals">Original items to transform</param>
+            <returns>Transformed items ready for insertion</returns>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderLogClipboardService.ClipboardData">
+            <summary>
+            Clipboard data wrapper for version compatibility
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.IOrderLogExportService">
             <summary>
             Service for exporting OrderLog data to various formats.
@@ -2229,6 +2419,20 @@
             </summary>
             <param name="items">Items to export</param>
             <param name="filePath">Full path to save the file</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogExportService.ExportToJsonAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String)">
+            <summary>
+            Exports order items to JSON format.
+            </summary>
+            <param name="items">Items to export</param>
+            <param name="filePath">Full path to save the file</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLogExportService.ImportFromCsvAsync(System.String)">
+            <summary>
+            Imports order items from CSV format.
+            </summary>
+            <param name="filePath">Full path to the CSV file</param>
+            <returns>Tuple with success status, imported items, and error message</returns>
         </member>
         <member name="T:SOUP.Features.OrderLog.Services.OrderLogRepository">
             <summary>
@@ -2328,6 +2532,56 @@
             Checks if any filters are currently active
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderTemplateService">
+            <summary>
+            Service for managing order templates (create, read, update, delete)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.LoadTemplatesAsync">
+            <summary>
+            Load templates from file
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.SaveTemplatesAsync">
+            <summary>
+            Save templates to file
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.AddTemplateAsync(SOUP.Features.OrderLog.Models.OrderTemplate)">
+            <summary>
+            Add new template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.UpdateTemplateAsync(SOUP.Features.OrderLog.Models.OrderTemplate)">
+            <summary>
+            Update existing template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.DeleteTemplateAsync(System.Guid)">
+            <summary>
+            Delete template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.CreateOrderFromTemplateAsync(System.Guid)">
+            <summary>
+            Create order from template (increments UseCount)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.GetTopTemplates(System.Int32)">
+            <summary>
+            Get top N templates by use count
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTemplateService.GetTemplatesSorted(SOUP.Features.OrderLog.Services.TemplateSortBy)">
+            <summary>
+            Get all templates sorted by criteria
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.TemplateSortBy">
+            <summary>
+            Template sorting criteria
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.UndoableAction">
             <summary>
             Base class for all undoable actions
@@ -2393,6 +2647,11 @@
             Action for changing sticky note color
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.PasteAction">
+            <summary>
+            Action for pasting/duplicating items with undo support
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.UndoRedoStack">
             <summary>
             Manages undo/redo stack with history
@@ -2418,6 +2677,66 @@
             Clears all history
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.VendorColorService">
+            <summary>
+            Service for managing automatic color assignment to vendors
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.LoadMappingsAsync">
+            <summary>
+            Load vendor color mappings from file
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.SaveMappingsAsync">
+            <summary>
+            Save vendor color mappings to file
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.GetColorForVendor(System.String)">
+            <summary>
+            Get color for a vendor (auto-assigns if not found)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.SetVendorColorAsync(System.String,System.String)">
+            <summary>
+            Set custom color for a vendor
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.RemoveVendorColorAsync(System.String)">
+            <summary>
+            Remove vendor color mapping
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.GetAllMappings">
+            <summary>
+            Get all vendor-color mappings
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.ClearAllMappingsAsync">
+            <summary>
+            Clear all vendor color mappings
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.AssignColorByHash(System.String)">
+            <summary>
+            Assign color based on vendor name hash
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.GetStableHashCode(System.String)">
+            <summary>
+            Get stable hash code (consistent across .NET versions)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorColorService.GetColorPalette">
+            <summary>
+            Get the predefined color palette
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.VendorColorMappingCollection">
+            <summary>
+            Container for vendor color mapping persistence
+            </summary>
+        </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderItemGroup.ShouldRenderMerged">
             <summary>
             Determines whether this group should use the merged/linked UI.
@@ -2426,6 +2745,14 @@
             </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel">
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
@@ -2531,6 +2858,41 @@
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.GetSavedScrollPosition">
             <summary>
             Restores the saved scroll position
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.Copy">
+            <summary>
+            Copy selected item(s) to clipboard
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.PasteAsync">
+            <summary>
+            Paste item(s) from clipboard
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateAsync">
+            <summary>
+            Duplicate selected item(s) (copy + paste in one action)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateAsync(SOUP.Features.OrderLog.Models.OrderTemplate)">
+            <summary>
+            Apply a template to create a new order
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateAsync">
+            <summary>
+            Save the selected order as a template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesAsync">
+            <summary>
+            Open the template manager dialog
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LoadTemplatesAsync">
+            <summary>
+            Load templates from service and update UI collections
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SwapOrders(SOUP.Features.OrderLog.Models.OrderItem,SOUP.Features.OrderLog.Models.OrderItem)">
@@ -2656,6 +3018,9 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.IsMultiSelectMode">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._isMultiSelectMode"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AutoColorByVendor">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._autoColorByVendor"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CurrentNavigationItem">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._currentNavigationItem"/>
@@ -2788,6 +3153,11 @@
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteCategoryFilter"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NoteCategoryFilter"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnAutoColorByVendorChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AutoColorByVendor"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AutoColorByVendor"/> is changed.</remarks>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnStatusMessageChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusMessage"/> just changed.</summary>
@@ -3030,6 +3400,54 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ExportToCsvCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ExportToCsv"/>.</summary>
         </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.exportToJsonCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ExportToJsonCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ExportToJsonCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ExportToJson"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.importFromCsvCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ImportFromCsvCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ImportFromCsvCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ImportFromCsv"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.copyCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CopyCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CopyCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.Copy"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.pasteCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.PasteCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.PasteCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.PasteAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.duplicateCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.applyTemplateCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ApplyTemplateAsync(SOUP.Features.OrderLog.Models.OrderTemplate)"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.saveAsTemplateCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveAsTemplateAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.manageTemplatesCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ManageTemplatesAsync"/>.</summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Views.LinkOrdersWindow">
             <summary>
             LinkOrdersWindow
@@ -3123,9 +3541,59 @@
             Shows the keyboard shortcuts help dialog (future implementation)
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.SaveAsTemplate_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Save selected order as a template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.TemplatesButton_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Show templates dropdown menu
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.InitializeComponent">
             <summary>
             InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Views.OrderTemplateEditorDialog">
+            <summary>
+            OrderTemplateEditorDialog
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderTemplateEditorDialog.#ctor">
+            <summary>
+            Create a new template from scratch
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderTemplateEditorDialog.#ctor(SOUP.Features.OrderLog.Models.OrderTemplate)">
+            <summary>
+            Edit an existing template
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderTemplateEditorDialog.#ctor(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Create a template from an existing order
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderTemplateEditorDialog.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Views.OrderTemplateManagerDialog">
+            <summary>
+            OrderTemplateManagerDialog
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderTemplateManagerDialog.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Views.NullToBooleanConverter">
+            <summary>
+            Converter to check if a value is not null (for enabling buttons)
             </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.Views.UndoHistoryPanel">
@@ -3653,6 +4121,40 @@
             Shows a themed export error dialog.
             </summary>
             <param name="errorMessage">The error message to display.</param>
+        </member>
+        <member name="M:SOUP.Services.DialogService.ShowImportSuccessDialog(System.String,System.Int32)">
+            <summary>
+            Shows a themed import success dialog.
+            </summary>
+            <param name="fileName">The name of the imported file.</param>
+            <param name="itemCount">The number of items imported.</param>
+        </member>
+        <member name="M:SOUP.Services.DialogService.ShowImportErrorDialog(System.String)">
+            <summary>
+            Shows a themed import error dialog.
+            </summary>
+            <param name="errorMessage">The error message to display.</param>
+        </member>
+        <member name="M:SOUP.Services.DialogService.ShowError(System.String,System.String)">
+            <summary>
+            Shows a generic error dialog with custom message.
+            </summary>
+            <param name="message">The error message to display.</param>
+            <param name="title">The dialog title.</param>
+        </member>
+        <member name="M:SOUP.Services.DialogService.ShowWarning(System.String,System.String)">
+            <summary>
+            Shows a generic warning dialog with custom message.
+            </summary>
+            <param name="message">The warning message to display.</param>
+            <param name="title">The dialog title.</param>
+        </member>
+        <member name="M:SOUP.Services.DialogService.ShowInfo(System.String,System.String)">
+            <summary>
+            Shows a generic info dialog with custom message.
+            </summary>
+            <param name="message">The info message to display.</param>
+            <param name="title">The dialog title.</param>
         </member>
         <member name="T:SOUP.Services.External.BusinessCentralService">
             <summary>
@@ -5875,11 +6377,6 @@
             </summary>
             <inheritdoc/>
             <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
-            <inheritdoc/>
         </member>
         <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel._skuInput">
             <summary>
@@ -5914,7 +6411,7 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CanSubmit">
             <summary>
-            Check if the dialog can be submitted
+            Check if the dialog can be submitted (strict BC validation - all items must be found)
             </summary>
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SkuInput">
@@ -5934,6 +6431,9 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ExpiryYear">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._expiryYear"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.RememberSettings">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._rememberSettings"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ParsedItems">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._parsedItems"/>
@@ -5962,69 +6462,16 @@
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.DialogTitle">
             <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._dialogTitle"/>
         </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowAddToDictionaryPanel">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showAddToDictionaryPanel"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ItemToAddToDict">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._itemToAddToDict"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictItemNumber">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newDictItemNumber"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictDescription">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._newDictDescription"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.DictSuggestions">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._dictSuggestions"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ShowDictSuggestions">
-            <inheritdoc cref="F:SOUP.ViewModels.ExpirationItemDialogViewModel._showDictSuggestions"/>
-        </member>
         <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnSkuInputChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SkuInput"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SkuInput"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpirationItemDialogViewModel.OnNewDictItemNumberChanged(System.String)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictItemNumber"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.NewDictItemNumber"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.parseAndVerifyCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerifyCommand"/>.</summary>
         </member>
         <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerifyCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.ParseAndVerify"/>.</summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.startAddToDictCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDictCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.StartAddToDict(SOUP.ViewModels.ParsedSkuEntry)"/>.</summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.cancelAddToDictCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDictCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.CancelAddToDict"/>.</summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.selectDictSuggestionCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectDictSuggestionCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectDictSuggestionCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SelectDictSuggestion(SOUP.Infrastructure.Services.Parsers.DictionaryItem)"/>.</summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.saveNewDictItemCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SaveNewDictItemCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.SaveNewDictItemCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.SaveNewDictItem"/>.</summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpirationItemDialogViewModel.addSkuToItemCommand">
-            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToItemCommand"/>.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToItemCommand">
-            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpirationItemDialogViewModel.AddSkuToItem(SOUP.ViewModels.ParsedSkuEntry)"/>.</summary>
         </member>
         <member name="T:SOUP.ViewModels.ParsedSkuEntry">
             <summary>
@@ -6046,12 +6493,6 @@
         </member>
         <member name="P:SOUP.ViewModels.ParsedSkuEntry.Found">
             <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._found"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ParsedSkuEntry.CanAddSkuToItem">
-            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._canAddSkuToItem"/>
-        </member>
-        <member name="P:SOUP.ViewModels.ParsedSkuEntry.SkuWasAdded">
-            <inheritdoc cref="F:SOUP.ViewModels.ParsedSkuEntry._skuWasAdded"/>
         </member>
         <member name="T:SOUP.ViewModels.StoreOption">
             <summary>
@@ -6196,6 +6637,11 @@
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseSettingsViewModel.ClearAllDataAsync"/>.</summary>
         </member>
         <member name="T:SOUP.ViewModels.ExpireWiseViewModel">
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
@@ -6382,6 +6828,51 @@
             Available years for quick add dropdown.
             </summary>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddStore">
+            <summary>
+            Gets or sets the store for quick add.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddIsValidating">
+            <summary>
+            Gets or sets whether Quick Add is currently validating the SKU.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddIsValid">
+            <summary>
+            Gets or sets whether the Quick Add SKU is valid.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddItemPreview">
+            <summary>
+            Gets or sets the item preview text for Quick Add (shown when valid).
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddLookedUpItem">
+            <summary>
+            The looked-up dictionary item for Quick Add (cached).
+            </summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.AvailableStores">
+            <summary>
+            Available stores for dropdown selection.
+            </summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddQueue">
+            <summary>
+            Queue of items pending confirmation (not yet saved to database).
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._hasQueuedItems">
+            <summary>
+            Gets whether there are items in the queue.
+            </summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._skuLookupDebounceTimer">
+            <summary>
+            Debounce timer for SKU lookup (waits 300ms after user stops typing).
+            </summary>
+        </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.#ctor(SOUP.Core.Interfaces.IExpireWiseRepository,SOUP.Core.Interfaces.IFileImportExportService,SOUP.Services.DialogService,System.IServiceProvider,SOUP.Features.ExpireWise.Services.ExpireWiseSearchService,SOUP.Features.ExpireWise.Services.ExpireWiseMonthNavigationService,SOUP.Features.ExpireWise.Services.ExpireWiseImportExportService,SOUP.Features.ExpireWise.Services.ExpireWiseNotificationService,SOUP.Features.ExpireWise.Services.ExpireWiseItemService,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.ExpireWiseViewModel})">
             <summary>
             Initializes a new instance of the <see cref="T:SOUP.ViewModels.ExpireWiseViewModel"/> class.
@@ -6427,9 +6918,74 @@
             Shows 6 months before and 6 months after current selection
             </summary>
         </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ShowSuccessToast(System.String)">
+            <summary>
+            Shows a brief success toast notification (non-blocking)
+            </summary>
+        </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.UpdateGlobalStatistics">
             <summary>
             Updates global statistics across all items (not just current month).
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadAvailableStores">
+            <summary>
+            Load available stores from the dictionary database
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnQuickAddSkuChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)">
+            <summary>
+            Handle QuickAddSku property changes with debouncing
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.DebouncedLookupSku">
+            <summary>
+            Perform the actual SKU lookup after debounce
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAdd">
+            <summary>
+            Toggle Quick Add panel (replaces old Ctrl+N modal dialog)
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.CanAddToQueue">
+            <summary>
+            Check if item can be added to queue
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.AddToQueue">
+            <summary>
+            Add item to queue (not saved to database yet)
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.RemoveFromQueue(SOUP.Core.Entities.ExpireWise.ExpirationItem)">
+            <summary>
+            Remove an item from the queue
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ClearQueue">
+            <summary>
+            Clear the entire queue
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ConfirmQueue">
+            <summary>
+            Confirm and save all queued items to database
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ClearQuickAddForm">
+            <summary>
+            Clear the Quick Add form
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.SaveQuickAddSettings">
+            <summary>
+            Save Quick Add settings (sticky preferences)
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadQuickAddSettings">
+            <summary>
+            Load settings and apply to Quick Add form
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.SaveDataOnShutdownAsync">
@@ -6548,6 +7104,21 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddUnits">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddUnits"/>
         </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddStore">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddStore"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddIsValidating">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddIsValidating"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddIsValid">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddIsValid"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddItemPreview">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddItemPreview"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.HasQueuedItems">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._hasQueuedItems"/>
+        </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnSearchTextChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.SearchText"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -6567,6 +7138,11 @@
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnQuickAddIsValidChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddIsValid"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddIsValid"/> is changed.</remarks>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.checkNotificationsCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.CheckNotificationsCommand"/>.</summary>
@@ -6663,6 +7239,36 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.OpenSettingsCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.OpenSettings"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.toggleQuickAddCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAddCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAddCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAdd"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.addToQueueCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.AddToQueueCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.AddToQueueCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.AddToQueue"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.removeFromQueueCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.RemoveFromQueueCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.RemoveFromQueueCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand`1"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.RemoveFromQueue(SOUP.Core.Entities.ExpireWise.ExpirationItem)"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.clearQueueCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ClearQueueCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ClearQueueCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ClearQueue"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.confirmQueueCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ConfirmQueueCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ConfirmQueueCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ConfirmQueue"/>.</summary>
         </member>
         <member name="T:SOUP.ViewModels.MonthGroup">
             <summary>
@@ -7701,6 +8307,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsMultiSelectMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsMultiSelectMode" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AutoColorByVendor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AutoColorByVendor" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CurrentNavigationItem">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CurrentNavigationItem" generated properties.</summary>
         </member>
@@ -8049,6 +8658,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ExpiryYear">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ExpiryYear" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.RememberSettings">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "RememberSettings" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ParsedItems">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ParsedItems" generated properties.</summary>
         </member>
@@ -8076,24 +8688,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DialogTitle">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DialogTitle" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowAddToDictionaryPanel">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowAddToDictionaryPanel" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ItemToAddToDict">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ItemToAddToDict" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewDictItemNumber">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewDictItemNumber" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NewDictDescription">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NewDictDescription" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DictSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DictSuggestions" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowDictSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowDictSuggestions" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InputSku">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InputSku" generated properties.</summary>
         </member>
@@ -8102,12 +8696,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Found">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Found" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CanAddSkuToItem">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CanAddSkuToItem" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SkuWasAdded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SkuWasAdded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.MonthlyData">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "MonthlyData" generated properties.</summary>
@@ -8228,6 +8816,21 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddUnits">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddUnits" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddStore">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddStore" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddIsValidating">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddIsValidating" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddIsValid">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddIsValid" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddItemPreview">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddItemPreview" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.HasQueuedItems">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "HasQueuedItems" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Config">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Config" generated properties.</summary>
@@ -8390,6 +8993,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsMultiSelectMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsMultiSelectMode" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AutoColorByVendor">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AutoColorByVendor" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CurrentNavigationItem">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CurrentNavigationItem" generated properties.</summary>
@@ -8739,6 +9345,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ExpiryYear">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ExpiryYear" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.RememberSettings">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "RememberSettings" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ParsedItems">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ParsedItems" generated properties.</summary>
         </member>
@@ -8766,24 +9375,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DialogTitle">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DialogTitle" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowAddToDictionaryPanel">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowAddToDictionaryPanel" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ItemToAddToDict">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ItemToAddToDict" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewDictItemNumber">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewDictItemNumber" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NewDictDescription">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NewDictDescription" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DictSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DictSuggestions" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowDictSuggestions">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowDictSuggestions" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InputSku">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InputSku" generated properties.</summary>
         </member>
@@ -8792,12 +9383,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Found">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Found" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CanAddSkuToItem">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CanAddSkuToItem" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SkuWasAdded">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SkuWasAdded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.MonthlyData">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "MonthlyData" generated properties.</summary>
@@ -8918,6 +9503,21 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddUnits">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddUnits" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddStore">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddStore" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddIsValidating">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddIsValidating" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddIsValid">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddIsValid" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddItemPreview">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddItemPreview" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.HasQueuedItems">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "HasQueuedItems" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Config">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Config" generated properties.</summary>
