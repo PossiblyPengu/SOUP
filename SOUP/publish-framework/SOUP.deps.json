@@ -7,7 +7,7 @@
   "targets": {
     ".NETCoreApp,Version=v10.0": {},
     ".NETCoreApp,Version=v10.0/win-x64": {
-      "SOUP/4.33.0": {
+      "SOUP/4.34.0": {
         "dependencies": {
           "ClosedXML": "0.104.2",
           "CommunityToolkit.Mvvm": "8.4.0",
@@ -1669,7 +1669,7 @@
     }
   },
   "libraries": {
-    "SOUP/4.33.0": {
+    "SOUP/4.34.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
