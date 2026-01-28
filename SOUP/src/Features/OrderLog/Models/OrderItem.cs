@@ -131,9 +131,12 @@ public partial class OrderItem : ObservableObject
     {
         get
         {
-            // Current lap time only
+            // Current lap time only — count only overlap with work hours
             if (StartedAt == null) return TimeSpan.Zero;
-            if (Status == OrderStatus.InProgress) return DateTime.Now - StartedAt.Value;
+            if (Status == OrderStatus.InProgress)
+            {
+                return CalculateWorkTimeBetween(StartedAt.Value, DateTime.Now);
+            }
             return TimeSpan.Zero;
         }
     }
@@ -243,10 +246,10 @@ public partial class OrderItem : ObservableObject
         // Use StartedAt presence to detect if we were InProgress (StartedAt is only set when InProgress)
         _previousStatusForLap ??= StartedAt != null ? OrderStatus.InProgress : Status;
 
-        // If leaving InProgress, accumulate the current session time
+        // If leaving InProgress, accumulate the current session time (only work hours)
         if (_previousStatusForLap == OrderStatus.InProgress && status != OrderStatus.InProgress && StartedAt != null)
         {
-            AccumulatedTime += DateTime.Now - StartedAt.Value;
+            AccumulatedTime += CalculateWorkTimeBetween(StartedAt.Value, DateTime.Now);
         }
 
         switch (status)
@@ -290,6 +293,38 @@ public partial class OrderItem : ObservableObject
         OnPropertyChanged(nameof(TotalTimeInProgress));
         OnPropertyChanged(nameof(HasPreviousLaps));
         RefreshTimeInProgress();
+    }
+
+    private static TimeSpan CalculateWorkTimeBetween(DateTime start, DateTime end)
+    {
+        if (end <= start) return TimeSpan.Zero;
+
+        // Workday boundaries
+        var workStart = new TimeSpan(8, 0, 0);   // 08:00
+        var workEnd = new TimeSpan(16, 30, 0);   // 16:30
+
+        TimeSpan total = TimeSpan.Zero;
+
+        var day = start.Date;
+        var lastDay = end.Date;
+
+        while (day <= lastDay)
+        {
+            var dayWorkStart = day + workStart;
+            var dayWorkEnd = day + workEnd;
+
+            var segStart = start > dayWorkStart ? start : dayWorkStart;
+            var segEnd = end < dayWorkEnd ? end : dayWorkEnd;
+
+            if (segEnd > segStart)
+            {
+                total += segEnd - segStart;
+            }
+
+            day = day.AddDays(1);
+        }
+
+        return total;
     }
 
     /// <summary>
