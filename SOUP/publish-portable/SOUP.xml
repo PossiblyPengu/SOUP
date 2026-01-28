@@ -796,6 +796,12 @@
             Gets the current inventory status based on quantity and thresholds.
             </summary>
         </member>
+        <member name="P:SOUP.Core.Entities.EssentialsBuddy.InventoryItem.StatusSortOrder">
+            <summary>
+            Provides a numeric sort order for the status to allow custom ordering in UI lists/grids.
+            Lower numbers sort earlier. Order: OutOfStock (No Stock), Low, InStock, Sufficient.
+            </summary>
+        </member>
         <member name="M:SOUP.Core.Entities.EssentialsBuddy.InventoryItem.CalculateStatus">
             <summary>
             Calculates the inventory status based on current quantity and thresholds.
@@ -5968,6 +5974,8 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._items">
             <summary>
@@ -5999,12 +6007,10 @@
             Gets or sets whether to show only essential items.
             </summary>
         </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._privateLabelOnly">
+        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._includeAllPrivateLabel">
             <summary>
             Gets or sets whether to show only private label items.
             </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._includeAllPrivateLabel">
             <summary>
             Gets or sets whether to include all private label items from any bin during import.
             </summary>
@@ -6129,9 +6135,6 @@
         <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.EssentialsOnly">
             <inheritdoc cref="F:SOUP.ViewModels.EssentialsBuddyViewModel._essentialsOnly"/>
         </member>
-        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.PrivateLabelOnly">
-            <inheritdoc cref="F:SOUP.ViewModels.EssentialsBuddyViewModel._privateLabelOnly"/>
-        </member>
         <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.IncludeAllPrivateLabel">
             <inheritdoc cref="F:SOUP.ViewModels.EssentialsBuddyViewModel._includeAllPrivateLabel"/>
         </member>
@@ -6159,10 +6162,17 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.EssentialsBuddyViewModel.EssentialsOnly"/> is changed.</remarks>
         </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.OnPrivateLabelOnlyChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.EssentialsBuddyViewModel.PrivateLabelOnly"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.EssentialsBuddyViewModel.PrivateLabelOnly"/> is changed.</remarks>
+        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel.saveSnapshotCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.EssentialsBuddyViewModel.SaveSnapshotCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.SaveSnapshotCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.EssentialsBuddyViewModel.SaveSnapshotAsync"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel.compareWithPreviousRunCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.EssentialsBuddyViewModel.CompareWithPreviousRunCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.CompareWithPreviousRunCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.EssentialsBuddyViewModel.CompareWithPreviousRunAsync"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel.focusSearchCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.EssentialsBuddyViewModel.FocusSearchCommand"/>.</summary>
@@ -8482,9 +8492,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.EssentialsOnly">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "EssentialsOnly" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.PrivateLabelOnly">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "PrivateLabelOnly" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IncludeAllPrivateLabel">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IncludeAllPrivateLabel" generated properties.</summary>
         </member>
@@ -9174,9 +9181,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.EssentialsOnly">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "EssentialsOnly" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.PrivateLabelOnly">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "PrivateLabelOnly" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IncludeAllPrivateLabel">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IncludeAllPrivateLabel" generated properties.</summary>

@@ -147,6 +147,19 @@ public class InventoryItem : BaseEntity
     public InventoryStatus Status => CalculateStatus();
 
     /// <summary>
+    /// Provides a numeric sort order for the status to allow custom ordering in UI lists/grids.
+    /// Lower numbers sort earlier. Order: OutOfStock (No Stock), Low, InStock, Sufficient.
+    /// </summary>
+    public int StatusSortOrder => Status switch
+    {
+        InventoryStatus.OutOfStock => 0,
+        InventoryStatus.Low => 1,
+        InventoryStatus.InStock => 2,
+        InventoryStatus.Sufficient => 3,
+        _ => 4
+    };
+
+    /// <summary>
     /// Calculates the inventory status based on current quantity and thresholds.
     /// Uses per-item thresholds if set, otherwise falls back to global defaults.
     /// </summary>

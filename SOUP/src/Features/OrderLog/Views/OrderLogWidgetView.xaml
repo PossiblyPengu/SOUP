@@ -2438,14 +2438,30 @@
 
                                         <!-- Content -->
                                         <StackPanel Grid.Row="2" Margin="16,14">
-                                            <TextBlock Text="{Binding First.TransferNumbers}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       FontSize="{DynamicResource CardFontSize}"
-                                                       Margin="0,0,0,4"/>
-                                            <TextBlock Text="{Binding First.WhsShipmentNumbers}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       FontSize="{DynamicResource CardFontSize}"
-                                                       Margin="0,0,0,4"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}"
+                                                            Click="CopyTransferNumbers_Click" Tag="{Binding First.TransferNumbers}" IsTabStop="False"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding First.TransferNumbers}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               FontSize="{DynamicResource CardFontSize}"
+                                                               Margin="0,0,0,4"/>
+                                                </Grid>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}"
+                                                            Click="CopyWhsNumbers_Click" Tag="{Binding First.WhsShipmentNumbers}" IsTabStop="False"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding First.WhsShipmentNumbers}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               FontSize="{DynamicResource CardFontSize}"
+                                                               Margin="0,0,0,4"/>
+                                                </Grid>
                                             <TextBlock Text="{Binding First.TimeInProgressDisplay}"
                                                        Foreground="{DynamicResource TextTertiaryBrush}"
                                                        FontSize="{DynamicResource CardFontSize}"

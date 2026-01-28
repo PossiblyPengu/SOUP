@@ -412,8 +412,13 @@
                         <!-- Status Filter -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0">
                             <TextBlock Text="Status:" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
-                                      Style="{StaticResource ModernComboBox}" Width="140"/>
+                            <ComboBox SelectedValuePath="Content" SelectedValue="{Binding StatusFilter}"
+                                      Style="{StaticResource ModernComboBox}" Width="140">
+                                <ComboBoxItem>All</ComboBoxItem>
+                                <ComboBoxItem>No Stock</ComboBoxItem>
+                                <ComboBoxItem>Low Stock</ComboBoxItem>
+                                <ComboBoxItem>Sufficient</ComboBoxItem>
+                            </ComboBox>
                         </StackPanel>
 
                         <!-- Essentials Toggle -->
@@ -423,11 +428,7 @@
                                       Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                       VerticalAlignment="Center"/>
                             
-                            <CheckBox Content="Include PL" 
-                                      IsChecked="{Binding PrivateLabelOnly}"
-                                      Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
-                                      VerticalAlignment="Center" Margin="16,0,0,0"
-                                      ToolTip="Show Private Label items not in 9-90 bins"/>
+                            <!-- Include PL checkbox removed per UX request -->
                             
                             <Border Background="{DynamicResource SuccessBrush}" CornerRadius="10" Padding="12,6" Margin="16,0,0,0">
                                 <TextBlock Text="{Binding FilteredItems.Count, StringFormat='{}{0} items'}"
@@ -454,12 +455,26 @@
                             </StackPanel>
                         </Button>
 
+                        <Button Command="{Binding SaveSnapshotCommand}" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💾" FontSize="12" Margin="0,0,6,0"/>
+                                <TextBlock Text="Save Snapshot" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding CompareWithPreviousRunCommand}" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔍" FontSize="12" Margin="0,0,6,0"/>
+                                <TextBlock Text="Compare Last Run" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+
                         <!-- Legend -->
                         <StackPanel Orientation="Horizontal" Margin="32,0,0,0">
                             <TextBlock Text="Legend:" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
                             
                             <Border Background="{DynamicResource OutOfStockBrush}" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
-                                <TextBlock Text="Out of Stock" Foreground="{DynamicResource OutOfStockTextBrush}" FontSize="10"/>
+                                <TextBlock Text="No Stock" Foreground="{DynamicResource OutOfStockTextBrush}" FontSize="10"/>
                             </Border>
                             
                             <Border Background="{DynamicResource LowStockBrush}" CornerRadius="4" Padding="8,3" Margin="0,0,6,0">
@@ -481,16 +496,18 @@
                 </Border>
 
                 <!-- Data Grid -->
-                <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
+                <DataGrid x:Name="ItemsGrid" Grid.Row="2" ItemsSource="{Binding FilteredItems}" SelectedItem="{Binding SelectedItem}"
                           Style="{StaticResource ModernDataGrid}"
-                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                          ColumnHeaderStyle="{StaticResource EssentialsDataGridColumnHeader}"
                           CellStyle="{StaticResource ModernDataGridCell}"
                           VirtualizingStackPanel.IsVirtualizing="True"
                           VirtualizingStackPanel.VirtualizationMode="Recycling"
                           EnableRowVirtualization="True"
                           EnableColumnVirtualization="True"
                           CanUserReorderColumns="True" CanUserResizeColumns="True"
-                          CanUserSortColumns="True" Margin="16">
+                          CanUserSortColumns="True" Margin="16"
+                          ColumnWidth="SizeToCells"
+                          HorizontalScrollBarVisibility="Auto">
                     <DataGrid.InputBindings>
                         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
                     </DataGrid.InputBindings>
@@ -541,12 +558,12 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="150" IsReadOnly="True" SortMemberPath="ItemNumber"/>
-                        <DataGridTextColumn Header="Description" Binding="{Binding DisplayDescription}" Width="*" IsReadOnly="True" SortMemberPath="DisplayDescription"/>
-                        <DataGridTextColumn Header="Tags" Binding="{Binding TagsDisplay}" Width="100" IsReadOnly="True" SortMemberPath="TagsDisplay"/>
-                        <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="120" IsReadOnly="True" SortMemberPath="BinCode"/>
-                        <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100" IsReadOnly="True" SortMemberPath="QuantityOnHand"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" IsReadOnly="True" SortMemberPath="Status"/>
+                        <DataGridTextColumn Header="Item Number" Binding="{Binding ItemNumber}" Width="SizeToCells" MinWidth="90" IsReadOnly="True" SortMemberPath="ItemNumber"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding DisplayDescription}" Width="SizeToCells" MinWidth="140" IsReadOnly="True" SortMemberPath="DisplayDescription"/>
+                        <DataGridTextColumn Header="Tags" Binding="{Binding TagsDisplay}" Width="SizeToCells" MinWidth="60" IsReadOnly="True" SortMemberPath="TagsDisplay"/>
+                        <DataGridTextColumn Header="Bin Code" Binding="{Binding BinCode}" Width="SizeToCells" MinWidth="70" IsReadOnly="True" SortMemberPath="BinCode"/>
+                        <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="SizeToCells" MinWidth="60" IsReadOnly="True" SortMemberPath="QuantityOnHand"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="SizeToCells" MinWidth="80" IsReadOnly="True" SortMemberPath="StatusSortOrder"/>
                         <DataGridTemplateColumn Header="Dict" Width="50" IsReadOnly="True" SortMemberPath="DictionaryMatched">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

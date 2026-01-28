@@ -94,8 +94,6 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets or sets whether to show only private label items.
     /// </summary>
-    [ObservableProperty]
-    private bool _privateLabelOnly;
 
     /// <summary>
     /// Gets or sets whether to include all private label items from any bin during import.
@@ -155,8 +153,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> StatusFilters { get; } = new()
     {
         "All",
-        "OutOfStock",
-        "Low",
+        "No Stock",
+        "Low Stock",
         "Sufficient"
     };
 
@@ -213,6 +211,90 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         // Load and apply settings for stock thresholds
         await LoadAndApplySettingsAsync();
         await LoadItems();
+    }
+
+    [RelayCommand]
+    public async Task SaveSnapshotAsync()
+    {
+        try
+        {
+            var path = GetSnapshotFilePath();
+            var snaps = Items.Select(i => new InventoryItemSnapshot(i.ItemNumber, i.QuantityOnHand, i.BinCode, i.LastUpdated)).ToList();
+            var json = JsonSerializer.Serialize(snaps, s_jsonOptions);
+            await File.WriteAllTextAsync(path, json);
+            StatusMessage = $"Saved snapshot ({snaps.Count} items)";
+            _logger?.LogInformation("Saved EssentialsBuddy snapshot to {Path}", path);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to save snapshot");
+            StatusMessage = "Failed to save snapshot";
+        }
+    }
+
+    [RelayCommand]
+    public async Task CompareWithPreviousRunAsync()
+    {
+        try
+        {
+            var path = GetSnapshotFilePath();
+            if (!File.Exists(path))
+            {
+                StatusMessage = "No previous snapshot to compare";
+                return;
+            }
+
+            var prevJson = await File.ReadAllTextAsync(path);
+            var prev = JsonSerializer.Deserialize<List<InventoryItemSnapshot>>(prevJson, s_jsonOptions) ?? new List<InventoryItemSnapshot>();
+
+            var prevMap = prev.ToDictionary(p => p.ItemNumber, StringComparer.OrdinalIgnoreCase);
+            var currMap = Items.ToDictionary(i => i.ItemNumber, StringComparer.OrdinalIgnoreCase);
+
+            var added = currMap.Keys.Except(prevMap.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+            var removed = prevMap.Keys.Except(currMap.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+            var changed = new List<string>();
+
+            foreach (var key in currMap.Keys.Intersect(prevMap.Keys, StringComparer.OrdinalIgnoreCase))
+            {
+                var currQ = currMap[key].QuantityOnHand;
+                var prevQ = prevMap[key].QuantityOnHand;
+                if (currQ != prevQ)
+                {
+                    changed.Add($"{key}: {prevQ} -> {currQ}");
+                }
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"Compare results: Added={added.Count}, Removed={removed.Count}, QuantityChanged={changed.Count}");
+            if (added.Count > 0)
+            {
+                sb.AppendLine("\nAdded:");
+                foreach (var a in added) sb.AppendLine($" + {a}");
+            }
+            if (removed.Count > 0)
+            {
+                sb.AppendLine("\nRemoved:");
+                foreach (var r in removed) sb.AppendLine($" - {r}");
+            }
+            if (changed.Count > 0)
+            {
+                sb.AppendLine("\nQuantity changes:");
+                foreach (var c in changed) sb.AppendLine($" * {c}");
+            }
+
+            // Write details to a results file for review
+            var outDir = Path.GetDirectoryName(path) ?? Path.GetTempPath();
+            var outFile = Path.Combine(outDir, $"essentials_compare_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+            await File.WriteAllTextAsync(outFile, sb.ToString());
+
+            StatusMessage = $"Compared to previous run: +{added.Count} / -{removed.Count} / Δ{changed.Count} (details: {outFile})";
+            _logger?.LogInformation("Essentials compare written to {OutFile}", outFile);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to compare snapshots");
+            StatusMessage = "Compare failed";
+        }
     }
 
     /// <summary>
@@ -373,6 +455,17 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
     /// </summary>
     public event Action? FocusSearchRequested;
 
+    // Snapshot DTO for lightweight persistence between runs
+    private record InventoryItemSnapshot(string ItemNumber, int QuantityOnHand, string? BinCode, DateTime? LastUpdated);
+
+    private string GetSnapshotFilePath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var dir = Path.Combine(appData, "SOUP", "EssentialsBuddy");
+        try { Directory.CreateDirectory(dir); } catch { }
+        return Path.Combine(dir, "last_snapshot.json");
+    }
+
     [RelayCommand]
     private void FocusSearch()
     {
@@ -463,6 +556,17 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                         Directory.CreateDirectory(dataPath);
                         await File.WriteAllTextAsync(GetLastSessionInfoFilePath(), _sessionFileName).ConfigureAwait(false);
                         await SaveDataOnShutdownAsync().ConfigureAwait(false);
+
+                        // Auto-save a snapshot after successful import so the "previous run" comparison
+                        // reflects the newly imported data.
+                        try
+                        {
+                            await SaveSnapshotAsync().ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogWarning(ex, "Failed to auto-save snapshot after Excel import");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -551,6 +655,17 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                         Directory.CreateDirectory(dataPath);
                         await File.WriteAllTextAsync(GetLastSessionInfoFilePath(), _sessionFileName).ConfigureAwait(false);
                         await SaveDataOnShutdownAsync().ConfigureAwait(false);
+
+                        // Auto-save a snapshot after successful import so the "previous run" comparison
+                        // reflects the newly imported data.
+                        try
+                        {
+                            await SaveSnapshotAsync().ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogWarning(ex, "Failed to auto-save snapshot after CSV import");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -715,6 +830,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 StatusMessage = $"Exported {Items.Count} item(s)";
                 _logger?.LogInformation("Exported {Count} items to Excel", Items.Count);
                 _dialogService.ShowExportSuccessDialog(fileName, filePath, Items.Count);
+                // Auto-save snapshot after successful report/export
+                try { await SaveSnapshotAsync(); } catch { }
             }
             else
             {
@@ -771,6 +888,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 StatusMessage = $"Exported {Items.Count} item(s)";
                 _logger?.LogInformation("Exported {Count} items to CSV", Items.Count);
                 _dialogService.ShowExportSuccessDialog(fileName, filePath, Items.Count);
+                // Auto-save snapshot after successful report/export
+                try { await SaveSnapshotAsync(); } catch { }
             }
             else
             {
@@ -874,10 +993,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         ApplyFilters();
     }
 
-    partial void OnPrivateLabelOnlyChanged(bool value)
-    {
-        ApplyFilters();
-    }
+    // PrivateLabelOnly removed: private-label filtering is no longer exposed in the UI
 
     private void ApplyFilters()
     {
@@ -887,13 +1003,11 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
         // Determine if an item should be shown based on bin and status
         // - Essential items: always show
         // - PL items in 9-90 bins: always show
-        // - PL items NOT in 9-90 bins: only show if PrivateLabelOnly checkbox is checked
         // - Other items with zero quantity: hide
         query = query.Where(i =>
             i.IsEssential ||
             i.QuantityOnHand > 0 ||
-            (i.IsPrivateLabel && (i.BinCode?.StartsWith("9-90", StringComparison.OrdinalIgnoreCase) ?? false)) ||
-            (i.IsPrivateLabel && PrivateLabelOnly));
+            (i.IsPrivateLabel && (i.BinCode?.StartsWith("9-90", StringComparison.OrdinalIgnoreCase) ?? false)));
 
         // Essentials filter
         if (EssentialsOnly)
@@ -901,7 +1015,7 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             query = query.Where(i => i.IsEssential);
         }
 
-        // Note: PrivateLabelOnly affects the base filter above - when checked, it includes PL items not in 9-90
+        // Private-label items outside 9-90 bins are no longer included by a UI toggle.
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
@@ -914,13 +1028,29 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
                 (i.Category?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
-        if (StatusFilter != "All" && Enum.TryParse<InventoryStatus>(StatusFilter, out var status))
+        if (StatusFilter != "All")
         {
-            query = query.Where(i => i.Status == status);
+            // Map user-facing labels to enum names used by InventoryStatus
+            var enumName = StatusFilter switch
+            {
+                "No Stock" => "OutOfStock",
+                "Out of Stock" => "OutOfStock",
+                "Low Stock" => "Low",
+                "Low" => "Low",
+                "Sufficient" => "Sufficient",
+                _ => StatusFilter
+            };
+
+            if (Enum.TryParse<InventoryStatus>(enumName, out var status))
+            {
+                query = query.Where(i => i.Status == status);
+            }
         }
 
-        // Materialize once, then bulk update collection
-        var results = query.OrderBy(i => i.ItemNumber).ToList();
+        // Materialize once, then bulk update collection.
+        // Default ordering: by status (custom StatusSortOrder) then ItemNumber so the UI
+        // shows No Stock -> Low Stock -> InStock -> Sufficient by default.
+        var results = query.OrderBy(i => i.StatusSortOrder).ThenBy(i => i.ItemNumber).ToList();
 
         FilteredItems.Clear();
         foreach (var item in results)

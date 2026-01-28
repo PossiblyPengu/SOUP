@@ -95,7 +95,8 @@
     <!-- Status Brushes -->
     <SolidColorBrush x:Key="WidgetStatusNotReadyBrush" Color="{StaticResource WidgetStatusNotReadyColor}"/>
     <SolidColorBrush x:Key="WidgetStatusOnDeckBrush" Color="{StaticResource WidgetStatusOnDeckColor}"/>
-    <SolidColorBrush x:Key="WidgetStatusInProgressBrush" Color="{StaticResource WidgetStatusInProgressColor}"/>
+    <!-- Use global SuccessColor to match card highlight green -->
+    <SolidColorBrush x:Key="WidgetStatusInProgressBrush" Color="{StaticResource SuccessColor}"/>
     <SolidColorBrush x:Key="WidgetStatusDoneBrush" Color="{StaticResource WidgetStatusDoneColor}"/>
     
     <!-- Status Background Brushes -->

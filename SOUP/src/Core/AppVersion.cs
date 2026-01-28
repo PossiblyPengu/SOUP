@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.34.2";
+    public const string Version = "4.35.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.35.0", "2026-01-28", "Release Update", new[]
+        {
+            "Enhance EssentialsBuddy with snapshot functionality and UI improvements- Added snapshot saving and comparison features in EssentialsBuddyViewModel.- Updated status filter labels for clarity in EssentialsBuddyView.- Improved UI layout with buttons for saving snapshots and comparing runs.- Implemented default sorting for the EssentialsBuddy data grid.- Enhanced column width persistence for better user experience."
+        }),
         new("4.34.2", "2026-01-28", "Release Update", new[]
         {
             "Update sorting logic for archived items in OrderLogViewModel"

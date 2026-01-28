@@ -932,6 +932,22 @@ public partial class OrderLogWidgetView : UserControl
             MarqueeContainer.Visibility = Visibility.Collapsed;
             StopMarquee();
             _marqueeTimer?.Stop();
+            // Ensure the expanded content is visible/animated in case an update collapsed it
+            try
+            {
+                if (NowPlayingContent.Visibility != Visibility.Visible)
+                {
+                    NowPlayingContent.Visibility = Visibility.Visible;
+                    NowPlayingContent.BeginAnimation(HeightProperty, null);
+                    double targetHeight = Math.Min(Math.Max(this.ActualWidth * 0.8, 180), 280);
+                    var expandAnimation = new DoubleAnimation(0, targetHeight, TimeSpan.FromMilliseconds(200))
+                    {
+                        EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                    };
+                    NowPlayingContent.BeginAnimation(HeightProperty, expandAnimation);
+                }
+            }
+            catch { }
         }
         else
         {

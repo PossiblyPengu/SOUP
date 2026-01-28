@@ -258,8 +258,10 @@ public partial class App : Application
         try
         {
             // Show splash screen immediately for main app only (not for widget process)
+            // and do not show the splash when the main app was launched from the
+            // widget process via the `--no-widget` flag (we want a fast activation).
             Windows.SplashWindow? splash = null;
-            if (!AppLifecycleService.IsWidgetProcess)
+            if (!AppLifecycleService.IsWidgetProcess && !AppLifecycleService.HasNoWidgetFlag)
             {
                 splash = new Windows.SplashWindow();
                 splash.Show();
@@ -392,7 +394,11 @@ public partial class App : Application
             else
             {
                 // Normal startup (no --widget flag) - determine what to show after splash
-                widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled;
+                // Respect explicit "--no-widget" when deciding widget-only behavior.
+                // This prevents the main app from immediately relaunching a widget
+                // when opening the main window from an existing widget process.
+                widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled &&
+                                 !AppLifecycleService.HasNoWidgetFlag;
                 launchWidget = !AppLifecycleService.HasNoWidgetFlag &&
                                appSettings.LaunchWidgetOnStartup &&
                                moduleConfig.OrderLogEnabled;
