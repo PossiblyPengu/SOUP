@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.34.1";
+    public const string Version = "4.34.2";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.34.2", "2026-01-28", "Release Update", new[]
+        {
+            "Update sorting logic for archived items in OrderLogViewModel"
+        }),
         new("4.34.1", "2026-01-28", "Release Update", new[]
         {
             "Enhance time calculation to consider only work hours for order items"

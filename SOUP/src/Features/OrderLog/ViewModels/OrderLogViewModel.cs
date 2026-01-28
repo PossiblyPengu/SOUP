@@ -1807,7 +1807,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         var built = await Task.Run(() =>
         {
             var filteredCollection = new ObservableCollection<OrderItem>(snapshot);
-            return _groupingService.BuildDisplayCollection(filteredCollection, SortByStatus, SortStatusDescending, SortModeEnum);
+            // For archived items, sort by CreatedAt (most recent first) to make archive browsing intuitive
+            return _groupingService.BuildDisplayCollection(filteredCollection, false, true, OrderGroupingService.OrderLogSortMode.CreatedAt);
         }).ConfigureAwait(false);
         sw.Stop();
 
