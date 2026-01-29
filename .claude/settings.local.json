@@ -41,7 +41,15 @@
       "Bash(Select-Object -First 20)",
       "Bash(tasklist:*)",
       "Bash(git commit:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(python:*)",
+      "Bash(git checkout:*)",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" build \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\tests\\\\Infrastructure.Tests\\\\Infrastructure.Tests.csproj\")",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" test \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\tests\\\\Infrastructure.Tests\\\\Infrastructure.Tests.csproj\" --verbosity normal)",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" test \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\tests\\\\Infrastructure.Tests\\\\Infrastructure.Tests.csproj\" --filter \"FullyQualifiedName~SqliteRepositoryTests.AddAsync_ValidEntity_ReturnsEntity\")",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" test \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\tests\\\\Infrastructure.Tests\\\\Infrastructure.Tests.csproj\" --verbosity minimal)",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" clean)",
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" build src/SOUP.csproj)"
     ],
     "deny": [],
     "ask": []

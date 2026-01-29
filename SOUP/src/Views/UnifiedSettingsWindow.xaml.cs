@@ -88,12 +88,17 @@ public partial class UnifiedSettingsWindow : Window
     {
         try
         {
-            await _viewModel.InitializeAsync().ConfigureAwait(false);
+            await OnWindowLoadedAsync();
         }
         catch (System.Exception ex)
         {
             Serilog.Log.Error(ex, "Error initializing settings");
         }
+    }
+
+    private async Task OnWindowLoadedAsync()
+    {
+        await _viewModel.InitializeAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -154,71 +159,76 @@ public partial class UnifiedSettingsWindow : Window
     {
         try
         {
-            // Hide all panels
-            PanelApplication.Visibility = Visibility.Collapsed;
-            PanelAllocation.Visibility = Visibility.Collapsed;
-            PanelEssentials.Visibility = Visibility.Collapsed;
-            PanelExpireWise.Visibility = Visibility.Collapsed;
-            PanelDictionary.Visibility = Visibility.Collapsed;
-            PanelOrderLog.Visibility = Visibility.Collapsed;
-            PanelExternalData.Visibility = Visibility.Collapsed;
-            PanelAbout.Visibility = Visibility.Collapsed;
-
-            // Show the selected panel
-            if (TabApplication.IsChecked == true)
-            {
-                PanelApplication.Visibility = Visibility.Visible;
-            }
-            else if (TabAllocation.IsChecked == true)
-            {
-                PanelAllocation.Visibility = Visibility.Visible;
-            }
-            else if (TabEssentials.IsChecked == true)
-            {
-                PanelEssentials.Visibility = Visibility.Visible;
-            }
-            else if (TabExpireWise.IsChecked == true)
-            {
-                PanelExpireWise.Visibility = Visibility.Visible;
-            }
-            else if (TabDictionary.IsChecked == true)
-            {
-                PanelDictionary.Visibility = Visibility.Visible;
-
-                // Load dictionary lazily
-                if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
-                {
-                    Serilog.Log.Information("Dictionary tab selected, loading dictionary...");
-                    await _viewModel.DictionaryManagement.LoadDictionaryAsync();
-                }
-            }
-            else if (TabOrderLog.IsChecked == true)
-            {
-                PanelOrderLog.Visibility = Visibility.Visible;
-
-                // Lazy-create the OrderLog settings view to avoid loading heavy controls unnecessarily
-                try
-                {
-                    if (PanelOrderLog.Child == null)
-                    {
-                        var orderLogView = new OrderLogSettingsView();
-                        orderLogView.DataContext = _viewModel.OrderLogSettings;
-                        PanelOrderLog.Child = orderLogView;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error(ex, "Failed to create OrderLogSettingsView lazily");
-                }
-            }
-            else if (TabExternalData.IsChecked == true)
-            {
-                PanelExternalData.Visibility = Visibility.Visible;
-            }
+            await OnTabChangedAsync();
         }
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "Failed to handle tab change");
+        }
+    }
+
+    private async Task OnTabChangedAsync()
+    {
+        // Hide all panels
+        PanelApplication.Visibility = Visibility.Collapsed;
+        PanelAllocation.Visibility = Visibility.Collapsed;
+        PanelEssentials.Visibility = Visibility.Collapsed;
+        PanelExpireWise.Visibility = Visibility.Collapsed;
+        PanelDictionary.Visibility = Visibility.Collapsed;
+        PanelOrderLog.Visibility = Visibility.Collapsed;
+        PanelExternalData.Visibility = Visibility.Collapsed;
+        PanelAbout.Visibility = Visibility.Collapsed;
+
+        // Show the selected panel
+        if (TabApplication.IsChecked == true)
+        {
+            PanelApplication.Visibility = Visibility.Visible;
+        }
+        else if (TabAllocation.IsChecked == true)
+        {
+            PanelAllocation.Visibility = Visibility.Visible;
+        }
+        else if (TabEssentials.IsChecked == true)
+        {
+            PanelEssentials.Visibility = Visibility.Visible;
+        }
+        else if (TabExpireWise.IsChecked == true)
+        {
+            PanelExpireWise.Visibility = Visibility.Visible;
+        }
+        else if (TabDictionary.IsChecked == true)
+        {
+            PanelDictionary.Visibility = Visibility.Visible;
+
+            // Load dictionary lazily
+            if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
+            {
+                Serilog.Log.Information("Dictionary tab selected, loading dictionary...");
+                await _viewModel.DictionaryManagement.LoadDictionaryAsync();
+            }
+        }
+        else if (TabOrderLog.IsChecked == true)
+        {
+            PanelOrderLog.Visibility = Visibility.Visible;
+
+            // Lazy-create the OrderLog settings view to avoid loading heavy controls unnecessarily
+            try
+            {
+                if (PanelOrderLog.Child == null)
+                {
+                    var orderLogView = new OrderLogSettingsView();
+                    orderLogView.DataContext = _viewModel.OrderLogSettings;
+                    PanelOrderLog.Child = orderLogView;
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to create OrderLogSettingsView lazily");
+            }
+        }
+        else if (TabExternalData.IsChecked == true)
+        {
+            PanelExternalData.Visibility = Visibility.Visible;
         }
     }
 
@@ -229,32 +239,37 @@ public partial class UnifiedSettingsWindow : Window
     {
         try
         {
-            if (sender is TabControl tabControl &&
-                tabControl.SelectedItem is TabItem selectedTab)
-            {
-                var tabHeader = selectedTab.Header?.ToString() ?? "(null)";
-                Serilog.Log.Information("Tab selected: {TabHeader}", tabHeader);
-
-                if (tabHeader.Contains("Dictionary"))
-                {
-                    Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}",
-                        _viewModel.DictionaryManagement.IsInitialized,
-                        _viewModel.DictionaryManagement.IsLoading);
-
-                    // Load dictionary only when the tab is selected and not already initialized
-                    if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
-                    {
-                        Serilog.Log.Information("Calling LoadDictionaryAsync...");
-                        await _viewModel.DictionaryManagement.LoadDictionaryAsync();
-                        Serilog.Log.Information("LoadDictionaryAsync completed. FilteredItems.Count={Count}",
-                            _viewModel.DictionaryManagement.FilteredItems?.Count ?? -1);
-                    }
-                }
-            }
+            await OnTabSelectionChangedAsync(sender);
         }
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "Failed to handle tab selection");
+        }
+    }
+
+    private async Task OnTabSelectionChangedAsync(object sender)
+    {
+        if (sender is TabControl tabControl &&
+            tabControl.SelectedItem is TabItem selectedTab)
+        {
+            var tabHeader = selectedTab.Header?.ToString() ?? "(null)";
+            Serilog.Log.Information("Tab selected: {TabHeader}", tabHeader);
+
+            if (tabHeader.Contains("Dictionary"))
+            {
+                Serilog.Log.Information("Dictionary Management tab selected. IsInitialized={IsInit}, IsLoading={IsLoading}",
+                    _viewModel.DictionaryManagement.IsInitialized,
+                    _viewModel.DictionaryManagement.IsLoading);
+
+                // Load dictionary only when the tab is selected and not already initialized
+                if (!_viewModel.DictionaryManagement.IsInitialized && !_viewModel.DictionaryManagement.IsLoading)
+                {
+                    Serilog.Log.Information("Calling LoadDictionaryAsync...");
+                    await _viewModel.DictionaryManagement.LoadDictionaryAsync();
+                    Serilog.Log.Information("LoadDictionaryAsync completed. FilteredItems.Count={Count}",
+                        _viewModel.DictionaryManagement.FilteredItems?.Count ?? -1);
+                }
+            }
         }
     }
 }

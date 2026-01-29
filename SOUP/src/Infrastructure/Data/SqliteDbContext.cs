@@ -43,24 +43,47 @@ public sealed class SqliteDbContext : IDisposable
 
     private void InitializeDatabase()
     {
-        using var connection = CreateConnection();
-        connection.Open();
-
-        // Enable WAL mode for better concurrent access from multiple processes
-        using (var cmd = connection.CreateCommand())
+        try
         {
-            cmd.CommandText = "PRAGMA journal_mode=WAL;";
-            cmd.ExecuteNonQuery();
-        }
+            using var connection = CreateConnection();
+            connection.Open();
 
-        // Enable foreign keys
-        using (var cmd = connection.CreateCommand())
+            // Enable WAL mode for better concurrent access from multiple processes
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA journal_mode=WAL;";
+                cmd.ExecuteNonQuery();
+            }
+
+            // Enable foreign keys
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA foreign_keys=ON;";
+                cmd.ExecuteNonQuery();
+            }
+
+            _logger?.LogDebug("SQLite database initialized at {Path} with WAL mode", DatabasePath);
+        }
+        catch (SqliteException ex)
         {
-            cmd.CommandText = "PRAGMA foreign_keys=ON;";
-            cmd.ExecuteNonQuery();
+            _logger?.LogError(ex, "Failed to initialize SQLite database at {Path}. Error code: {ErrorCode}", DatabasePath, ex.SqliteErrorCode);
+            throw new InvalidOperationException($"Failed to initialize database at {DatabasePath}. The database file may be corrupted or locked by another process.", ex);
         }
-
-        _logger?.LogDebug("SQLite database initialized at {Path} with WAL mode", DatabasePath);
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger?.LogError(ex, "Access denied when initializing SQLite database at {Path}", DatabasePath);
+            throw new InvalidOperationException($"Access denied to database at {DatabasePath}. Check file permissions.", ex);
+        }
+        catch (IOException ex)
+        {
+            _logger?.LogError(ex, "I/O error when initializing SQLite database at {Path}", DatabasePath);
+            throw new InvalidOperationException($"I/O error accessing database at {DatabasePath}. Check disk space and file system health.", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Unexpected error initializing SQLite database at {Path}", DatabasePath);
+            throw new InvalidOperationException($"Unexpected error initializing database at {DatabasePath}.", ex);
+        }
     }
 
     /// <summary>
@@ -79,23 +102,36 @@ public sealed class SqliteDbContext : IDisposable
     {
         var name = tableName ?? typeof(T).Name;
 
-        using var connection = CreateConnection();
-        connection.Open();
+        try
+        {
+            using var connection = CreateConnection();
+            connection.Open();
 
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = $@"
-            CREATE TABLE IF NOT EXISTS [{name}] (
-                Id TEXT PRIMARY KEY,
-                CreatedAt TEXT NOT NULL,
-                UpdatedAt TEXT,
-                IsDeleted INTEGER NOT NULL DEFAULT 0,
-                Data TEXT NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS IX_{name}_IsDeleted ON [{name}](IsDeleted);
-        ";
-        cmd.ExecuteNonQuery();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = $@"
+                CREATE TABLE IF NOT EXISTS [{name}] (
+                    Id TEXT PRIMARY KEY,
+                    CreatedAt TEXT NOT NULL,
+                    UpdatedAt TEXT,
+                    IsDeleted INTEGER NOT NULL DEFAULT 0,
+                    Data TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS IX_{name}_IsDeleted ON [{name}](IsDeleted);
+            ";
+            cmd.ExecuteNonQuery();
 
-        _logger?.LogDebug("Ensured table {TableName} exists", name);
+            _logger?.LogDebug("Ensured table {TableName} exists", name);
+        }
+        catch (SqliteException ex)
+        {
+            _logger?.LogError(ex, "Failed to ensure table {TableName} exists. Error code: {ErrorCode}", name, ex.SqliteErrorCode);
+            throw new InvalidOperationException($"Failed to create or verify table {name}.", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Unexpected error ensuring table {TableName} exists", name);
+            throw;
+        }
     }
 
     /// <summary>

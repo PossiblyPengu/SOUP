@@ -17,4 +17,7 @@ public class OrderLogWidgetSettings
     public bool NotReadyGroupExpanded { get; set; } = true;
     public bool OnDeckGroupExpanded { get; set; } = true;
     public bool InProgressGroupExpanded { get; set; } = true;
+
+    // Notes section expand/collapse state
+    public bool NotesExpanded { get; set; } = true;
 }

@@ -9,14 +9,14 @@
              d:DesignHeight="650" d:DesignWidth="500"
              d:DataContext="{d:DesignInstance Type=vm:InventoryItemDialogViewModel}">
 
-    <Border Background="{DynamicResource BackgroundBrush}" 
-            CornerRadius="12"
+    <Border Background="{DynamicResource BackgroundBrush}"
+            CornerRadius="14"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#000000"/>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.25" Color="#000000"/>
         </Border.Effect>
-        <Grid Margin="24">
+        <Grid Margin="28">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -24,18 +24,31 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="📦" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBlock Text="Inventory Item" 
-                               FontSize="20" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <Border Width="44" Height="44" CornerRadius="12" Margin="0,0,14,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#10b981" Offset="0"/>
+                                <GradientStop Color="#34d399" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.3" Color="#10b981"/>
+                        </Border.Effect>
+                        <TextBlock Text="📦" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Inventory Item"
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Add or edit inventory item details"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
                 </StackPanel>
-                <TextBlock Text="Add or edit inventory item details"
-                           FontSize="13"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           Margin="0,6,0,0"/>
+                <Separator Background="{DynamicResource BorderBrush}" Height="1"/>
             </StackPanel>
 
             <!-- Form Fields -->
@@ -137,8 +150,8 @@
             </Grid>
 
             <!-- Buttons -->
-            <Border Grid.Row="2" BorderBrush="{DynamicResource BorderBrush}" 
-                    BorderThickness="0,1,0,0" Padding="0,20,0,0" Margin="0,16,0,0">
+            <Border Grid.Row="2" BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,1,0,0" Padding="0,24,0,0" Margin="0,20,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -146,14 +159,28 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="1" Content="Cancel" 
-                            Click="Cancel_Click" 
+                    <Button Grid.Column="1" Content="Cancel"
+                            Click="Cancel_Click"
                             Style="{StaticResource SecondaryButton}"
-                            Padding="24,10" Margin="0,0,12,0"/>
-                    <Button Grid.Column="2" Content="💾 Save" 
-                            Click="Save_Click" 
-                            Style="{StaticResource PrimaryButton}"
-                            Padding="24,10"/>
+                            Padding="28,12" Margin="0,0,12,0" FontSize="14" FontWeight="SemiBold"/>
+                    <Button Grid.Column="2" Click="Save_Click" Padding="28,12" FontSize="14" FontWeight="SemiBold">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#10b981" Offset="0"/>
+                                            <GradientStop Color="#34d399" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Save Changes" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </Grid>
             </Border>
         </Grid>

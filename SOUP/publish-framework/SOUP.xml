@@ -2154,6 +2154,16 @@
             Stores the status before archiving, so it can be restored when unarchiving.
             </summary>
         </member>
+        <member name="F:SOUP.Features.OrderLog.Models.OrderItem._onDeckColorHex">
+            <summary>
+            Stores the color when the order was OnDeck, so the OnDeck timer can maintain its color.
+            </summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.Models.OrderItem._inProgressColorHex">
+            <summary>
+            Stores the color when the order was InProgress, so the InProgress timer can maintain its color.
+            </summary>
+        </member>
         <member name="F:SOUP.Features.OrderLog.Models.OrderItem._linkedItemCount">
             <summary>
             Number of other items linked to this item (excluding itself).
@@ -2169,6 +2179,12 @@
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.AccumulatedTimeTicks">
             <summary>
             Accumulated time from previous "In Progress" sessions (laps).
+            Stored as ticks for JSON serialization.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.OnDeckDurationTicks">
+            <summary>
+            Total time spent in OnDeck status.
             Stored as ticks for JSON serialization.
             </summary>
         </member>
@@ -2191,6 +2207,12 @@
             <summary>
             Called by a UI timer to raise PropertyChanged for computed properties.
             Only raises notifications if the displayed value actually changed.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.SyncTimestampsFrom(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Synchronizes timestamps with another item (typically used for linked groups).
+            Copies OnDeckAt, StartedAt, OnDeckDuration, AccumulatedTime, and timer colors from the source item.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Models.OrderItem.ResetAccumulatedTime">
@@ -2265,6 +2287,12 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.ColorHex">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._colorHex"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.OnDeckColorHex">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._onDeckColorHex"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Models.OrderItem.InProgressColorHex">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._inProgressColorHex"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.Models.OrderItem.LinkedGroupId">
             <inheritdoc cref="F:SOUP.Features.OrderLog.Models.OrderItem._linkedGroupId"/>
@@ -2983,6 +3011,9 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._inProgressGroupExpanded"/>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesExpanded">
+            <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notesExpanded"/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyCount">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notReadyCount"/>
@@ -8120,6 +8151,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ColorHex">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ColorHex" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.OnDeckColorHex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "OnDeckColorHex" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressColorHex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressColorHex" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.LinkedGroupId">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "LinkedGroupId" generated properties.</summary>
         </member>
@@ -8173,6 +8210,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.InProgressGroupExpanded">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotesExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotesExpanded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NotReadyCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NotReadyCount" generated properties.</summary>
@@ -8810,6 +8850,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ColorHex">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ColorHex" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.OnDeckColorHex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "OnDeckColorHex" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressColorHex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressColorHex" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.LinkedGroupId">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "LinkedGroupId" generated properties.</summary>
         </member>
@@ -8863,6 +8909,9 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.InProgressGroupExpanded">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "InProgressGroupExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotesExpanded">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotesExpanded" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NotReadyCount">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NotReadyCount" generated properties.</summary>

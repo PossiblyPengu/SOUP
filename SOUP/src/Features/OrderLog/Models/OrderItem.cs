@@ -73,6 +73,19 @@ public partial class OrderItem : ObservableObject
 
     [ObservableProperty]
     private string _colorHex = Constants.OrderLogColors.DefaultOrder;
+
+    /// <summary>
+    /// Stores the color when the order was OnDeck, so the OnDeck timer can maintain its color.
+    /// </summary>
+    [ObservableProperty]
+    private string _onDeckColorHex = Constants.OrderLogColors.StatusOnDeck;
+
+    /// <summary>
+    /// Stores the color when the order was InProgress, so the InProgress timer can maintain its color.
+    /// </summary>
+    [ObservableProperty]
+    private string _inProgressColorHex = Constants.OrderLogColors.StatusInProgress;
+
     [ObservableProperty]
     private Guid? _linkedGroupId;
 
@@ -87,6 +100,7 @@ public partial class OrderItem : ObservableObject
     private bool _isArchived = false;
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? OnDeckAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 
@@ -122,6 +136,19 @@ public partial class OrderItem : ObservableObject
     }
 
     /// <summary>
+    /// Total time spent in OnDeck status.
+    /// Stored as ticks for JSON serialization.
+    /// </summary>
+    public long OnDeckDurationTicks { get; set; } = 0;
+
+    [JsonIgnore]
+    public TimeSpan OnDeckDuration
+    {
+        get => TimeSpan.FromTicks(OnDeckDurationTicks);
+        set => OnDeckDurationTicks = value.Ticks;
+    }
+
+    /// <summary>
     /// Order for manual sorting/reordering (lower = earlier in list)
     /// </summary>
     public int Order { get; set; }
@@ -138,6 +165,32 @@ public partial class OrderItem : ObservableObject
                 return CalculateWorkTimeBetween(StartedAt.Value, DateTime.Now);
             }
             return TimeSpan.Zero;
+        }
+    }
+
+    [JsonIgnore]
+    public TimeSpan TimeOnDeck
+    {
+        get
+        {
+            // If currently OnDeck, calculate live duration
+            if (Status == OrderStatus.OnDeck && OnDeckAt != null)
+            {
+                return DateTime.Now - OnDeckAt.Value;
+            }
+            // Otherwise, return the stored duration from when it was OnDeck
+            return OnDeckDuration;
+        }
+    }
+
+    [JsonIgnore]
+    public string TimeOnDeckDisplay
+    {
+        get
+        {
+            var time = TimeOnDeck;
+            if (time == TimeSpan.Zero) return string.Empty;
+            return FormatTimeSpan(time);
         }
     }
 
@@ -220,11 +273,18 @@ public partial class OrderItem : ObservableObject
         }
     }
 
+    public void RefreshTimeOnDeck()
+    {
+        OnPropertyChanged(nameof(TimeOnDeck));
+        OnPropertyChanged(nameof(TimeOnDeckDisplay));
+    }
+
     partial void OnStatusChanged(OrderStatus value)
     {
         UpdateStatusColor(value);
         UpdateTimestamps(value);
         RefreshTimeInProgress();
+        RefreshTimeOnDeck();
     }
 
     private void UpdateStatusColor(OrderStatus status)
@@ -238,6 +298,18 @@ public partial class OrderItem : ObservableObject
             OrderStatus.Done => ColorHex,         // Keep existing color
             _ => ColorHex
         };
+
+        // Capture OnDeck color when entering OnDeck status
+        if (status == OrderStatus.OnDeck)
+        {
+            OnDeckColorHex = Constants.OrderLogColors.StatusOnDeck;
+        }
+
+        // Capture InProgress color when entering InProgress status
+        if (status == OrderStatus.InProgress)
+        {
+            InProgressColorHex = Constants.OrderLogColors.StatusInProgress;
+        }
     }
 
     private void UpdateTimestamps(OrderStatus status)
@@ -252,31 +324,80 @@ public partial class OrderItem : ObservableObject
             AccumulatedTime += CalculateWorkTimeBetween(StartedAt.Value, DateTime.Now);
         }
 
+        // If leaving OnDeck, store the OnDeck duration
+        if (_previousStatusForLap == OrderStatus.OnDeck && status != OrderStatus.OnDeck && OnDeckAt != null)
+        {
+            OnDeckDuration = DateTime.Now - OnDeckAt.Value;
+        }
+
         switch (status)
         {
+            case OrderStatus.OnDeck:
+                // Set OnDeckAt when moving to OnDeck status
+                if (OnDeckAt == null)
+                {
+                    OnDeckAt = DateTime.Now;
+                    OnDeckDuration = TimeSpan.Zero; // Reset duration when starting new OnDeck session
+                }
+                StartedAt = null;
+                CompletedAt = null;
+                break;
+
             case OrderStatus.InProgress:
                 // Only set StartedAt if not already set (preserve on deserialization/reload)
                 if (StartedAt == null)
                 {
                     StartedAt = DateTime.Now;
                 }
+                OnDeckAt = null; // Clear OnDeck time when starting work
                 CompletedAt = null;
                 break;
 
             case OrderStatus.Done:
                 // Time was already accumulated above when leaving InProgress
                 StartedAt = null; // Clear so TimeInProgress returns Zero
+                OnDeckAt = null; // Clear OnDeck time
                 CompletedAt ??= DateTime.Now; // Only set if not already set
                 break;
 
-            default: // NotReady or OnDeck
+            case OrderStatus.NotReady:
                 StartedAt = null;
+                OnDeckAt = null;
                 CompletedAt = null;
                 // Keep AccumulatedTime so we can resume later
                 break;
         }
 
         _previousStatusForLap = status;
+    }
+
+    /// <summary>
+    /// Synchronizes timestamps with another item (typically used for linked groups).
+    /// Copies OnDeckAt, StartedAt, OnDeckDuration, AccumulatedTime, and timer colors from the source item.
+    /// </summary>
+    public void SyncTimestampsFrom(OrderItem source)
+    {
+        if (source == null) return;
+
+        // Sync timestamps
+        OnDeckAt = source.OnDeckAt;
+        StartedAt = source.StartedAt;
+        CompletedAt = source.CompletedAt;
+
+        // Sync durations
+        OnDeckDuration = source.OnDeckDuration;
+        AccumulatedTime = source.AccumulatedTime;
+
+        // Sync timer colors
+        OnDeckColorHex = source.OnDeckColorHex;
+        InProgressColorHex = source.InProgressColorHex;
+
+        // Sync previous status for lap tracking
+        _previousStatusForLap = source._previousStatusForLap;
+
+        // Refresh displays
+        RefreshTimeInProgress();
+        RefreshTimeOnDeck();
     }
 
     // Track previous status for lap accumulation (initialized to current status)

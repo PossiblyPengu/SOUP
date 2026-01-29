@@ -257,236 +257,7 @@ public partial class App : Application
     {
         try
         {
-            // Show splash screen immediately for main app only (not for widget process)
-            // and do not show the splash when the main app was launched from the
-            // widget process via the `--no-widget` flag (we want a fast activation).
-            Windows.SplashWindow? splash = null;
-            if (!AppLifecycleService.IsWidgetProcess && !AppLifecycleService.HasNoWidgetFlag)
-            {
-                splash = new Windows.SplashWindow();
-                splash.Show();
-                splash.SetStatus("Initializing services...");
-            }
-
-            await _host.StartAsync();
-
-            // Initialize theme service (must be on UI thread)
-            Dispatcher.Invoke(() =>
-            {
-                var themeService = _host.Services.GetRequiredService<ThemeService>();
-                themeService.Initialize();
-                splash?.SetStatus("Applying theme...");
-                Log.Information("Theme initialized: {Theme}", themeService.IsDarkMode ? "Dark" : "Light");
-            });
-
-            // Initialize tray icon service (must be on UI thread)
-            Dispatcher.Invoke(() =>
-            {
-                var trayService = _host.Services.GetRequiredService<TrayIconService>();
-                trayService.Initialize();
-                splash?.SetStatus("Initializing UI...");
-                Log.Information("Tray icon initialized");
-            });
-
-            // Initialize the shared dictionary database at startup
-            try
-            {
-                var dictDb = DictionaryDbContext.Instance;
-                var itemCount = dictDb.GetItemCount();
-                var storeCount = dictDb.GetStoreCount();
-                splash?.SetStatus("Loading dictionaries...");
-                Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
-
-                if (itemCount == 0)
-                {
-                    Log.Warning("Dictionary database is empty. Run the ImportDictionary tool to populate it.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to initialize dictionary database");
-            }
-
-            // Load persisted data for enabled modules only
-            var moduleConfig = ModuleConfiguration.Instance;
-            try
-            {
-                if (moduleConfig.EssentialsBuddyEnabled)
-                {
-                    var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
-                    if (essentialsViewModel != null)
-                    {
-                        splash?.SetStatus("Loading EssentialsBuddy...");
-                        await essentialsViewModel.LoadPersistedDataAsync();
-                        Log.Information("EssentialsBuddy data loaded");
-                    }
-                }
-
-                if (moduleConfig.ExpireWiseEnabled)
-                {
-                    var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
-                    if (expireWiseViewModel != null)
-                    {
-                        splash?.SetStatus("Loading ExpireWise...");
-                        await expireWiseViewModel.InitializeAsync();
-                        Log.Information("ExpireWise initialized");
-                    }
-                }
-
-                // AllocationBuddy auto-loads from archives via LoadArchivesAsync
-                if (moduleConfig.AllocationBuddyEnabled)
-                {
-                    var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
-                    if (allocationViewModel != null)
-                    {
-                        splash?.SetStatus("Loading AllocationBuddy...");
-                        await allocationViewModel.LoadMostRecentArchiveAsync();
-                        Log.Information("AllocationBuddy data loaded");
-                    }
-                }
-
-                Log.Information("Persisted data loaded for enabled modules");
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Error loading persisted app data");
-            }
-
-            // Load application settings for startup behavior
-            var settingsService = _host.Services.GetRequiredService<Infrastructure.Services.SettingsService>();
-            var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
-            var lifecycleService = _host.Services.GetRequiredService<AppLifecycleService>();
-
-            splash?.SetStatus("Starting application...");
-
-            // Check command-line arguments
-            // Determine what to show after initialization. Do not display main UI
-            // until the splash has finished so the splash is visible for its full duration.
-            bool showMainWindow = false;
-            bool showWidgetProcess = false;
-            bool widgetOnlyMode = false;
-            bool launchWidget = false;
-
-            if (AppLifecycleService.IsWidgetProcess)
-            {
-                // Running as separate widget process (--widget flag) - show widget immediately
-                if (moduleConfig.OrderLogEnabled)
-                {
-                    var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
-                    var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
-
-                    widgetWindow.Closed += (s, args) =>
-                    {
-                        Log.Information("Widget closed, shutting down");
-                        Shutdown();
-                    };
-
-                    widgetWindow.Show();
-                    Log.Information("Running in widget-only mode (--widget flag)");
-                }
-                else
-                {
-                    Log.Warning("OrderLog widget requested but module is disabled");
-                    // For safety show main window if widget is disabled
-                    showMainWindow = true;
-                }
-            }
-            else
-            {
-                // Normal startup (no --widget flag) - determine what to show after splash
-                // Respect explicit "--no-widget" when deciding widget-only behavior.
-                // This prevents the main app from immediately relaunching a widget
-                // when opening the main window from an existing widget process.
-                widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled &&
-                                 !AppLifecycleService.HasNoWidgetFlag;
-                launchWidget = !AppLifecycleService.HasNoWidgetFlag &&
-                               appSettings.LaunchWidgetOnStartup &&
-                               moduleConfig.OrderLogEnabled;
-
-                if (widgetOnlyMode)
-                {
-                    // Widget-only mode: show widget process after splash
-                    showWidgetProcess = true;
-                    Log.Information("Running in widget-only mode (settings)");
-                }
-                else
-                {
-                    // Normal mode - show main window after splash
-                    showMainWindow = true;
-                    if (launchWidget)
-                    {
-                        showWidgetProcess = true;
-                    }
-                }
-            }
-
-            // Close splash screen with animation (only if shown)
-            if (splash != null)
-            {
-                await splash.CloseAsync();
-
-                // After splash is closed, show any UI we deferred
-                if (showMainWindow)
-                {
-                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                    mainWindow.Show();
-                }
-
-                if (showWidgetProcess)
-                {
-                    var widgetProcessService = _host.Services.GetService<WidgetProcessService>();
-                    if (widgetOnlyMode && widgetProcessService != null)
-                    {
-                        widgetProcessService.WidgetClosed += () =>
-                        {
-                            Log.Information("Widget closed in widget-only mode, shutting down");
-                            Dispatcher.Invoke(() => Shutdown());
-                        };
-                    }
-                    else if (widgetProcessService != null)
-                    {
-                        // When launched from the main app, ensure we handle widget close
-                        // so the app doesn't remain hidden in the tray when both
-                        // the widget and main window are closed.
-                        widgetProcessService.WidgetClosed += () =>
-                        {
-                            Log.Information("Widget closed (launched from main). Checking for visible windows...");
-                            Dispatcher.Invoke(() =>
-                            {
-                                try
-                                {
-                                    var anyVisible = Current?.Windows != null && System.Linq.Enumerable.Cast<System.Windows.Window>(Current.Windows).Any(w => w.IsVisible);
-                                    if (!anyVisible)
-                                    {
-                                        Log.Information("No visible windows remain after widget closed — shutting down");
-                                        Shutdown();
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Log.Warning(ex, "Error while handling WidgetClosed event");
-                                }
-                            });
-                        };
-                    }
-                    widgetProcessService?.ShowWidget();
-                    if (launchWidget)
-                    {
-                        Log.Information("Widget launched on startup");
-                    }
-                }
-            }
-            else
-            {
-                // No splash shown (widget process), if we deferred main/window display earlier, show now
-                if (showMainWindow)
-                {
-                    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-                    mainWindow.Show();
-                }
-            }
-
-            base.OnStartup(e);
+            await OnStartupAsync(e);
         }
         catch (Exception ex)
         {
@@ -494,59 +265,247 @@ public partial class App : Application
             MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
+
+        base.OnStartup(e);
+    }
+
+    private async Task OnStartupAsync(StartupEventArgs e)
+    {
+        // Show splash screen immediately for main app only (not for widget process)
+        // and do not show the splash when the main app was launched from the
+        // widget process via the `--no-widget` flag (we want a fast activation).
+        Windows.SplashWindow? splash = null;
+        if (!AppLifecycleService.IsWidgetProcess && !AppLifecycleService.HasNoWidgetFlag)
+        {
+            splash = new Windows.SplashWindow();
+            splash.Show();
+            splash.SetStatus("Initializing services...");
+        }
+
+        await _host.StartAsync();
+
+        // Initialize theme service (must be on UI thread)
+        Dispatcher.Invoke(() =>
+        {
+            var themeService = _host.Services.GetRequiredService<ThemeService>();
+            themeService.Initialize();
+            splash?.SetStatus("Applying theme...");
+            Log.Information("Theme initialized: {Theme}", themeService.IsDarkMode ? "Dark" : "Light");
+        });
+
+        // Initialize tray icon service (must be on UI thread)
+        Dispatcher.Invoke(() =>
+        {
+            var trayService = _host.Services.GetRequiredService<TrayIconService>();
+            trayService.Initialize();
+            splash?.SetStatus("Initializing UI...");
+            Log.Information("Tray icon initialized");
+        });
+
+        // Initialize the shared dictionary database at startup
+        try
+        {
+            var dictDb = DictionaryDbContext.Instance;
+            var itemCount = dictDb.GetItemCount();
+            var storeCount = dictDb.GetStoreCount();
+            splash?.SetStatus("Loading dictionaries...");
+            Log.Information("Dictionary database initialized: {ItemCount} items, {StoreCount} stores", itemCount, storeCount);
+
+            if (itemCount == 0)
+            {
+                Log.Warning("Dictionary database is empty. Run the ImportDictionary tool to populate it.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to initialize dictionary database");
+        }
+
+        // Load persisted data for enabled modules only
+        var moduleConfig = ModuleConfiguration.Instance;
+        try
+        {
+            if (moduleConfig.EssentialsBuddyEnabled)
+            {
+                var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
+                if (essentialsViewModel != null)
+                {
+                    splash?.SetStatus("Loading EssentialsBuddy...");
+                    await essentialsViewModel.LoadPersistedDataAsync();
+                    Log.Information("EssentialsBuddy data loaded");
+                }
+            }
+
+            if (moduleConfig.ExpireWiseEnabled)
+            {
+                var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
+                if (expireWiseViewModel != null)
+                {
+                    splash?.SetStatus("Loading ExpireWise...");
+                    await expireWiseViewModel.InitializeAsync();
+                    Log.Information("ExpireWise initialized");
+                }
+            }
+
+            // AllocationBuddy auto-loads from archives via LoadArchivesAsync
+            if (moduleConfig.AllocationBuddyEnabled)
+            {
+                var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+                if (allocationViewModel != null)
+                {
+                    splash?.SetStatus("Loading AllocationBuddy...");
+                    await allocationViewModel.LoadMostRecentArchiveAsync();
+                    Log.Information("AllocationBuddy data loaded");
+                }
+            }
+
+            Log.Information("Persisted data loaded for enabled modules");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error loading persisted app data");
+        }
+
+        // Load application settings for startup behavior
+        var settingsService = _host.Services.GetRequiredService<Infrastructure.Services.SettingsService>();
+        var appSettings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.ApplicationSettings>("Application");
+        var lifecycleService = _host.Services.GetRequiredService<AppLifecycleService>();
+
+        splash?.SetStatus("Starting application...");
+
+        // Check command-line arguments
+        // Determine what to show after initialization. Do not display main UI
+        // until the splash has finished so the splash is visible for its full duration.
+        bool showMainWindow = false;
+        bool showWidgetProcess = false;
+        bool widgetOnlyMode = false;
+        bool launchWidget = false;
+
+        if (AppLifecycleService.IsWidgetProcess)
+        {
+            // Running as separate widget process (--widget flag) - show widget immediately
+            if (moduleConfig.OrderLogEnabled)
+            {
+                var viewModel = _host.Services.GetRequiredService<OrderLogViewModel>();
+                var widgetWindow = new OrderLogWidgetWindow(viewModel, _host.Services);
+
+                widgetWindow.Closed += (s, args) =>
+                {
+                    Log.Information("Widget closed, shutting down");
+                    Shutdown();
+                };
+
+                widgetWindow.Show();
+                Log.Information("Running in widget-only mode (--widget flag)");
+            }
+            else
+            {
+                Log.Warning("OrderLog widget requested but module is disabled");
+                // For safety show main window if widget is disabled
+                showMainWindow = true;
+            }
+        }
+        else
+        {
+            // Normal startup (no --widget flag) - determine what to show after splash
+            // Respect explicit "--no-widget" when deciding widget-only behavior.
+            // This prevents the main app from immediately relaunching a widget
+            // when opening the main window from an existing widget process.
+            widgetOnlyMode = appSettings.WidgetOnlyMode && moduleConfig.OrderLogEnabled &&
+                             !AppLifecycleService.HasNoWidgetFlag;
+            launchWidget = !AppLifecycleService.HasNoWidgetFlag &&
+                           appSettings.LaunchWidgetOnStartup &&
+                           moduleConfig.OrderLogEnabled;
+
+            if (widgetOnlyMode)
+            {
+                // Widget-only mode: show widget process after splash
+                showWidgetProcess = true;
+                Log.Information("Running in widget-only mode (settings)");
+            }
+            else
+            {
+                // Normal mode - show main window after splash
+                showMainWindow = true;
+                if (launchWidget)
+                {
+                    showWidgetProcess = true;
+                }
+            }
+        }
+
+        // Close splash screen with animation (only if shown)
+        if (splash != null)
+        {
+            await splash.CloseAsync();
+
+            // After splash is closed, show any UI we deferred
+            if (showMainWindow)
+            {
+                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                mainWindow.Show();
+            }
+
+            if (showWidgetProcess)
+            {
+                var widgetProcessService = _host.Services.GetService<WidgetProcessService>();
+                if (widgetOnlyMode && widgetProcessService != null)
+                {
+                    widgetProcessService.WidgetClosed += () =>
+                    {
+                        Log.Information("Widget closed in widget-only mode, shutting down");
+                        Dispatcher.Invoke(() => Shutdown());
+                    };
+                }
+                else if (widgetProcessService != null)
+                {
+                    // When launched from the main app, ensure we handle widget close
+                    // so the app doesn't remain hidden in the tray when both
+                    // the widget and main window are closed.
+                    widgetProcessService.WidgetClosed += () =>
+                    {
+                        Log.Information("Widget closed (launched from main). Checking for visible windows...");
+                        Dispatcher.Invoke(() =>
+                        {
+                            try
+                            {
+                                var anyVisible = Current?.Windows != null && System.Linq.Enumerable.Cast<System.Windows.Window>(Current.Windows).Any(w => w.IsVisible);
+                                if (!anyVisible)
+                                {
+                                    Log.Information("No visible windows remain after widget closed — shutting down");
+                                    Shutdown();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, "Error while handling WidgetClosed event");
+                            }
+                        });
+                    };
+                }
+                widgetProcessService?.ShowWidget();
+                if (launchWidget)
+                {
+                    Log.Information("Widget launched on startup");
+                }
+            }
+        }
+        else
+        {
+            // No splash shown (widget process), if we deferred main/window display earlier, show now
+            if (showMainWindow)
+            {
+                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                mainWindow.Show();
+            }
+        }
     }
 
     protected override async void OnExit(ExitEventArgs e)
     {
         try
         {
-            // Save all app data before closing
-            try
-            {
-                // Archive AllocationBuddy data
-                var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
-                if (allocationViewModel != null)
-                {
-                    await allocationViewModel.ArchiveOnShutdownAsync();
-                    Log.Information("AllocationBuddy data archived on shutdown");
-                }
-
-                // Save EssentialsBuddy data
-                var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
-                if (essentialsViewModel != null)
-                {
-                    await essentialsViewModel.SaveDataOnShutdownAsync();
-                    Log.Information("EssentialsBuddy data saved on shutdown");
-                }
-
-                // Save ExpireWise data
-                var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
-                if (expireWiseViewModel != null)
-                {
-                    await expireWiseViewModel.SaveDataOnShutdownAsync();
-                    Log.Information("ExpireWise data saved on shutdown");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Error saving app data on shutdown");
-            }
-
-            // Dispose dictionary database
-            try
-            {
-                DictionaryDbContext.Instance.Dispose();
-                Log.Information("Dictionary database closed");
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Error closing dictionary database");
-            }
-
-            using (_host)
-            {
-                await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-            }
+            await OnExitAsync(e);
         }
         catch (Exception ex)
         {
@@ -556,6 +515,57 @@ public partial class App : Application
         {
             Log.CloseAndFlush();
             base.OnExit(e);
+        }
+    }
+
+    private async Task OnExitAsync(ExitEventArgs e)
+    {
+        // Save all app data before closing
+        try
+        {
+            // Archive AllocationBuddy data
+            var allocationViewModel = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+            if (allocationViewModel != null)
+            {
+                await allocationViewModel.ArchiveOnShutdownAsync();
+                Log.Information("AllocationBuddy data archived on shutdown");
+            }
+
+            // Save EssentialsBuddy data
+            var essentialsViewModel = _host.Services.GetService<EssentialsBuddyViewModel>();
+            if (essentialsViewModel != null)
+            {
+                await essentialsViewModel.SaveDataOnShutdownAsync();
+                Log.Information("EssentialsBuddy data saved on shutdown");
+            }
+
+            // Save ExpireWise data
+            var expireWiseViewModel = _host.Services.GetService<ExpireWiseViewModel>();
+            if (expireWiseViewModel != null)
+            {
+                await expireWiseViewModel.SaveDataOnShutdownAsync();
+                Log.Information("ExpireWise data saved on shutdown");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error saving app data on shutdown");
+        }
+
+        // Dispose dictionary database
+        try
+        {
+            DictionaryDbContext.Instance.Dispose();
+            Log.Information("Dictionary database closed");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error closing dictionary database");
+        }
+
+        using (_host)
+        {
+            await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
         }
     }
 

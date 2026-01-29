@@ -111,6 +111,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _inProgressGroupExpanded = true;
 
+    [ObservableProperty]
+    private bool _notesExpanded = true;
+
     // Status-grouped collections used by the view
     public ObservableCollection<OrderItemGroup> NotReadyItems { get; } = new();
     public ObservableCollection<OrderItemGroup> OnDeckItems { get; } = new();
@@ -379,7 +382,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             AutoColorByVendor = AutoColorByVendor,
             NotReadyGroupExpanded = NotReadyGroupExpanded,
             OnDeckGroupExpanded = OnDeckGroupExpanded,
-            InProgressGroupExpanded = InProgressGroupExpanded
+            InProgressGroupExpanded = InProgressGroupExpanded,
+            NotesExpanded = NotesExpanded
         };
         _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
@@ -389,6 +393,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         foreach (var item in Items)
         {
             item.RefreshTimeInProgress();
+            item.RefreshTimeOnDeck();
         }
     }
 
@@ -446,6 +451,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             AutoColorByVendor = s.AutoColorByVendor;
             // Status group expand/collapse state
             NotReadyGroupExpanded = s.NotReadyGroupExpanded;
+            OnDeckGroupExpanded = s.OnDeckGroupExpanded;
+            InProgressGroupExpanded = s.InProgressGroupExpanded;
+            NotesExpanded = s.NotesExpanded;
         if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)
@@ -750,6 +758,23 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 RemoveFromItems(it);
                 AddToArchived(it);
             }
+
+            // Sync timestamps for linked groups being archived
+            if (itemsToChange.Count > 1)
+            {
+                var referenceItem = itemsToChange[0];
+                foreach (var it in itemsToChange.Skip(1))
+                {
+                    it.SyncTimestampsFrom(referenceItem);
+                }
+
+                // Force a refresh to ensure UI updates
+                foreach (var it in itemsToChange)
+                {
+                    it.RefreshTimeInProgress();
+                    it.RefreshTimeOnDeck();
+                }
+            }
         }
         else
         {
@@ -758,6 +783,23 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             foreach (var it in itemsToChange)
             {
                 it.Status = status;
+            }
+
+            // Sync timestamps for linked groups
+            if (itemsToChange.Count > 1)
+            {
+                var referenceItem = itemsToChange[0];
+                foreach (var it in itemsToChange.Skip(1))
+                {
+                    it.SyncTimestampsFrom(referenceItem);
+                }
+
+                // Force a refresh to ensure UI updates
+                foreach (var it in itemsToChange)
+                {
+                    it.RefreshTimeInProgress();
+                    it.RefreshTimeOnDeck();
+                }
             }
         }
 
@@ -1697,6 +1739,27 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             }
         }
 
+        // Sync timestamps across the newly linked group
+        var allGroupItems = Items.Where(i => i.LinkedGroupId == groupId).ToList();
+        if (allGroupItems.Count > 1)
+        {
+            // Use the target as the reference for timestamps
+            foreach (var it in allGroupItems)
+            {
+                if (it.Id != target.Id)
+                {
+                    it.SyncTimestampsFrom(target);
+                }
+            }
+
+            // Force a refresh to ensure UI updates
+            foreach (var it in allGroupItems)
+            {
+                it.RefreshTimeInProgress();
+                it.RefreshTimeOnDeck();
+            }
+        }
+
         await SaveAsync();
         RefreshDisplayItems();
     }
@@ -1719,8 +1782,26 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private void RefreshStickyNotes()
     {
         StickyNotes.Clear();
-        var notes = Items.Where(i => i.IsStickyNote).OrderBy(i => i.CreatedAt);
-        foreach (var note in notes)
+
+        // Start with all sticky notes
+        IEnumerable<OrderItem> notes = Items.Where(i => i.IsStickyNote);
+
+        // Apply search and filters if active
+        if (_searchService.HasActiveFilters(SearchQuery, StatusFilters, FilterStartDate, FilterEndDate, ColorFilters, NoteTypeFilter, NoteCategoryFilter))
+        {
+            notes = _searchService.ApplyAllFilters(
+                notes,
+                SearchQuery,
+                StatusFilters,
+                FilterStartDate,
+                FilterEndDate,
+                ColorFilters,
+                NoteTypeFilter,
+                NoteCategoryFilter);
+        }
+
+        // Order by created date and add to collection
+        foreach (var note in notes.OrderBy(i => i.CreatedAt))
         {
             StickyNotes.Add(note);
         }
@@ -1756,8 +1837,27 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RefreshStatusGroups()
     {
+        // Apply search and filters to items before grouping by status
+        IEnumerable<OrderItem> filtered = Items;
+
+        if (_searchService.HasActiveFilters(SearchQuery, StatusFilters, FilterStartDate, FilterEndDate, ColorFilters, NoteTypeFilter, NoteCategoryFilter))
+        {
+            filtered = _searchService.ApplyAllFilters(
+                Items,
+                SearchQuery,
+                StatusFilters,
+                FilterStartDate,
+                FilterEndDate,
+                ColorFilters,
+                NoteTypeFilter,
+                NoteCategoryFilter);
+        }
+
+        // Convert to ObservableCollection for grouping service
+        var filteredCollection = new ObservableCollection<OrderItem>(filtered);
+
         // Delegate status-group population to the grouping service
-        _groupingService.PopulateStatusGroups(Items, NotReadyItems, OnDeckItems, InProgressItems);
+        _groupingService.PopulateStatusGroups(filteredCollection, NotReadyItems, OnDeckItems, InProgressItems);
 
         // Update count properties (ObservableCollection.Count doesn't raise PropertyChanged)
         NotReadyCount = NotReadyItems.Count;

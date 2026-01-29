@@ -18,6 +18,7 @@
                 <ResourceDictionary Source="/Themes/ModernStyles.xaml"/>
                 <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
                 <ResourceDictionary Source="../Themes/OrderLogWidgetTheme.xaml"/>
+                <ResourceDictionary Source="../Themes/ModernHeaderStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -31,32 +32,160 @@
         <converters:HexToColorConverter x:Key="HexToColorConverter"/>
         <converters:VendorNameGroupComparerConverter x:Key="VendorNameGroupComparer"/>
         
-        <!-- Small Copy Button Style -->
+        <!-- Modern Editable Field Style - Clean inline editing with focus indicator -->
+        <Style x:Key="ModernEditableFieldStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0,2"/>
+            <Setter Property="CaretBrush" Value="#00D4FF"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionOpacity" Value="0.4"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border x:Name="FocusIndicator"
+                                    BorderThickness="0,0,0,2"
+                                    BorderBrush="{DynamicResource AccentBrush}"
+                                    Opacity="0"
+                                    SnapsToDevicePixels="True"/>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        Margin="{TemplateBinding Padding}"
+                                        VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="FocusIndicator"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="0.6" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="FocusIndicator"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="0" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Copy Button Style - Enhanced for better UX -->
         <Style x:Key="FieldCopyButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="22"/>
-            <Setter Property="Height" Value="22"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ToolTip" Value="Copy to clipboard"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{DynamicResource SurfaceBrush}" 
-                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                                CornerRadius="4" Padding="3">
-                            <Path x:Name="Icon" Data="M16,1H4C2.9,1,2,1.9,2,3v14h2V3h12V1z M19,5H8C6.9,5,6,5.9,6,7v14c0,1.1,0.9,2,2,2h11c1.1,0,2-0.9,2-2V7C21,5.9,20.1,5,19,5z M19,21H8V7h11V21z" 
-                                  Fill="{DynamicResource TextSecondaryBrush}" 
-                                  Stretch="Uniform" Width="12" Height="12"/>
+                        <Border x:Name="Bd"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="4">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="Shadow"
+                                                  Color="#000000"
+                                                  BlurRadius="0"
+                                                  ShadowDepth="0"
+                                                  Opacity="0"/>
+                            </Border.Effect>
+                            <Path x:Name="Icon"
+                                  Data="M16,1H4C2.9,1,2,1.9,2,3v14h2V3h12V1z M19,5H8C6.9,5,6,5.9,6,7v14c0,1.1,0.9,2,2,2h11c1.1,0,2-0.9,2-2V7C21,5.9,20.1,5,19,5z M19,21H8V7h11V21z"
+                                  Fill="{DynamicResource TextSecondaryBrush}"
+                                  Stretch="Uniform"
+                                  Width="13"
+                                  Height="13"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <ScaleTransform x:Name="IconScale" ScaleX="1" ScaleY="1"/>
+                                </Path.RenderTransform>
+                            </Path>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                                 <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleX"
+                                                           To="1.1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleY"
+                                                           To="1.1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="Shadow"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="0.1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="Shadow"
+                                                           Storyboard.TargetProperty="BlurRadius"
+                                                           To="4" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleX"
+                                                           To="1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleY"
+                                                           To="1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="Shadow"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="0" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="Shadow"
+                                                           Storyboard.TargetProperty="BlurRadius"
+                                                           To="0" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}"/>
                                 <Setter TargetName="Icon" Property="Fill" Value="White"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleX"
+                                                           To="0.95" Duration="0:0:0.05"/>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleY"
+                                                           To="0.95" Duration="0:0:0.05"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleX"
+                                                           To="1" Duration="0:0:0.1"/>
+                                            <DoubleAnimation Storyboard.TargetName="IconScale"
+                                                           Storyboard.TargetProperty="ScaleY"
+                                                           To="1" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -137,17 +266,11 @@
                                     </TextBlock.Style>
                                 </TextBlock>
                                 <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
-                                         Background="Transparent"
-                                         BorderThickness="0"
+                                         Style="{StaticResource ModernEditableFieldStyle}"
                                          FontSize="{DynamicResource CardFontSize}"
                                          FontWeight="SemiBold"
                                          Foreground="{DynamicResource TextPrimaryBrush}"
-                                         CaretBrush="#00D4FF"
-                                         SelectionBrush="{DynamicResource AccentBrush}"
-                                         Padding="0"
                                          VerticalAlignment="Center"
-                                         HorizontalAlignment="Stretch"
-                                         MinWidth="0"
                                          TabIndex="0"
                                          GotFocus="EditableField_GotFocus"
                                          LostFocus="EditableField_LostFocus"/>
@@ -207,16 +330,11 @@
                                     </Style>
                                 </TextBlock.Style>
                             </TextBlock>
-                            <TextBox Grid.Column="1" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
-                                     Background="Transparent"
-                                     BorderThickness="0"
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                     Style="{StaticResource ModernEditableFieldStyle}"
                                      Foreground="{DynamicResource TextSecondaryBrush}"
                                      FontSize="{DynamicResource CardFontSize}"
-                                     CaretBrush="#00D4FF"
-                                     SelectionBrush="{DynamicResource AccentBrush}"
-                                     Padding="0"
-                                     HorizontalAlignment="Stretch"
-                                     MinWidth="0"
                                      TabIndex="2"
                                      GotFocus="EditableField_GotFocus"
                                      LostFocus="EditableField_LostFocus"/>
@@ -251,16 +369,11 @@
                                     </Style>
                                 </TextBlock.Style>
                             </TextBlock>
-                            <TextBox Grid.Column="1" Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
-                                     Background="Transparent"
-                                     BorderThickness="0"
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                     Style="{StaticResource ModernEditableFieldStyle}"
                                      Foreground="{DynamicResource TextSecondaryBrush}"
                                      FontSize="{DynamicResource CardFontSize}"
-                                     CaretBrush="#00D4FF"
-                                     SelectionBrush="{DynamicResource AccentBrush}"
-                                     Padding="0"
-                                     HorizontalAlignment="Stretch"
-                                     MinWidth="0"
                                      TabIndex="3"
                                      GotFocus="EditableField_GotFocus"
                                      LostFocus="EditableField_LostFocus"/>
@@ -268,10 +381,18 @@
 
                         <!-- TimeInProgress Display -->
                         <TextBlock Text="{Binding TimeInProgressDisplay}"
-                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Foreground="{Binding InProgressColorHex, Converter={StaticResource HexToBrushConverter}}"
                                    FontSize="{DynamicResource CardFontSize}"
                                    FontFamily="Consolas"
                                    Margin="0,6,0,0"/>
+
+                        <!-- TimeOnDeck Display -->
+                        <TextBlock Text="{Binding TimeOnDeckDisplay}"
+                                   Foreground="{Binding OnDeckColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                   FontSize="{DynamicResource CardFontSize}"
+                                   FontFamily="Consolas"
+                                   FontWeight="SemiBold"
+                                   Margin="0,2,0,0"/>
 
                         <!-- Created timestamp -->
                         <TextBlock Text="{Binding CreatedAtDisplay}"
@@ -284,16 +405,19 @@
             </Border>
         </DataTemplate>
 
-        <!-- Template for a single Sticky Note card - Windows sticky note style -->
+        <!-- Modern Sticky Note Template - Enhanced design with smooth effects -->
         <DataTemplate x:Key="StickyNoteTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Margin="6" CornerRadius="8" Padding="12">
+            <Border Margin="8" CornerRadius="12" Padding="16">
                 <Border.Background>
-                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.15"/>
+                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.12"/>
                 </Border.Background>
                 <Border.BorderBrush>
-                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.3"/>
+                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.35"/>
                 </Border.BorderBrush>
-                <Border.BorderThickness>1</Border.BorderThickness>
+                <Border.BorderThickness>1.5</Border.BorderThickness>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.08" Direction="270" Color="#000000"/>
+                </Border.Effect>
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}"/>
@@ -363,13 +487,14 @@
                         </RichTextBox>
                     </Grid>
 
-                    <!-- Formatting toolbar -->
+                    <!-- Modern Formatting toolbar -->
                     <Border Grid.Row="1"
                             Background="{DynamicResource SurfaceBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="0,1,0,0"
-                            Padding="0,6,0,0"
-                            Margin="-12,6,-12,-12">
+                            BorderThickness="0,1.5,0,0"
+                            Padding="0,10,0,4"
+                            Margin="-16,8,-16,-16"
+                            CornerRadius="0,0,12,12">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <!-- Bold -->
                                 <ToggleButton x:Name="BoldToggle" Click="FormatBold_Click" Tag="{Binding}"
@@ -617,7 +742,9 @@
                                  Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
                         <TextBox Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,0,0,4"
                                  Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
-                        <TextBox Text="{Binding TimeInProgressDisplay}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas"
+                        <TextBox Text="{Binding TimeInProgressDisplay}" Foreground="{Binding InProgressColorHex, Converter={StaticResource HexToBrushConverter}}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas"
+                                 Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
+                        <TextBox Text="{Binding TimeOnDeckDisplay}" Foreground="{Binding OnDeckColorHex, Converter={StaticResource HexToBrushConverter}}" FontSize="{DynamicResource CardFontSize}" FontFamily="Consolas" FontWeight="SemiBold" Margin="0,4,0,0"
                                  Background="Transparent" BorderThickness="0" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="IBeam" Padding="0"/>
                     </StackPanel>
                     
@@ -790,7 +917,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{DynamicResource BorderBrush}"
-                                        Padding="16,12">
+                                        Padding="14,6">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="BorderThickness" Value="0,0,0,1"/>
@@ -805,7 +932,7 @@
 
                                     <StackPanel>
                                         <!-- Section Header with Drag Handle (text left, handle right) -->
-                                        <Grid Margin="0,0,0,8">
+                                        <Grid Margin="0,0,0,4">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
@@ -846,27 +973,21 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                             <TextBox Text="{Binding VendorName, UpdateSourceTrigger=LostFocus}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
+                                                     Style="{StaticResource ModernEditableFieldStyle}"
                                                      FontSize="{DynamicResource CardFontSize}"
                                                      FontWeight="SemiBold"
                                                      Foreground="{DynamicResource TextPrimaryBrush}"
-                                                     CaretBrush="#00D4FF"
-                                                     SelectionBrush="{DynamicResource AccentBrush}"
-                                                     Padding="0"
-                                                     HorizontalAlignment="Stretch"
-                                                     MinWidth="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
                                         </Grid>
 
                                         <!-- Editable Transfer Numbers -->
-                                        <Grid Margin="0,6,0,0">
+                                        <Grid Margin="0,4,0,0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}" 
+                                            <Button Grid.Column="0" Style="{StaticResource FieldCopyButtonStyle}"
                                                     Click="CopyTransferNumbers_Click" Tag="{Binding TransferNumbers}"/>
                                             <TextBlock Grid.Column="1" Text="Transfer #s..."
                                                        FontSize="{DynamicResource CardFontSize}"
@@ -889,22 +1010,17 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
-                                            <TextBox Grid.Column="1" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
+                                            <TextBox Grid.Column="1"
+                                                     Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                                     Style="{StaticResource ModernEditableFieldStyle}"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
                                                      FontSize="{DynamicResource CardFontSize}"
-                                                     CaretBrush="#00D4FF"
-                                                     SelectionBrush="{DynamicResource AccentBrush}"
-                                                     Padding="0"
-                                                     HorizontalAlignment="Stretch"
-                                                     MinWidth="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
                                         </Grid>
 
                                         <!-- Editable WHS Shipment Numbers -->
-                                        <Grid Margin="0,3,0,0">
+                                        <Grid Margin="0,2,0,0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -932,27 +1048,30 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
-                                            <TextBox Grid.Column="1" Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
-                                                     Background="Transparent"
-                                                     BorderThickness="0"
+                                            <TextBox Grid.Column="1"
+                                                     Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                                     Style="{StaticResource ModernEditableFieldStyle}"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
                                                      FontSize="{DynamicResource CardFontSize}"
-                                                     CaretBrush="#00D4FF"
-                                                     SelectionBrush="{DynamicResource AccentBrush}"
-                                                     Padding="0"
-                                                     HorizontalAlignment="Stretch"
-                                                     MinWidth="0"
                                                      GotFocus="EditableField_GotFocus"
                                                      LostFocus="EditableField_LostFocus"/>
                                         </Grid>
 
                                         <!-- TimeInProgress Display -->
                                         <TextBlock Text="{Binding TimeInProgressDisplay}"
-                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Foreground="{Binding InProgressColorHex, Converter={StaticResource HexToBrushConverter}}"
                                                    FontSize="{DynamicResource CardFontSize}"
                                                    FontFamily="Consolas"
                                                    Margin="0,6,0,0"/>
-                                        
+
+                                        <!-- TimeOnDeck Display -->
+                                        <TextBlock Text="{Binding TimeOnDeckDisplay}"
+                                                   Foreground="{Binding OnDeckColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                   FontSize="{DynamicResource CardFontSize}"
+                                                   FontFamily="Consolas"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,2,0,0"/>
+
                                         <!-- Created timestamp -->
                                         <TextBlock Text="{Binding CreatedAtDisplay}"
                                                    FontSize="10"
@@ -1066,7 +1185,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="{DynamicResource BorderBrush}" Padding="16,12">
+                                <Border BorderBrush="{DynamicResource BorderBrush}" Padding="14,6">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="BorderThickness" Value="0,0,0,1"/>
@@ -1083,15 +1202,22 @@
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Margin="0,0,0,8"/>
+                                                   Margin="0,0,0,4"/>
                                         <TextBlock Text="{Binding TransferNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}"/>
                                         <TextBlock Text="{Binding WhsShipmentNumbers}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource CardFontSize}" Margin="0,2,0,0"/>
                                         <TextBlock Text="{Binding TimeInProgressDisplay}"
-                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Foreground="{Binding InProgressColorHex, Converter={StaticResource HexToBrushConverter}}"
                                                    FontSize="{DynamicResource CardFontSize}"
                                                    FontFamily="Consolas"
-                                                   Margin="0,6,0,0"/>
-                                        
+                                                   Margin="0,4,0,0"/>
+
+                                        <TextBlock Text="{Binding TimeOnDeckDisplay}"
+                                                   Foreground="{Binding OnDeckColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                   FontSize="{DynamicResource CardFontSize}"
+                                                   FontFamily="Consolas"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,2,0,0"/>
+
                                         <!-- Created timestamp -->
                                         <TextBlock Text="{Binding CreatedAtDisplay}"
                                                    FontSize="10"
@@ -1134,11 +1260,16 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Integrated Toolbar -->
+        <!-- Modern Gradient Toolbar -->
         <Border Grid.Row="0"
-                Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0,0,0,1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="{DynamicResource SurfaceColor}" Offset="0"/>
+                    <GradientStop Color="{DynamicResource BackgroundColor}" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -1147,30 +1278,53 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Row 1: Tabs (only show when ShowArchived is true) -->
-                <Border Grid.Row="0" Style="{StaticResource WidgetTabContainerStyle}" Margin="16,14,16,0"
+                <!-- Row 1: Modern Pill Tabs (only show when ShowArchived is true) -->
+                <Border Grid.Row="0" Margin="16,16,16,0"
                         Visibility="{Binding ShowArchived, Converter={StaticResource BoolToVis}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                    <Border Background="{DynamicResource SurfaceHoverBrush}"
+                            CornerRadius="24"
+                            Padding="4"
+                            Height="48">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#20000000" BlurRadius="12" ShadowDepth="2" Opacity="0.2"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Button x:Name="ActiveTabButton"
-                                Content="Active"
-                                Click="ActiveTab_Click"
-                                Style="{StaticResource WidgetTabButtonActiveStyle}"/>
+                            <!-- Active Tab - Pill Style -->
+                            <Button x:Name="ActiveTabButton"
+                                    Click="ActiveTab_Click"
+                                    Style="{StaticResource WidgetTabButtonActiveStyle}"
+                                    Height="40"
+                                    Margin="0,0,2,0">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Ellipse Width="8" Height="8" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                             Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Active" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
 
-                        <Button x:Name="ArchivedTabButton"
-                                Grid.Column="1"
-                                Content="📦 Archived"
-                                Click="ArchivedTab_Click"
-                                Style="{StaticResource WidgetTabButtonStyle}"/>
-                    </Grid>
+                            <!-- Archived Tab - Pill Style -->
+                            <Button x:Name="ArchivedTabButton"
+                                    Grid.Column="1"
+                                    Click="ArchivedTab_Click"
+                                    Style="{StaticResource WidgetTabButtonStyle}"
+                                    Height="40"
+                                    Margin="2,0,0,0">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="📦" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Archived" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
                 </Border>
 
-                <!-- Row 1.5: Search Bar -->
-                <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,0" Padding="16,0,16,8"
+                <!-- Row 1.5: Floating Search Bar -->
+                <Border Grid.Row="1" Padding="16,16,16,8"
                         Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -1178,13 +1332,19 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Search TextBox -->
-                        <Border Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Margin="0,0,8,0">
-                            <Grid>
+                        <!-- Floating Search TextBox -->
+                        <Border Grid.Column="0"
+                                CornerRadius="24"
+                                Height="48"
+                                Margin="0,0,12,0"
+                                FocusManager.IsFocusScope="True">
+                            <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource SurfaceHoverColor}" Opacity="0.95"/>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#20000000" BlurRadius="16" ShadowDepth="4" Opacity="0.2"/>
+                            </Border.Effect>
+                            <Grid FocusManager.FocusedElement="{Binding ElementName=SearchBox}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
@@ -1193,7 +1353,8 @@
 
                                 <!-- Search Icon -->
                                 <TextBlock Grid.Column="0" Text="🔍" FontSize="14" Margin="10,0,8,0" VerticalAlignment="Center"
-                                          Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                          Foreground="{DynamicResource TextSecondaryBrush}"
+                                          IsHitTestVisible="False"/>
 
                                 <!-- Search Input -->
                                 <TextBox x:Name="SearchBox"
@@ -1205,7 +1366,11 @@
                                         FontSize="13"
                                         Foreground="{DynamicResource TextPrimaryBrush}"
                                         CaretBrush="{DynamicResource AccentBrush}"
-                                        VerticalAlignment="Center">
+                                        VerticalAlignment="Center"
+                                        IsEnabled="True"
+                                        Focusable="True"
+                                        KeyboardNavigation.IsTabStop="True"
+                                        Panel.ZIndex="10">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Setter Property="Template">
@@ -1266,148 +1431,105 @@
                             </Grid>
                         </Border>
 
-                        <!-- Filter Button -->
+                        <!-- Modern Filter Button - Hidden -->
                         <Button Grid.Column="1"
-                                Width="36" Height="36"
-                                Background="{DynamicResource SurfaceHoverBrush}"
-                                BorderThickness="1"
-                                BorderBrush="{DynamicResource BorderBrush}"
+                                Width="48" Height="48"
                                 ToolTip="Advanced Filters"
                                 Click="ShowFilters_Click"
-                                Cursor="Hand">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}"
-                                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                                        CornerRadius="6">
-                                                    <TextBlock Text="⚙" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                              Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </Button.Style>
+                                Visibility="Collapsed"
+                                Style="{StaticResource ModernIconButtonStyle}">
+                            <Border CornerRadius="24"
+                                    Background="{DynamicResource SurfaceHoverBrush}"
+                                    Width="48" Height="48">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#20000000" BlurRadius="12" ShadowDepth="2" Opacity="0.15"/>
+                                </Border.Effect>
+                                <TextBlock Text="⚙" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{DynamicResource AccentBrush}"/>
+                            </Border>
                         </Button>
                     </Grid>
                 </Border>
 
                 <!-- Row 2: Action Bar (only show on Active tab) -->
-                <Grid Grid.Row="2" x:Name="AddButtonsPanel" Margin="16,14,16,14">
+                <Grid Grid.Row="2" x:Name="AddButtonsPanel" Margin="16,8,16,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="12"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Add Order button -->
+                    <!-- Modern Add Order button -->
                     <Button Click="AddBlankOrder_Click" Grid.Column="0"
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
-                            Height="36" Padding="12,8"
-                            Background="{DynamicResource SurfaceHoverBrush}"
-                            BorderThickness="0" Cursor="Hand">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                                    CornerRadius="8"
-                                                    Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
+                            Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Order" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"
+                            <Border Background="{DynamicResource AccentBrush}"
+                                    CornerRadius="12"
+                                    Width="24" Height="24"
+                                    Margin="0,0,8,0">
+                                <TextBlock Text="+" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Foreground="White" Margin="0,-2,0,0"/>
+                            </Border>
+                            <TextBlock Text="Order" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>
 
-                    <!-- Add Note button -->
+                    <!-- Modern Add Note button (normal mode) -->
                     <Button Click="AddBlankNote_Click" Grid.Column="2"
-                            Height="36" Padding="12,8"
-                            Background="{DynamicResource SurfaceHoverBrush}"
-                            BorderThickness="0" Cursor="Hand">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                                    CornerRadius="8"
-                                                    Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding NotesOnlyMode}" Value="True">
-                                        <Setter Property="Grid.Column" Value="0"/>
-                                        <Setter Property="Grid.ColumnSpan" Value="3"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
+                            Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
+                            Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="📝" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Note" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"
+                            <Border Background="#FFB347"
+                                    CornerRadius="12"
+                                    Width="24" Height="24"
+                                    Margin="0,0,8,0">
+                                <TextBlock Text="📝" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Note" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>
 
-                    <!-- Sort direction toggle button -->
+                    <!-- Modern Add Note button (notes-only mode) -->
+                    <Button Click="AddBlankNote_Click" Grid.Column="0" Grid.ColumnSpan="3"
+                            Visibility="{Binding NotesOnlyMode, Converter={StaticResource BoolToVis}}"
+                            Style="{StaticResource ModernPillButtonStyle}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#FFB347"
+                                    CornerRadius="12"
+                                    Width="24" Height="24"
+                                    Margin="0,0,8,0">
+                                <TextBlock Text="📝" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Note" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Modern Sort direction toggle button - Hidden -->
                     <Button Grid.Column="4" Click="SortToggle_Click" ToolTip="Toggle sort direction"
-                            Width="36" Height="36"
-                            Style="{StaticResource WidgetIconButtonStyle}">
-                        <TextBlock x:Name="SortSymbol" FontSize="16" FontWeight="Bold"
-                                   Foreground="{DynamicResource TextSecondaryBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="↑"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SortStatusDescending}" Value="True">
-                                            <Setter Property="Text" Value="↓"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                            Visibility="Collapsed"
+                            Style="{StaticResource ModernIconButtonStyle}">
+                        <Border CornerRadius="20"
+                                Background="{DynamicResource SurfaceHoverBrush}"
+                                Width="40" Height="40">
+                            <TextBlock x:Name="SortSymbol" FontSize="18" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AccentBrush}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="↑"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SortStatusDescending}" Value="True">
+                                                <Setter Property="Text" Value="↓"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
                     </Button>
 
                     <!-- Multi-select removed: toggle button omitted -->
@@ -1769,15 +1891,12 @@
                                                             </Style>
                                                         </TextBlock.Style>
                                                     </TextBlock>
-                                                    <TextBox x:Name="NoteTitleBoxHeader" Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
-                                                             Background="Transparent"
-                                                             BorderThickness="0"
+                                                    <TextBox x:Name="NoteTitleBoxHeader"
+                                                             Text="{Binding NoteTitle, UpdateSourceTrigger=LostFocus}"
+                                                             Style="{StaticResource ModernEditableFieldStyle}"
                                                              FontSize="{DynamicResource CardFontSize}"
                                                              FontWeight="SemiBold"
-                                                             Foreground="{DynamicResource TextPrimaryBrush}"
-                                                             CaretBrush="#00D4FF"
-                                                             SelectionBrush="{DynamicResource AccentBrush}"
-                                                             Padding="0"/>
+                                                             Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 </Grid>
                                             </StackPanel>
 
@@ -1847,14 +1966,11 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
 
-                                                <TextBox Grid.Column="1" Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
+                                                <TextBox Grid.Column="1"
+                                                         Text="{Binding TransferNumbers, UpdateSourceTrigger=LostFocus}"
+                                                         Style="{StaticResource ModernEditableFieldStyle}"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
                                                          FontSize="{DynamicResource CardFontSize}"
-                                                         CaretBrush="#00D4FF"
-                                                         SelectionBrush="{DynamicResource AccentBrush}"
-                                                         Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
 
@@ -1890,14 +2006,11 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                                <TextBox Grid.Column="1" Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
+                                                <TextBox Grid.Column="1"
+                                                         Text="{Binding WhsShipmentNumbers, UpdateSourceTrigger=LostFocus}"
+                                                         Style="{StaticResource ModernEditableFieldStyle}"
                                                          Foreground="{DynamicResource TextSecondaryBrush}"
                                                          FontSize="{DynamicResource CardFontSize}"
-                                                         CaretBrush="#00D4FF"
-                                                         SelectionBrush="{DynamicResource AccentBrush}"
-                                                         Padding="0"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
                                             </Grid>

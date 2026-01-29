@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.35.0";
+    public const string Version = "4.36.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -36,7 +36,7 @@ public static class AppVersion
     /// <summary>
     /// The build date in ISO format.
     /// </summary>
-    public const string BuildDate = "2026-01-28";
+    public const string BuildDate = "2026-01-29";
 
     /// <summary>
     /// Full version string with channel (e.g., "v4.3.0 - Stable").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("4.36.0", "2026-01-29", "Release Update", new[]
+        {
+            "feat: Add modernization progress documentation for Order Log Widget- Created MODERNIZATION_PROGRESS.md to outline the phases and changes made during the UI modernization of the Order Log Widget.- Documented completed phases including styling updates for cards, fields, dropdowns, buttons, and form controls.- Highlighted key improvements, statistics, and optional future enhancements.style: Introduce modern header styles for buttons and search bar- Added ModernHeaderStyles.xaml with new styles for pill buttons, icon buttons, and a floating search bar.- Implemented animations for hover effects and scaling.test: Set up infrastructure tests with xUnit- Created GlobalUsings.cs to include xUnit globally for tests.- Established Infrastructure.Tests.csproj with necessary package references for testing.- Implemented SqliteRepositoryTests.cs to validate repository functionality with SQLite.- Developed FileImportExportServiceTests.cs to ensure correct import/export behavior for files."
+        }),
         new("4.35.0", "2026-01-28", "Release Update", new[]
         {
             "Enhance EssentialsBuddy with snapshot functionality and UI improvements- Added snapshot saving and comparison features in EssentialsBuddyViewModel.- Updated status filter labels for clarity in EssentialsBuddyView.- Improved UI layout with buttons for saving snapshots and comparing runs.- Implemented default sorting for the EssentialsBuddy data grid.- Enhanced column width persistence for better user experience."

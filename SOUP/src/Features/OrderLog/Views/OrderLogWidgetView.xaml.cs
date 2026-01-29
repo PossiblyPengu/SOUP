@@ -172,16 +172,19 @@ public partial class OrderLogWidgetView : UserControl
 
     private void NotesHeader_Click(object sender, MouseButtonEventArgs e)
     {
-        _notesExpanded = !_notesExpanded;
+        if (DataContext is not OrderLogViewModel vm) return;
+
+        vm.NotesExpanded = !vm.NotesExpanded;
+        _notesExpanded = vm.NotesExpanded;
 
         if (NotesArrow is { } arrow)
         {
-            arrow.Text = _notesExpanded ? "▼" : "▶";
+            arrow.Text = vm.NotesExpanded ? "▼" : "▶";
         }
 
         if (NotesSection is { } section)
         {
-            if (_notesExpanded)
+            if (vm.NotesExpanded)
             {
                 // Expand animation
                 section.Visibility = Visibility.Visible;
@@ -410,6 +413,23 @@ public partial class OrderLogWidgetView : UserControl
 
             // Subscribe to navigation changes
             viewModel.PropertyChanged += ViewModel_NavigationPropertyChanged;
+
+            // Initialize notes header state (will be updated via PropertyChanged when settings load)
+            UpdateNotesHeaderState(viewModel.NotesExpanded);
+        }
+    }
+
+    private void UpdateNotesHeaderState(bool isExpanded)
+    {
+        _notesExpanded = isExpanded;
+        if (NotesArrow is { } arrow)
+        {
+            arrow.Text = isExpanded ? "▼" : "▶";
+        }
+        if (NotesSection is { } section)
+        {
+            section.Visibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
+            section.Opacity = isExpanded ? 1 : 0;
         }
     }
 
@@ -418,6 +438,13 @@ public partial class OrderLogWidgetView : UserControl
         if (e.PropertyName == nameof(OrderLogViewModel.ShowNowPlaying))
         {
             Dispatcher.Invoke(() => UpdateNowPlayingUI());
+        }
+        else if (e.PropertyName == nameof(OrderLogViewModel.NotesExpanded))
+        {
+            if (sender is OrderLogViewModel vm)
+            {
+                UpdateNotesHeaderState(vm.NotesExpanded);
+            }
         }
     }
 
@@ -1770,6 +1797,7 @@ public partial class OrderLogWidgetView : UserControl
             }
 
             await vm.SaveAsync();
+            vm.RefreshDisplayItems();
             vm.StatusMessage = "Unlinked group";
         }
         catch (Exception ex)
