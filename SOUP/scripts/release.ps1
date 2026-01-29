@@ -291,7 +291,17 @@ if (-not $SkipGit) {
     }
     
     Write-Host "  Pushing..." -ForegroundColor Gray
-    git -C $rootDir push
+    # Determine current branch and push explicitly so we don't accidentally skip pushing to 'main'
+    $currentBranch = (git -C $rootDir rev-parse --abbrev-ref HEAD).Trim()
+    if ([string]::IsNullOrWhiteSpace($currentBranch) -or $currentBranch -eq 'HEAD') {
+        Write-Host "  Detached HEAD detected or no branch found; defaulting to 'main'" -ForegroundColor Yellow
+        $pushBranch = 'main'
+    } else {
+        $pushBranch = $currentBranch
+    }
+
+    # Use --set-upstream so new local branches get an upstream set on first push
+    git -C $rootDir push --set-upstream origin $pushBranch
     
     Write-Host "  Creating tag $tagName..." -ForegroundColor Gray
     if ($releaseNotes.Count -gt 0) {
