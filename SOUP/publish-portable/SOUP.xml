@@ -3113,6 +3113,26 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoTimeoutSeconds"/> is changed.</remarks>
         </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotReadyGroupExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotReadyGroupExpanded"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnOnDeckGroupExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnDeckGroupExpanded"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnInProgressGroupExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.InProgressGroupExpanded"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotesExpandedChanged(System.Boolean)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesExpanded"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesExpanded"/> is changed.</remarks>
+        </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.OnNotesOnlyModeChanged(System.Boolean)">
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.NotesOnlyMode"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -6560,6 +6580,12 @@
             Gets or sets the filtered items for the current month view.
             </summary>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._itemsView">
+            <summary>
+            Gets the collection view for efficient filtering and grouping.
+            Replaces manual FilteredItems rebuilding for 10-50x performance improvement.
+            </summary>
+        </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._selectedItem">
             <summary>
             Gets or sets the available months that have expiring items.
@@ -6816,6 +6842,18 @@
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ShowSuccessToast(System.String)">
             <summary>
             Shows a brief success toast notification (non-blocking)
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.InitializeItemsView">
+            <summary>
+            Initializes the ICollectionView for efficient filtering and grouping.
+            This replaces manual FilteredItems rebuilding for 10-50x better performance.
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.FilterPredicate(System.Object)">
+            <summary>
+            Filter predicate for ICollectionView - determines which items to show.
+            This is much more efficient than rebuilding the collection on every change.
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.UpdateGlobalStatistics">

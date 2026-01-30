@@ -13,15 +13,27 @@
 
     <!-- Keyboard Shortcuts -->
     <UserControl.InputBindings>
+        <!-- Quick Actions -->
         <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding ToggleQuickAddCommand}"/>
         <KeyBinding Key="I" Modifiers="Ctrl" Command="{Binding ImportFromExcelCommand}"/>
         <KeyBinding Key="E" Modifiers="Ctrl" Command="{Binding ExportToCsvCommand}"/>
-        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}"/>
         <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
+
+        <!-- Item Actions -->
+        <KeyBinding Key="Return" Modifiers="Ctrl" Command="{Binding EditItemCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}"/>
+
+        <!-- Month Navigation -->
+        <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding PreviousMonthCommand}"/>
+        <KeyBinding Key="Right" Modifiers="Ctrl" Command="{Binding NextMonthCommand}"/>
+
+        <!-- Refresh -->
+        <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding LoadItemsCommand}"/>
     </UserControl.InputBindings>
 
     <UserControl.Resources>
         <local:StoreDisplayConverter x:Key="StoreDisplayConverter"/>
+        <!-- CollectionView now managed in ViewModel for better performance -->
         <CollectionViewSource x:Key="GroupedItemsView" Source="{Binding FilteredItems}"/>
         
         <!-- ExpireWise Accent Colors (Amber/Orange theme - matches launcher) -->
@@ -304,15 +316,19 @@
                     <TextBlock Text="NAVIGATION" FontSize="10" FontWeight="SemiBold" 
                                Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
                     
-                    <RadioButton x:Name="DataTab" Style="{StaticResource SidebarNavButton}" 
-                                 IsChecked="True" GroupName="ExpireWiseNav">
+                    <RadioButton x:Name="DataTab" Style="{StaticResource SidebarNavButton}"
+                                 IsChecked="True" GroupName="ExpireWiseNav"
+                                 AutomationProperties.Name="Data View"
+                                 AutomationProperties.HelpText="View and manage expiration items in a table">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📋" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Data View" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
-                    
-                    <RadioButton x:Name="AnalyticsTab" Style="{StaticResource SidebarNavButton}" GroupName="ExpireWiseNav">
+
+                    <RadioButton x:Name="AnalyticsTab" Style="{StaticResource SidebarNavButton}" GroupName="ExpireWiseNav"
+                                 AutomationProperties.Name="Analytics View"
+                                 AutomationProperties.HelpText="View charts and statistics about expiring items">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Analytics" VerticalAlignment="Center"/>
@@ -324,28 +340,32 @@
                     <TextBlock Text="ACTIONS" FontSize="10" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextDisabledBrush}" Margin="20,0,0,8"/>
 
-                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ToggleQuickAddCommand}">
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ToggleQuickAddCommand}"
+                            ToolTip="Add single items quickly with SKU lookup (Ctrl+N)">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⚡" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Quick Add" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    
-                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ImportFromExcelCommand}">
+
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ImportFromExcelCommand}"
+                            ToolTip="Import multiple items from Excel or CSV file (Ctrl+I)">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📥" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Import Data" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    
-                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ExportToExcelCommand}">
+
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ExportToExcelCommand}"
+                            ToolTip="Export current month data to Excel workbook">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📤" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     
-                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ExportToCsvCommand}">
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding ExportToCsvCommand}"
+                            ToolTip="Export current month data to CSV file (Ctrl+E)">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📄" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
@@ -356,8 +376,9 @@
                 <!-- Bottom Actions -->
                 <StackPanel Grid.Row="3" Margin="8,0,8,12">
                     <Separator Background="{DynamicResource SurfaceHoverBrush}" Margin="8,0,8,12"/>
-                    
-                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding OpenSettingsCommand}">
+
+                    <Button Style="{StaticResource SidebarActionButton}" Command="{Binding OpenSettingsCommand}"
+                            ToolTip="Configure thresholds, notifications, and preferences">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0"/>
                             <TextBlock Text="Settings" VerticalAlignment="Center"/>
@@ -455,16 +476,22 @@
                                        Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
 
-                        <!-- Center - Month Navigator -->
+                        <!-- Center - Month Navigator - Enhanced -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Command="{Binding PreviousMonthCommand}" 
+                            <Button Command="{Binding PreviousMonthCommand}"
                                     IsEnabled="{Binding CanGoToPreviousMonth}"
                                     Style="{StaticResource SecondaryButton}"
-                                    Width="36" Height="36" Padding="0" Margin="0,0,8,0">
-                                <TextBlock Text="◀" FontSize="12" HorizontalAlignment="Center"/>
+                                    Width="38" Height="38" Padding="0" Margin="0,0,10,0"
+                                    ToolTip="Previous Month (Ctrl+Left)">
+                                <TextBlock Text="◀" FontSize="13" HorizontalAlignment="Center" FontWeight="SemiBold"/>
                             </Button>
-                            
-                            <Border CornerRadius="10" Padding="20,8" MinWidth="180">
+
+                            <Border CornerRadius="12" Padding="24,10" MinWidth="200"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    ToolTip="Current viewing month - Use Ctrl+Left/Right to navigate">
+                                <Border.RenderTransform>
+                                    <ScaleTransform/>
+                                </Border.RenderTransform>
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                         <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
@@ -472,31 +499,84 @@
                                         <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2"
+                                                      Color="{StaticResource ExpireWiseAccentColor}"/>
+                                </Border.Effect>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                             To="1.03" Duration="0:0:0.15">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                             To="1.03" Duration="0:0:0.15">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                             To="1.0" Duration="0:0:0.15">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                             To="1.0" Duration="0:0:0.15">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <TextBlock Text="📆" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding CurrentMonthDisplay}" 
-                                               FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextOnPrimaryBrush}"
+                                    <TextBlock Text="📆" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="{Binding CurrentMonthDisplay}"
+                                               FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextOnPrimaryBrush}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-                            
-                            <Button Command="{Binding NextMonthCommand}" 
+
+                            <Button Command="{Binding NextMonthCommand}"
                                     IsEnabled="{Binding CanGoToNextMonth}"
                                     Style="{StaticResource SecondaryButton}"
-                                    Width="36" Height="36" Padding="0" Margin="8,0,0,0">
-                                <TextBlock Text="▶" FontSize="12" HorizontalAlignment="Center"/>
+                                    Width="38" Height="38" Padding="0" Margin="10,0,0,0"
+                                    ToolTip="Next Month (Ctrl+Right)">
+                                <TextBlock Text="▶" FontSize="13" HorizontalAlignment="Center" FontWeight="SemiBold"/>
                             </Button>
                         </StackPanel>
 
                         <!-- Right - Quick Actions -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Padding="12,8">
+                            <Button Command="{Binding EditItemCommand}" Style="{StaticResource SecondaryButton}"
+                                    Margin="0,0,8,0" Padding="12,8"
+                                    ToolTip="Edit selected item (Ctrl+Enter or Double-click)">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="✏️" FontSize="12" Margin="0,0,6,0"/>
                                     <TextBlock Text="Edit" FontSize="12"/>
                                 </StackPanel>
                             </Button>
-                            <Button Command="{Binding DeleteSelectedCommand}" Style="{StaticResource DangerButton}" Padding="12,8">
+                            <Button Command="{Binding DeleteSelectedCommand}" Style="{StaticResource DangerButton}"
+                                    Padding="12,8"
+                                    ToolTip="Delete selected items (Delete key)">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🗑️" FontSize="12" Margin="0,0,6,0"/>
                                     <TextBlock Text="Delete" FontSize="12"/>
@@ -515,8 +595,15 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <!-- Search Box -->
-                        <Border Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="12,0" MaxWidth="500" HorizontalAlignment="Left">
+                        <!-- Search Box with Focus Indicator -->
+                        <Border x:Name="SearchBoxBorder" Grid.Column="0" Background="{DynamicResource SurfaceHoverBrush}"
+                                CornerRadius="10" Padding="12,0" MaxWidth="500" HorizontalAlignment="Left"
+                                BorderThickness="2" BorderBrush="Transparent"
+                                Height="42">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08"
+                                                  Color="#000000" Direction="270"/>
+                            </Border.Effect>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -526,7 +613,10 @@
                                 <TextBox x:Name="SearchBox" Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
                                          VerticalAlignment="Center" Padding="0,8" FontSize="14"
-                                         CaretBrush="{DynamicResource TextPrimaryBrush}">
+                                         CaretBrush="{DynamicResource TextPrimaryBrush}"
+                                         AutomationProperties.Name="Search Items"
+                                         AutomationProperties.HelpText="Search by item number, description, or location. Press Ctrl+F to focus."
+                                         TabIndex="1">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Style.Triggers>
@@ -549,14 +639,20 @@
                         </Border>
                         
                         <!-- Status Filter -->
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}" 
-                                  SelectedItem="{Binding StatusFilter}" 
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}"
+                                  SelectedItem="{Binding StatusFilter}"
                                   Margin="12,0" MinWidth="120"
-                                  Style="{StaticResource ModernComboBoxStyle}"/>
-                        
+                                  Style="{StaticResource ModernComboBoxStyle}"
+                                  AutomationProperties.Name="Status Filter"
+                                  AutomationProperties.HelpText="Filter items by expiration status"
+                                  TabIndex="2"/>
+
                         <!-- Group by Store Toggle -->
-                        <ToggleButton Grid.Column="2" IsChecked="{Binding GroupByStore}" 
-                                      ToolTip="Group items by store location" Cursor="Hand">
+                        <ToggleButton Grid.Column="2" IsChecked="{Binding GroupByStore}"
+                                      ToolTip="Group items by store location" Cursor="Hand"
+                                      AutomationProperties.Name="Group by Store"
+                                      AutomationProperties.HelpText="Toggle grouping of items by store location"
+                                      TabIndex="3">
                             <ToggleButton.Style>
                                 <Style TargetType="ToggleButton">
                                     <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
@@ -592,119 +688,457 @@
                     </Grid>
                 </Border>
 
-                <!-- Statistics Bar -->
-                <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12" Margin="0,0,0,0"
+                <!-- Statistics Bar - Enhanced with Elevation -->
+                <Border Grid.Row="2" Background="{DynamicResource BackgroundBrush}" Padding="20,16" Margin="0,0,0,0"
                         Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <!-- Total Items -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,24,0">
-                            <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,12,0"
-                                    Background="{DynamicResource SurfaceHoverBrush}">
-                                <TextBlock Text="📦" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding TotalItems}" FontSize="18" FontWeight="Bold"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Total Items" FontSize="11"
-                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        <!-- Total Items Card -->
+                        <Border Margin="0,0,16,0" Padding="20,14" CornerRadius="12"
+                                Background="{DynamicResource SurfaceBrush}"
+                                RenderTransformOrigin="0.5,0.5"
+                                ToolTip="Total items being tracked in the current month">
+                            <Border.RenderTransform>
+                                <ScaleTransform/>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.15"
+                                                  Color="#000000" Direction="270"/>
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                         To="1.02" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                         To="1.02" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                         To="1.0" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                         To="1.0" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="40" Height="40" CornerRadius="10" Margin="0,0,14,0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#667eea" Offset="0"/>
+                                            <GradientStop Color="#764ba2" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="📦" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding TotalItems}" FontSize="22" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Total Items" FontSize="11" FontWeight="Medium"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
+                        </Border>
 
-                        <!-- Expiring Soon -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,24,0">
-                            <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,12,0"
-                                    Background="{DynamicResource WarningBrush}" Opacity="0.15">
-                                <TextBlock Text="⚠️" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="18" FontWeight="Bold"
-                                           Foreground="{DynamicResource WarningBrush}"/>
-                                <TextBlock Text="Expiring Soon" FontSize="11"
-                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        <!-- Expiring Soon Card -->
+                        <Border Margin="0,0,16,0" Padding="20,14" CornerRadius="12"
+                                Background="{DynamicResource SurfaceBrush}"
+                                RenderTransformOrigin="0.5,0.5"
+                                ToolTip="Items expiring within the warning threshold">
+                            <Border.RenderTransform>
+                                <ScaleTransform/>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.15"
+                                                  Color="#000000" Direction="270"/>
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                         To="1.02" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                         To="1.02" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                         To="1.0" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                         To="1.0" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="40" Height="40" CornerRadius="10" Margin="0,0,14,0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#f59e0b" Offset="0"/>
+                                            <GradientStop Color="#f97316" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="⚠️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="22" FontWeight="Bold"
+                                               Foreground="{DynamicResource WarningBrush}"/>
+                                    <TextBlock Text="Expiring Soon" FontSize="11" FontWeight="Medium"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
+                        </Border>
 
-                        <!-- Expired -->
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,12,0"
-                                    Background="{DynamicResource DangerBrush}" Opacity="0.15">
-                                <TextBlock Text="❌" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding ExpiredCount}" FontSize="18" FontWeight="Bold"
-                                           Foreground="{DynamicResource DangerBrush}"/>
-                                <TextBlock Text="Expired" FontSize="11"
-                                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        <!-- Expired Card -->
+                        <Border Padding="20,14" CornerRadius="12"
+                                Background="{DynamicResource SurfaceBrush}"
+                                RenderTransformOrigin="0.5,0.5"
+                                ToolTip="Items that have already expired">
+                            <Border.RenderTransform>
+                                <ScaleTransform/>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.15"
+                                                  Color="#000000" Direction="270"/>
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                         To="1.02" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                         To="1.02" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                         To="1.0" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                         To="1.0" Duration="0:0:0.15">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="40" Height="40" CornerRadius="10" Margin="0,0,14,0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#ef4444" Offset="0"/>
+                                            <GradientStop Color="#dc2626" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="❌" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ExpiredCount}" FontSize="22" FontWeight="Bold"
+                                               Foreground="{DynamicResource DangerBrush}"/>
+                                    <TextBlock Text="Expired" FontSize="11" FontWeight="Medium"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <!-- Data Grid Area -->
                 <Grid Grid.Row="3" Margin="20">
-                    <!-- Empty State -->
+                    <!-- Empty State - Enhanced -->
                     <Border Visibility="{Binding HasData, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                            Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="40">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Border Width="100" Height="100" CornerRadius="50" Margin="0,0,0,24">
+                            Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="60,40"
+                            Opacity="0">
+                        <Border.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         From="0" To="1" Duration="0:0:0.4">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuadraticEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Border.Triggers>
+
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="680">
+                            <!-- Large Icon with Pulsing Animation -->
+                            <Border Width="120" Height="120" CornerRadius="60" Margin="0,0,0,32"
+                                    RenderTransformOrigin="0.5,0.5">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
                                         <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
-                                <TextBlock Text="📅" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.2"
+                                                      Color="{StaticResource ExpireWiseAccentColor}"/>
+                                </Border.Effect>
+                                <Border.RenderTransform>
+                                    <ScaleTransform/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                                 From="1.0" To="1.05" Duration="0:0:2">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <SineEase EasingMode="EaseInOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                                 From="1.0" To="1.05" Duration="0:0:2">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <SineEase EasingMode="EaseInOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <TextBlock Text="📅" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="No Expiration Data" FontSize="20" FontWeight="Bold"
+
+                            <!-- Main Message -->
+                            <TextBlock Text="No Expiration Data" FontSize="24" FontWeight="Bold"
                                        Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Add items or import data to start tracking" 
-                                       FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" 
-                                       HorizontalAlignment="Center" Margin="0,8,0,24"/>
-                            
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Command="{Binding ToggleQuickAddCommand}" Style="{StaticResource PrimaryButton}" Padding="16,10" Margin="0,0,8,0">
+                            <TextBlock Text="Start tracking expiration dates to optimize inventory management"
+                                       FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,8,0,32" TextWrapping="Wrap"
+                                       TextAlignment="Center"/>
+
+                            <!-- Action Buttons -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,40">
+                                <Button Command="{Binding ToggleQuickAddCommand}" Style="{StaticResource PrimaryButton}"
+                                        Padding="20,12" Margin="0,0,12,0">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⚡" FontSize="14" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Quick Add" FontSize="13"/>
+                                        <TextBlock Text="⚡" FontSize="16" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Quick Add" FontSize="14" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
-                                
-                                <Button Command="{Binding ImportFromExcelCommand}" Style="{StaticResource SecondaryButton}" Padding="16,10">
+
+                                <Button Command="{Binding ImportFromExcelCommand}" Style="{StaticResource SecondaryButton}"
+                                        Padding="20,12">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📥" FontSize="14" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Import Data" FontSize="13"/>
+                                        <TextBlock Text="📥" FontSize="16" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Import Data" FontSize="14" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
+
+                            <!-- Getting Started Guide -->
+                            <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="12" Padding="24">
+                                <StackPanel>
+                                    <TextBlock Text="Getting Started" FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Step 1 -->
+                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                            <Border Width="48" Height="48" CornerRadius="24" Margin="0,0,0,12"
+                                                    Background="{StaticResource ExpireWiseAccentBrush}" Opacity="0.15">
+                                                <TextBlock Text="1" FontSize="20" FontWeight="Bold"
+                                                           Foreground="{StaticResource ExpireWiseAccentBrush}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBlock Text="Add Items" FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                            <TextBlock Text="Use Quick Add (Ctrl+N) to add individual items with SKU lookup"
+                                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+
+                                        <!-- Step 2 -->
+                                        <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                            <Border Width="48" Height="48" CornerRadius="24" Margin="0,0,0,12"
+                                                    Background="{StaticResource ExpireWiseAccentBrush}" Opacity="0.15">
+                                                <TextBlock Text="2" FontSize="20" FontWeight="Bold"
+                                                           Foreground="{StaticResource ExpireWiseAccentBrush}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBlock Text="Import Bulk Data" FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                            <TextBlock Text="Import from Excel/CSV (Ctrl+I) to add multiple items at once"
+                                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+
+                                        <!-- Step 3 -->
+                                        <StackPanel Grid.Column="2">
+                                            <Border Width="48" Height="48" CornerRadius="24" Margin="0,0,0,12"
+                                                    Background="{StaticResource ExpireWiseAccentBrush}" Opacity="0.15">
+                                                <TextBlock Text="3" FontSize="20" FontWeight="Bold"
+                                                           Foreground="{StaticResource ExpireWiseAccentBrush}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBlock Text="Track &amp; Manage" FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                            <TextBlock Text="View analytics, get notifications, and manage expiring items efficiently"
+                                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
                     
-                    <!-- Data Grid (visible when has data) -->
-                    <DataGrid x:Name="ItemsGrid" ItemsSource="{Binding Source={StaticResource GroupedItemsView}}"
-                              Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}"
-                              SelectedItem="{Binding SelectedItem}"
-                              SelectionMode="Extended" SelectionUnit="FullRow"
-                              SelectionChanged="OnItemsGridSelectionChanged"
-                              VirtualizingStackPanel.IsVirtualizing="True"
-                              VirtualizingStackPanel.VirtualizationMode="Recycling"
-                              EnableRowVirtualization="True"
-                              EnableColumnVirtualization="True"
-                              Style="{StaticResource ModernDataGrid}"
-                              ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
-                              CellStyle="{StaticResource ModernDataGridCell}"
-                              RowStyle="{StaticResource ModernDataGridRow}">
-                        <DataGrid.InputBindings>
-                            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
-                        </DataGrid.InputBindings>
+                    <!-- Data Grid (visible when has data) - Wrapped in elevated card -->
+                    <Border Visibility="{Binding HasData, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Background="{DynamicResource SurfaceBrush}"
+                            CornerRadius="12">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.15"
+                                              Color="#000000" Direction="270"/>
+                        </Border.Effect>
+
+                        <DataGrid x:Name="ItemsGrid" ItemsSource="{Binding ItemsView}"
+                                  SelectedItem="{Binding SelectedItem}"
+                                  SelectionMode="Extended" SelectionUnit="FullRow"
+                                  SelectionChanged="OnItemsGridSelectionChanged"
+                                  VirtualizingStackPanel.IsVirtualizing="True"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                  EnableRowVirtualization="True"
+                                  EnableColumnVirtualization="True"
+                                  Style="{StaticResource ModernDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                                  CellStyle="{StaticResource ModernDataGridCell}"
+                                  RowStyle="{StaticResource ModernDataGridRow}"
+                                  AutomationProperties.Name="Expiration Items Table"
+                                  AutomationProperties.HelpText="Table of items with expiration dates. Use arrow keys to navigate, Enter to edit, Delete to remove items.">
+                            <DataGrid.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditItemCommand}"/>
+                            </DataGrid.InputBindings>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Edit Item" Command="{Binding EditItemCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="✏️" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Delete" Command="{Binding DeleteSelectedCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🗑️" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Export to CSV" Command="{Binding ExportToCsvCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📄" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Export to Excel" Command="{Binding ExportToExcelCommand}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📊" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ITEM NUMBER" Binding="{Binding ItemNumber}" Width="120"/>
                             <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*"/>
                             <DataGridTextColumn Header="STORE" Binding="{Binding Location, Converter={StaticResource StoreDisplayConverter}}" Width="200"/>
                             <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
-                            <DataGridTemplateColumn Header="STATUS" Width="100">
+                            <DataGridTemplateColumn Header="STATUS" Width="110">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border CornerRadius="6" Padding="8,4" HorizontalAlignment="Center">
+                                        <Border CornerRadius="8" Padding="10,5" HorizontalAlignment="Center"
+                                                RenderTransformOrigin="0.5,0.5">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="StatusBadgeScale"/>
+                                            </Border.RenderTransform>
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.15"
+                                                                  Color="#000000" Direction="270"/>
+                                            </Border.Effect>
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
@@ -718,11 +1152,69 @@
                                                         <DataTrigger Binding="{Binding Status}" Value="Expired">
                                                             <Setter Property="Background" Value="{DynamicResource TextTertiaryBrush}"/>
                                                         </DataTrigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Trigger.EnterActions>
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                                                         To="1.05" Duration="0:0:0.15">
+                                                                            <DoubleAnimation.EasingFunction>
+                                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                                            </DoubleAnimation.EasingFunction>
+                                                                        </DoubleAnimation>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                                                         To="1.05" Duration="0:0:0.15">
+                                                                            <DoubleAnimation.EasingFunction>
+                                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                                            </DoubleAnimation.EasingFunction>
+                                                                        </DoubleAnimation>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </Trigger.EnterActions>
+                                                            <Trigger.ExitActions>
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                                                         To="1.0" Duration="0:0:0.15">
+                                                                            <DoubleAnimation.EasingFunction>
+                                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                                            </DoubleAnimation.EasingFunction>
+                                                                        </DoubleAnimation>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                                                         To="1.0" Duration="0:0:0.15">
+                                                                            <DoubleAnimation.EasingFunction>
+                                                                                <QuadraticEase EasingMode="EaseOut"/>
+                                                                            </DoubleAnimation.EasingFunction>
+                                                                        </DoubleAnimation>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </Trigger.ExitActions>
+                                                        </Trigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock Text="{Binding Status}" FontWeight="SemiBold" 
-                                                       Foreground="{DynamicResource TextOnPrimaryBrush}" FontSize="11"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontSize="11" Margin="0,0,4,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="✅"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                                    <Setter Property="Text" Value="⚠️"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                                    <Setter Property="Text" Value="🚨"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Expired">
+                                                                    <Setter Property="Text" Value="⏱️"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Status}" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextOnPrimaryBrush}" FontSize="11"/>
+                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -786,6 +1278,7 @@
                             </GroupStyle>
                         </DataGrid.GroupStyle>
                     </DataGrid>
+                </Border>
                 </Grid>
 
                 <!-- Status Bar -->

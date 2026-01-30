@@ -351,6 +351,26 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         SaveWidgetSettings();
     }
 
+    partial void OnNotesExpandedChanged(bool _)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnNotReadyGroupExpandedChanged(bool _)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnOnDeckGroupExpandedChanged(bool _)
+    {
+        SaveWidgetSettings();
+    }
+
+    partial void OnInProgressGroupExpandedChanged(bool _)
+    {
+        SaveWidgetSettings();
+    }
+
     partial void OnUndoTimeoutSecondsChanged(int value)
     {
         // If undo timer exists, update its interval to reflect new setting

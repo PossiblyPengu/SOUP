@@ -20,6 +20,18 @@ public class ExpireWiseSearchService
             (!string.IsNullOrEmpty(i.Notes) && i.Notes.Contains(lower, StringComparison.OrdinalIgnoreCase)));
     }
 
+    public bool Matches(ExpirationItem item, string query)
+    {
+        if (item == null) return false;
+        if (string.IsNullOrWhiteSpace(query)) return true;
+
+        var lower = query.ToLowerInvariant();
+        return (!string.IsNullOrEmpty(item.ItemNumber) && item.ItemNumber.Contains(lower, StringComparison.OrdinalIgnoreCase)) ||
+               (!string.IsNullOrEmpty(item.Description) && item.Description.Contains(lower, StringComparison.OrdinalIgnoreCase)) ||
+               (!string.IsNullOrEmpty(item.Location) && item.Location.Contains(lower, StringComparison.OrdinalIgnoreCase)) ||
+               (!string.IsNullOrEmpty(item.Notes) && item.Notes.Contains(lower, StringComparison.OrdinalIgnoreCase));
+    }
+
     public IEnumerable<ExpirationItem> FilterByCategory(IEnumerable<ExpirationItem> items, string? category)
     {
         if (string.IsNullOrWhiteSpace(category)) return items;
