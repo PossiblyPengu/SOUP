@@ -16,6 +16,16 @@
         <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
         <SolidColorBrush x:Key="ExpireWiseAccentLightBrush" Color="{StaticResource ExpireWiseAccentLightColor}"/>
         <SolidColorBrush x:Key="ExpireWiseAccentDarkBrush" Color="{StaticResource ExpireWiseAccentDarkColor}"/>
+
+        <!-- Animations -->
+        <Storyboard x:Key="FadeInAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
+        </Storyboard>
+
+        <Storyboard x:Key="ScaleInAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.95" To="1" Duration="0:0:0.2"/>
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.95" To="1" Duration="0:0:0.2"/>
+        </Storyboard>
     </UserControl.Resources>
 
     <!-- Quick Add Content -->
@@ -28,17 +38,39 @@
                     <RowDefinition Height="Auto"/> <!-- Queue Section -->
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="90"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Row 0: SKU Input -->
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="SKU/Item #:" FontSize="13"
                            Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,0,16,0"/>
+                           VerticalAlignment="Center" Margin="0,0,16,0"
+                           ToolTip="Enter the SKU or item number to look up in the dictionary"/>
 
                 <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource BackgroundBrush}"
                         CornerRadius="8" Padding="14,10">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                            <Style.Triggers>
+                                <!-- Valid state - green border -->
+                                <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                </DataTrigger>
+                                <!-- Invalid state - red border -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding QuickAddIsValidating}" Value="False"/>
+                                        <Condition Binding="{Binding QuickAddIsValid}" Value="False"/>
+                                        <Condition Binding="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}}" Value="Visible"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -50,7 +82,8 @@
                                  Background="Transparent" BorderThickness="0"
                                  Foreground="{DynamicResource TextPrimaryBrush}"
                                  FontSize="14" VerticalAlignment="Center"
-                                 CaretBrush="{DynamicResource TextPrimaryBrush}">
+                                 CaretBrush="{DynamicResource TextPrimaryBrush}"
+                                 ToolTip="Type a SKU and press Enter to add to queue">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Style.Triggers>
@@ -71,9 +104,13 @@
                             </TextBox.Style>
                         </TextBox>
 
-                        <!-- Status Icon -->
+                        <!-- Status Icon with Animation -->
                         <Border Grid.Column="1" Width="24" Height="24" CornerRadius="12"
-                                Margin="8,0,0,0" VerticalAlignment="Center">
+                                Margin="8,0,0,0" VerticalAlignment="Center"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="Transparent"/>
@@ -83,11 +120,34 @@
                                         <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
                                         </DataTrigger>
                                         <!-- Found -->
                                         <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.7" To="1" Duration="0:0:0.3">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.7" To="1" Duration="0:0:0.3">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
                                         </DataTrigger>
                                         <!-- Not Found -->
                                         <MultiDataTrigger>
@@ -103,7 +163,7 @@
                                 </Style>
                             </Border.Style>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       FontSize="12" Foreground="White">
+                                       FontSize="12" Foreground="White" FontWeight="Bold">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Text" Value=""/>
@@ -132,7 +192,8 @@
                 <!-- Row 1: Store and Quantity -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Store:" FontSize="13"
                            Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,14,16,0"/>
+                           VerticalAlignment="Center" Margin="0,14,16,0"
+                           ToolTip="Select the store location for this item"/>
 
                 <Grid Grid.Row="1" Grid.Column="1" Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
@@ -145,10 +206,12 @@
                               ItemsSource="{Binding AvailableStores}"
                               SelectedItem="{Binding QuickAddStore}"
                               DisplayMemberPath="Name"
-                              Style="{StaticResource ModernComboBoxStyle}"/>
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              ToolTip="Store location"/>
 
                     <Border Grid.Column="2" Background="{DynamicResource BackgroundBrush}"
-                            CornerRadius="8" Padding="14,10">
+                            CornerRadius="8" Padding="14,10"
+                            ToolTip="Number of units to add">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -176,7 +239,8 @@
                 <!-- Row 2: Expiry Date -->
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Expires:" FontSize="13"
                            Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,14,16,0"/>
+                           VerticalAlignment="Center" Margin="0,14,16,0"
+                           ToolTip="Select the expiration month and year"/>
 
                 <Grid Grid.Row="2" Grid.Column="1" Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
@@ -190,34 +254,77 @@
                               SelectedValue="{Binding QuickAddMonth}"
                               SelectedValuePath="Value"
                               DisplayMemberPath="Name"
-                              Style="{StaticResource ModernComboBoxStyle}"/>
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              ToolTip="Expiration month"/>
 
                     <ComboBox Grid.Column="2"
                               ItemsSource="{Binding QuickAddYears}"
                               SelectedItem="{Binding QuickAddYear}"
-                              Style="{StaticResource ModernComboBoxStyle}"/>
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              ToolTip="Expiration year"/>
                 </Grid>
 
                 <!-- Row 3: Item Preview & Button -->
                 <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
                         Background="{DynamicResource BackgroundBrush}"
+                        BorderBrush="{DynamicResource SuccessBrush}"
+                        BorderThickness="2"
                         CornerRadius="8" Padding="14,12" Margin="0,18,0,0"
-                        Visibility="{Binding QuickAddItemPreview, Converter={StaticResource StringToVisibilityConverter}}">
+                        Visibility="{Binding QuickAddItemPreview, Converter={StaticResource StringToVisibilityConverter}}"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <Trigger Property="Visibility" Value="Visible">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3"/>
+                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.9" To="1" Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.9" To="1" Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="✓" FontSize="14" Foreground="{DynamicResource SuccessBrush}"
-                                       Margin="0,0,10,0" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="13" VerticalAlignment="Center">
-                                <Run Text="Item:" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                <Run Text="{Binding QuickAddItemPreview}"
-                                     Foreground="{StaticResource ExpireWiseAccentLightBrush}"
-                                     FontWeight="SemiBold"/>
-                            </TextBlock>
+                            <Border Width="32" Height="32" CornerRadius="16"
+                                    Background="{DynamicResource SuccessBrush}"
+                                    Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="✓" FontSize="16" Foreground="White"
+                                          FontWeight="Bold"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Item Found" FontSize="11"
+                                          Foreground="{DynamicResource TextSecondaryBrush}"
+                                          FontWeight="Medium"/>
+                                <TextBlock FontSize="14" Margin="0,2,0,0">
+                                    <Run Text="{Binding QuickAddItemPreview}"
+                                         Foreground="{StaticResource ExpireWiseAccentLightBrush}"
+                                         FontWeight="SemiBold"/>
+                                </TextBlock>
+                            </StackPanel>
                         </StackPanel>
                         <Button Command="{Binding AddToQueueCommand}"
                                 HorizontalAlignment="Right"
                                 Style="{StaticResource PrimaryButton}"
-                                Padding="24,10">
+                                Padding="24,10"
+                                ToolTip="Add this item to the queue (or press Enter)">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="➕" FontSize="14" Margin="0,0,8,0"/>
                                 <TextBlock Text="Add to Queue" FontSize="13" FontWeight="SemiBold"/>
@@ -229,19 +336,56 @@
                 <!-- Row 4: Queue Section -->
                 <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,16,0,0"
                         Background="{DynamicResource BackgroundBrush}"
+                        BorderBrush="{StaticResource ExpireWiseAccentBrush}"
+                        BorderThickness="2"
                         CornerRadius="8" Padding="16"
-                        Visibility="{Binding HasQueuedItems, Converter={StaticResource BoolToVisibilityConverter}}">
+                        Visibility="{Binding HasQueuedItems, Converter={StaticResource BoolToVisibilityConverter}}"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <Trigger Property="Visibility" Value="Visible">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3"/>
+                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0" To="1" Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="Queued Items" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14"
+                                        Background="{StaticResource ExpireWiseAccentBrush}"
+                                        Margin="0,0,10,0">
+                                    <TextBlock Text="{Binding QuickAddQueue.Count}" FontSize="12"
+                                              Foreground="White" FontWeight="Bold"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Queued Items" FontSize="14" FontWeight="SemiBold"
+                                          Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <Button Content="Clear All" Command="{Binding ClearQueueCommand}"
                                         Style="{StaticResource SecondaryButton}"
-                                        Padding="12,6" FontSize="11" Margin="0,0,8,0"/>
+                                        Padding="12,6" FontSize="11" Margin="0,0,8,0"
+                                        ToolTip="Remove all items from queue"/>
                                 <Button Command="{Binding ConfirmQueueCommand}"
                                         Style="{StaticResource PrimaryButton}"
-                                        Padding="16,6">
+                                        Padding="16,6"
+                                        ToolTip="Save all queued items to database">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="✓" FontSize="12" Margin="0,0,6,0"/>
                                         <TextBlock Text="Confirm All" FontSize="11" FontWeight="SemiBold"/>

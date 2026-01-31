@@ -1,0 +1,482 @@
+<UserControl x:Class="SOUP.Views.ExpireWise.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:SOUP.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200"
+             d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}">
+
+    <UserControl.Resources>
+        <!-- ExpireWise Amber Colors -->
+        <Color x:Key="ExpireWiseAccentColor">#f59e0b</Color>
+        <Color x:Key="ExpireWiseAccentDarkColor">#d97706</Color>
+        <Color x:Key="ExpireWiseAccentLightColor">#fbbf24</Color>
+        <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
+        <SolidColorBrush x:Key="ExpireWiseAccentDarkBrush" Color="{StaticResource ExpireWiseAccentDarkColor}"/>
+        <SolidColorBrush x:Key="ExpireWiseAccentLightBrush" Color="{StaticResource ExpireWiseAccentLightColor}"/>
+
+        <!-- Interactive KPI Card Style -->
+        <Style x:Key="InteractiveKpiCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform Y="0"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                               To="-4" Duration="0:0:0.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                               To="16" Duration="0:0:0.2"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                               To="0.2" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                               To="0" Duration="0:0:0.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                               To="8" Duration="0:0:0.2"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                               To="0.1" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Chart Card Style -->
+        <Style x:Key="ChartCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Enhanced Button Style with Micro-interactions -->
+        <Style x:Key="MicroInteractiveButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                               To="1.02" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                               To="1.02" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                               To="1" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                               To="1" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                               To="0.98" Duration="0:0:0.1"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                               To="0.98" Duration="0:0:0.1"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Background="{DynamicResource BackgroundBrush}" Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- Header -->
+                <RowDefinition Height="Auto"/>  <!-- KPI Cards -->
+                <RowDefinition Height="Auto"/>  <!-- Charts Row -->
+                <RowDefinition Height="Auto"/>  <!-- Critical Items & Actions -->
+            </Grid.RowDefinitions>
+
+            <!-- Header with Gradient -->
+            <Border Grid.Row="0" Margin="8,0,8,20" CornerRadius="12" Padding="20,16">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
+                        <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0.5"/>
+                        <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.25" Color="{StaticResource ExpireWiseAccentColor}"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="52" Height="52" CornerRadius="26"
+                            Background="{DynamicResource OverlayWhiteSubtleBrush}" Margin="0,0,16,0">
+                        <TextBlock Text="📊" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="ExpireWise Dashboard" FontSize="24" FontWeight="Bold"
+                                   Foreground="White"/>
+                        <TextBlock Text="At-a-glance overview of your inventory expiration status"
+                                   FontSize="13" Foreground="White" Opacity="0.9" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- KPI Cards Row (Interactive) -->
+            <Grid Grid.Row="1" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Items Card -->
+                <Border Grid.Column="0" Style="{StaticResource InteractiveKpiCard}"
+                        ToolTip="Click to view all items">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Background="{DynamicResource InfoBrush}" CornerRadius="10"
+                                    Padding="10" Margin="0,0,12,0" Opacity="0.15">
+                                <TextBlock Text="📦" FontSize="22"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Total Items" FontSize="12" FontWeight="Medium"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="{Binding TotalItems, FallbackValue=0}"
+                                   FontSize="36" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <TextBlock Grid.Row="2" FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}">
+                            <Run Text="{Binding TotalUnits, FallbackValue=0, StringFormat='{}{0:N0}'}"/>
+                            <Run Text="total units"/>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- Critical Items Card -->
+                <Border Grid.Column="1" Style="{StaticResource InteractiveKpiCard}"
+                        ToolTip="Click to filter critical items">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Background="{DynamicResource DangerBrush}" CornerRadius="10"
+                                    Padding="10" Margin="0,0,12,0" Opacity="0.15"
+                                    x:Name="CriticalIconBorder">
+                                <TextBlock Text="🚨" FontSize="22" x:Name="CriticalIcon"/>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetName="CriticalIcon"
+                                                               Storyboard.TargetProperty="Opacity"
+                                                               From="1.0" To="0.5" Duration="0:0:1.5" AutoReverse="True">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <SineEase EasingMode="EaseInOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Critical Items" FontSize="12" FontWeight="Medium"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="{Binding CriticalCount, FallbackValue=0}"
+                                   FontSize="36" FontWeight="Bold"
+                                   Foreground="{DynamicResource DangerBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <TextBlock Grid.Row="2" FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}">
+                            <Run Text="{Binding ExpiredCount, FallbackValue=0}"/>
+                            <Run Text="already expired"/>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- Expiring This Month Card -->
+                <Border Grid.Column="2" Style="{StaticResource InteractiveKpiCard}"
+                        ToolTip="Click to view this month's items">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Background="{StaticResource ExpireWiseAccentBrush}" CornerRadius="10"
+                                    Padding="10" Margin="0,0,12,0" Opacity="0.15">
+                                <TextBlock Text="📅" FontSize="22"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Expiring This Month" FontSize="12" FontWeight="Medium"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="{Binding MonthItemCount, FallbackValue=0}"
+                                   FontSize="36" FontWeight="Bold"
+                                   Foreground="{StaticResource ExpireWiseAccentBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <TextBlock Grid.Row="2" FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}">
+                            <Run Text="in"/>
+                            <Run Text="{Binding CurrentMonthDisplay, FallbackValue='current month'}"/>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- Top Location Card -->
+                <Border Grid.Column="3" Style="{StaticResource InteractiveKpiCard}"
+                        ToolTip="Click to group by location">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Background="{DynamicResource SuccessBrush}" CornerRadius="10"
+                                    Padding="10" Margin="0,0,12,0" Opacity="0.15">
+                                <TextBlock Text="📍" FontSize="22"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Top Location" FontSize="12" FontWeight="Medium"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="Main" FontSize="24" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
+                        <TextBlock Grid.Row="2" Text="most items stored" FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Charts Row: Forecast + This Month -->
+            <Grid Grid.Row="2" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 6-Month Forecast Chart -->
+                <Border Grid.Column="0" Style="{StaticResource ChartCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="📈 6-Month Expiration Forecast"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                        <!-- Placeholder for chart - will be implemented in ViewModel task -->
+                        <Border Grid.Row="1" Height="200" Background="{DynamicResource BackgroundBrush}"
+                                CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                            <TextBlock Text="Chart will be populated with data"
+                                       FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- This Month's Items Mini Table -->
+                <Border Grid.Column="1" Style="{StaticResource ChartCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="📋 This Month's Items"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                        <!-- Placeholder for items list -->
+                        <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}"
+                                CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                MinHeight="150">
+                            <TextBlock Text="Items for current month will appear here"
+                                       FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       TextWrapping="Wrap" TextAlignment="Center" Margin="20"/>
+                        </Border>
+
+                        <Button Grid.Row="2" Content="View All →"
+                                Style="{StaticResource SecondaryButton}"
+                                HorizontalAlignment="Stretch" Margin="0,12,0,0"
+                                Padding="0,10"
+                                ToolTip="Navigate to Inventory view with current month"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Critical Items & Quick Actions Row -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Critical Items Alert -->
+                <Border Grid.Column="0" Style="{StaticResource ChartCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="🚨 Critical Items Alert"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource DangerBrush}" Margin="0,0,0,16"/>
+
+                        <!-- Placeholder for critical items -->
+                        <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}"
+                            CornerRadius="8" BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
+                            MinHeight="120">
+                            <TextBlock Text="Critical items will appear here"
+                                       FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Quick Actions Panel -->
+                <Border Grid.Column="1" Style="{StaticResource ChartCard}">
+                    <StackPanel>
+                        <TextBlock Text="⚡ Quick Actions" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                        <!-- Quick Add Button -->
+                        <Button Command="{Binding ShowQuickAddDialogCommand}"
+                                Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Margin="0,0,0,10" Padding="0,12"
+                                ToolTip="Open Quick Add dialog (Ctrl+N)">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="⚡" FontSize="16" Margin="0,0,10,0"/>
+                                <TextBlock Text="Quick Add Item" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Import Button -->
+                        <Button Command="{Binding ImportExcelCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                HorizontalAlignment="Stretch" Margin="0,0,0,10" Padding="0,12"
+                                ToolTip="Import items from Excel (Ctrl+I)">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="📥" FontSize="16" Margin="0,0,10,0"/>
+                                <TextBlock Text="Import Data" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Export Button -->
+                        <Button Command="{Binding ExportExcelCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                HorizontalAlignment="Stretch" Padding="0,12"
+                                ToolTip="Export items to Excel">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="📤" FontSize="16" Margin="0,0,10,0"/>
+                                <TextBlock Text="Export Data" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

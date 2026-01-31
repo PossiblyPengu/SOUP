@@ -1071,7 +1071,8 @@ public partial class EssentialsBuddyViewModel : ObservableObject, IDisposable
             {
                 settingsWindow.Owner = mainWindow;
             }
-            settingsWindow.ShowDialog();
+
+            settingsWindow.Show();
         }
         catch (Exception ex)
         {

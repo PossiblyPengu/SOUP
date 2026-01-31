@@ -14,6 +14,7 @@ namespace SOUP.Views.ExpireWise;
 public partial class ExpireWiseView : UserControl
 {
     private KeyboardShortcutManager? _shortcutManager;
+    private bool _suppressSelectionChanged;
 
     public ExpireWiseView()
     {
@@ -90,21 +91,40 @@ public partial class ExpireWiseView : UserControl
     private void OnItemsGridSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DataContext is not ExpireWiseViewModel vm) return;
+        if (_suppressSelectionChanged) return;
 
         vm.SelectedItems.Clear();
-        // Sync selected items (SelectedItems contains object collection)
-        if (ItemsGrid?.SelectedItems != null)
-        {
-            foreach (var obj in ItemsGrid.SelectedItems.Cast<object>())
-            {
-                if (obj is ExpirationItem item)
-                {
-                    vm.SelectedItems.Add(item);
-                }
-            }
+        if (ItemsGrid?.SelectedItems == null) return;
 
-            // Keep the single SelectedItem property pointing to first selected item
-            vm.SelectedItem = ItemsGrid.SelectedItems.Cast<object>().OfType<ExpirationItem>().FirstOrDefault();
+        var selectedItems = ItemsGrid.SelectedItems.Cast<object>().OfType<ExpirationItem>().ToList();
+        if (selectedItems.Count <= 1)
+        {
+            // simple sync
+            foreach (var it in selectedItems) vm.SelectedItems.Add(it);
+            vm.SelectedItem = selectedItems.FirstOrDefault();
+            return;
         }
+
+        // Enforce that multi-selection is limited to the same store and the currently viewed month
+        var first = selectedItems.First();
+        var allowedLocation = first.Location ?? string.Empty;
+        var allowedYear = vm.CurrentMonth.Year;
+        var allowedMonth = vm.CurrentMonth.Month;
+
+        var allowed = selectedItems.Where(i => (i.Location ?? string.Empty) == allowedLocation
+                                              && i.ExpiryDate.Year == allowedYear
+                                              && i.ExpiryDate.Month == allowedMonth).ToList();
+
+        if (allowed.Count != selectedItems.Count)
+        {
+            // Remove disallowed selections from UI and reapply allowed selection
+            _suppressSelectionChanged = true;
+            ItemsGrid.SelectedItems.Clear();
+            foreach (var it in allowed) ItemsGrid.SelectedItems.Add(it);
+            _suppressSelectionChanged = false;
+        }
+
+        foreach (var it in allowed) vm.SelectedItems.Add(it);
+        vm.SelectedItem = allowed.FirstOrDefault();
     }
 }

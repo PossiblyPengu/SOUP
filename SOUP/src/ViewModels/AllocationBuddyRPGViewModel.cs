@@ -1459,7 +1459,8 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             {
                 settingsWindow.Owner = mainWindow;
             }
-            settingsWindow.ShowDialog();
+
+            settingsWindow.Show();
         }
         catch (Exception ex)
         {

@@ -353,7 +353,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 settingsWindow.Owner = mainWindow;
             }
 
-            settingsWindow.ShowDialog();
+            settingsWindow.Show();
             _logger?.LogInformation("Opened unified settings window");
         }
         catch (Exception ex)

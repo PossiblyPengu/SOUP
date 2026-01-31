@@ -1,0 +1,170 @@
+<UserControl x:Class="SOUP.Features.ExpireWise.Views.MonthCalendarPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="400" d:DesignWidth="500">
+
+    <UserControl.Resources>
+        <!-- ExpireWise Amber Colors -->
+        <Color x:Key="ExpireWiseAccentColor">#f59e0b</Color>
+        <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
+
+        <!-- Month Button Style -->
+        <Style x:Key="MonthButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Height" Value="80"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <TranslateTransform Y="0"/>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Month Name -->
+                                <TextBlock Grid.Row="0" Text="{TemplateBinding Tag}"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center"/>
+
+                                <!-- Item Count Badge -->
+                                <Border Grid.Row="1" x:Name="CountBadge"
+                                        Background="{StaticResource ExpireWiseAccentBrush}"
+                                        CornerRadius="12" Padding="8,4"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Margin="0,8,0,0" Opacity="0.2">
+                                    <TextBlock Text="{TemplateBinding Content}"
+                                               FontSize="16" FontWeight="Bold"
+                                               Foreground="White"/>
+                                </Border>
+
+                                <!-- "items" label -->
+                                <TextBlock Grid.Row="2" Text="items" FontSize="10"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Border"
+                                                           Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                           To="-4" Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="Border"
+                                                           Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                                           To="12" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Border"
+                                                           Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                           To="0" Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="Border"
+                                                           Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                                           To="4" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                                <Setter Property="BorderBrush" Value="{StaticResource ExpireWiseAccentBrush}"/>
+                                <Setter TargetName="CountBadge" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Calendar Grid: 3 columns x 4 rows = 12 months -->
+    <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="12"
+            Padding="20" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.15" Color="Black"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Select Month" FontSize="18" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Click a month to view items expiring that month"
+                           FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"
+                           HorizontalAlignment="Center" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- 12-Month Grid -->
+            <UniformGrid Grid.Row="1" Columns="3" Rows="4">
+                <!-- Row 1 -->
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="January"
+                        ToolTip="January - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="February"
+                        ToolTip="February - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="March"
+                        ToolTip="March - Click to view items"/>
+
+                <!-- Row 2 -->
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="April"
+                        ToolTip="April - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="May"
+                        ToolTip="May - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="June"
+                        ToolTip="June - Click to view items"/>
+
+                <!-- Row 3 -->
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="July"
+                        ToolTip="July - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="August"
+                        ToolTip="August - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="September"
+                        ToolTip="September - Click to view items"/>
+
+                <!-- Row 4 -->
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="October"
+                        ToolTip="October - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="November"
+                        ToolTip="November - Click to view items"/>
+                <Button Style="{StaticResource MonthButtonStyle}" Content="0" Tag="December"
+                        ToolTip="December - Click to view items"/>
+            </UniformGrid>
+        </Grid>
+    </Border>
+</UserControl>

@@ -47,7 +47,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private DispatcherTimer? _notificationTimer;
     private EventHandler? _notificationTimerHandler;
     private System.Threading.Timer? _searchDebounceTimer;
-    private string _dateDisplayFormat = "MMMM yyyy";
+    private string _dateDisplayFormat = "Long";
     [ObservableProperty]
     private ObservableCollection<ExpirationItem> _items = new();
 
@@ -257,6 +257,18 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private bool _quickAddExpanded = false;
 
     /// <summary>
+    /// Gets or sets the selected view index (0=Dashboard, 1=Inventory, 2=Analytics).
+    /// </summary>
+    [ObservableProperty]
+    private int _selectedViewIndex = 1; // Default to Inventory view
+
+    /// <summary>
+    /// Gets or sets whether the sidebar is collapsed.
+    /// </summary>
+    [ObservableProperty]
+    private bool _sidebarCollapsed = false;
+
+    /// <summary>
     /// Gets or sets the month for quick add (defaults to next month).
     /// </summary>
     [ObservableProperty]
@@ -279,10 +291,10 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     public ObservableCollection<MonthOption> QuickAddMonths { get; } = new()
     {
-        new(1, "Jan"), new(2, "Feb"), new(3, "Mar"),
-        new(4, "Apr"), new(5, "May"), new(6, "Jun"),
-        new(7, "Jul"), new(8, "Aug"), new(9, "Sep"),
-        new(10, "Oct"), new(11, "Nov"), new(12, "Dec")
+        new(1, "January"), new(2, "February"), new(3, "March"),
+        new(4, "April"), new(5, "May"), new(6, "June"),
+        new(7, "July"), new(8, "August"), new(9, "September"),
+        new(10, "October"), new(11, "November"), new(12, "December")
     };
 
     /// <summary>
@@ -586,6 +598,13 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
+        FocusSearchRequested?.Invoke();
+    }
+
+    [RelayCommand]
     private async Task LoadItems()
     {
         try
@@ -615,13 +634,23 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             // Build available months from data
             BuildAvailableMonths();
 
-            // Navigate to the first month with data, or current month
+            // Prefer showing the current month if it has data; otherwise fall back
+            // to the first month that contains items (preserves previous behaviour).
             if (AvailableMonths.Any())
             {
-                var firstWithItems = AvailableMonths.FirstOrDefault(m => m.ItemCount > 0);
-                if (firstWithItems != null)
+                var nowMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                var currentGroup = AvailableMonths.FirstOrDefault(m => m.Month == nowMonth && m.ItemCount > 0);
+                if (currentGroup != null)
                 {
-                    CurrentMonth = firstWithItems.Month;
+                    CurrentMonth = currentGroup.Month;
+                }
+                else
+                {
+                    var firstWithItems = AvailableMonths.FirstOrDefault(m => m.ItemCount > 0);
+                    if (firstWithItems != null)
+                    {
+                        CurrentMonth = firstWithItems.Month;
+                    }
                 }
             }
 
@@ -691,12 +720,15 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
            _navigationService.NavigateToMonth(value.Year, value.Month);
            UpdateMonthDisplay();
            RebuildVisibleMonths();
-           ApplyFilters();
+            // Refresh the ICollectionView filter and update FilteredItems/stats
+            _itemsView?.Refresh();
+            ApplyFilters();
     }
 
     private void UpdateMonthDisplay()
     {
-        CurrentMonthDisplay = FormatExpirationDate(CurrentMonth);
+        // Always show long month names (e.g. "January 2026") for the main month pill
+        CurrentMonthDisplay = CurrentMonth.ToString("MMMM yyyy");
     }
 
     // Navigation is always available - endless carousel
@@ -1096,6 +1128,10 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             StatusMessage = $"Error deleting items: {ex.Message}";
             _logger?.LogError(ex, "Exception while deleting selected items");
         }
+    }
+    [RelayCommand]
+    private async Task ImportFromExcel()
+    {
         _logger?.LogInformation("Import from Excel clicked");
 
         try
@@ -1551,7 +1587,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             {
                 settingsWindow.Owner = mainWindow;
             }
-            settingsWindow.ShowDialog();
+
+            settingsWindow.Show();
         }
         catch (Exception ex)
         {
@@ -1692,6 +1729,42 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     {
         QuickAddExpanded = !QuickAddExpanded;
         StatusMessage = QuickAddExpanded ? "Quick Add panel opened (Ctrl+Shift+Q)" : "Quick Add panel closed";
+    }
+
+    /// <summary>
+    /// Toggle sidebar collapsed/expanded state
+    /// </summary>
+    [RelayCommand]
+    private void ToggleSidebar()
+    {
+        SidebarCollapsed = !SidebarCollapsed;
+        _logger?.LogDebug("Sidebar {State}", SidebarCollapsed ? "collapsed" : "expanded");
+    }
+
+    /// <summary>
+    /// Show Quick Add modal dialog (modern center-screen dialog)
+    /// </summary>
+    [RelayCommand]
+    private async Task ShowQuickAddDialog()
+    {
+        try
+        {
+            // Create the Quick Add dialog
+            var dialog = new SOUP.Features.ExpireWise.Views.QuickAddDialog
+            {
+                DataContext = this // Use current ViewModel (has all Quick Add properties)
+            };
+
+            // Show dialog and wait for user to close it
+            await _dialogService.ShowContentDialogAsync<object?>(dialog);
+
+            _logger?.LogInformation("Quick Add dialog closed");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to show Quick Add dialog");
+            _dialogService.ShowError("Failed to open Quick Add dialog", "Error");
+        }
     }
 
     /// <summary>

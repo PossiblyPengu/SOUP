@@ -49,7 +49,13 @@
       "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" test \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\tests\\\\Infrastructure.Tests\\\\Infrastructure.Tests.csproj\" --filter \"FullyQualifiedName~SqliteRepositoryTests.AddAsync_ValidEntity_ReturnsEntity\")",
       "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" test \"d:\\\\CODE\\\\Cshp\\\\SOUP\\\\tests\\\\Infrastructure.Tests\\\\Infrastructure.Tests.csproj\" --verbosity minimal)",
       "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" clean)",
-      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" build src/SOUP.csproj)"
+      "Bash(\"D:\\\\CODE\\\\important files\\\\dotnet-sdk-10.0.101-win-x64\\\\dotnet.exe\" build src/SOUP.csproj)",
+      "Bash(pwsh:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"scripts\\\\run-expirewise.ps1\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path $env:APPDATA ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 50\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 100\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 30\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 5\")"
     ],
     "deny": [],
     "ask": []

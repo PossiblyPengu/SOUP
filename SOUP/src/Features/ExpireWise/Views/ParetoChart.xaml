@@ -1,0 +1,345 @@
+<UserControl x:Class="SOUP.Features.ExpireWise.Views.ParetoChart"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="400" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <!-- ExpireWise Amber Colors -->
+        <Color x:Key="ExpireWiseAccentColor">#f59e0b</Color>
+        <Color x:Key="ExpireWiseAccentDarkColor">#d97706</Color>
+        <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
+        <SolidColorBrush x:Key="ExpireWiseAccentDarkBrush" Color="{StaticResource ExpireWiseAccentDarkColor}"/>
+
+        <!-- Bar Style with hover animation -->
+        <Style x:Key="ParetoBarStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="6,6,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,1"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                               To="1.05" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                               To="1" Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12"
+            Padding="24" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title and Description -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="Location Distribution (Pareto Analysis)" FontSize="18" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="80/20 rule: Few locations typically contain most of the inventory" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <!-- Chart Area -->
+            <Grid Grid.Row="1" Margin="40,0,20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="60"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Y-Axis (Item Count) -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="100" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Row="1" Text="80" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Row="2" Text="60" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Row="3" Text="40" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Row="4" Text="20" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                </Grid>
+
+                <!-- Chart Canvas with Bars and Line -->
+                <Grid Grid.Column="1" Height="280">
+                    <!-- Background Grid Lines -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Opacity="0.3"/>
+                        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Opacity="0.3"/>
+                        <Border Grid.Row="2" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Opacity="0.3"/>
+                        <Border Grid.Row="3" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Opacity="0.3"/>
+                        <Border Grid.Row="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Opacity="0.3"/>
+                    </Grid>
+
+                    <!-- Bars -->
+                    <ItemsControl Height="280" VerticalAlignment="Bottom">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Items>
+                            <!-- Sample data - would be data-bound in real implementation -->
+
+                            <!-- Location 1: Freezer A (highest) -->
+                            <Grid Margin="4,0" ToolTip="Freezer A: 85 items (42%)">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0" Style="{StaticResource ParetoBarStyle}"
+                                        Height="238" VerticalAlignment="Bottom">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="85" FontSize="13" FontWeight="Bold" Foreground="White"
+                                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,8,0,0"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Location 2: Cooler B -->
+                            <Grid Margin="4,0" ToolTip="Cooler B: 52 items (26%)">
+                                <Border Style="{StaticResource ParetoBarStyle}"
+                                        Height="146" VerticalAlignment="Bottom">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#fbbf24" Offset="0"/>
+                                            <GradientStop Color="#f59e0b" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="52" FontSize="13" FontWeight="Bold" Foreground="White"
+                                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,8,0,0"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Location 3: Shelf 1 -->
+                            <Grid Margin="4,0" ToolTip="Shelf 1: 28 items (14%)">
+                                <Border Style="{StaticResource ParetoBarStyle}"
+                                        Height="78" VerticalAlignment="Bottom">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#fcd34d" Offset="0"/>
+                                            <GradientStop Color="#fbbf24" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="28" FontSize="13" FontWeight="Bold" Foreground="White"
+                                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,8,0,0"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Location 4: Storage C -->
+                            <Grid Margin="4,0" ToolTip="Storage C: 18 items (9%)">
+                                <Border Style="{StaticResource ParetoBarStyle}"
+                                        Height="50" VerticalAlignment="Bottom">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#fde68a" Offset="0"/>
+                                            <GradientStop Color="#fcd34d" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="18" FontSize="12" FontWeight="Bold" Foreground="#78350f"
+                                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,6,0,0"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Location 5: Pantry -->
+                            <Grid Margin="4,0" ToolTip="Pantry: 12 items (6%)">
+                                <Border Style="{StaticResource ParetoBarStyle}"
+                                        Height="34" VerticalAlignment="Bottom">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#fef3c7" Offset="0"/>
+                                            <GradientStop Color="#fde68a" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="12" FontSize="11" FontWeight="Bold" Foreground="#78350f"
+                                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Location 6: Cabinet -->
+                            <Grid Margin="4,0" ToolTip="Cabinet: 5 items (3%)">
+                                <Border Style="{StaticResource ParetoBarStyle}"
+                                        Height="14" VerticalAlignment="Bottom">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#fffbeb" Offset="0"/>
+                                            <GradientStop Color="#fef3c7" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="5" FontSize="10" FontWeight="Bold" Foreground="#78350f"
+                                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                </Border>
+                            </Grid>
+                        </ItemsControl.Items>
+                    </ItemsControl>
+
+                    <!-- Cumulative Percentage Line -->
+                    <Canvas Height="280" VerticalAlignment="Top">
+                        <Polyline Points="30,112 125,42 220,24 315,14 410,8 505,5"
+                                  Stroke="#059669" StrokeThickness="3" StrokeDashArray="0"
+                                  Opacity="0.8">
+                            <Polyline.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="0" Opacity="0.3" Color="#059669"/>
+                            </Polyline.Effect>
+                        </Polyline>
+
+                        <!-- Data points on the line -->
+                        <Ellipse Canvas.Left="25" Canvas.Top="107" Width="10" Height="10"
+                                 Fill="#10b981" Stroke="White" StrokeThickness="2"/>
+                        <Ellipse Canvas.Left="120" Canvas.Top="37" Width="10" Height="10"
+                                 Fill="#10b981" Stroke="White" StrokeThickness="2"/>
+                        <Ellipse Canvas.Left="215" Canvas.Top="19" Width="10" Height="10"
+                                 Fill="#10b981" Stroke="White" StrokeThickness="2"/>
+                        <Ellipse Canvas.Left="310" Canvas.Top="9" Width="10" Height="10"
+                                 Fill="#10b981" Stroke="White" StrokeThickness="2"/>
+                        <Ellipse Canvas.Left="405" Canvas.Top="3" Width="10" Height="10"
+                                 Fill="#10b981" Stroke="White" StrokeThickness="2"/>
+                        <Ellipse Canvas.Left="500" Canvas.Top="0" Width="10" Height="10"
+                                 Fill="#10b981" Stroke="White" StrokeThickness="2"/>
+
+                        <!-- 80% Reference Line -->
+                        <Line X1="0" Y1="56" X2="540" Y2="56"
+                              Stroke="#dc2626" StrokeThickness="2" StrokeDashArray="6,4" Opacity="0.5"/>
+                        <Border Canvas.Left="10" Canvas.Top="40" Background="#dc2626" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="80% threshold" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                    </Canvas>
+                </Grid>
+
+                <!-- Right Y-Axis (Cumulative %) -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="100%" FontSize="11" Foreground="#059669" FontWeight="SemiBold"
+                               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    <TextBlock Grid.Row="1" Text="80%" FontSize="11" Foreground="#059669" FontWeight="SemiBold"
+                               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    <TextBlock Grid.Row="2" Text="60%" FontSize="11" Foreground="#059669"
+                               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    <TextBlock Grid.Row="3" Text="40%" FontSize="11" Foreground="#059669"
+                               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    <TextBlock Grid.Row="4" Text="20%" FontSize="11" Foreground="#059669"
+                               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,0,0,0"/>
+                </Grid>
+            </Grid>
+
+            <!-- Location Labels (X-Axis) -->
+            <ItemsControl Grid.Row="2" Margin="100,12,80,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Items>
+                    <TextBlock Text="Freezer A" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Cooler B" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Shelf 1" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Storage C" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Pantry" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Cabinet" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </ItemsControl.Items>
+            </ItemsControl>
+
+            <!-- Legend -->
+            <Grid Grid.Row="3" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Rectangle Width="24" Height="12" RadiusX="3" RadiusY="3">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#fbbf24" Offset="0"/>
+                                <GradientStop Color="#f59e0b" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <TextBlock Text="Item Count" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Line X1="0" Y1="6" X2="24" Y2="6" Stroke="#059669" StrokeThickness="3"/>
+                    <TextBlock Text="Cumulative %" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

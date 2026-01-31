@@ -755,7 +755,7 @@ public partial class OrderLogWidgetWindow : Window
             var settingsViewModel = _serviceProvider.GetRequiredService<ViewModels.UnifiedSettingsViewModel>();
             var settingsWindow = new Views.UnifiedSettingsWindow(settingsViewModel, "orderlog");
             settingsWindow.Owner = this;
-            settingsWindow.ShowDialog();
+            settingsWindow.Show();
         }
         catch (Exception ex)
         {

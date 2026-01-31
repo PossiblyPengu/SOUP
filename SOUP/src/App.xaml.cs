@@ -380,6 +380,17 @@ public partial class App : Application
         bool showWidgetProcess = false;
         bool widgetOnlyMode = false;
         bool launchWidget = false;
+        // Optional module requested via command-line: --module <ModuleId>
+        string? requestedModule = null;
+        var cmdArgs = Environment.GetCommandLineArgs();
+        for (int i = 0; i < cmdArgs.Length; i++)
+        {
+            if (cmdArgs[i].Equals("--module", StringComparison.OrdinalIgnoreCase) && i + 1 < cmdArgs.Length)
+            {
+                requestedModule = cmdArgs[i + 1];
+                break;
+            }
+        }
 
         if (AppLifecycleService.IsWidgetProcess)
         {
@@ -444,6 +455,64 @@ public partial class App : Application
             {
                 var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                 mainWindow.Show();
+                // If a module was requested on the command line, attempt to navigate to it.
+                if (!string.IsNullOrWhiteSpace(requestedModule))
+                {
+                    try
+                    {
+                        var navigation = _host.Services.GetRequiredService<NavigationService>();
+                        var moduleId = requestedModule.Trim();
+                        switch (moduleId.ToLowerInvariant())
+                        {
+                            case "expirewise":
+                                if (moduleConfig.ExpireWiseEnabled)
+                                {
+                                    var vm = _host.Services.GetService<ExpireWiseViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("ExpireWise", vm);
+                                }
+                                break;
+                            case "allocationbuddy":
+                            case "allocation":
+                                if (moduleConfig.AllocationBuddyEnabled)
+                                {
+                                    var vm = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("AllocationBuddy", vm);
+                                }
+                                break;
+                            case "essentialsbuddy":
+                            case "essentials":
+                                if (moduleConfig.EssentialsBuddyEnabled)
+                                {
+                                    var vm = _host.Services.GetService<EssentialsBuddyViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("EssentialsBuddy", vm);
+                                }
+                                break;
+                            case "swiftlabel":
+                            case "swift":
+                                if (moduleConfig.SwiftLabelEnabled)
+                                {
+                                    var vm = _host.Services.GetService<SwiftLabelViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("SwiftLabel", vm);
+                                }
+                                break;
+                            case "orderlog":
+                            case "order-log":
+                                if (moduleConfig.OrderLogEnabled)
+                                {
+                                    var vm = _host.Services.GetService<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("OrderLog", vm);
+                                }
+                                break;
+                            default:
+                                Log.Information("Requested module '{Module}' is not recognized", moduleId);
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to navigate to requested module '{Module}'", requestedModule);
+                    }
+                }
             }
 
             if (showWidgetProcess)
@@ -497,6 +566,64 @@ public partial class App : Application
             {
                 var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                 mainWindow.Show();
+                // If a module was requested on the command line, attempt to navigate to it (no-splash path)
+                if (!string.IsNullOrWhiteSpace(requestedModule))
+                {
+                    try
+                    {
+                        var navigation = _host.Services.GetRequiredService<NavigationService>();
+                        var moduleId = requestedModule.Trim();
+                        switch (moduleId.ToLowerInvariant())
+                        {
+                            case "expirewise":
+                                if (moduleConfig.ExpireWiseEnabled)
+                                {
+                                    var vm = _host.Services.GetService<ExpireWiseViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("ExpireWise", vm);
+                                }
+                                break;
+                            case "allocationbuddy":
+                            case "allocation":
+                                if (moduleConfig.AllocationBuddyEnabled)
+                                {
+                                    var vm = _host.Services.GetService<AllocationBuddyRPGViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("AllocationBuddy", vm);
+                                }
+                                break;
+                            case "essentialsbuddy":
+                            case "essentials":
+                                if (moduleConfig.EssentialsBuddyEnabled)
+                                {
+                                    var vm = _host.Services.GetService<EssentialsBuddyViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("EssentialsBuddy", vm);
+                                }
+                                break;
+                            case "swiftlabel":
+                            case "swift":
+                                if (moduleConfig.SwiftLabelEnabled)
+                                {
+                                    var vm = _host.Services.GetService<SwiftLabelViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("SwiftLabel", vm);
+                                }
+                                break;
+                            case "orderlog":
+                            case "order-log":
+                                if (moduleConfig.OrderLogEnabled)
+                                {
+                                    var vm = _host.Services.GetService<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
+                                    if (vm != null) navigation.NavigateToModule("OrderLog", vm);
+                                }
+                                break;
+                            default:
+                                Log.Information("Requested module '{Module}' is not recognized", moduleId);
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to navigate to requested module '{Module}'", requestedModule);
+                    }
+                }
             }
         }
     }

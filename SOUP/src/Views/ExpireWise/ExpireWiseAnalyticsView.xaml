@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SOUP.ViewModels"
+             xmlns:views="clr-namespace:SOUP.Features.ExpireWise.Views"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:ExpireWiseAnalyticsViewModel}">
@@ -14,45 +15,92 @@
         <Color x:Key="ExpireWiseAccentDarkColor">#d97706</Color>
         <Color x:Key="ExpireWiseAccentLightColor">#fbbf24</Color>
         <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
-        
-        <!-- StatCard Style -->
-        <Style x:Key="StatCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="16"/>
-            <Setter Property="Padding" Value="24"/>
-            <Setter Property="Margin" Value="8"/>
-            <Setter Property="Effect">
+
+        <!-- Analytics Tab Style -->
+        <Style x:Key="AnalyticsTabStyle" TargetType="TabItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.08" Color="Black"/>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}"
+                                BorderThickness="0" Padding="20,12" CornerRadius="8"
+                                Margin="{TemplateBinding Margin}">
+                            <ContentPresenter x:Name="ContentSite" ContentSource="Header"
+                                            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        
-        <!-- ChartCard Style -->
-        <Style x:Key="ChartCard" TargetType="Border">
+
+        <!-- StatCard Style - Compact -->
+        <Style x:Key="StatCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="16"/>
-            <Setter Property="Padding" Value="24"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
             <Setter Property="Margin" Value="8"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.08" Color="Black"/>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ChartCard Style - Compact -->
+        <Style x:Key="ChartCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/>
                 </Setter.Value>
             </Setter>
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Background="{DynamicResource BackgroundBrush}" Margin="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid Background="{DynamicResource BackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Border Grid.Row="0" Margin="8,0,8,20" CornerRadius="16" Padding="24,20">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="8,8,8,0" CornerRadius="8" Padding="16,12">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
@@ -79,8 +127,57 @@
                 </Grid>
             </Border>
 
+        <!-- TabControl -->
+        <TabControl Grid.Row="1" Margin="8,16,8,8" Background="Transparent" BorderThickness="0">
+            <TabControl.Resources>
+                <Style TargetType="TabControl">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabControl">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Tab Headers -->
+                                    <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
+                                            CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TabPanel IsItemsHost="True"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Tab Content -->
+                                    <Border Grid.Row="1" Background="Transparent">
+                                        <ContentPresenter ContentSource="SelectedContent"/>
+                                    </Border>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+
+            <!-- Overview Tab -->
+            <TabItem Style="{StaticResource AnalyticsTabStyle}" IsSelected="True">
+                <TabItem.Header>
+                    <TextBlock FontSize="14" FontWeight="SemiBold">
+                        <Run Text="📊"/>
+                        <Run Text="Overview"/>
+                    </TextBlock>
+                </TabItem.Header>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
             <!-- Key Metrics Row -->
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -89,7 +186,27 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Total Items -->
-                <Border Grid.Column="0" Style="{StaticResource StatCard}">
+                <Border Grid.Column="0" Style="{StaticResource StatCard}" Opacity="0"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="20"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                   From="0" To="1" Duration="0:0:0.4" BeginTime="0:0:0"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                   From="20" To="0" Duration="0:0:0.5" BeginTime="0:0:0">
+                                        <DoubleAnimation.EasingFunction>
+                                            <QuadraticEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Border Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
@@ -108,7 +225,27 @@
                 </Border>
 
                 <!-- Critical Items -->
-                <Border Grid.Column="1" Style="{StaticResource StatCard}">
+                <Border Grid.Column="1" Style="{StaticResource StatCard}" Opacity="0"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="20"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                   From="0" To="1" Duration="0:0:0.4" BeginTime="0:0:0.1"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                   From="20" To="0" Duration="0:0:0.5" BeginTime="0:0:0.1">
+                                        <DoubleAnimation.EasingFunction>
+                                            <QuadraticEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Border Background="{DynamicResource DangerBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
@@ -127,7 +264,27 @@
                 </Border>
 
                 <!-- Average Shelf Life -->
-                <Border Grid.Column="2" Style="{StaticResource StatCard}">
+                <Border Grid.Column="2" Style="{StaticResource StatCard}" Opacity="0"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="20"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                   From="0" To="1" Duration="0:0:0.4" BeginTime="0:0:0.2"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                   From="20" To="0" Duration="0:0:0.5" BeginTime="0:0:0.2">
+                                        <DoubleAnimation.EasingFunction>
+                                            <QuadraticEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Border Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
@@ -151,7 +308,27 @@
                 </Border>
 
                 <!-- Most Common Location -->
-                <Border Grid.Column="3" Style="{StaticResource StatCard}">
+                <Border Grid.Column="3" Style="{StaticResource StatCard}" Opacity="0"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="20"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                   From="0" To="1" Duration="0:0:0.4" BeginTime="0:0:0.3"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                   From="20" To="0" Duration="0:0:0.5" BeginTime="0:0:0.3">
+                                        <DoubleAnimation.EasingFunction>
+                                            <QuadraticEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Border Background="{DynamicResource SuccessBackgroundBrush}" CornerRadius="8" Padding="8" Margin="0,0,12,0">
@@ -172,7 +349,7 @@
             </Grid>
 
             <!-- Charts Row -->
-            <Grid Grid.Row="2" Margin="0,8,0,0">
+            <Grid Grid.Row="1" Margin="0,8,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="*"/>
@@ -197,19 +374,25 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="4,0">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                    <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0"
+                                            ToolTip="Click to filter inventory by this month">
+                                        <Grid Margin="4,0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                        <!-- Bar -->
-                                        <Grid Grid.Row="0" VerticalAlignment="Bottom">
+                                            <!-- Bar -->
+                                            <Grid Grid.Row="0" VerticalAlignment="Bottom">
                                             <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="6,6,0,0" 
                                                     Height="160" VerticalAlignment="Bottom"/>
                                             <Border CornerRadius="6,6,0,0" VerticalAlignment="Bottom"
-                                                    Height="{Binding ItemPercentage, Converter={StaticResource PercentageToHeightConverter}}">
+                                                    Height="{Binding ItemPercentage, Converter={StaticResource PercentageToHeightConverter}}"
+                                                    RenderTransformOrigin="0.5,1">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleY="0"/>
+                                                </Border.RenderTransform>
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Setter Property="Background">
@@ -220,6 +403,20 @@
                                                                 </LinearGradientBrush>
                                                             </Setter.Value>
                                                         </Setter>
+                                                        <Style.Triggers>
+                                                            <EventTrigger RoutedEvent="Loaded">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                                                       From="0" To="1" Duration="0:0:0.6" BeginTime="0:0:0.1">
+                                                                            <DoubleAnimation.EasingFunction>
+                                                                                <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                                                                            </DoubleAnimation.EasingFunction>
+                                                                        </DoubleAnimation>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                        </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
                                             </Border>
@@ -235,12 +432,13 @@
                                                    FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
                                                    Margin="0,8,0,0"/>
 
-                                        <!-- Month Label -->
-                                        <TextBlock Grid.Row="2" Text="{Binding ShortMonth}" 
-                                                   HorizontalAlignment="Center" FontSize="11"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   Margin="0,2,0,0"/>
-                                    </Grid>
+                                            <!-- Month Label -->
+                                            <TextBlock Grid.Row="2" Text="{Binding ShortMonth}"
+                                                       HorizontalAlignment="Center" FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Margin="0,2,0,0"/>
+                                        </Grid>
+                                    </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -261,15 +459,18 @@
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding StatusDistribution}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="80"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="50"/>
-                                        </Grid.ColumnDefinitions>
+                                    <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0"
+                                            HorizontalContentAlignment="Stretch"
+                                            ToolTip="Click to filter inventory by this status">
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- Status Label -->
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                            <!-- Status Label -->
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
                                             <Ellipse Width="10" Height="10" Margin="0,0,8,0">
                                                 <Ellipse.Fill>
                                                     <SolidColorBrush Color="{Binding Color, Converter={StaticResource StringToColorConverter}}"/>
@@ -284,19 +485,38 @@
                                         <Grid Grid.Column="1" Margin="8,0">
                                             <Border Background="{DynamicResource SurfaceActiveBrush}" CornerRadius="4" Height="8"/>
                                             <Border CornerRadius="4" Height="8" HorizontalAlignment="Left"
-                                                    Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}">
+                                                    Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}"
+                                                    RenderTransformOrigin="0,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="0"/>
+                                                </Border.RenderTransform>
                                                 <Border.Background>
                                                     <SolidColorBrush Color="{Binding Color, Converter={StaticResource StringToColorConverter}}"/>
                                                 </Border.Background>
+                                                <Border.Triggers>
+                                                    <EventTrigger RoutedEvent="Loaded">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                                               From="0" To="1" Duration="0:0:0.8" BeginTime="0:0:0.2">
+                                                                    <DoubleAnimation.EasingFunction>
+                                                                        <QuadraticEase EasingMode="EaseOut"/>
+                                                                    </DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Border.Triggers>
                                             </Border>
                                         </Grid>
 
-                                        <!-- Count -->
-                                        <TextBlock Grid.Column="2" Text="{Binding Count}" 
-                                                   FontWeight="SemiBold" FontSize="13"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                    </Grid>
+                                            <!-- Count -->
+                                            <TextBlock Grid.Column="2" Text="{Binding Count}"
+                                                       FontWeight="SemiBold" FontSize="13"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -305,7 +525,7 @@
             </Grid>
 
             <!-- Bottom Row -->
-            <Grid Grid.Row="3" Margin="0,8,0,0">
+            <Grid Grid.Row="2" Margin="0,8,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -325,15 +545,18 @@
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding LocationDistribution}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="100"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="80"/>
-                                        </Grid.ColumnDefinitions>
+                                    <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0"
+                                            HorizontalContentAlignment="Stretch"
+                                            ToolTip="Click to filter inventory by this location">
+                                        <Grid Margin="0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- Location Name -->
-                                        <TextBlock Grid.Column="0" Text="{Binding Location}" FontSize="13" 
+                                            <!-- Location Name -->
+                                            <TextBlock Grid.Column="0" Text="{Binding Location}" FontSize="13" 
                                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
 
@@ -341,22 +564,41 @@
                                         <Grid Grid.Column="1" Margin="12,0">
                                             <Border Background="{DynamicResource SurfaceActiveBrush}" CornerRadius="4" Height="12"/>
                                             <Border CornerRadius="4" Height="12" HorizontalAlignment="Left"
-                                                    Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}">
+                                                    Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}"
+                                                    RenderTransformOrigin="0,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="0"/>
+                                                </Border.RenderTransform>
                                                 <Border.Background>
                                                     <SolidColorBrush Color="{Binding Color, Converter={StaticResource StringToColorConverter}}"/>
                                                 </Border.Background>
+                                                <Border.Triggers>
+                                                    <EventTrigger RoutedEvent="Loaded">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                                               From="0" To="1" Duration="0:0:0.8" BeginTime="0:0:0.3">
+                                                                    <DoubleAnimation.EasingFunction>
+                                                                        <QuadraticEase EasingMode="EaseOut"/>
+                                                                    </DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Border.Triggers>
                                             </Border>
                                         </Grid>
 
-                                        <!-- Stats -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding Count}" FontWeight="Bold" FontSize="13"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text=" items" FontSize="11"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       VerticalAlignment="Bottom" Margin="0,0,0,1"/>
-                                        </StackPanel>
-                                    </Grid>
+                                            <!-- Stats -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding Count}" FontWeight="Bold" FontSize="13"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <TextBlock Text=" items" FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -405,8 +647,185 @@
                     </Grid>
                 </Border>
             </Grid>
-        </Grid>
-    </ScrollViewer>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Trends Tab -->
+            <TabItem Style="{StaticResource AnalyticsTabStyle}">
+                <TabItem.Header>
+                    <TextBlock FontSize="14" FontWeight="SemiBold">
+                        <Run Text="📈"/>
+                        <Run Text="Trends"/>
+                    </TextBlock>
+                </TabItem.Header>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Heatmap Calendar -->
+                        <views:HeatmapCalendar Grid.Row="0" Margin="8"/>
+
+                        <!-- Trend Charts -->
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Weekly Trends -->
+                            <Border Grid.Column="0" Style="{StaticResource ChartCard}" MinHeight="250">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Text="📊 Weekly Trends" FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                                    <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="24">
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="7-day rolling trends" FontSize="14"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <!-- Monthly Comparison -->
+                            <Border Grid.Column="1" Style="{StaticResource ChartCard}" MinHeight="250">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Text="📉 Month-over-Month" FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                                    <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="24">
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="Monthly comparison analysis" FontSize="14"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Locations Tab -->
+            <TabItem Style="{StaticResource AnalyticsTabStyle}">
+                <TabItem.Header>
+                    <TextBlock FontSize="14" FontWeight="SemiBold">
+                        <Run Text="📍"/>
+                        <Run Text="Locations"/>
+                    </TextBlock>
+                </TabItem.Header>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Pareto Chart -->
+                        <views:ParetoChart Grid.Row="0" Margin="8"/>
+
+                        <!-- Location Grid -->
+                        <Border Grid.Row="1" Style="{StaticResource ChartCard}" Margin="0,8,0,0" MinHeight="300">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="📍 All Locations Breakdown" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                                <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="24">
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="Detailed location table with item counts, critical alerts, and utilization" FontSize="14"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"
+                                                   TextWrapping="Wrap" MaxWidth="400"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Items Tab -->
+            <TabItem Style="{StaticResource AnalyticsTabStyle}">
+                <TabItem.Header>
+                    <TextBlock FontSize="14" FontWeight="SemiBold">
+                        <Run Text="📦"/>
+                        <Run Text="Items"/>
+                    </TextBlock>
+                </TabItem.Header>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Top Expiring Items -->
+                        <Border Grid.Row="0" Style="{StaticResource ChartCard}" MinHeight="300">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="⏰ Top 20 Items Expiring Soon" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                                <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="24">
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="List of items expiring in the next 30 days with SKU, location, and days remaining" FontSize="14"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"
+                                                   TextWrapping="Wrap" MaxWidth="400"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Item Categories -->
+                        <Border Grid.Row="1" Style="{StaticResource ChartCard}" Margin="0,8,0,0" MinHeight="300">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="🏷️ Item Categories &amp; SKU Analysis" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                                <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="24">
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="Breakdown by SKU patterns, most/least common items, and category analysis" FontSize="14"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"
+                                                   TextWrapping="Wrap" MaxWidth="400"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
 </UserControl>
 
 

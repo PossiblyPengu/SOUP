@@ -17,6 +17,7 @@
             <converters:BoolToSuccessColorConverter x:Key="BoolToSuccessColorConverter"/>
 
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter"/>
             <!-- Chart Converters -->
             <converters:PercentageToHeightConverter x:Key="PercentageToHeightConverter"/>
             <converters:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>

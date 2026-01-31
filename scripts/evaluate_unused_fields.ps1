@@ -1,9 +1,9 @@
 $root = "d:\CODE\Cshp\SOUP\src"
-$input = Join-Path $root 'unused_private_fields_all.txt'
+$inputFile = Join-Path $root 'unused_private_fields_all.txt'
 $out = Join-Path $root 'unused_private_fields_report.txt'
-if (-not (Test-Path $input)) { Write-Error "Input not found: $input"; exit 1 }
+if (-not (Test-Path $inputFile)) { Write-Error "Input not found: $inputFile"; exit 1 }
 $result = @()
-Get-Content $input | ForEach-Object {
+Get-Content $inputFile | ForEach-Object {
     $name = ($_ -split ':')[0].Trim()
     if (-not $name) { return }
     $esc = [regex]::Escape($name)
