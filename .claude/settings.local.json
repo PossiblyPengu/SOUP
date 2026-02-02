@@ -55,7 +55,13 @@
       "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path $env:APPDATA ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 50\")",
       "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 100\")",
       "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 30\")",
-      "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 5\")"
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path \\(Join-Path \\([Environment]::GetFolderPath\\(''ApplicationData''\\)\\) ''SOUP\\\\logs''\\) -Filter ''*.log'' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 5\")",
+      "Bash(dotnet list:*)",
+      "Bash(if [ -f \"unused_private_fields_report.txt\" ])",
+      "Bash(then head -50 unused_private_fields_report.txt)",
+      "Bash(else echo \"Report not found\")",
+      "Bash(fi)",
+      "Bash(powershell.exe:*)"
     ],
     "deny": [],
     "ask": []

@@ -24,6 +24,8 @@ namespace SOUP.Features.OrderLog.Views;
 /// </summary>
 public partial class OrderLogWidgetView : UserControl
 {
+    public static readonly RoutedCommand InsertHyperlinkCommand = new();
+
     private bool _nowPlayingExpanded = false;
     private bool _notesExpanded = true;
     private bool _showingArchivedTab = false;
@@ -651,15 +653,15 @@ public partial class OrderLogWidgetView : UserControl
         return null;
     }
 
-    private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    private static T? FindVisualChild<T>(DependencyObject parent, string? name = null) where T : DependencyObject
     {
         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
         {
             var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T typedChild)
-                return typedChild;
+            if (child is T result && (string.IsNullOrEmpty(name) || (result is FrameworkElement fe && fe.Name == name)))
+                return result;
 
-            var childOfChild = FindVisualChild<T>(child);
+            var childOfChild = FindVisualChild<T>(child, name);
             if (childOfChild != null)
                 return childOfChild;
         }
@@ -2065,6 +2067,14 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
+    private void NoteTextBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox tb && tb.DataContext is OrderItem item && DataContext is OrderLogViewModel vm)
+        {
+            _ = vm.SaveAsync();
+        }
+    }
+
     #region Text Formatting Tools
 
     private void FormatBold_Click(object sender, RoutedEventArgs e)
@@ -2088,6 +2098,152 @@ public partial class OrderLogWidgetView : UserControl
     private void InsertDivider_Click(object sender, RoutedEventArgs e)
         => Helpers.TextFormattingHelper.InsertDivider(sender, this);
 
+    private void DecreaseFontSize_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.Tag is OrderItem item)
+        {
+            var rtb = FindRichTextBoxForItem(item);
+            if (rtb != null)
+            {
+                var currentSize = rtb.FontSize;
+                rtb.FontSize = Math.Max(10, currentSize - 2);
+            }
+        }
+    }
+
+    private void IncreaseFontSize_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.Tag is OrderItem item)
+        {
+            var rtb = FindRichTextBoxForItem(item);
+            if (rtb != null)
+            {
+                var currentSize = rtb.FontSize;
+                rtb.FontSize = Math.Min(32, currentSize + 2);
+            }
+        }
+    }
+
+    private void InsertHyperlink_Click(object sender, RoutedEventArgs e)
+    {
+        RichTextBox? rtb = null;
+        if (sender is FrameworkElement fe && fe.Tag is OrderItem item)
+            rtb = FindRichTextBoxForItem(item);
+        else if (sender is RichTextBox r)
+            rtb = r;
+
+        if (rtb == null) return;
+
+        var selectedText = rtb.Selection.Text;
+        var inputDialog = new Window
+        {
+            Title = "Insert Hyperlink",
+            Width = 400,
+            Height = 180,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            ResizeMode = ResizeMode.NoResize,
+            Background = (Brush)FindResource("BackgroundBrush"),
+            Foreground = (Brush)FindResource("TextPrimaryBrush")
+        };
+
+        var stack = new StackPanel { Margin = new Thickness(20) };
+        
+        var urlLabel = new TextBlock { Text = "URL:", Margin = new Thickness(0, 0, 0, 5) };
+        var urlBox = new TextBox 
+        { 
+            Margin = new Thickness(0, 0, 0, 10),
+            Padding = new Thickness(8, 6, 8, 6),
+            Background = (Brush)FindResource("SurfaceBrush"),
+            Foreground = (Brush)FindResource("TextPrimaryBrush"),
+            BorderBrush = (Brush)FindResource("BorderBrush")
+        };
+        
+        var textLabel = new TextBlock { Text = "Display Text:", Margin = new Thickness(0, 0, 0, 5) };
+        var textBox = new TextBox 
+        { 
+            Text = selectedText,
+            Margin = new Thickness(0, 0, 0, 15),
+            Padding = new Thickness(8, 6, 8, 6),
+            Background = (Brush)FindResource("SurfaceBrush"),
+            Foreground = (Brush)FindResource("TextPrimaryBrush"),
+            BorderBrush = (Brush)FindResource("BorderBrush")
+        };
+
+        var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Right };
+        var okButton = new Button { Content = "Insert", Width = 80, Margin = new Thickness(0, 0, 10, 0), Padding = new Thickness(0, 6, 0, 6) };
+        var cancelButton = new Button { Content = "Cancel", Width = 80, Padding = new Thickness(0, 6, 0, 6) };
+
+        okButton.Click += (s, ev) => inputDialog.DialogResult = true;
+        cancelButton.Click += (s, ev) => inputDialog.Close();
+
+        buttonPanel.Children.Add(okButton);
+        buttonPanel.Children.Add(cancelButton);
+        
+        stack.Children.Add(urlLabel);
+        stack.Children.Add(urlBox);
+        stack.Children.Add(textLabel);
+        stack.Children.Add(textBox);
+        stack.Children.Add(buttonPanel);
+        
+        inputDialog.Content = stack;
+        urlBox.Focus();
+
+        if (inputDialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(urlBox.Text))
+        {
+            var url = urlBox.Text;
+            var text = string.IsNullOrWhiteSpace(textBox.Text) ? url : textBox.Text;
+
+            var hyperlink = new Hyperlink(new Run(text))
+            {
+                NavigateUri = new Uri(url, UriKind.Absolute),
+                Foreground = new SolidColorBrush(Color.FromRgb(0, 212, 255))
+            };
+            hyperlink.RequestNavigate += (s, ev) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = ev.Uri.ToString(),
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to open hyperlink: {Url}", ev.Uri);
+                }
+            };
+
+            rtb.Selection.Text = string.Empty;
+            rtb.CaretPosition.InsertTextInRun(" ");
+            rtb.CaretPosition = rtb.CaretPosition.GetPositionAtOffset(-1) ?? rtb.CaretPosition;
+            var para = rtb.CaretPosition.Paragraph;
+            if (para != null)
+            {
+                para.Inlines.Add(hyperlink);
+                rtb.CaretPosition = hyperlink.ContentEnd;
+            }
+        }
+    }
+
+    private RichTextBox? FindRichTextBoxForItem(OrderItem item)
+    {
+        // Find the RichTextBox in the visual tree for this item
+        if (ActiveItemsPanel != null)
+        {
+            foreach (var child in ActiveItemsPanel.Children.OfType<FrameworkElement>())
+            {
+                if (child.DataContext == item)
+                {
+                    return FindVisualChild<RichTextBox>(child);
+                }
+            }
+        }
+        return null;
+    }
+
+    #endregion
+
     private void NoteContent_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (sender is RichTextBox rtb)
@@ -2102,9 +2258,18 @@ public partial class OrderLogWidgetView : UserControl
             Helpers.TextFormattingHelper.LoadNoteContent(rtb);
             rtb.SelectionChanged -= NoteRichTextBox_SelectionChanged;
             rtb.SelectionChanged += NoteRichTextBox_SelectionChanged;
-            // Initialize button states
+            rtb.TextChanged -= NoteRichTextBox_TextChanged;
+            rtb.TextChanged += NoteRichTextBox_TextChanged;
+            // Initialize button states and word count
             UpdateFormattingToolbarState(rtb);
+            UpdateWordCount(rtb);
         }
+    }
+
+    private void NoteRichTextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (sender is RichTextBox rtb)
+            UpdateWordCount(rtb);
     }
 
     private void NoteContent_LostFocus(object sender, RoutedEventArgs e)
@@ -2117,7 +2282,29 @@ public partial class OrderLogWidgetView : UserControl
         if (sender is RichTextBox rtb)
         {
             UpdateFormattingToolbarState(rtb);
+            UpdateWordCount(rtb);
         }
+    }
+
+    private void UpdateWordCount(RichTextBox rtb)
+    {
+        try
+        {
+            var text = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd).Text;
+            var words = text.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            var chars = text.Length;
+
+            var container = FindAncestor<FrameworkElement>(rtb);
+            if (container != null)
+            {
+                var wordCountDisplay = FindVisualChild<TextBlock>(container, "WordCountDisplay");
+                if (wordCountDisplay != null)
+                {
+                    wordCountDisplay.Text = words == 1 ? "1 word" : $"{words} words";
+                }
+            }
+        }
+        catch { }
     }
 
     private void UpdateFormattingToolbarState(RichTextBox rtb)
@@ -2185,8 +2372,6 @@ public partial class OrderLogWidgetView : UserControl
         }
         return null;
     }
-
-    #endregion
 
     #region Merged Card Drag and Drop
 

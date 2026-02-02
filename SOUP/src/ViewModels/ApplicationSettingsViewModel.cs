@@ -24,7 +24,7 @@ public partial class ApplicationSettingsViewModel : ObservableObject
     private bool _isDarkMode = true;
 
     [ObservableProperty]
-    private bool _useBasicTheme = false;
+    private bool _useBasicTheme = true;
 
     // ===== Startup =====
 

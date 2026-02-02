@@ -118,6 +118,15 @@ public class ExpirationItem : BaseEntity
     public int DaysUntilExpiry => (ActualExpiryDate - DateTime.Today).Days;
 
     /// <summary>
+    /// Gets the week grouping name for timeline display (e.g., "NIAGARA 2" for store name).
+    /// </summary>
+    /// <remarks>
+    /// Uses the Location (store name) as the grouping key for timeline organization.
+    /// Items from the same location will be grouped together in the timeline view.
+    /// </remarks>
+    public string WeekGroupName => Location?.ToUpperInvariant() ?? "UNKNOWN";
+
+    /// <summary>
     /// Gets a human-readable status description.
     /// </summary>
     public string StatusDescription => Status switch

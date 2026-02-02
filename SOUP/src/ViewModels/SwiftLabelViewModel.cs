@@ -95,51 +95,34 @@ public partial class SwiftLabelViewModel : ObservableObject
     public SwiftLabelViewModel(ILogger<SwiftLabelViewModel>? logger = null)
     {
         _logger = logger;
-
-        SaveLabelsCommand = new AsyncRelayCommand(SaveLabelsAsync, CanGenerateLabels);
-        PrintLabelsCommand = new AsyncRelayCommand(ExecutePrintAsync, CanPrintLabels);
-        RefreshPrintersCommand = new RelayCommand(LoadPrinters);
-
-        // Load stores, printers, paper sizes, and margin presets
-        LoadStores();
-        LoadPrinters();
-        LoadPaperSizes();
-        LoadMarginPresets();
+        (SaveLabelsCommand, PrintLabelsCommand, RefreshPrintersCommand) = (new AsyncRelayCommand(SaveLabelsAsync, CanGenerateLabels), new AsyncRelayCommand(ExecutePrintAsync, CanPrintLabels), new RelayCommand(LoadPrinters));
+        LoadStores(); LoadPrinters(); LoadPaperSizes(); LoadMarginPresets();
     }
 
     private void LoadMarginPresets()
     {
         AvailableMarginPresets.Clear();
-
         AvailableMarginPresets.Add(new MarginPreset("none", "None (0mm)", 0));
         AvailableMarginPresets.Add(new MarginPreset("minimal", "Minimal (1mm)", 1));
         AvailableMarginPresets.Add(new MarginPreset("small", "Small (2mm)", 2));
         AvailableMarginPresets.Add(new MarginPreset("medium", "Medium (3mm)", 3));
         AvailableMarginPresets.Add(new MarginPreset("large", "Large (5mm)", 5));
         AvailableMarginPresets.Add(new MarginPreset("xlarge", "Extra Large (8mm)", 8));
-
-        // Default to medium margins
         SelectedMarginPreset = AvailableMarginPresets[3];
     }
 
     private void LoadPaperSizes()
     {
         AvailablePaperSizes.Clear();
-
-        // Zebra label sizes (common thermal label sizes)
         AvailablePaperSizes.Add(new PaperSizeOption("60x30mm", "6 × 3 cm", 2.36, 1.18, true));
         AvailablePaperSizes.Add(new PaperSizeOption("35x20mm", "3.5 × 2 cm", 1.38, 0.79, true));
         AvailablePaperSizes.Add(new PaperSizeOption("50x25mm", "5 × 2.5 cm", 1.97, 0.98, true));
         AvailablePaperSizes.Add(new PaperSizeOption("60x40mm", "6 × 4 cm", 2.36, 1.57, true));
         AvailablePaperSizes.Add(new PaperSizeOption("100x50mm", "10 × 5 cm", 3.94, 1.97, true));
         AvailablePaperSizes.Add(new PaperSizeOption("100x150mm", "10 × 15 cm (4×6\")", 3.94, 5.91, true));
-
-        // Standard paper sizes
         AvailablePaperSizes.Add(new PaperSizeOption("Letter", "Letter (8.5\" × 11\")", 8.5, 11, false));
         AvailablePaperSizes.Add(new PaperSizeOption("A4", "A4 (210 × 297mm)", 8.27, 11.69, false));
         AvailablePaperSizes.Add(new PaperSizeOption("A5", "A5 (148 × 210mm)", 5.83, 8.27, false));
-
-        // Default to 6x3cm Zebra label
         SelectedPaperSize = AvailablePaperSizes[0];
     }
 
@@ -148,42 +131,18 @@ public partial class SwiftLabelViewModel : ObservableObject
         try
         {
             AvailablePrinters.Clear();
-            foreach (string printer in PrinterSettings.InstalledPrinters)
-            {
-                AvailablePrinters.Add(printer);
-            }
-
-            // Try to auto-select a Zebra printer if available
-            var zebraPrinter = AvailablePrinters.FirstOrDefault(p =>
-                p.Contains("Zebra", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("ZDesigner", StringComparison.OrdinalIgnoreCase));
-
-            if (zebraPrinter != null)
-            {
-                SelectedPrinter = zebraPrinter;
-            }
+            foreach (string printer in PrinterSettings.InstalledPrinters) AvailablePrinters.Add(printer);
+            var zebra = AvailablePrinters.FirstOrDefault(p => p.Contains("Zebra", StringComparison.OrdinalIgnoreCase) || p.Contains("ZDesigner", StringComparison.OrdinalIgnoreCase));
+            if (zebra != null) SelectedPrinter = zebra;
             else if (AvailablePrinters.Count > 0)
             {
-                // Fall back to default printer
-                var defaultPrinter = new PrinterSettings().PrinterName;
-                SelectedPrinter = AvailablePrinters.Contains(defaultPrinter)
-                    ? defaultPrinter
-                    : AvailablePrinters.FirstOrDefault();
+                var def = new PrinterSettings().PrinterName;
+                SelectedPrinter = AvailablePrinters.Contains(def) ? def : AvailablePrinters.FirstOrDefault();
             }
-            else
-            {
-                StatusMessage = "⚠ No printers found. Please install a printer to use SwiftLabel.";
-                _logger?.LogWarning("No printers available on system");
-            }
-
-            _logger?.LogInformation("Loaded {Count} printers, selected: {Printer}",
-                AvailablePrinters.Count, SelectedPrinter);
+            else { StatusMessage = "⚠ No printers found"; _logger?.LogWarning("No printers available"); }
+            _logger?.LogInformation("Loaded {Count} printers, selected: {Printer}", AvailablePrinters.Count, SelectedPrinter);
         }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to load printers");
-            StatusMessage = "Error loading printers";
-        }
+        catch (Exception ex) { _logger?.LogError(ex, "Failed to load printers"); StatusMessage = "Error loading printers"; }
     }
 
     private void LoadStores()
@@ -191,31 +150,14 @@ public partial class SwiftLabelViewModel : ObservableObject
         try
         {
             var stores = InternalStoreDictionary.GetStores();
-            foreach (var store in stores.OrderBy(s => s.Code))
-            {
-                Stores.Add(store);
-            }
-            _logger?.LogInformation("Loaded {Count} stores for Swift Label", stores.Count);
+            foreach (var store in stores.OrderBy(s => s.Code)) Stores.Add(store);
+            _logger?.LogInformation("Loaded {Count} stores", stores.Count);
         }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to load stores");
-            StatusMessage = "Error loading stores";
-        }
+        catch (Exception ex) { _logger?.LogError(ex, "Failed to load stores"); StatusMessage = "Error loading stores"; }
     }
 
-    private bool CanGenerateLabels()
-    {
-        return SelectedStore != null &&
-               TotalBoxes > 0 &&
-               !string.IsNullOrWhiteSpace(TransferNumber) &&
-               !IsGenerating;
-    }
-
-    private bool CanPrintLabels()
-    {
-        return CanGenerateLabels() && !string.IsNullOrEmpty(SelectedPrinter);
-    }
+    private bool CanGenerateLabels() => SelectedStore != null && TotalBoxes > 0 && !string.IsNullOrWhiteSpace(TransferNumber) && !IsGenerating;
+    private bool CanPrintLabels() => CanGenerateLabels() && !string.IsNullOrEmpty(SelectedPrinter);
 
     partial void OnSelectedStoreChanged(StoreEntry? value)
     {
@@ -244,48 +186,23 @@ public partial class SwiftLabelViewModel : ObservableObject
         }
     }
 
-    partial void OnSelectedPaperSizeChanged(PaperSizeOption? value)
-    {
-        OnPropertyChanged(nameof(PrintFormatInfo));
-        RefreshPreviewLabels();
-    }
-
-    partial void OnTotalBoxesChanged(int value)
-    {
-        SaveLabelsCommand.NotifyCanExecuteChanged();
-        PrintLabelsCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(BoxPreviewText));
-        RefreshPreviewLabels();
-    }
+    partial void OnSelectedPaperSizeChanged(PaperSizeOption? value) { OnPropertyChanged(nameof(PrintFormatInfo)); RefreshPreviewLabels(); }
+    partial void OnTotalBoxesChanged(int value) { SaveLabelsCommand.NotifyCanExecuteChanged(); PrintLabelsCommand.NotifyCanExecuteChanged(); OnPropertyChanged(nameof(BoxPreviewText)); RefreshPreviewLabels(); }
 
     partial void OnTransferNumberChanged(string value)
     {
         SaveLabelsCommand.NotifyCanExecuteChanged();
         PrintLabelsCommand.NotifyCanExecuteChanged();
-
-        // Normalize transfer number so it always starts with an uppercase 'T'
         if (!string.IsNullOrWhiteSpace(value))
         {
-            var trimmed = value.Trim();
-
-            // Remove common prefixes like "TO", "TO-", "T-", or leading 't'
-            if (trimmed.StartsWith("TO-", StringComparison.OrdinalIgnoreCase))
-                trimmed = trimmed.Substring(3);
-            else if (trimmed.StartsWith("TO", StringComparison.OrdinalIgnoreCase))
-                trimmed = trimmed.Substring(2);
-            else if (trimmed.StartsWith("T-", StringComparison.OrdinalIgnoreCase))
-                trimmed = trimmed.Substring(2);
-            else if (trimmed.StartsWith("T", StringComparison.OrdinalIgnoreCase))
-                trimmed = trimmed.Substring(1);
-
-            // Trim any leading non-alphanumeric characters now
-            trimmed = trimmed.TrimStart('-', ' ', '#');
-
-            // Build normalized value with single leading 'T' (leave rest as-is)
-            _transferNumber = "T" + trimmed;
+            var t = value.Trim();
+            if (t.StartsWith("TO-", StringComparison.OrdinalIgnoreCase)) t = t.Substring(3);
+            else if (t.StartsWith("TO", StringComparison.OrdinalIgnoreCase)) t = t.Substring(2);
+            else if (t.StartsWith("T-", StringComparison.OrdinalIgnoreCase)) t = t.Substring(2);
+            else if (t.StartsWith("T", StringComparison.OrdinalIgnoreCase)) t = t.Substring(1);
+            _transferNumber = "T" + t.TrimStart('-', ' ', '#');
             OnPropertyChanged(nameof(TransferNumber));
         }
-
         OnPropertyChanged(nameof(TransferPreviewText));
         RefreshPreviewLabels();
     }
@@ -391,10 +308,6 @@ public partial class SwiftLabelViewModel : ObservableObject
             IsGenerating = false;
         }
     }
-
-    /// <summary>
-    /// Execute the print operation
-    /// </summary>
     private async Task ExecutePrintAsync()
     {
         // Guard clause for null safety
@@ -495,10 +408,6 @@ public partial class SwiftLabelViewModel : ObservableObject
             IsGenerating = false;
         }
     }
-
-    /// <summary>
-    /// Generate ZPL (Zebra Programming Language) for all labels
-    /// </summary>
     private static string GenerateZplLabels(string storeCode, string storeName, int totalBoxes, string transferNumber,
         double widthInches, double heightInches, double marginTopMm, double marginBottomMm, double marginLeftMm, double marginRightMm)
     {
@@ -720,10 +629,6 @@ public partial class SwiftLabelViewModel : ObservableObject
         return cell;
     }
 }
-
-/// <summary>
-/// Data class for label preview display
-/// </summary>
 public class LabelPreviewItem
 {
     public string StoreLine { get; set; } = string.Empty;
@@ -739,10 +644,6 @@ public class LabelPreviewItem
     public double BoxFontSize { get; set; } = 18;
     public double DateFontSize { get; set; } = 9;
 }
-
-/// <summary>
-/// Paper size option for label printing
-/// </summary>
 public class PaperSizeOption
 {
     public string Name { get; }
@@ -762,10 +663,6 @@ public class PaperSizeOption
 
     public override string ToString() => DisplayName;
 }
-
-/// <summary>
-/// Margin preset for label printing
-/// </summary>
 public class MarginPreset
 {
     public string Name { get; }

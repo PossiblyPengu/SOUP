@@ -263,7 +263,7 @@ public class SpotifyService : INotifyPropertyChanged
                     if (albumArt != null)
                     {
                         // Cancel any pending retry for album art when we successfully fetch it
-                        try { _artRetryCts?.Cancel(); } catch { }
+                        try { _artRetryCts?.Cancel(); } catch (ObjectDisposedException) { /* Expected if already disposed */ }
                         AlbumArt = albumArt;
                     }
                     else if (trackChanged)
@@ -273,7 +273,7 @@ public class SpotifyService : INotifyPropertyChanged
                         AlbumArt = null;
 
                         // Cancel any previous retry loop and start a new one for this track
-                        try { _artRetryCts?.Cancel(); } catch { }
+                        try { _artRetryCts?.Cancel(); } catch (ObjectDisposedException) { /* Expected if already disposed */ }
                         _artRetryCts = new System.Threading.CancellationTokenSource();
                         _ = RetryFetchAlbumArtAsync(currentTrackKey, _artRetryCts.Token);
                     }
@@ -404,7 +404,7 @@ public class SpotifyService : INotifyPropertyChanged
                         var img = await ConvertToBitmapImageAsync(stream);
                         if (img != null)
                         {
-                            try { _artRetryCts?.Cancel(); } catch { }
+                            try { _artRetryCts?.Cancel(); } catch (ObjectDisposedException) { /* Expected if already disposed */ }
                             System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => AlbumArt = img);
                             return;
                         }
@@ -425,7 +425,7 @@ public class SpotifyService : INotifyPropertyChanged
             // allow cancellation token to be GC'd if it's the current one
             if (_artRetryCts != null && _artRetryCts.IsCancellationRequested)
             {
-                try { _artRetryCts.Dispose(); } catch { }
+                try { _artRetryCts.Dispose(); } catch (ObjectDisposedException) { /* Already disposed */ }
                 _artRetryCts = null;
             }
         }

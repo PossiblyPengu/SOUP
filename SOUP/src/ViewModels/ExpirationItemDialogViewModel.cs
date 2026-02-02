@@ -118,7 +118,10 @@ public partial class ExpirationItemDialogViewModel : ObservableObject
                 AvailableStores.Add(new StoreOption { Code = store.Code, Name = store.Name });
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to load stores from dictionary: {ex.Message}");
+        }
     }
 
     /// <summary>

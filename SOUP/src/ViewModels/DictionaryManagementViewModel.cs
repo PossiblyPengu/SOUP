@@ -14,10 +14,6 @@ using SOUP.Infrastructure.Services.Parsers;
 using SOUP.Services.External;
 
 namespace SOUP.ViewModels;
-
-/// <summary>
-/// ViewModel for managing dictionary items and stores (using SQLite)
-/// </summary>
 public partial class DictionaryManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILogger<DictionaryManagementViewModel>? _logger;
@@ -150,15 +146,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private string _syncProgressMessage = "";
 
     public string SortDescription => $"Sort: {ItemSortBy}" + (ItemSortDescending ? " ↓" : " ↑");
-
-    /// <summary>
-    /// Whether external sync is configured
-    /// </summary>
     public bool CanSyncFromExternal => _externalConfig.IsMySqlConfigured || _externalConfig.IsBusinessCentralConfigured;
-
-    /// <summary>
-    /// Last sync time display
-    /// </summary>
     public string LastSyncDisplay => _externalConfig.LastSyncTime.HasValue
         ? $"Last sync: {_externalConfig.LastSyncTime:g}"
         : "Never synced";
@@ -181,46 +169,17 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
     public int TotalItemCount => _allItems.Count;
 
-    public DictionaryManagementViewModel(
-        DictionarySyncService? syncService = null,
-        ILogger<DictionaryManagementViewModel>? logger = null)
+    public DictionaryManagementViewModel(DictionarySyncService? syncService = null, ILogger<DictionaryManagementViewModel>? logger = null)
     {
-        _logger = logger;
-        _syncService = syncService;
-        _externalConfig = ExternalConnectionConfig.Load();
-
-        // Subscribe to sync progress events using stored handlers for cleanup
+        (_logger, _syncService, _externalConfig) = (logger, syncService, ExternalConnectionConfig.Load());
         if (_syncService != null)
         {
-            _progressHandler = (_, e) =>
-            {
-                SyncProgressMessage = e.Message;
-                SyncProgress = e.ProgressPercent;
-            };
+            _progressHandler = (_, e) => { (SyncProgressMessage, SyncProgress) = (e.Message, e.ProgressPercent); };
             _syncService.ProgressChanged += _progressHandler;
-
-            _completedHandler = async (_, e) =>
-            {
-                IsSyncing = false;
-                if (e.Result.Success)
-                {
-                    StatusMessage = $"✓ Synced {e.Result.ItemsUpdated} items, {e.Result.StoresUpdated} stores from {e.Result.Source}";
-                    // Reload the dictionary to show updated data
-                    await LoadDictionaryAsync();
-                }
-                else
-                {
-                    StatusMessage = $"✗ Sync failed: {e.Result.ErrorMessage}";
-                }
-                OnPropertyChanged(nameof(LastSyncDisplay));
-            };
+            _completedHandler = async (_, e) => { IsSyncing = false; StatusMessage = e.Result.Success ? $"✓ Synced {e.Result.ItemsUpdated} items, {e.Result.StoresUpdated} stores from {e.Result.Source}" : $"✗ Sync failed: {e.Result.ErrorMessage}"; if (e.Result.Success) await LoadDictionaryAsync(); OnPropertyChanged(nameof(LastSyncDisplay)); };
             _syncService.SyncCompleted += _completedHandler;
         }
     }
-
-    /// <summary>
-    /// Called when the settings window opens. We skip heavy loading here to avoid UI freeze.
-    /// </summary>
     public Task InitializeAsync()
     {
         // Don't load dictionary on window open - defer to LoadDictionaryAsync when tab is selected
@@ -335,92 +294,30 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(NewItemNumber))
-            {
-                StatusMessage = "Please enter an item number";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(NewItemDescription))
-            {
-                StatusMessage = "Please enter a description";
-                return;
-            }
-
-            // Check if item already exists
-            if (_allItems.Any(i => i.Number.Equals(NewItemNumber.Trim(), StringComparison.OrdinalIgnoreCase)))
-            {
-                StatusMessage = $"Item {NewItemNumber} already exists";
-                return;
-            }
-
-            var skus = string.IsNullOrWhiteSpace(NewItemSkus)
-                ? new System.Collections.Generic.List<string>()
-                : NewItemSkus.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim())
-                    .ToList();
-
-            var tags = string.IsNullOrWhiteSpace(NewItemTags)
-                ? new System.Collections.Generic.List<string>()
-                : NewItemTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim().ToLowerInvariant())
-                    .Distinct()
-                    .ToList();
-
-            var newItem = new DictionaryItem
-            {
-                Number = NewItemNumber.Trim(),
-                Description = NewItemDescription.Trim(),
-                Skus = skus,
-                Tags = tags,
-                IsEssential = NewItemIsEssential,
-                IsPrivateLabel = NewItemIsPrivateLabel
-            };
-
-            // Save to SQLite immediately
+            if (string.IsNullOrWhiteSpace(NewItemNumber)) { StatusMessage = "Enter item number"; return; }
+            if (string.IsNullOrWhiteSpace(NewItemDescription)) { StatusMessage = "Enter description"; return; }
+            if (_allItems.Any(i => i.Number.Equals(NewItemNumber.Trim(), StringComparison.OrdinalIgnoreCase))) { StatusMessage = $"Item {NewItemNumber} exists"; return; }
+            var skus = string.IsNullOrWhiteSpace(NewItemSkus) ? new List<string>() : NewItemSkus.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+            var tags = string.IsNullOrWhiteSpace(NewItemTags) ? new List<string>() : NewItemTags.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim().ToLowerInvariant()).Distinct().ToList();
+            var newItem = new DictionaryItem { Number = NewItemNumber.Trim(), Description = NewItemDescription.Trim(), Skus = skus, Tags = tags, IsEssential = NewItemIsEssential, IsPrivateLabel = NewItemIsPrivateLabel };
             InternalItemDictionary.UpsertItem(newItem);
-
             _allItems.Add(newItem);
             _allItems = _allItems.OrderBy(i => i.Number).ToList();
             SyncItemsFromAllItems();
             UpdateDisplayedItems();
-
-            StatusMessage = $"Added item {newItem.Number} (saved to database)";
-            _logger?.LogInformation("Added item {Number} to SQLite", newItem.Number);
-
-            // Clear input fields
-            NewItemNumber = string.Empty;
-            NewItemDescription = string.Empty;
-            NewItemSkus = string.Empty;
-            NewItemTags = string.Empty;
-            NewItemIsEssential = false;
-            NewItemIsPrivateLabel = false;
+            StatusMessage = $"Added {newItem.Number}";
+            _logger?.LogInformation("Added item {Number}", newItem.Number);
+            (NewItemNumber, NewItemDescription, NewItemSkus, NewItemTags, NewItemIsEssential, NewItemIsPrivateLabel) = (string.Empty, string.Empty, string.Empty, string.Empty, false, false);
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error adding item: {ex.Message}";
-            _logger?.LogError(ex, "Failed to add item");
-        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; _logger?.LogError(ex, "Add item failed"); }
     }
 
     [RelayCommand]
     private void EditItem()
     {
-        if (SelectedItem == null)
-        {
-            StatusMessage = "Please select an item to edit";
-            return;
-        }
-
-        // Populate edit fields
-        NewItemNumber = SelectedItem.Number;
-        NewItemDescription = SelectedItem.Description;
-        NewItemSkus = SelectedItem.Skus != null ? string.Join(", ", SelectedItem.Skus) : string.Empty;
-        NewItemTags = SelectedItem.Tags != null ? string.Join(", ", SelectedItem.Tags) : string.Empty;
-        NewItemIsEssential = SelectedItem.IsEssential;
-        NewItemIsPrivateLabel = SelectedItem.IsPrivateLabel;
-
-        StatusMessage = $"Editing item {SelectedItem.Number}. Modify fields and click Update.";
+        if (SelectedItem == null) { StatusMessage = "Select an item to edit"; return; }
+        (NewItemNumber, NewItemDescription, NewItemSkus, NewItemTags, NewItemIsEssential, NewItemIsPrivateLabel) = (SelectedItem.Number, SelectedItem.Description, SelectedItem.Skus != null ? string.Join(", ", SelectedItem.Skus) : string.Empty, SelectedItem.Tags != null ? string.Join(", ", SelectedItem.Tags) : string.Empty, SelectedItem.IsEssential, SelectedItem.IsPrivateLabel);
+        StatusMessage = $"Editing {SelectedItem.Number}";
     }
 
     [RelayCommand]
@@ -428,58 +325,18 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     {
         try
         {
-            if (SelectedItem == null)
-            {
-                StatusMessage = "Please select an item to update";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(NewItemDescription))
-            {
-                StatusMessage = "Please enter a description";
-                return;
-            }
-
-            var skus = string.IsNullOrWhiteSpace(NewItemSkus)
-                ? new System.Collections.Generic.List<string>()
-                : NewItemSkus.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim())
-                    .ToList();
-
-            var tags = string.IsNullOrWhiteSpace(NewItemTags)
-                ? new System.Collections.Generic.List<string>()
-                : NewItemTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim().ToLowerInvariant())
-                    .Distinct()
-                    .ToList();
-
-            SelectedItem.Description = NewItemDescription.Trim();
-            SelectedItem.Skus = skus;
-            SelectedItem.Tags = tags;
-            SelectedItem.IsEssential = NewItemIsEssential;
-            SelectedItem.IsPrivateLabel = NewItemIsPrivateLabel;
-
-            // Save to SQLite immediately
+            if (SelectedItem == null) { StatusMessage = "Select an item to update"; return; }
+            if (string.IsNullOrWhiteSpace(NewItemDescription)) { StatusMessage = "Enter description"; return; }
+            var skus = string.IsNullOrWhiteSpace(NewItemSkus) ? new List<string>() : NewItemSkus.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+            var tags = string.IsNullOrWhiteSpace(NewItemTags) ? new List<string>() : NewItemTags.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim().ToLowerInvariant()).Distinct().ToList();
+            (SelectedItem.Description, SelectedItem.Skus, SelectedItem.Tags, SelectedItem.IsEssential, SelectedItem.IsPrivateLabel) = (NewItemDescription.Trim(), skus, tags, NewItemIsEssential, NewItemIsPrivateLabel);
             InternalItemDictionary.UpsertItem(SelectedItem);
-
             UpdateDisplayedItems();
-            StatusMessage = $"Updated item {SelectedItem.Number} (saved to database)";
-            _logger?.LogInformation("Updated item {Number} in SQLite", SelectedItem.Number);
-
-            // Clear input fields
-            NewItemNumber = string.Empty;
-            NewItemDescription = string.Empty;
-            NewItemSkus = string.Empty;
-            NewItemTags = string.Empty;
-            NewItemIsEssential = false;
-            NewItemIsPrivateLabel = false;
-            SelectedItem = null;
+            StatusMessage = $"Updated {SelectedItem.Number}";
+            _logger?.LogInformation("Updated {Number}", SelectedItem.Number);
+            (NewItemNumber, NewItemDescription, NewItemSkus, NewItemTags, NewItemIsEssential, NewItemIsPrivateLabel, SelectedItem) = (string.Empty, string.Empty, string.Empty, string.Empty, false, false, null);
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error updating item: {ex.Message}";
-            _logger?.LogError(ex, "Failed to update item");
-        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; _logger?.LogError(ex, "Update failed"); }
     }
 
     [RelayCommand]
@@ -487,108 +344,42 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     {
         try
         {
-            if (SelectedItem == null)
-            {
-                StatusMessage = "Please select an item to delete";
-                return;
-            }
-
-            var itemNumber = SelectedItem.Number;
-
-            // Confirmation dialog
-            var result = System.Windows.MessageBox.Show(
-                $"Are you sure you want to delete item {itemNumber}?\n\nThis will permanently remove it from the dictionary.",
-                "Confirm Delete",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Warning);
-
-            if (result != System.Windows.MessageBoxResult.Yes)
-                return;
-
-            // Delete from SQLite immediately
-            InternalItemDictionary.DeleteItem(itemNumber);
-
-            _allItems.RemoveAll(i => i.Number == itemNumber);
+            if (SelectedItem == null) { StatusMessage = "Select an item to delete"; return; }
+            var num = SelectedItem.Number;
+            if (System.Windows.MessageBox.Show($"Delete {num}? This will permanently remove it.", "Confirm", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning) != System.Windows.MessageBoxResult.Yes) return;
+            InternalItemDictionary.DeleteItem(num);
+            _allItems.RemoveAll(i => i.Number == num);
             SyncItemsFromAllItems();
             UpdateDisplayedItems();
-
-            StatusMessage = $"Deleted item {itemNumber} (removed from database)";
-            _logger?.LogInformation("Deleted item {Number} from SQLite", itemNumber);
-
+            StatusMessage = $"Deleted {num}";
+            _logger?.LogInformation("Deleted {Number}", num);
             ClearItemForm();
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error deleting item: {ex.Message}";
-            _logger?.LogError(ex, "Failed to delete item");
-        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; _logger?.LogError(ex, "Delete failed"); }
     }
 
     [RelayCommand]
-    private void ClearItemForm()
-    {
-        NewItemNumber = string.Empty;
-        NewItemDescription = string.Empty;
-        NewItemSkus = string.Empty;
-        NewItemTags = string.Empty;
-        NewItemIsEssential = false;
-        NewItemIsPrivateLabel = false;
-        SelectedItem = null;
-        StatusMessage = "Form cleared. Ready to add a new item.";
-    }
+    private void ClearItemForm() { (NewItemNumber, NewItemDescription, NewItemSkus, NewItemTags, NewItemIsEssential, NewItemIsPrivateLabel, SelectedItem, StatusMessage) = (string.Empty, string.Empty, string.Empty, string.Empty, false, false, null, "Form cleared"); }
 
     [RelayCommand]
     private void AddStore()
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(NewStoreId))
-            {
-                StatusMessage = "Please enter a store ID";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(NewStoreName))
-            {
-                StatusMessage = "Please enter a store name";
-                return;
-            }
-
-            // Check if store already exists
-            if (_allStores.Any(s => s.Code.Equals(NewStoreId.Trim(), StringComparison.OrdinalIgnoreCase)))
-            {
-                StatusMessage = $"Store {NewStoreId} already exists";
-                return;
-            }
-
-            var newStore = new StoreEntry
-            {
-                Code = NewStoreId.Trim(),
-                Name = NewStoreName.Trim(),
-                Rank = NewStoreRank
-            };
-
-            // Save to SQLite immediately
+            if (string.IsNullOrWhiteSpace(NewStoreId)) { StatusMessage = "Enter store ID"; return; }
+            if (string.IsNullOrWhiteSpace(NewStoreName)) { StatusMessage = "Enter store name"; return; }
+            if (_allStores.Any(s => s.Code.Equals(NewStoreId.Trim(), StringComparison.OrdinalIgnoreCase))) { StatusMessage = $"Store {NewStoreId} exists"; return; }
+            var newStore = new StoreEntry { Code = NewStoreId.Trim(), Name = NewStoreName.Trim(), Rank = NewStoreRank };
             InternalStoreDictionary.UpsertStore(newStore);
-
             _allStores.Add(newStore);
             _allStores = _allStores.OrderBy(s => s.Code).ToList();
             Stores = new ObservableCollection<StoreEntry>(_allStores);
             ApplyStoreFilters();
-
-            StatusMessage = $"Added store {newStore.Code} - {newStore.Name} (saved to database)";
-            _logger?.LogInformation("Added store {Code} to SQLite", newStore.Code);
-
-            // Clear input fields
-            NewStoreId = string.Empty;
-            NewStoreName = string.Empty;
-            NewStoreRank = "A";
+            StatusMessage = $"Added {newStore.Code} - {newStore.Name}";
+            _logger?.LogInformation("Added store {Code}", newStore.Code);
+            (NewStoreId, NewStoreName, NewStoreRank) = (string.Empty, string.Empty, "A");
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error adding store: {ex.Message}";
-            _logger?.LogError(ex, "Failed to add store");
-        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; _logger?.LogError(ex, "Add store failed"); }
     }
 
     [RelayCommand]
@@ -613,39 +404,16 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     {
         try
         {
-            if (SelectedStore == null)
-            {
-                StatusMessage = "Please select a store to update";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(NewStoreName))
-            {
-                StatusMessage = "Please enter a store name";
-                return;
-            }
-
-            SelectedStore.Name = NewStoreName.Trim();
-            SelectedStore.Rank = NewStoreRank;
-
-            // Save to SQLite immediately
+            if (SelectedStore == null) { StatusMessage = "Select a store to update"; return; }
+            if (string.IsNullOrWhiteSpace(NewStoreName)) { StatusMessage = "Enter store name"; return; }
+            (SelectedStore.Name, SelectedStore.Rank) = (NewStoreName.Trim(), NewStoreRank);
             InternalStoreDictionary.UpsertStore(SelectedStore);
-
             ApplyStoreFilters();
-            StatusMessage = $"Updated store {SelectedStore.Code} (saved to database)";
-            _logger?.LogInformation("Updated store {Code} in SQLite", SelectedStore.Code);
-
-            // Clear input fields
-            NewStoreId = string.Empty;
-            NewStoreName = string.Empty;
-            NewStoreRank = "A";
-            SelectedStore = null;
+            StatusMessage = $"Updated {SelectedStore.Code}";
+            _logger?.LogInformation("Updated store {Code}", SelectedStore.Code);
+            (NewStoreId, NewStoreName, NewStoreRank, SelectedStore) = (string.Empty, string.Empty, "A", null);
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error updating store: {ex.Message}";
-            _logger?.LogError(ex, "Failed to update store");
-        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; _logger?.LogError(ex, "Update store failed"); }
     }
 
     [RelayCommand]
@@ -653,77 +421,28 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     {
         try
         {
-            if (SelectedStore == null)
-            {
-                StatusMessage = "Please select a store to delete";
-                return;
-            }
-
-            var storeCode = SelectedStore.Code;
-
-            // Delete from SQLite immediately
-            InternalStoreDictionary.DeleteStore(storeCode);
-
-            _allStores.RemoveAll(s => s.Code == storeCode);
+            if (SelectedStore == null) { StatusMessage = "Select a store to delete"; return; }
+            var code = SelectedStore.Code;
+            InternalStoreDictionary.DeleteStore(code);
+            _allStores.RemoveAll(s => s.Code == code);
             Stores.Remove(SelectedStore);
             ApplyStoreFilters();
-
-            StatusMessage = $"Deleted store {storeCode} (removed from database)";
-            _logger?.LogInformation("Deleted store {Code} from SQLite", storeCode);
-
+            StatusMessage = $"Deleted {code}";
+            _logger?.LogInformation("Deleted store {Code}", code);
             ClearStoreForm();
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error deleting store: {ex.Message}";
-            _logger?.LogError(ex, "Failed to delete store");
-        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; _logger?.LogError(ex, "Delete store failed"); }
     }
 
     [RelayCommand]
-    private void ClearStoreForm()
-    {
-        NewStoreId = string.Empty;
-        NewStoreName = string.Empty;
-        NewStoreRank = "A";
-        SelectedStore = null;
-        StatusMessage = "Form cleared. Ready to add a new store.";
-    }
+    private void ClearStoreForm() { (NewStoreId, NewStoreName, NewStoreRank, SelectedStore, StatusMessage) = (string.Empty, string.Empty, "A", null, "Form cleared"); }
 
-    partial void OnItemSearchTextChanged(string value)
-    {
-        CurrentPage = 1;
-        UpdateDisplayedItems();
-    }
-
-    partial void OnItemSortByChanged(string value)
-    {
-        CurrentPage = 1;
-        UpdateDisplayedItems();
-    }
-
-    partial void OnItemSortDescendingChanged(bool value)
-    {
-        CurrentPage = 1;
-        UpdateDisplayedItems();
-    }
-
-    partial void OnFilterEssentialOnlyChanged(bool value)
-    {
-        CurrentPage = 1;
-        UpdateDisplayedItems();
-    }
-
-    partial void OnFilterPrivateLabelOnlyChanged(bool value)
-    {
-        CurrentPage = 1;
-        UpdateDisplayedItems();
-    }
-
-    partial void OnStoreSearchTextChanged(string value)
-    {
-        ApplyStoreFilters();
-    }
+    partial void OnItemSearchTextChanged(string value) { CurrentPage = 1; UpdateDisplayedItems(); }
+    partial void OnItemSortByChanged(string value) { CurrentPage = 1; UpdateDisplayedItems(); }
+    partial void OnItemSortDescendingChanged(bool value) { CurrentPage = 1; UpdateDisplayedItems(); }
+    partial void OnFilterEssentialOnlyChanged(bool value) { CurrentPage = 1; UpdateDisplayedItems(); }
+    partial void OnFilterPrivateLabelOnlyChanged(bool value) { CurrentPage = 1; UpdateDisplayedItems(); }
+    partial void OnStoreSearchTextChanged(string value) => ApplyStoreFilters();
 
     private void UpdateDisplayedItems()
     {
@@ -840,33 +559,16 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private void ApplyStoreFilters()
     {
         var filtered = _allStores.AsEnumerable();
-
         if (!string.IsNullOrWhiteSpace(StoreSearchText))
         {
-            var search = StoreSearchText;
-            filtered = filtered.Where(s =>
-                s.Code.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                s.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                s.Rank.Contains(search, StringComparison.OrdinalIgnoreCase));
+            var s = StoreSearchText;
+            filtered = filtered.Where(st => st.Code.Contains(s, StringComparison.OrdinalIgnoreCase) || st.Name.Contains(s, StringComparison.OrdinalIgnoreCase) || st.Rank.Contains(s, StringComparison.OrdinalIgnoreCase));
         }
-
-        // Clear and repopulate to preserve bindings
         FilteredStores.Clear();
-        foreach (var store in filtered.OrderBy(s => s.Code))
-        {
-            FilteredStores.Add(store);
-        }
+        foreach (var store in filtered.OrderBy(st => st.Code)) FilteredStores.Add(store);
     }
 
-    private void SyncItemsFromAllItems()
-    {
-        Items.Clear();
-        foreach (var item in _allItems)
-        {
-            Items.Add(item);
-        }
-        OnPropertyChanged(nameof(TotalItemCount));
-    }
+    private void SyncItemsFromAllItems() { Items.Clear(); foreach (var item in _allItems) Items.Add(item); OnPropertyChanged(nameof(TotalItemCount)); }
 
     [RelayCommand]
     private async Task ImportItemsFromExcel()
@@ -1164,12 +866,6 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             _logger?.LogError(ex, "Failed to import stores from Excel");
         }
     }
-
-    #region External Sync Commands
-
-    /// <summary>
-    /// Sync from MySQL external database
-    /// </summary>
     [RelayCommand]
     private async Task SyncFromMySqlAsync()
     {
@@ -1181,10 +877,6 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
         await _syncService.SyncFromMySqlAsync(_externalConfig);
     }
-
-    /// <summary>
-    /// Sync from Business Central
-    /// </summary>
     [RelayCommand]
     private async Task SyncFromBcAsync()
     {
@@ -1196,10 +888,6 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
         await _syncService.SyncFromBusinessCentralAsync(_externalConfig);
     }
-
-    /// <summary>
-    /// Sync from both MySQL and Business Central
-    /// </summary>
     [RelayCommand]
     private async Task SyncFromBothAsync()
     {
@@ -1211,14 +899,6 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
         await _syncService.SyncFromBothAsync(_externalConfig);
     }
-
-    #endregion
-
-    #region IDisposable
-
-    /// <summary>
-    /// Dispose pattern to unsubscribe from sync service events
-    /// </summary>
     public void Dispose()
     {
         Dispose(true);
@@ -1240,6 +920,4 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
         _disposed = true;
     }
-
-    #endregion
 }

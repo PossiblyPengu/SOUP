@@ -20,13 +20,13 @@
         <!-- Interactive KPI Card Style -->
         <Style x:Key="InteractiveKpiCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="8"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="24,20"/>
+            <Setter Property="Margin" Value="10,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.12" Color="Black"/>
                 </Setter.Value>
             </Setter>
             <Setter Property="RenderTransform">
@@ -75,12 +75,12 @@
         <!-- Chart Card Style -->
         <Style x:Key="ChartCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="8"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="24,20"/>
+            <Setter Property="Margin" Value="10,0"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.12" Color="Black"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -149,7 +149,7 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Background="{DynamicResource BackgroundBrush}" Margin="16">
+        <Grid Background="{DynamicResource BackgroundBrush}" Margin="24,20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>  <!-- Header -->
                 <RowDefinition Height="Auto"/>  <!-- KPI Cards -->
@@ -158,7 +158,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header with Gradient -->
-            <Border Grid.Row="0" Margin="8,0,8,20" CornerRadius="12" Padding="20,16">
+            <Border Grid.Row="0" Margin="10,0,10,24" CornerRadius="14" Padding="24,18">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
@@ -167,16 +167,16 @@
                     </LinearGradientBrush>
                 </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.25" Color="{StaticResource ExpireWiseAccentColor}"/>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.3" Color="{StaticResource ExpireWiseAccentColor}"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="52" Height="52" CornerRadius="26"
-                            Background="{DynamicResource OverlayWhiteSubtleBrush}" Margin="0,0,16,0">
-                        <TextBlock Text="📊" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
+                            Background="{DynamicResource OverlayWhiteSubtleBrush}" Margin="0,0,18,0">
+                        <TextBlock Text="📊" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="ExpireWise Dashboard" FontSize="24" FontWeight="Bold"
@@ -188,7 +188,7 @@
             </Border>
 
             <!-- KPI Cards Row (Interactive) -->
-            <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid Grid.Row="1" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -206,10 +206,10 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                            <Border Background="{DynamicResource InfoBrush}" CornerRadius="10"
-                                    Padding="10" Margin="0,0,12,0" Opacity="0.15">
-                                <TextBlock Text="📦" FontSize="22"/>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Background="{DynamicResource InfoBrush}" CornerRadius="12"
+                                    Padding="12" Margin="0,0,14,0" Opacity="0.15">
+                                <TextBlock Text="📦" FontSize="26"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Total Items" FontSize="12" FontWeight="Medium"
@@ -218,7 +218,7 @@
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Text="{Binding TotalItems, FallbackValue=0}"
-                                   FontSize="36" FontWeight="Bold"
+                                   FontSize="42" FontWeight="Bold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center"/>
 
@@ -240,11 +240,11 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                            <Border Background="{DynamicResource DangerBrush}" CornerRadius="10"
-                                    Padding="10" Margin="0,0,12,0" Opacity="0.15"
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Background="{DynamicResource DangerBrush}" CornerRadius="12"
+                                    Padding="12" Margin="0,0,14,0" Opacity="0.15"
                                     x:Name="CriticalIconBorder">
-                                <TextBlock Text="🚨" FontSize="22" x:Name="CriticalIcon"/>
+                                <TextBlock Text="🚨" FontSize="26" x:Name="CriticalIcon"/>
                                 <Border.Triggers>
                                     <EventTrigger RoutedEvent="Loaded">
                                         <BeginStoryboard>
@@ -268,7 +268,7 @@
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Text="{Binding CriticalCount, FallbackValue=0}"
-                                   FontSize="36" FontWeight="Bold"
+                                   FontSize="42" FontWeight="Bold"
                                    Foreground="{DynamicResource DangerBrush}"
                                    VerticalAlignment="Center"/>
 
@@ -290,10 +290,10 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                            <Border Background="{StaticResource ExpireWiseAccentBrush}" CornerRadius="10"
-                                    Padding="10" Margin="0,0,12,0" Opacity="0.15">
-                                <TextBlock Text="📅" FontSize="22"/>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Background="{StaticResource ExpireWiseAccentBrush}" CornerRadius="12"
+                                    Padding="12" Margin="0,0,14,0" Opacity="0.15">
+                                <TextBlock Text="📅" FontSize="26"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Expiring This Month" FontSize="12" FontWeight="Medium"
@@ -302,7 +302,7 @@
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Text="{Binding MonthItemCount, FallbackValue=0}"
-                                   FontSize="36" FontWeight="Bold"
+                                   FontSize="42" FontWeight="Bold"
                                    Foreground="{StaticResource ExpireWiseAccentBrush}"
                                    VerticalAlignment="Center"/>
 
@@ -324,10 +324,10 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                            <Border Background="{DynamicResource SuccessBrush}" CornerRadius="10"
-                                    Padding="10" Margin="0,0,12,0" Opacity="0.15">
-                                <TextBlock Text="📍" FontSize="22"/>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Background="{DynamicResource SuccessBrush}" CornerRadius="12"
+                                    Padding="12" Margin="0,0,14,0" Opacity="0.15">
+                                <TextBlock Text="📍" FontSize="26"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Top Location" FontSize="12" FontWeight="Medium"
@@ -335,7 +335,7 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="1" Text="Main" FontSize="24" FontWeight="Bold"
+                        <TextBlock Grid.Row="1" Text="Main" FontSize="28" FontWeight="Bold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
@@ -346,7 +346,7 @@
             </Grid>
 
             <!-- Charts Row: Forecast + This Month -->
-            <Grid Grid.Row="2" Margin="0,0,0,12">
+            <Grid Grid.Row="2" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="*"/>

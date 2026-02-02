@@ -54,8 +54,8 @@ public partial class ExpireWiseView : UserControl
 
     private void OnFocusSearchRequested()
     {
-        SearchBox?.Focus();
-        SearchBox?.SelectAll();
+        // SearchBox removed in simplified timeline design
+        // Focus handling can be added back if needed
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -88,6 +88,9 @@ public partial class ExpireWiseView : UserControl
         }
     }
 
+    // Selection handling disabled for card-based layout
+    // Use context menus and double-click for item interactions
+    /*
     private void OnItemsGridSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DataContext is not ExpireWiseViewModel vm) return;
@@ -127,4 +130,5 @@ public partial class ExpireWiseView : UserControl
         foreach (var it in allowed) vm.SelectedItems.Add(it);
         vm.SelectedItem = allowed.FirstOrDefault();
     }
+    */
 }

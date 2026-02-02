@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "4.37.0";
+    public const string Version = "5.0.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -36,7 +36,7 @@ public static class AppVersion
     /// <summary>
     /// The build date in ISO format.
     /// </summary>
-    public const string BuildDate = "2026-01-30";
+    public const string BuildDate = "2026-02-02";
 
     /// <summary>
     /// Full version string with channel (e.g., "v4.3.0 - Stable").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("5.0.0", "2026-02-02", "Release Update", new[]
+        {
+            "Add Allocation Services for Clipboard, Export, Import, Persistence, and Item Dictionary Management- Implement AllocationClipboardService for clipboard operations including text validation and formatting for locations and items.- Create AllocationExportService to handle exporting allocation data to Excel and CSV formats.- Develop AllocationImportService for importing allocation data from Excel, CSV, and clipboard text, with validation and error handling.- Introduce AllocationPersistenceService for managing the saving, loading, and archiving of allocation data in JSON format.- Add ItemDictionaryService for efficient item lookups by item number and SKU, including asynchronous loading of dictionaries."
+        }),
         new("4.36.0", "2026-01-29", "Release Update", new[]
         {
             "feat: Add modernization progress documentation for Order Log Widget- Created MODERNIZATION_PROGRESS.md to outline the phases and changes made during the UI modernization of the Order Log Widget.- Documented completed phases including styling updates for cards, fields, dropdowns, buttons, and form controls.- Highlighted key improvements, statistics, and optional future enhancements.style: Introduce modern header styles for buttons and search bar- Added ModernHeaderStyles.xaml with new styles for pill buttons, icon buttons, and a floating search bar.- Implemented animations for hover effects and scaling.test: Set up infrastructure tests with xUnit- Created GlobalUsings.cs to include xUnit globally for tests.- Established Infrastructure.Tests.csproj with necessary package references for testing.- Implemented SqliteRepositoryTests.cs to validate repository functionality with SQLite.- Developed FileImportExportServiceTests.cs to ensure correct import/export behavior for files."

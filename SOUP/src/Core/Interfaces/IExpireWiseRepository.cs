@@ -36,4 +36,27 @@ public interface IExpireWiseRepository : IRepository<ExpirationItem>
     /// Returns true on success, false on failure (transaction rolled back).
     /// </summary>
     Task<bool> ReplaceAllAsync(List<ExpirationItem> newItems);
+
+    /// <summary>
+    /// Archives expired items by moving them to the archive table and removing from active items.
+    /// </summary>
+    /// <param name="storeLocation">Optional store location filter. If null, archives all expired items.</param>
+    /// <returns>Number of items archived.</returns>
+    Task<int> ArchiveExpiredItemsAsync(string? storeLocation = null);
+
+    /// <summary>
+    /// Gets archived items for a specific store.
+    /// </summary>
+    /// <param name="storeLocation">Store location to filter by.</param>
+    /// <param name="startDate">Optional start date filter.</param>
+    /// <param name="endDate">Optional end date filter.</param>
+    /// <returns>A collection of archived items.</returns>
+    Task<IEnumerable<ArchivedExpirationItem>> GetArchivedItemsAsync(string? storeLocation = null, DateTime? startDate = null, DateTime? endDate = null);
+
+    /// <summary>
+    /// Deletes archived items older than the specified date.
+    /// </summary>
+    /// <param name="olderThan">Delete archived items older than this date.</param>
+    /// <returns>Number of items deleted.</returns>
+    Task<int> DeleteOldArchivedItemsAsync(DateTime olderThan);
 }

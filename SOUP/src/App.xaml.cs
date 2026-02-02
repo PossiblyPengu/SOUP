@@ -88,13 +88,19 @@ public partial class App : Application
                         var tmp = Path.Combine(Path.GetTempPath(), "SOUP_RuntimeException.log");
                         File.AppendAllText(tmp, DateTime.Now.ToString("o") + "\n" + ev.Exception.ToString() + "\n\n");
                     }
-                    catch { }
+                    catch (Exception logEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to write temp exception log: {logEx.Message}");
+                    }
                     try
                     {
                         var repoLog = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? ".", "SOUP_RuntimeException.log");
                         File.AppendAllText(repoLog, DateTime.Now.ToString("o") + "\n" + ev.Exception.ToString() + "\n\n");
                     }
-                    catch { }
+                    catch (Exception logEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to write repo exception log: {logEx.Message}");
+                    }
                     // Prevent modal exception dialogs during automated runs; mark handled so app can continue to log.
                     ev.Handled = true;
                 }
@@ -172,6 +178,16 @@ public partial class App : Application
         // ViewModels - AllocationBuddy (Singletons persist data across navigation)
         if (moduleConfig.AllocationBuddyEnabled)
         {
+            // AllocationBuddy Services
+            services.AddSingleton<SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration>();
+            services.AddSingleton<SOUP.Services.AllocationBuddy.ItemDictionaryService>();
+            services.AddSingleton<SOUP.Services.AllocationBuddy.AllocationCalculationService>();
+            services.AddSingleton<SOUP.Services.AllocationBuddy.AllocationClipboardService>();
+            services.AddSingleton<SOUP.Services.AllocationBuddy.AllocationExportService>();
+            services.AddSingleton<SOUP.Services.AllocationBuddy.AllocationImportService>();
+            services.AddSingleton<SOUP.Services.AllocationBuddy.AllocationPersistenceService>();
+
+            // ViewModels
             services.AddSingleton<AllocationBuddyRPGViewModel>();
             services.AddTransient<SelectLocationDialogViewModel>();
             services.AddTransient<AllocationBuddySettingsViewModel>();
@@ -206,8 +222,22 @@ public partial class App : Application
             services.AddSingleton<SOUP.Features.OrderLog.Services.IOrderLogService>(sp =>
                 SOUP.Features.OrderLog.Services.OrderLogRepository.GetInstance(
                     sp.GetService<ILogger<SOUP.Features.OrderLog.Services.OrderLogRepository>>()));
-            services.AddSingleton<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
+            
+            // OrderLog refactored services - business logic extraction
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderGroupingService>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderSearchService>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderTimestampSyncService>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderLinkingService>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderArchiveService>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.WorkTimeCalculationService>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderImportExportCoordinator>();
+            services.AddSingleton<SOUP.Features.OrderLog.Services.OrderUndoCoordinator>();
+            
+            // OrderLog supporting services
             services.AddSingleton<SOUP.Features.OrderLog.Services.GroupStateStore>();
+            
+            services.AddSingleton<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>();
         }
 
         // ViewModels - SwiftLabel

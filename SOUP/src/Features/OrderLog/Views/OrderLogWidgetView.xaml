@@ -7,6 +7,7 @@
              xmlns:converters="clr-namespace:SOUP.Features.OrderLog.Converters"
              xmlns:commonConverters="clr-namespace:SOUP.Converters"
              xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
+             xmlns:local="clr-namespace:SOUP.Features.OrderLog.Views"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors"
              xmlns:commonBehaviors="clr-namespace:SOUP.Behaviors">
@@ -407,17 +408,10 @@
 
         <!-- Modern Sticky Note Template - Enhanced design with smooth effects -->
         <DataTemplate x:Key="StickyNoteTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Margin="8" CornerRadius="12" Padding="16">
+            <Border Margin="6" CornerRadius="12" Padding="16" Style="{StaticResource OrderLogWidgetElevatedCardStyle}">
                 <Border.Background>
                     <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.12"/>
                 </Border.Background>
-                <Border.BorderBrush>
-                    <SolidColorBrush Color="{Binding ColorHex, Converter={StaticResource HexToColorConverter}}" Opacity="0.35"/>
-                </Border.BorderBrush>
-                <Border.BorderThickness>1.5</Border.BorderThickness>
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.08" Direction="270" Color="#000000"/>
-                </Border.Effect>
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}"/>
@@ -433,241 +427,121 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Note content -->
-                    <Grid Grid.Row="0">
-                        <TextBlock Text="Write your note..."
-                                   FontSize="{DynamicResource CardFontSize}"
-                                   Foreground="{DynamicResource TextDisabledBrush}"
-                                   FontStyle="Italic"
-                                   IsHitTestVisible="False"
-                                   VerticalAlignment="Top"
-                                   TextWrapping="Wrap"
-                                   Margin="0,0,60,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding NoteContent}" Value="">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding NoteContent}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                    <!-- Note content area -->
+                    <Border Grid.Row="0" Background="Transparent">
+                        <Grid>
+                            <!-- Placeholder text -->
+                            <TextBlock Text="Click to write your note..."
+                                       FontSize="{DynamicResource CardFontSize}"
+                                       Foreground="{DynamicResource TextDisabledBrush}"
+                                       FontStyle="Italic"
+                                       IsHitTestVisible="False"
+                                       VerticalAlignment="Top"
+                                       TextWrapping="Wrap"
+                                       Margin="2">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding NoteContent}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding NoteContent}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
 
-                        <RichTextBox x:Name="NoteRichTextBox"
+                            <!-- Simple TextBox for notes -->
+                            <TextBox x:Name="NoteTextBox"
+                                     Text="{Binding NoteContent, UpdateSourceTrigger=PropertyChanged}"
                                      Background="Transparent"
                                      BorderThickness="0"
                                      Foreground="{DynamicResource TextPrimaryBrush}"
-                                     CaretBrush="#00D4FF"
                                      FontSize="{DynamicResource CardFontSize}"
-                                     Padding="0,0,60,24"
+                                     Padding="2"
                                      MinHeight="80"
                                      AcceptsReturn="True"
-                                     AcceptsTab="True"
-                                     IsDocumentEnabled="True"
+                                     TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto"
                                      SpellCheck.IsEnabled="True"
-                                     PreviewKeyDown="NoteContent_PreviewKeyDown"
-                                     Loaded="NoteContent_Loaded"
-                                     LostFocus="NoteContent_LostFocus"
-                                     GotFocus="EditableField_GotFocus"
-                                     Cursor="IBeam">
+                                     LostFocus="NoteTextBox_LostFocus"
+                                     VerticalAlignment="Stretch"
+                                     HorizontalAlignment="Stretch"/>
                             
-                            <RichTextBox.InputBindings>
-                                <KeyBinding Key="B" Modifiers="Control" Command="EditingCommands.ToggleBold"/>
-                                <KeyBinding Key="I" Modifiers="Control" Command="EditingCommands.ToggleItalic"/>
-                                <KeyBinding Key="U" Modifiers="Control" Command="EditingCommands.ToggleUnderline"/>
-                                <KeyBinding Key="Z" Modifiers="Control" Command="ApplicationCommands.Undo"/>
-                                <KeyBinding Key="Y" Modifiers="Control" Command="ApplicationCommands.Redo"/>
-                            </RichTextBox.InputBindings>
-                        </RichTextBox>
-                    </Grid>
+                            <!-- Floating action buttons (top right corner) -->
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Right" 
+                                        VerticalAlignment="Top" 
+                                        Margin="0,-4,-4,0">
+                                <Button Click="QuickArchive_Click" 
+                                        ToolTip="Archive" 
+                                        Cursor="Hand" 
+                                        Margin="0,0,2,0"
+                                        Focusable="False">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Padding" Value="4"/>
+                                            <Setter Property="Opacity" Value="0.5"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                                                            <TextBlock Text="✓" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Opacity" Value="1"/>
+                                                    <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Tag="DragHandle" Opacity="0.5" Focusable="False">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource WidgetDragHandleStyle}">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Opacity" Value="1"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-                    <!-- Modern Formatting toolbar -->
+                    <!-- Bottom status bar -->
                     <Border Grid.Row="1"
                             Background="{DynamicResource SurfaceBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="0,1.5,0,0"
-                            Padding="0,10,0,4"
+                            BorderThickness="0,1,0,0"
+                            Padding="8,4"
                             Margin="-16,8,-16,-16"
                             CornerRadius="0,0,12,12">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <!-- Bold -->
-                                <ToggleButton x:Name="BoldToggle" Click="FormatBold_Click" Tag="{Binding}"
-                                    ToolTip="Bold (Ctrl+B)"
-                                    Margin="2,0"
-                                    Focusable="False" IsTabStop="False">
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6,4"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="4"
-                                                            Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="B" FontWeight="Bold" FontSize="11"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
-
-                                <!-- Italic -->
-                                <ToggleButton x:Name="ItalicToggle" Click="FormatItalic_Click" Tag="{Binding}"
-                                    ToolTip="Italic (Ctrl+I)"
-                                    Margin="2,0"
-                                    Focusable="False" IsTabStop="False">
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6,4"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="4"
-                                                            Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="I" FontStyle="Italic" FontSize="11"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
-
-                                <!-- Underline -->
-                                <ToggleButton x:Name="UnderlineToggle" Click="FormatUnderline_Click" Tag="{Binding}"
-                                    ToolTip="Underline (Ctrl+U)"
-                                    Margin="2,0"
-                                    Focusable="False" IsTabStop="False">
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6,4"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="4"
-                                                            Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="U" TextDecorations="Underline" FontSize="11"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
-
-                            <!-- Separator -->
-                            <Border Width="1" Height="16" Background="{DynamicResource BorderBrush}" Margin="4,0"/>
-
-                                <!-- Bullet List -->
-                                <ToggleButton x:Name="BulletToggle" Click="InsertBullet_Click" Tag="{Binding}"
-                                    ToolTip="Bullet List"
-                                    Margin="2,0"
-                                    Focusable="False" IsTabStop="False">
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="6,4"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="4"
-                                                            Padding="{TemplateBinding Padding}">
-                                                        <TextBlock Text="•" FontSize="14"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
-                        </StackPanel>
+                        <Grid>
+                            <TextBlock x:Name="CharCountDisplay" 
+                                       FontSize="9"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} characters">
+                                        <Binding Path="NoteContent.Length" FallbackValue="0"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Grid>
                     </Border>
-
-                    <!-- Floating action buttons (top right) -->
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0">
-                        <Button Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand" Margin="0,0,2,0">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Setter Property="BorderThickness" Value="0"/>
-                                    <Setter Property="Padding" Value="4"/>
-                                    <Setter Property="Opacity" Value="0.5"/>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
-                                                    <TextBlock Text="✓" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Tag="DragHandle" Opacity="0.5">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource WidgetDragHandleStyle}">
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Opacity" Value="1"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                    </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -1699,11 +1573,11 @@
                         <ItemsControl ItemsSource="{Binding StickyNotes}" Margin="0,0,0,8">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal">
+                                    <StackPanel>
                                         <i:Interaction.Behaviors>
                                             <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" RequireDragHandle="True" EnableReordering="True" />
                                         </i:Interaction.Behaviors>
-                                    </WrapPanel>
+                                    </StackPanel>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>

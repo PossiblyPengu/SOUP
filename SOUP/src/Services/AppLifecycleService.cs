@@ -162,7 +162,10 @@ public sealed class AppLifecycleService
                 {
                     Application.Current?.Shutdown();
                 }
-                catch { }
+                catch (Exception shutdownEx)
+                {
+                    _logger?.LogWarning(shutdownEx, "Error during application shutdown");
+                }
             });
         }
         catch (Exception ex)

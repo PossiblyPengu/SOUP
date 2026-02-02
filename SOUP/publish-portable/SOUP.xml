@@ -83,9 +83,20 @@
             Action to invoke when items are reordered.
             </summary>
         </member>
+        <member name="T:SOUP.Converters.BoolToArchiveIconConverter">
+            <summary>
+            Converts boolean to archive icon (📋 or ✖ for close)
+            </summary>
+        </member>
         <member name="T:SOUP.Converters.BoolToSuccessColorConverter">
             <summary>
             Converts a boolean value to a success/error color
+            </summary>
+        </member>
+        <member name="T:SOUP.Converters.BoolToSidebarWidthConverter">
+            <summary>
+            Converts a boolean (collapsed state) to sidebar width.
+            Collapsed: 60px, Expanded: 200px
             </summary>
         </member>
         <member name="T:SOUP.Converters.BoolToVisibilityConverter">
@@ -168,6 +179,23 @@
         <member name="T:SOUP.Converters.CountToVisibilityConverter">
             <summary>
             Converts a count (int) to Visibility. Returns Visible if count > 0, otherwise Collapsed.
+            </summary>
+        </member>
+        <member name="T:SOUP.Converters.IntToBoolConverter">
+            <summary>
+            Converts an integer to a boolean based on a parameter value.
+            Used for binding integer properties to RadioButton IsChecked.
+            </summary>
+        </member>
+        <member name="T:SOUP.Converters.IntToVisibilityConverter">
+            <summary>
+            Converts an integer to Visibility based on a parameter value.
+            Used for showing/hiding views based on SelectedViewIndex.
+            </summary>
+        </member>
+        <member name="T:SOUP.Converters.MonthYearGroupConverter">
+            <summary>
+            Converts a DateTime to a month/year string for grouping
             </summary>
         </member>
         <member name="T:SOUP.Converters.NavItemIdToVisibilityConverter">
@@ -632,6 +660,100 @@
         <member name="F:SOUP.Core.Entities.AllocationBuddy.StoreRank.D">
             <summary>Lowest priority stores.</summary>
         </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ArchiveData">
+            <summary>
+            Archive data structure for persisting allocation data.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ArchivedItem">
+            <summary>
+            Archived item data.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ArchivedLocation">
+            <summary>
+            Archived location data.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.DeactivationRecord">
+            <summary>
+            Record of a deactivation operation for undo functionality.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.FileImportResult">
+            <summary>
+            Result of a file import operation.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ItemAllocation">
+            <summary>
+            Represents an item allocation with quantity, description, and SKU information.
+            </summary>
+            <inheritdoc/>
+        </member>
+        <member name="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._totalInLocations">
+            <summary>Total quantity of this item across all locations (not including pool).</summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.GrandTotal">
+            <summary>Grand total = pool quantity + all locations.</summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.ItemNumber">
+            <inheritdoc cref="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._itemNumber"/>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.Description">
+            <inheritdoc cref="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._description"/>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.Quantity">
+            <inheritdoc cref="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._quantity"/>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.SKU">
+            <inheritdoc cref="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._sKU"/>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.IsUpdated">
+            <inheritdoc cref="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._isUpdated"/>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.TotalInLocations">
+            <inheritdoc cref="F:SOUP.Core.Entities.AllocationBuddy.ItemAllocation._totalInLocations"/>
+        </member>
+        <member name="M:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.OnQuantityChanged(System.Int32)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.Quantity"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.Quantity"/> is changed.</remarks>
+        </member>
+        <member name="M:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.OnTotalInLocationsChanged(System.Int32)">
+            <summary>Executes the logic for when <see cref="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.TotalInLocations"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.Core.Entities.AllocationBuddy.ItemAllocation.TotalInLocations"/> is changed.</remarks>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ItemAllocationView">
+            <summary>
+            View model for an item with its store allocations (item-sorted view).
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ItemSnapshot">
+            <summary>
+            Snapshot of an item's state for undo operations.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.ItemTotalSummary">
+            <summary>
+            Summary of total quantity for a unique item across all locations.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemTotalSummary.PoolQuantity">
+            <summary>Quantity remaining in the item pool (unallocated).</summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemTotalSummary.AllocatedQuantity">
+            <summary>Total allocated quantity (TotalQuantity - PoolQuantity).</summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.AllocationBuddy.ItemTotalSummary.HasPoolItems">
+            <summary>Whether this item has any remaining in the pool.</summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.LocationAllocation">
+            <summary>
+            Represents a store location with its allocated items.
+            </summary>
+        </member>
         <member name="T:SOUP.Core.Entities.AllocationBuddy.Store">
             <summary>
             Represents a store/warehouse location for allocation tracking.
@@ -654,6 +776,11 @@
         <member name="P:SOUP.Core.Entities.AllocationBuddy.Store.IsActive">
             <summary>
             Gets or sets whether this store is currently active.
+            </summary>
+        </member>
+        <member name="T:SOUP.Core.Entities.AllocationBuddy.StoreAllocation">
+            <summary>
+            Represents a store's allocation for a specific item (used in item-sorted view).
             </summary>
         </member>
         <member name="T:SOUP.Core.Entities.EssentialsBuddy.InventoryItem">
@@ -826,6 +953,62 @@
         <member name="F:SOUP.Core.Entities.EssentialsBuddy.InventoryStatus.Sufficient">
             <summary>Item is above the maximum threshold (sufficient stock).</summary>
         </member>
+        <member name="T:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem">
+            <summary>
+            Represents an archived expiration item that has already expired.
+            Maintains historical record of expired items organized by store.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.ItemNumber">
+            <summary>
+            Gets or sets the item number identifier.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.Upc">
+            <summary>
+            Gets or sets the Universal Product Code (barcode).
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.Description">
+            <summary>
+            Gets or sets the item description.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.Location">
+            <summary>
+            Gets or sets the storage location (store).
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.Units">
+            <summary>
+            Gets or sets the number of units that were archived.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.ExpiryDate">
+            <summary>
+            Gets or sets the original expiration date.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.ArchivedDate">
+            <summary>
+            Gets or sets the date when this item was archived.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.Notes">
+            <summary>
+            Gets or sets optional notes about the item.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.Category">
+            <summary>
+            Gets or sets the item category.
+            </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ArchivedExpirationItem.ActualExpiryDate">
+            <summary>
+            Gets the actual expiration date (last day of the expiry month).
+            </summary>
+        </member>
         <member name="T:SOUP.Core.Entities.ExpireWise.ExpirationItem">
             <summary>
             Represents an item with expiration date tracking and status calculation.
@@ -928,6 +1111,15 @@
             <summary>
             Gets the number of days until expiration (negative if expired).
             </summary>
+        </member>
+        <member name="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.WeekGroupName">
+            <summary>
+            Gets the week grouping name for timeline display (e.g., "NIAGARA 2" for store name).
+            </summary>
+            <remarks>
+            Uses the Location (store name) as the grouping key for timeline organization.
+            Items from the same location will be grouped together in the timeline view.
+            </remarks>
         </member>
         <member name="P:SOUP.Core.Entities.ExpireWise.ExpirationItem.StatusDescription">
             <summary>
@@ -1287,6 +1479,29 @@
             Replace all items in the repository with the provided collection in a single transaction.
             Returns true on success, false on failure (transaction rolled back).
             </summary>
+        </member>
+        <member name="M:SOUP.Core.Interfaces.IExpireWiseRepository.ArchiveExpiredItemsAsync(System.String)">
+            <summary>
+            Archives expired items by moving them to the archive table and removing from active items.
+            </summary>
+            <param name="storeLocation">Optional store location filter. If null, archives all expired items.</param>
+            <returns>Number of items archived.</returns>
+        </member>
+        <member name="M:SOUP.Core.Interfaces.IExpireWiseRepository.GetArchivedItemsAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Gets archived items for a specific store.
+            </summary>
+            <param name="storeLocation">Store location to filter by.</param>
+            <param name="startDate">Optional start date filter.</param>
+            <param name="endDate">Optional end date filter.</param>
+            <returns>A collection of archived items.</returns>
+        </member>
+        <member name="M:SOUP.Core.Interfaces.IExpireWiseRepository.DeleteOldArchivedItemsAsync(System.DateTime)">
+            <summary>
+            Deletes archived items older than the specified date.
+            </summary>
+            <param name="olderThan">Delete archived items older than this date.</param>
+            <returns>Number of items deleted.</returns>
         </member>
         <member name="T:SOUP.Core.Interfaces.IFileImportExportService">
             <summary>
@@ -1851,6 +2066,83 @@
             Dictionary statistics
             </summary>
         </member>
+        <member name="T:SOUP.Features.ExpireWise.Views.HeatmapCalendar">
+            <summary>
+            Heatmap calendar showing expiration density across days
+            </summary>
+            <summary>
+            HeatmapCalendar
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.HeatmapCalendar.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Views.MonthCalendarPicker">
+            <summary>
+            Month calendar picker for ExpireWise - interactive 12-month grid
+            </summary>
+            <summary>
+            MonthCalendarPicker
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.MonthCalendarPicker.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Views.ParetoChart">
+            <summary>
+            Pareto chart showing 80/20 distribution of inventory across locations
+            </summary>
+            <summary>
+            ParetoChart
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.ParetoChart.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Views.QuickAddDialog">
+            <summary>
+            Quick Add modal dialog for fast single-item entry in ExpireWise
+            </summary>
+            <summary>
+            QuickAddDialog
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddDialog.NumericTextBox_PreviewTextInput(System.Object,System.Windows.Input.TextCompositionEventArgs)">
+            <summary>
+            Restrict quantity input to numeric values only
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddDialog.Cancel_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Cancel button handler - closes dialog without saving
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddDialog.Close_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Close button handler (X button) - same as cancel
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddDialog.FocusSkuInput">
+            <summary>
+            Focus the SKU input programmatically (called from parent view)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddDialog.ClearAndRefocus">
+            <summary>
+            Clear the SKU input and refocus (called after adding to queue)
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.QuickAddDialog.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
         <member name="T:SOUP.Features.ExpireWise.Views.QuickAddPanel">
             <summary>
             Quick Add panel for fast single-item entry in ExpireWise
@@ -1875,6 +2167,19 @@
             </summary>
         </member>
         <member name="M:SOUP.Features.ExpireWise.Views.QuickAddPanel.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.ExpireWise.Views.SkeletonLoader">
+            <summary>
+            Skeleton loading screen for ExpireWise data-heavy views
+            </summary>
+            <summary>
+            SkeletonLoader
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.ExpireWise.Views.SkeletonLoader.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
@@ -2334,6 +2639,85 @@
             Uses debouncing to avoid excessive file writes.
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderArchiveService">
+            <summary>
+            Service responsible for archiving and unarchiving order items.
+            Handles both individual items and linked groups with timestamp synchronization.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderArchiveService.ArchiveOperationResult">
+            <summary>
+            Result of an archive/unarchive operation.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.GetAffectedItems(SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Determines which items should be affected by an archive/unarchive operation.
+            If the item is part of a linked group, returns all items in that group.
+            </summary>
+            <param name="item">The item to check</param>
+            <param name="allItems">All items (active + archived) to search within</param>
+            <returns>List of items that will be affected</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.CreateArchiveAction(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Archives the specified items by setting their status to Done and IsArchived to true.
+            For linked groups, synchronizes timestamps across all items.
+            Creates and returns an ArchiveAction for undo support.
+            </summary>
+            <param name="items">Items to archive</param>
+            <returns>ArchiveAction that can be executed and undone</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.ExecuteArchive(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Executes the archive operation on the items and syncs timestamps for linked groups.
+            </summary>
+            <param name="items">Items to archive</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.CreateUnarchiveAction(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Creates an unarchive action for the specified items.
+            </summary>
+            <param name="items">Items to unarchive</param>
+            <returns>UnarchiveAction that can be executed and undone</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.TransitionToArchived(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Services.UndoRedoStack)">
+            <summary>
+            Transitions items to archived status by marking them Done.
+            This is used when items are being archived through status change.
+            </summary>
+            <param name="items">Items to transition to archived</param>
+            <param name="undoRedoStack">Undo/redo stack for tracking the action</param>
+            <returns>Operation result with affected items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.TransitionToActive(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Services.UndoRedoStack)">
+            <summary>
+            Transitions items from archived back to active status.
+            </summary>
+            <param name="items">Items to unarchive</param>
+            <param name="undoRedoStack">Undo/redo stack for tracking the action</param>
+            <returns>Operation result with affected items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.ArchiveItem(SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Services.UndoRedoStack)">
+            <summary>
+            Archives a single item or its linked group.
+            Handles both the undo action and timestamp synchronization.
+            </summary>
+            <param name="item">Item to archive</param>
+            <param name="allItems">All items to search for linked group members</param>
+            <param name="undoRedoStack">Undo/redo stack</param>
+            <returns>Operation result</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderArchiveService.UnarchiveItem(SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Services.UndoRedoStack)">
+            <summary>
+            Unarchives a single item or its linked group.
+            Handles both the undo action and collection management.
+            </summary>
+            <param name="item">Item to unarchive</param>
+            <param name="allItems">All items to search for linked group members</param>
+            <param name="undoRedoStack">Undo/redo stack</param>
+            <returns>Operation result</returns>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.BulkOperationResult">
             <summary>
             Result of a bulk operation
@@ -2397,12 +2781,267 @@
             <param name="items">Items to unlink</param>
             <returns>Result of the operation</returns>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderCollectionManager">
+            <summary>
+            Service responsible for managing the OrderLog item collections (active and archived).
+            Provides thread-safe operations with O(1) membership checks using HashSet tracking.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Services.OrderCollectionManager.AllItems">
+            <summary>
+            Gets all items (active + archived) in a single enumerable.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.InitializeTracking">
+            <summary>
+            Initializes the internal HashSet tracking from existing collections.
+            Call this after loading items from persistence.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.Clear">
+            <summary>
+            Clears all collections and tracking.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.AddToItems(SOUP.Features.OrderLog.Models.OrderItem,System.Boolean)">
+            <summary>
+            Adds an item to the active Items collection with O(1) duplicate check.
+            </summary>
+            <param name="item">Item to add</param>
+            <param name="insertAtTop">If true, inserts at index 0; otherwise appends to end</param>
+            <returns>True if added, false if already exists</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.RemoveFromItems(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Removes an item from the active Items collection with O(1) existence check.
+            </summary>
+            <param name="item">Item to remove</param>
+            <returns>True if removed, false if not found</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.ContainsInItems(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Checks if an item exists in the active Items collection (O(1) operation).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.ContainsInItems(System.Guid)">
+            <summary>
+            Checks if an item ID exists in the active Items collection (O(1) operation).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.AddToArchived(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Adds an item to the ArchivedItems collection with O(1) duplicate check.
+            </summary>
+            <param name="item">Item to add</param>
+            <returns>True if added, false if already exists</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.RemoveFromArchived(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Removes an item from the ArchivedItems collection with O(1) existence check.
+            </summary>
+            <param name="item">Item to remove</param>
+            <returns>True if removed, false if not found</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.ContainsInArchived(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Checks if an item exists in the ArchivedItems collection (O(1) operation).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.ContainsInArchived(System.Guid)">
+            <summary>
+            Checks if an item ID exists in the ArchivedItems collection (O(1) operation).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.MoveToArchived(SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Moves an item from active to archived collection.
+            </summary>
+            <param name="item">Item to move</param>
+            <returns>True if moved successfully</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.MoveToActive(SOUP.Features.OrderLog.Models.OrderItem,System.Boolean)">
+            <summary>
+            Moves an item from archived to active collection.
+            </summary>
+            <param name="item">Item to move</param>
+            <param name="insertAtTop">If true, inserts at top of Items; otherwise appends</param>
+            <returns>True if moved successfully</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.MoveToArchived(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Moves multiple items from active to archived collection.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderCollectionManager.MoveToActive(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Boolean)">
+            <summary>
+            Moves multiple items from archived to active collection.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Services.OrderCollectionManager.TotalCount">
+            <summary>
+            Gets the total count of all items (active + archived).
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Services.OrderCollectionManager.ActiveCount">
+            <summary>
+            Gets the count of active items.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Services.OrderCollectionManager.ArchivedCount">
+            <summary>
+            Gets the count of archived items.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator">
+            <summary>
+            Service responsible for coordinating display refresh operations for OrderLog items.
+            Handles grouping, filtering, sorting, and async background refresh for archived items.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.RefreshDisplayCollection(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.Boolean,System.Boolean,SOUP.Features.OrderLog.Services.OrderGroupingService.OrderLogSortMode,System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
+            <summary>
+            Refreshes the main display items collection with filtering, grouping, and sorting.
+            </summary>
+            <param name="source">Source collection (active items)</param>
+            <param name="display">Display collection to update</param>
+            <param name="sortByStatus">Whether to sort groups by status</param>
+            <param name="sortStatusDescending">Sort direction for status</param>
+            <param name="sortMode">Sort mode (Status, CreatedAt, VendorName)</param>
+            <param name="searchQuery">Search query to filter</param>
+            <param name="statusFilters">Status filters</param>
+            <param name="filterStartDate">Start date filter</param>
+            <param name="filterEndDate">End date filter</param>
+            <param name="colorFilters">Color filters</param>
+            <param name="noteTypeFilter">Note type filter</param>
+            <param name="noteCategoryFilter">Note category filter</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.RefreshStatusGroups(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
+            <summary>
+            Refreshes the status-grouped collections (NotReady, OnDeck, InProgress).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.RefreshStickyNotes(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
+            <summary>
+            Refreshes the sticky notes collection with filtering.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.UpdateLinkedItemCounts(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Updates the LinkedItemCount property for all items based on their LinkedGroupId.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.RefreshArchivedDisplayItems(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory},System.Action)">
+            <summary>
+            Schedules a non-blocking async refresh of archived display items.
+            If a refresh is already running, this returns immediately.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.RefreshArchivedDisplayItemsAsync(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory},System.Action)">
+            <summary>
+            Asynchronously rebuilds archived display groups off the UI thread,
+            then applies results back on UI thread to avoid freezes.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderDisplayRefreshCoordinator.CalculateDisplayCounts(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup},System.Int32,System.Int32)">
+            <summary>
+            Calculates display counts from display collections.
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.OrderGroupingService">
             <summary>
             Helper service to build grouped display collections and status groups
             from flat OrderItem collections. Extracted from OrderLogViewModel to
             simplify view-model responsibilities and make grouping logic testable.
             </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderImportExportCoordinator">
+            <summary>
+            Service responsible for coordinating import/export operations with dialogs and user feedback.
+            Wraps OrderLogExportService with dialog management and status updates.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderImportExportCoordinator.OperationResult">
+            <summary>
+            Result of an import/export operation.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderImportExportCoordinator.ExportToCsvAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Action{System.Boolean},System.Action{System.String})">
+            <summary>
+            Exports items to CSV with dialog coordination.
+            </summary>
+            <param name="items">Items to export</param>
+            <param name="setLoading">Action to set loading state</param>
+            <param name="setStatus">Action to set status message</param>
+            <returns>Operation result</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderImportExportCoordinator.ExportToJsonAsync(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Action{System.Boolean},System.Action{System.String})">
+            <summary>
+            Exports items to JSON with dialog coordination.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderImportExportCoordinator.ImportFromCsvAsync(System.Action{System.Boolean},System.Action{System.String})">
+            <summary>
+            Imports items from CSV with dialog coordination.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderLinkingService">
+            <summary>
+            Service responsible for linking order items into groups and managing linked group operations.
+            Handles validation, group unification, and timestamp synchronization for linked items.
+            </summary>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderLinkingService.LinkResult">
+            <summary>
+            Result of a linking operation with details about what was linked.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.LinkItems(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Links the provided items together with the target into a single LinkedGroupId.
+            Only links active (non-archived) items of the same NoteType.
+            If any item already belongs to a group, groups are unified.
+            </summary>
+            <param name="itemsToLink">Items to link together</param>
+            <param name="target">Target item to link to</param>
+            <param name="activeItems">Collection of active (non-archived) items</param>
+            <returns>Result of the linking operation</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.ValidateForLinking(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Validates that the linking operation can proceed.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.ResolveTargetAndCandidates(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.Dictionary{System.Guid,SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Resolves the target and candidate items from the active items collection.
+            Filters out archived items, non-renderable items, and items with mismatched NoteType.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.DetermineGroupId(SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Determines the group ID to use for linking.
+            Prefers target's existing group, then any candidate's group, then creates new.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.AssignGroupId(SOUP.Features.OrderLog.Models.OrderItem,System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},System.Guid)">
+            <summary>
+            Assigns the group ID to the target and all candidate items.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.UnifyExistingGroups(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem,System.Guid)">
+            <summary>
+            Unifies any existing groups by pulling in all active items that belonged
+            to the same groups as the candidates or target.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderLinkingService.ExpandToFullLinkedGroups(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Expands a partial selection to include all items in the linked group.
+            Useful for ensuring operations affect all linked items.
+            </summary>
+            <param name="items">Items to expand</param>
+            <param name="allActiveItems">All active items to search within</param>
+            <returns>Full set of linked items</returns>
         </member>
         <member name="T:SOUP.Features.OrderLog.Services.OrderLogClipboardService">
             <summary>
@@ -2616,6 +3255,60 @@
             Template sorting criteria
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderTimestampSyncService">
+            <summary>
+            Service responsible for synchronizing timestamps across linked order groups.
+            Ensures all items in a linked group maintain consistent timing data.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTimestampSyncService.SyncLinkedGroupTimestamps(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Synchronizes timestamps across all items in a linked group.
+            Uses the first item as the reference source for timestamp data.
+            </summary>
+            <param name="items">Items in the linked group to synchronize</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderTimestampSyncService.SyncLinkedGroupTimestamps(System.Collections.Generic.IReadOnlyList{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem)">
+            <summary>
+            Synchronizes timestamps for a linked group using a specific item as the reference.
+            </summary>
+            <param name="items">Items in the linked group to synchronize</param>
+            <param name="referenceItem">The item to use as the timestamp source</param>
+        </member>
+        <member name="T:SOUP.Features.OrderLog.Services.OrderUndoCoordinator">
+            <summary>
+            Service responsible for coordinating undo/redo UI state and timers.
+            Manages undo timeout, countdown display, and UI message state.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderUndoCoordinator.StartUndoTimer(System.Int32,System.String,System.Action{System.String})">
+            <summary>
+            Starts the undo timer with countdown UI updates.
+            </summary>
+            <param name="timeoutSeconds">Timeout in seconds before undo expires</param>
+            <param name="message">Status message to display</param>
+            <param name="setStatus">Action to update status message</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderUndoCoordinator.StartCountdownTimer(System.Int32)">
+            <summary>
+            Starts the countdown timer that updates remaining seconds.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderUndoCoordinator.StopTimers">
+            <summary>
+            Stops all undo timers immediately.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderUndoCoordinator.CancelUndo">
+            <summary>
+            Cancels the undo operation by stopping timers.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderUndoCoordinator.UpdateTimerInterval(System.Int32)">
+            <summary>
+            Updates the undo timer interval if needed.
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.UndoableAction">
             <summary>
             Base class for all undoable actions
@@ -2771,6 +3464,55 @@
             Container for vendor color mapping persistence
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.WorkTimeCalculationService">
+            <summary>
+            Service responsible for calculating time durations during business/work hours.
+            Used for accurate time tracking that only counts time during operational hours.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.WorkTimeCalculationService.#ctor">
+            <summary>
+            Creates a new WorkTimeCalculationService with default work hours (8:00 AM - 4:30 PM).
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.WorkTimeCalculationService.#ctor(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Creates a new WorkTimeCalculationService with custom work hours.
+            </summary>
+            <param name="workStart">Start of work day (e.g., 8:00 AM)</param>
+            <param name="workEnd">End of work day (e.g., 4:30 PM)</param>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.WorkTimeCalculationService.CalculateWorkTimeBetween(System.DateTime,System.DateTime)">
+            <summary>
+            Calculates the total work time between two timestamps, counting only business hours.
+            Non-work hours (nights, before/after work) are excluded from the calculation.
+            </summary>
+            <param name="start">Start timestamp</param>
+            <param name="end">End timestamp</param>
+            <returns>Total work time elapsed</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.WorkTimeCalculationService.IsWithinWorkHours(System.DateTime)">
+            <summary>
+            Checks if a given timestamp falls within work hours.
+            </summary>
+            <param name="timestamp">Timestamp to check</param>
+            <returns>True if within work hours, false otherwise</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.WorkTimeCalculationService.GetNextWorkStart(System.DateTime)">
+            <summary>
+            Gets the next work start time after the given timestamp.
+            If the timestamp is already during work hours, returns the timestamp.
+            If after work hours, returns the start of the next work day.
+            </summary>
+            <param name="timestamp">Reference timestamp</param>
+            <returns>Next work start time</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.WorkTimeCalculationService.GetWorkHours">
+            <summary>
+            Gets the work hours configuration.
+            </summary>
+            <returns>Tuple of (workStart, workEnd)</returns>
+        </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderItemGroup.ShouldRenderMerged">
             <summary>
             Determines whether this group should use the merged/linked UI.
@@ -2814,158 +3556,6 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AllItems">
             <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._notesOnlyMode">
-            <summary>
-            Gets or sets whether the widget is in notes-only mode (hides order functionality).
-            </summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoHistory">
-            <summary>
-            Gets the undo history for display in UI
-            </summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoHistory">
-            <summary>
-            Gets the redo history for display in UI
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoAsync">
-            <summary>
-            Undo the last action
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoAsync">
-            <summary>
-            Redo the last undone action
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddStickyNoteAsync">
-            <summary>
-            Add a sticky note (simple note without order tracking)
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddQuickStickyNoteAsync(System.String,System.String)">
-            <summary>
-            Quick add a sticky note with specified content
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SaveScrollPosition(System.Double)">
-            <summary>
-            Saves the current scroll position for persistence
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.GetSavedScrollPosition">
-            <summary>
-            Restores the saved scroll position
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.Copy">
-            <summary>
-            Copy selected item(s) to clipboard
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.PasteAsync">
-            <summary>
-            Paste item(s) from clipboard
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.DuplicateAsync">
-            <summary>
-            Duplicate selected item(s) (copy + paste in one action)
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SwapOrders(SOUP.Features.OrderLog.Models.OrderItem,SOUP.Features.OrderLog.Models.OrderItem)">
-            <summary>
-            Swap two orders' positions in the collection. Used for iOS-style slide-past reordering.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.MoveItemToIndex(SOUP.Features.OrderLog.Models.OrderItem,System.Int32)">
-            <summary>
-            Move an item to a specific index in its collection. Used after drag-based reordering.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.MoveOrdersAsync(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem)">
-            <summary>
-            Move one or more orders as a block. Preserves relative order of moved items.
-            If any item belongs to a linked group and the dragged set is a single item,
-            the entire linked group will be moved together.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.MoveItemsInCollection(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem,System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem})">
-            <summary>
-            Helper method to move items within a collection while preserving their relative order.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.LinkItemsAsync(System.Collections.Generic.List{SOUP.Features.OrderLog.Models.OrderItem},SOUP.Features.OrderLog.Models.OrderItem)">
-            <summary>
-            Link the provided items together with the target (if provided) into a single LinkedGroupId.
-            If any item already belongs to a group, groups are unified.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshDisplayItems">
-            <summary>
-            Refresh the display items from the Items collection.
-            Call this after modifying Items externally (e.g., linking orders).
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshStickyNotes">
-            <summary>
-            Refresh the sticky notes collection (separate from orders).
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UpdateLinkedItemCounts">
-            <summary>
-            Update the LinkedItemCount property for all items based on their LinkedGroupId.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshStatusGroups">
-            <summary>
-            Refresh the status-grouped collections for collapsible status view.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshArchivedDisplayItems">
-            <summary>
-            Refresh the archived display items from the ArchivedItems collection.
-            </summary>
-            <summary>
-            Schedule a non-blocking refresh of the archived display items.
-            If a refresh is already running, this call returns immediately.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshArchivedDisplayItemsAsync">
-            <summary>
-            Asynchronously rebuilds the archived display groups off the UI thread
-            then applies the resulting groups back on the UI thread to avoid freezes.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RefreshDisplayCollection(System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.ObjectModel.ObservableCollection{SOUP.Features.OrderLog.ViewModels.OrderItemGroup})">
-            <summary>
-            Shared helper to build grouped display items from a source collection.
-            Groups linked items together and optionally sorts groups by status.
-            Sticky notes are excluded from sorting and appended in original order.
-            Applies search/filter before grouping.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddToItems(SOUP.Features.OrderLog.Models.OrderItem,System.Boolean)">
-            <summary>
-            Adds an item to the Items collection with O(1) membership tracking.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RemoveFromItems(SOUP.Features.OrderLog.Models.OrderItem)">
-            <summary>
-            Removes an item from the Items collection with O(1) membership tracking.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AddToArchived(SOUP.Features.OrderLog.Models.OrderItem)">
-            <summary>
-            Adds an item to the ArchivedItems collection with O(1) membership tracking.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RemoveFromArchived(SOUP.Features.OrderLog.Models.OrderItem)">
-            <summary>
-            Removes an item from the ArchivedItems collection with O(1) membership tracking.
-            </summary>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.SelectedItemsCount">
             <inheritdoc cref="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel._selectedItemsCount"/>
@@ -3876,6 +4466,518 @@
         <member name="P:SOUP.Models.StoreEntry.Rank">
             <summary>
             Gets or sets the store ranking/tier.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration">
+            <summary>
+            Configuration settings for the AllocationBuddy module.
+            Centralizes all configurable values that were previously scattered as magic numbers.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.UpdateFlashDurationMs">
+            <summary>
+            Duration in milliseconds for the visual flash effect when items are updated.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.MaxClipboardTextLengthBytes">
+            <summary>
+            Maximum clipboard text length in bytes (10MB) to prevent denial-of-service attacks.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.DefaultViewMode">
+            <summary>
+            Default view mode when the module starts.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.DefaultSortMode">
+            <summary>
+            Default sort mode for item totals.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.DefaultClipboardFormat">
+            <summary>
+            Default clipboard format for copy operations.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.ShowConfirmationDialogs">
+            <summary>
+            Whether to show confirmation dialogs for destructive operations.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.IncludeDescriptionsInCopy">
+            <summary>
+            Whether to include item descriptions when copying to clipboard.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.JsonSerializerOptions">
+            <summary>
+            JSON serialization options for archive operations.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.MaxSessionArchives">
+            <summary>
+            Maximum number of session archives to keep (0 = unlimited).
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.AutoArchiveOnShutdown">
+            <summary>
+            Whether to auto-archive on shutdown.
+            </summary>
+        </member>
+        <member name="P:SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration.RestoreMostRecentOnStartup">
+            <summary>
+            Whether to restore the most recent archive on startup.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConstants">
+            <summary>
+            Constants for AllocationBuddy module to eliminate magic strings and values.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ViewModes">
+            <summary>
+            View modes for displaying allocation data.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ViewModes.Stores">
+            <summary>
+            Display allocations organized by store/location.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ViewModes.Items">
+            <summary>
+            Display allocations organized by item.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SortModes">
+            <summary>
+            Sort modes for item totals.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SortModes.QuantityDescending">
+            <summary>
+            Sort by quantity descending (highest first).
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SortModes.QuantityAscending">
+            <summary>
+            Sort by quantity ascending (lowest first).
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SortModes.ItemNumberAscending">
+            <summary>
+            Sort alphabetically by item number ascending.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SortModes.ItemNumberDescending">
+            <summary>
+            Sort alphabetically by item number descending.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ClipboardFormats">
+            <summary>
+            Clipboard format options.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ClipboardFormats.TabSeparated">
+            <summary>
+            Tab-separated values format.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ClipboardFormats.CommaSeparated">
+            <summary>
+            Comma-separated values format.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.ClipboardFormats.SpaceSeparated">
+            <summary>
+            Space-separated values format.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SettingsKeys">
+            <summary>
+            Settings keys for persisting configuration.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.SettingsKeys.ModuleName">
+            <summary>
+            Settings key for AllocationBuddy module.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.Archive">
+            <summary>
+            Archive file patterns and extensions.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.Archive.FileExtension">
+            <summary>
+            File extension for archive files.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.Archive.SessionPrefix">
+            <summary>
+            Prefix for session archive files.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.AllocationBuddyConstants.Archive.DirectoryName">
+            <summary>
+            Archive directory name.
+            </summary>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationCalculationService">
+            <summary>
+            Service responsible for allocation calculation logic and item movement operations.
+            Handles core business logic without UI concerns.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.RemoveOne(SOUP.Core.Entities.AllocationBuddy.ItemAllocation,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Removes one unit of an item from its location and adds it to the pool.
+            </summary>
+            <param name="item">The item to remove.</param>
+            <param name="locations">The collection of location allocations.</param>
+            <param name="itemPool">The item pool collection.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.AddOne(SOUP.Core.Entities.AllocationBuddy.ItemAllocation,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Adds one unit of an item from the pool to its location.
+            </summary>
+            <param name="item">The item to add.</param>
+            <param name="locations">The collection of location allocations.</param>
+            <param name="itemPool">The item pool collection.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.MoveFromPool(SOUP.Core.Entities.AllocationBuddy.ItemAllocation,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Moves all units of an item from the pool to the first location.
+            </summary>
+            <param name="item">The pool item to move.</param>
+            <param name="locations">The collection of location allocations.</param>
+            <param name="itemPool">The item pool collection.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.DeactivateStore(SOUP.Core.Entities.AllocationBuddy.LocationAllocation,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Deactivates a store by moving all its items to the pool.
+            </summary>
+            <param name="location">The location to deactivate.</param>
+            <param name="itemPool">The item pool collection.</param>
+            <returns>A deactivation record for undo functionality.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.UndoDeactivate(SOUP.Core.Entities.AllocationBuddy.DeactivationRecord,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Undoes a store deactivation by restoring items from the pool.
+            </summary>
+            <param name="record">The deactivation record to undo.</param>
+            <param name="itemPool">The item pool collection.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.CalculateItemTotals(System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation},System.String)">
+            <summary>
+            Calculates item totals from locations and pool.
+            </summary>
+            <param name="locations">The collection of location allocations.</param>
+            <param name="itemPool">The item pool collection.</param>
+            <param name="sortMode">The sort mode to apply.</param>
+            <returns>Sorted list of item total summaries.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.BuildItemAllocationsView(System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation})">
+            <summary>
+            Builds item allocations view organized by item instead of by location.
+            </summary>
+            <param name="locations">The collection of location allocations.</param>
+            <returns>List of item allocation views.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationCalculationService.PopulateFromEntries(System.Collections.Generic.IReadOnlyList{SOUP.Core.Entities.AllocationBuddy.AllocationEntry},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Populates locations and pool from allocation entries.
+            </summary>
+            <param name="entries">The allocation entries to populate from.</param>
+            <param name="locations">The collection of location allocations to populate.</param>
+            <param name="itemPool">The item pool collection to populate.</param>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationClipboardService">
+            <summary>
+            Service responsible for clipboard operations in Allocation Buddy.
+            Handles copying allocation data to clipboard in various formats.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationClipboardService.ValidateClipboardTextLength(System.String)">
+            <summary>
+            Validates that clipboard text length doesn't exceed the maximum allowed size.
+            </summary>
+            <param name="text">The text to validate.</param>
+            <returns>True if the text is within the size limit.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationClipboardService.BuildLocationClipboardText(SOUP.Core.Entities.AllocationBuddy.LocationAllocation,System.Boolean,System.String)">
+            <summary>
+            Builds clipboard text from a location's items.
+            </summary>
+            <param name="location">The location to copy.</param>
+            <param name="includeDescriptions">Whether to include item descriptions.</param>
+            <param name="clipboardFormat">The clipboard format (TabSeparated or CommaSeparated).</param>
+            <returns>The formatted clipboard text, or null if location has no items.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationClipboardService.BuildItemRedistributionClipboardText(SOUP.Core.Entities.AllocationBuddy.ItemAllocationView,System.String)">
+            <summary>
+            Builds clipboard text for an item's redistribution data (all location allocations).
+            Format: Quantity, Location for each store allocation.
+            Suitable for pasting into Business Central for redistribution/transfer orders.
+            </summary>
+            <param name="item">The item allocation view to copy.</param>
+            <param name="clipboardFormat">The clipboard format (TabSeparated or CommaSeparated).</param>
+            <returns>The formatted clipboard text, or null if item has no allocations.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationClipboardService.CopyLocationToClipboard(SOUP.Core.Entities.AllocationBuddy.LocationAllocation,System.Boolean,System.String)">
+            <summary>
+            Copies location data to the system clipboard.
+            </summary>
+            <param name="location">The location to copy.</param>
+            <param name="includeDescriptions">Whether to include item descriptions.</param>
+            <param name="clipboardFormat">The clipboard format (TabSeparated or CommaSeparated).</param>
+            <returns>Success message or error message.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationClipboardService.CopyItemRedistributionToClipboard(SOUP.Core.Entities.AllocationBuddy.ItemAllocationView,System.String)">
+            <summary>
+            Copies item redistribution data to the system clipboard.
+            </summary>
+            <param name="item">The item allocation view to copy.</param>
+            <param name="clipboardFormat">The clipboard format (TabSeparated or CommaSeparated).</param>
+            <returns>Success message or error message.</returns>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationExportService">
+            <summary>
+            Service responsible for exporting allocation data to various formats.
+            Handles Excel and CSV export functionality.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationExportService.ExportToExcel(System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.String)">
+            <summary>
+            Exports allocation data to an Excel file.
+            </summary>
+            <param name="locations">The collection of location allocations to export.</param>
+            <param name="filePath">The file path to save the Excel file.</param>
+            <returns>The number of items exported.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when locations is empty.</exception>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationExportService.ExportToCsvAsync(System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.String)">
+            <summary>
+            Exports allocation data to a CSV file.
+            </summary>
+            <param name="locations">The collection of location allocations to export.</param>
+            <param name="filePath">The file path to save the CSV file.</param>
+            <returns>The number of items exported.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when locations is empty.</exception>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationExportService.EscapeCsvField(System.String)">
+            <summary>
+            Escapes a CSV field by wrapping it in quotes if it contains special characters.
+            </summary>
+            <param name="field">The field to escape.</param>
+            <returns>The escaped field.</returns>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationImportService">
+            <summary>
+            Service responsible for importing allocation data from various sources.
+            Handles importing from Excel, CSV, and clipboard text.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationImportService.ValidateClipboardTextLength(System.String)">
+            <summary>
+            Validates clipboard text length against configured maximum.
+            </summary>
+            <param name="text">The text to validate.</param>
+            <returns>True if valid, false if exceeds maximum length.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationImportService.ImportFromExcelAsync(System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Imports allocation data from an Excel file.
+            </summary>
+            <param name="filePath">The path to the Excel file.</param>
+            <param name="locations">The collection to populate with locations.</param>
+            <param name="itemPool">The collection to populate with pool items.</param>
+            <returns>Result containing the number of entries imported or error message.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationImportService.ImportFromCsvAsync(System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Imports allocation data from a CSV file.
+            </summary>
+            <param name="filePath">The path to the CSV file.</param>
+            <param name="locations">The collection to populate with locations.</param>
+            <param name="itemPool">The collection to populate with pool items.</param>
+            <returns>Result containing the number of entries imported or error message.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationImportService.ImportFromFileAsync(System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Imports allocation data from a file (Excel or CSV based on extension).
+            </summary>
+            <param name="filePath">The path to the file.</param>
+            <param name="locations">The collection to populate with locations.</param>
+            <param name="itemPool">The collection to populate with pool items.</param>
+            <returns>Result containing the number of entries imported or error message.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationImportService.ImportFromClipboardText(System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Imports allocation data from clipboard text.
+            </summary>
+            <param name="clipboardText">The clipboard text to parse.</param>
+            <param name="locations">The collection to populate with locations.</param>
+            <param name="itemPool">The collection to populate with pool items.</param>
+            <returns>Result containing the number of entries imported or error message.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationImportService.ImportMultipleFilesAsync(System.String[])">
+            <summary>
+            Imports multiple files in batch.
+            </summary>
+            <param name="filePaths">The file paths to import.</param>
+            <returns>List of import results for each file.</returns>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.AllocationPersistenceService">
+            <summary>
+            Service responsible for persisting and archiving allocation data.
+            Handles saving, loading, and managing archive files.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.GetArchivePath">
+            <summary>
+            Gets the archive directory path.
+            </summary>
+            <returns>The archive directory path.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.SaveArchiveAsync(System.String,System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Int32,System.Int32)">
+            <summary>
+            Saves the current allocation data to an archive file.
+            </summary>
+            <param name="name">The name of the archive.</param>
+            <param name="notes">Optional notes about the archive.</param>
+            <param name="locations">The location allocations to save.</param>
+            <param name="totalItems">The total number of items.</param>
+            <param name="locationCount">The number of locations.</param>
+            <returns>The file path of the created archive.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.SaveWithPrefixAsync(System.String,System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Int32,System.Int32)">
+            <summary>
+            Saves the current allocation data with a prefix (used for auto-archive and session saves).
+            </summary>
+            <param name="prefix">The prefix for the file name (e.g., "Auto-Archive", "Session-Save").</param>
+            <param name="notes">Optional notes about the save.</param>
+            <param name="locations">The location allocations to save.</param>
+            <param name="totalItems">The total number of items.</param>
+            <param name="locationCount">The number of locations.</param>
+            <returns>The file path of the created archive.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.CreateArchiveData(System.String,System.String,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Int32,System.Int32)">
+            <summary>
+            Creates archive data from location allocations.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.LoadArchiveAsync(System.String)">
+            <summary>
+            Loads archive data from a file.
+            </summary>
+            <param name="filePath">The path to the archive file.</param>
+            <returns>The archive data, or null if loading failed.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.PopulateFromArchive(SOUP.Core.Entities.AllocationBuddy.ArchiveData,System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.LocationAllocation},System.Collections.ObjectModel.ObservableCollection{SOUP.Core.Entities.AllocationBuddy.ItemAllocation})">
+            <summary>
+            Populates location allocations from archive data.
+            </summary>
+            <param name="archiveData">The archive data to load.</param>
+            <param name="locations">The collection to populate with locations.</param>
+            <param name="itemPool">The item pool collection.</param>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.GetArchiveFiles">
+            <summary>
+            Gets all archive files ordered by creation time (newest first).
+            </summary>
+            <returns>List of archive file paths.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.DeleteArchive(System.String)">
+            <summary>
+            Deletes an archive file.
+            </summary>
+            <param name="filePath">The path to the archive file to delete.</param>
+            <returns>True if deletion succeeded.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.GetMostRecentArchive">
+            <summary>
+            Gets the most recent archive file (used for session restore).
+            </summary>
+            <returns>The path to the most recent archive, or null if none found.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.DeleteSessionSaveArchives">
+            <summary>
+            Deletes session save archives (Session-Save and Session_* files).
+            Used when clearing data to prevent auto-restore on next startup.
+            </summary>
+            <returns>Number of files deleted.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.AllocationPersistenceService.ExtractSessionFileName(System.String)">
+            <summary>
+            Extracts the original file name from a session archive path.
+            </summary>
+            <param name="archiveFilePath">The archive file path.</param>
+            <returns>The extracted file name, or null if not a session archive.</returns>
+        </member>
+        <member name="T:SOUP.Services.AllocationBuddy.ItemDictionaryService">
+            <summary>
+            Service responsible for loading and managing item dictionary lookups for AllocationBuddy.
+            Provides O(1) lookup performance for item numbers and SKUs.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.ItemDictionaryService._itemLookupByNumber">
+            <summary>
+            Thread-safe lookup dictionary for O(1) item access by item number.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.ItemDictionaryService._itemLookupBySku">
+            <summary>
+            Thread-safe lookup dictionary for O(1) item access by SKU.
+            </summary>
+        </member>
+        <member name="F:SOUP.Services.AllocationBuddy.ItemDictionaryService._loadDictionariesCts">
+            <summary>
+            Cancellation token source for background dictionary loading operations.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.ItemDictionaryService.LoadDictionariesAsync">
+            <summary>
+            Loads item and store dictionaries asynchronously from the shared location.
+            </summary>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.ItemDictionaryService.GetSKU(System.String)">
+            <summary>
+            Gets the SKU for an item number using O(1) dictionary lookup.
+            </summary>
+            <param name="itemNumber">The item number to look up.</param>
+            <returns>The first SKU if found, otherwise null.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.ItemDictionaryService.GetDescription(System.String)">
+            <summary>
+            Gets the description for an item number using O(1) dictionary lookup.
+            </summary>
+            <param name="itemNumber">The item number to look up.</param>
+            <returns>The description if found, otherwise an empty string.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.ItemDictionaryService.GetCanonicalItemNumber(System.String)">
+            <summary>
+            Gets the canonical item number using O(1) dictionary lookup.
+            If the input is a SKU, returns the corresponding item number.
+            </summary>
+            <param name="itemNumber">The item number or SKU to look up.</param>
+            <returns>The canonical item number if found, otherwise the input value.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.ItemDictionaryService.FindDictionaryItem(System.String)">
+            <summary>
+            Finds a dictionary item by number or SKU using O(1) lookup.
+            </summary>
+            <param name="itemNumber">The item number or SKU to search for.</param>
+            <returns>The dictionary item if found, otherwise null.</returns>
+        </member>
+        <member name="M:SOUP.Services.AllocationBuddy.ItemDictionaryService.BuildItemLookupDictionaries(System.Collections.Generic.IReadOnlyList{SOUP.Infrastructure.Services.Parsers.DictionaryItem})">
+            <summary>
+            Builds thread-safe lookup dictionaries from the item list for O(1) access.
             </summary>
         </member>
         <member name="T:SOUP.Services.AppLifecycleService">
@@ -4877,176 +5979,13 @@
             <summary>Gets or sets whether the window was maximized.</summary>
         </member>
         <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel">
-            <summary>
-            ViewModel for the Allocation Buddy module, managing inventory allocation across store locations.
-            </summary>
-            <remarks>
-            <para>
-            This ViewModel provides functionality for:
-            <list type="bullet">
-              <item>Importing allocation data from Excel, CSV, or clipboard</item>
-              <item>Managing item allocations across multiple store locations</item>
-              <item>Moving items between locations and an item pool</item>
-              <item>Exporting allocation data to Excel or CSV</item>
-              <item>Auto-archiving data to preserve state between sessions</item>
-            </list>
-            </para>
-            <para>
-            Data is automatically archived before imports and when the application closes,
-            ensuring no data loss between sessions.
-            </para>
-            </remarks>
             <inheritdoc/>
-            <inheritdoc/>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._itemLookupByNumber">
-            <summary>
-            Thread-safe lookup dictionary for O(1) item access by item number.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._itemLookupBySku">
-            <summary>
-            Thread-safe lookup dictionary for O(1) item access by SKU.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._loadDictionariesCts">
-            <summary>
-            Cancellation token source for background dictionary loading operations.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._disposed">
-            <summary>
-            Tracks whether this instance has been disposed.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.UpdateFlashDurationMs">
-            <summary>
-            Duration in milliseconds for the visual flash effect when items are updated.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.MaxClipboardTextLength">
-            <summary>
-            Maximum clipboard text length (10MB) to prevent denial-of-service attacks.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._hasUnarchivedChanges">
-            <summary>
-            Tracks whether current data has unsaved changes that need archiving.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._lastImportedFileName">
-            <summary>
-            Tracks the name of the last imported allocation file for session naming.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._lastDeactivation">
-            <summary>
-            Buffer storing the last deactivation operation for undo functionality.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.LocationAllocations">
-            <summary>
-            Gets the collection of location allocations, each containing items allocated to that location.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemPool">
-            <summary>
-            Gets the pool of unallocated items that can be moved to locations.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.FileImportResults">
-            <summary>
-            Gets the results of the last file import operation for display to the user.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._statusMessage">
-            <summary>
-            Gets or sets the current status message displayed to the user.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._searchText">
-            <summary>
-            Gets or sets the search text used to filter displayed locations and items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._pasteText">
-            <summary>
-            Gets or sets the text pasted by the user for import from the welcome screen.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.HasNoData">
-            <summary>
-            Gets a value indicating whether there is no data loaded (displays welcome screen).
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.HasData">
-            <summary>
-            Gets a value indicating whether data is loaded (displays main interface).
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.TotalEntries">
-            <summary>
-            Gets the total quantity of all items across all locations.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.LocationsCount">
-            <summary>
-            Gets the number of locations with allocations.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemPoolCount">
-            <summary>
-            Gets the number of items in the unallocated pool.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.FilteredLocationAllocations">
-            <summary>
-            Gets locations filtered by the current search text.
-            </summary>
-            <remarks>
-            Filters by location code, location name, item number, and item description.
-            </remarks>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemTotals">
-            <summary>
-            Gets a summary of total quantities per unique item across all locations.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._itemTotalsSortMode">
-            <summary>
-            Current sort mode for Item Totals
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.RefreshItemTotals">
-            <summary>
-            Recalculates the ItemTotals collection from all locations.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._viewMode">
-            <summary>
-            Gets or sets the current view mode: "stores" (by store) or "items" (by item).
-            </summary>
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.IsStoreView">
             <summary>True when viewing by store (default view).</summary>
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.IsItemView">
             <summary>True when viewing by item.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocations">
-            <summary>
-            Gets the collection of item allocations, each containing stores that have this item.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.FilteredItemAllocations">
-            <summary>
-            Gets items filtered by the current search text (for item view mode).
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.RefreshItemAllocations">
-            <summary>
-            Recalculates the ItemAllocations collection from all locations.
-            </summary>
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ImportCommand">
             <summary>Command to import data from an Excel or CSV file via file dialog.</summary>
@@ -5117,113 +6056,11 @@
         <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel._isArchivePanelOpen">
             <summary>Gets or sets whether the archive panel is open.</summary>
         </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.#ctor(SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser,SOUP.Services.DialogService,System.IServiceProvider,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.AllocationBuddyRPGViewModel})">
-            <summary>
-            Initializes a new instance of the <see cref="T:SOUP.ViewModels.AllocationBuddyRPGViewModel"/> class.
-            </summary>
+        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.#ctor(SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser,SOUP.Services.DialogService,System.IServiceProvider,SOUP.Services.AllocationBuddy.ItemDictionaryService,SOUP.Services.AllocationBuddy.AllocationCalculationService,SOUP.Services.AllocationBuddy.AllocationClipboardService,SOUP.Services.AllocationBuddy.AllocationExportService,SOUP.Services.AllocationBuddy.AllocationImportService,SOUP.Services.AllocationBuddy.AllocationPersistenceService,SOUP.Services.AllocationBuddy.AllocationBuddyConfiguration,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.AllocationBuddyRPGViewModel})">
             <param name="parser">The parser for processing allocation data.</param>
             <param name="dialogService">The service for displaying dialogs.</param>
             <param name="serviceProvider">The service provider for resolving dependencies.</param>
             <param name="logger">Optional logger for diagnostic output.</param>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.LoadSettingsAsync">
-            <summary>
-            Loads AllocationBuddy settings from the settings service.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.OnSettingsChanged(System.Object,SOUP.Infrastructure.Services.SettingsChangedEventArgs)">
-            <summary>
-            Handles settings change notifications to apply settings dynamically.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.LoadDictionariesAsync">
-            <summary>
-            Loads dictionaries asynchronously and builds lookup tables for O(1) access
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.BuildItemLookupDictionaries(System.Collections.Generic.IReadOnlyList{SOUP.Infrastructure.Services.Parsers.DictionaryItem})">
-            <summary>
-            Builds thread-safe lookup dictionaries from the item list for O(1) access
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.CopyLocationToClipboard(SOUP.ViewModels.AllocationBuddyRPGViewModel.LocationAllocation)">
-            <summary>
-            Copies the items from a location to the clipboard.
-            Format depends on settings: Tab-separated or Comma-separated.
-            Optionally includes descriptions based on settings.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.CopyItemRedistribution(SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocationView)">
-            <summary>
-            Copies an item's redistribution data (all location allocations) to the clipboard.
-            Format: Quantity, Location for each store allocation.
-            Suitable for pasting into Business Central for redistribution/transfer orders.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.PasteFromClipboard">
-            <summary>
-            Opens a dialog to paste and import allocation data.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.ImportFromPasteText">
-            <summary>
-            Import data from the PasteText textbox on the welcome screen.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.ImportFilesAsync(System.String[])">
-            <summary>
-            Import multiple files (used by drag and drop). Accepts full file paths.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.GetSKU(System.String)">
-            <summary>
-            Gets the SKU for an item number using O(1) dictionary lookup
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.GetDescription(System.String)">
-            <summary>
-            Gets the description for an item number using O(1) dictionary lookup
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.GetCanonicalItemNumber(System.String)">
-            <summary>
-            Gets the canonical item number using O(1) dictionary lookup
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.FindDictionaryItem(System.String)">
-            <summary>
-            Finds a dictionary item by number or SKU using O(1) lookup
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.SetTemporaryUpdateFlag(SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation)">
-            <summary>
-            Sets the IsUpdated flag on an item temporarily to trigger a visual flash effect
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.DeleteSessionSaveArchives">
-            <summary>
-            Deletes session-save archives to prevent auto-restore after clearing data.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.ArchiveCurrentAsync">
-            <summary>
-            Archives the current allocation data with a name and optional notes.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.LoadArchivesAsync">
-            <summary>
-            Loads the list of archives from disk.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.LoadArchiveAsync(System.String)">
-            <summary>
-            Loads an archived allocation into the current view.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.DeleteArchiveAsync(System.String)">
-            <summary>
-            Deletes an archive file.
-            </summary>
         </member>
         <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.AutoArchiveIfNeededAsync">
             <summary>
@@ -5237,109 +6074,22 @@
             Called from App.OnExit to ensure data is saved before closing.
             </summary>
         </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.LoadMostRecentArchiveAsync">
-            <summary>
-            Loads the most recent archive on startup to restore previous session.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.SaveCurrentDataAsync(System.String,System.String)">
-            <summary>
-            Saves the current allocation data to an archive file.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.MarkAsModified">
-            <summary>
-            Marks that the current data has been modified and should be auto-archived.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.Dispose">
-            <summary>
-            Releases resources used by this ViewModel.
-            </summary>
-        </member>
         <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.Dispose(System.Boolean)">
-            <summary>
-            Releases unmanaged and optionally managed resources.
-            </summary>
             <param name="disposing">True to release both managed and unmanaged resources.</param>
-        </member>
-        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation">
-            <inheritdoc/>
-        </member>
-        <member name="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._totalInLocations">
-            <summary>Total quantity of this item across all locations (not including pool).</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.GrandTotal">
-            <summary>Grand total = pool quantity + all locations.</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.ItemNumber">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._itemNumber"/>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.Description">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._description"/>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.Quantity">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._quantity"/>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.SKU">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._sKU"/>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.IsUpdated">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._isUpdated"/>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.TotalInLocations">
-            <inheritdoc cref="F:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation._totalInLocations"/>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.OnQuantityChanged(System.Int32)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.Quantity"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.Quantity"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.OnTotalInLocationsChanged(System.Int32)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.TotalInLocations"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocation.TotalInLocations"/> is changed.</remarks>
-        </member>
-        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemTotalSummary">
-            <summary>
-            Summary of total quantity for a unique item across all locations.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemTotalSummary.PoolQuantity">
-            <summary>Quantity remaining in the item pool (unallocated).</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemTotalSummary.AllocatedQuantity">
-            <summary>Total allocated quantity (TotalQuantity - PoolQuantity).</summary>
-        </member>
-        <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemTotalSummary.HasPoolItems">
-            <summary>Whether this item has any remaining in the pool.</summary>
-        </member>
-        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocationView">
-            <summary>
-            View model for an item with its store allocations (item-sorted view).
-            </summary>
         </member>
         <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.StoreAllocationEntry">
             <summary>
             Represents a store's allocation for a specific item (used in item-sorted view).
+            UI-specific - includes Item reference for command binding.
             </summary>
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.StoreAllocationEntry.Item">
             <summary>Reference to the actual ItemAllocation object for commands.</summary>
         </member>
-        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ArchiveDialogResult">
+        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ItemAllocationView">
             <summary>
-            Result from the archive dialog.
-            </summary>
-        </member>
-        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ArchiveViewModel">
-            <summary>
-            ViewModel for displaying an archive in the list.
-            </summary>
-        </member>
-        <member name="T:SOUP.ViewModels.AllocationBuddyRPGViewModel.ArchiveData">
-            <summary>
-            Data structure for archived allocation data.
+            View model for an item with its store allocations (item-sorted view).
+            UI-specific - uses StoreAllocationEntry which has Item references for commands.
             </summary>
         </member>
         <member name="P:SOUP.ViewModels.AllocationBuddyRPGViewModel.StatusMessage">
@@ -5614,9 +6364,6 @@
             </summary>
         </member>
         <member name="T:SOUP.ViewModels.DictionaryManagementViewModel">
-            <summary>
-            ViewModel for managing dictionary items and stores (using SQLite)
-            </summary>
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
@@ -5640,41 +6387,6 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-        </member>
-        <member name="P:SOUP.ViewModels.DictionaryManagementViewModel.CanSyncFromExternal">
-            <summary>
-            Whether external sync is configured
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.DictionaryManagementViewModel.LastSyncDisplay">
-            <summary>
-            Last sync time display
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.DictionaryManagementViewModel.InitializeAsync">
-            <summary>
-            Called when the settings window opens. We skip heavy loading here to avoid UI freeze.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.DictionaryManagementViewModel.SyncFromMySqlAsync">
-            <summary>
-            Sync from MySQL external database
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.DictionaryManagementViewModel.SyncFromBcAsync">
-            <summary>
-            Sync from Business Central
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.DictionaryManagementViewModel.SyncFromBothAsync">
-            <summary>
-            Sync from both MySQL and Business Central
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.DictionaryManagementViewModel.Dispose">
-            <summary>
-            Dispose pattern to unsubscribe from sync service events
-            </summary>
         </member>
         <member name="P:SOUP.ViewModels.DictionaryManagementViewModel.Items">
             <inheritdoc cref="F:SOUP.ViewModels.DictionaryManagementViewModel._items"/>
@@ -5999,21 +6711,6 @@
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.EssentialsBuddySettingsViewModel.ResetToDefaultsAsync"/>.</summary>
         </member>
         <member name="T:SOUP.ViewModels.EssentialsBuddyViewModel">
-            <summary>
-            ViewModel for the Essentials Buddy module, managing essential inventory items and stock levels.
-            </summary>
-            <remarks>
-            <para>
-            This module helps track essential items that should always be in stock, providing:
-            <list type="bullet">
-              <item>Import of inventory data from Excel or CSV files</item>
-              <item>Automatic matching against the item dictionary to identify essential items</item>
-              <item>Filtering by stock status (Normal, Low, Out of Stock, Sufficient)</item>
-              <item>Automatic addition of missing essential items with zero quantity</item>
-              <item>Persistent storage of data between sessions</item>
-            </list>
-            </para>
-            </remarks>
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
@@ -6027,145 +6724,12 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._items">
-            <summary>
-            Gets or sets the full collection of inventory items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._filteredItems">
-            <summary>
-            Gets or sets the filtered collection of items based on current filters.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._selectedItem">
-            <summary>
-            Gets or sets the currently selected inventory item.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._searchText">
-            <summary>
-            Gets or sets the search text for filtering items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._statusFilter">
-            <summary>
-            Gets or sets the current status filter (All, Normal, Low, OutOfStock, Sufficient).
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._essentialsOnly">
-            <summary>
-            Gets or sets whether to show only essential items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._includeAllPrivateLabel">
-            <summary>
-            Gets or sets whether to show only private label items.
-            </summary>
-            <summary>
-            Gets or sets whether to include all private label items from any bin during import.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._isLoading">
-            <summary>
-            Gets or sets whether data is currently being loaded.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._statusMessage">
-            <summary>
-            Gets or sets the current status message displayed to the user.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.EssentialsBuddyViewModel._hasNoData">
-            <summary>
-            Gets or sets whether there is no data loaded.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.HasData">
-            <summary>
-            Gets a value indicating whether data is loaded.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.EssentialItemsCount">
-            <summary>
-            Gets the count of items marked as essential.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.OutOfStockCount">
-            <summary>
-            Gets the count of items that are out of stock.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.LowStockCount">
-            <summary>
-            Gets the count of items with low stock levels.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.StatusFilters">
-            <summary>
-            Gets the available status filter options.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.#ctor(SOUP.Core.Interfaces.IEssentialsBuddyRepository,SOUP.Core.Interfaces.IFileImportExportService,SOUP.Services.DialogService,System.IServiceProvider,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.EssentialsBuddyViewModel})">
-            <summary>
-            Initializes a new instance of the <see cref="T:SOUP.ViewModels.EssentialsBuddyViewModel"/> class.
-            </summary>
-            <param name="repository">The repository for persisting inventory data.</param>
-            <param name="fileService">The service for file import/export operations.</param>
-            <param name="dialogService">The service for displaying dialogs.</param>
-            <param name="serviceProvider">The service provider for dependency resolution.</param>
-            <param name="logger">Optional logger for diagnostic output.</param>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.OnSettingsChanged(System.Object,SOUP.Infrastructure.Services.SettingsChangedEventArgs)">
-            <summary>
-            Handles settings change notifications to apply settings dynamically.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.LoadAndApplySettingsAsync">
-            <summary>
-            Loads settings from the settings service and applies stock thresholds globally.
-            </summary>
         </member>
         <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.MatchItemsAgainstDictionary(System.Collections.Generic.List{SOUP.Core.Entities.EssentialsBuddy.InventoryItem})">
             <summary>
             Match items against the dictionary database to get descriptions and essential status.
             Also adds ALL essential items from the dictionary that aren't already in the list.
             Returns a list of unmatched items.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.PromptToAddUnmatchedItems(System.Collections.Generic.List{SOUP.Core.Entities.EssentialsBuddy.InventoryItem})">
-            <summary>
-            Prompt user to add unmatched items to the dictionary with a detailed dialog
-            </summary>
-        </member>
-        <member name="E:SOUP.ViewModels.EssentialsBuddyViewModel.FocusSearchRequested">
-            <summary>
-            Event raised when search box should be focused (triggered by Ctrl+F)
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.DeleteSessionData">
-            <summary>
-            Deletes the session-data.json file to prevent auto-restore after clearing data.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.SaveDataOnShutdownAsync">
-            <summary>
-            Saves current data on application shutdown.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.LoadPersistedDataAsync">
-            <summary>
-            Loads persisted data on startup.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.Dispose">
-            <summary>
-            Releases resources used by the ViewModel.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.EssentialsBuddyViewModel.Dispose(System.Boolean)">
-            <summary>
-            Releases managed and unmanaged resources.
             </summary>
         </member>
         <member name="P:SOUP.ViewModels.EssentialsBuddyViewModel.Items">
@@ -6574,85 +7138,13 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._filteredItems">
-            <summary>
-            Gets or sets the filtered items for the current month view.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._itemsView">
-            <summary>
-            Gets the collection view for efficient filtering and grouping.
-            Replaces manual FilteredItems rebuilding for 10-50x performance improvement.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._selectedItem">
-            <summary>
-            Gets or sets the available months that have expiring items.
-            </summary>
-            <summary>
-            Gets or sets the currently selected expiration item.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._selectedItems">
-            <summary>
-            Gets or sets the currently selected items (supports multi-select).
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._searchText">
-            <summary>
-            Gets or sets the search text for filtering items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._statusFilter">
-            <summary>
-            Gets or sets the status filter: "All", "Good", "Warning", "Critical", or "Expired".
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.StatusFilters">
-            <summary>
-            Available status filter options for the ComboBox.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._currentMonth">
-            <summary>
-            Gets or sets the currently displayed month.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._currentMonthDisplay">
-            <summary>
-            Gets or sets the formatted display string for the current month.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._isLoading">
-            <summary>
-            Gets or sets whether data is currently being loaded.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._isBusy">
-            <summary>
-            Gets or sets whether a long-running operation is in progress (shows loading overlay).
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._busyMessage">
-            <summary>
-            Gets or sets the message to display during busy operations.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._statusMessage">
-            <summary>
-            Gets or sets the current status message displayed to the user.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._hasData">
-            <summary>
-            Gets or sets whether there is data loaded.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._monthItemCount">
-            <summary>
-            Gets or sets the count of items expiring in the current month.
-            </summary>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._monthTotalUnits">
             <summary>
@@ -6664,278 +7156,24 @@
             Gets or sets the count of items in critical status (≤7 days until expiry).
             </summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._expiredCount">
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ArchivedItems">
             <summary>
-            Gets or sets the count of expired items.
+            Collection of archived items
             </summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._expiringSoonCount">
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._showArchive">
             <summary>
-            Gets or sets the count of items expiring soon (within warning threshold).
+            Gets or sets whether archived items view is shown.
             </summary>
         </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._totalItems">
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._archivedItemsCount">
             <summary>
-            Gets or sets the total count of all items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._totalMonths">
-            <summary>
-            Gets or sets the count of distinct months with expiring items.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._lastSavedDisplay">
-            <summary>
-            Gets or sets the display text for the last save time.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._selectedTabIndex">
-            <summary>
-            Gets or sets the index of the selected tab.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._groupByStore">
-            <summary>
-            Gets or sets whether items should be grouped by store location.
-            </summary>
-        </member>
-        <member name="E:SOUP.ViewModels.ExpireWiseViewModel.GroupByStoreChanged">
-            <summary>
-            Event raised when the GroupByStore property changes.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._isInitialized">
-            <summary>
-            Gets or sets the analytics ViewModel for the analytics dashboard.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddSku">
-            <summary>
-            Gets or sets the SKU/item number for quick add.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddStatus">
-            <summary>
-            Gets or sets the quick add status message.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddExpanded">
-            <summary>
-            Gets or sets whether the quick add panel is expanded.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddMonth">
-            <summary>
-            Gets or sets the month for quick add (defaults to next month).
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddYear">
-            <summary>
-            Gets or sets the year for quick add.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddUnits">
-            <summary>
-            Gets or sets the units for quick add.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddMonths">
-            <summary>
-            Available months for quick add dropdown.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddYears">
-            <summary>
-            Available years for quick add dropdown.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddStore">
-            <summary>
-            Gets or sets the store for quick add.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddIsValidating">
-            <summary>
-            Gets or sets whether Quick Add is currently validating the SKU.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddIsValid">
-            <summary>
-            Gets or sets whether the Quick Add SKU is valid.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddItemPreview">
-            <summary>
-            Gets or sets the item preview text for Quick Add (shown when valid).
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddLookedUpItem">
-            <summary>
-            The looked-up dictionary item for Quick Add (cached).
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.AvailableStores">
-            <summary>
-            Available stores for dropdown selection.
-            </summary>
-        </member>
-        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddQueue">
-            <summary>
-            Queue of items pending confirmation (not yet saved to database).
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._hasQueuedItems">
-            <summary>
-            Gets whether there are items in the queue.
-            </summary>
-        </member>
-        <member name="F:SOUP.ViewModels.ExpireWiseViewModel._skuLookupDebounceTimer">
-            <summary>
-            Debounce timer for SKU lookup (waits 300ms after user stops typing).
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.#ctor(SOUP.Core.Interfaces.IExpireWiseRepository,SOUP.Core.Interfaces.IFileImportExportService,SOUP.Services.DialogService,System.IServiceProvider,SOUP.Features.ExpireWise.Services.ExpireWiseSearchService,SOUP.Features.ExpireWise.Services.ExpireWiseMonthNavigationService,SOUP.Features.ExpireWise.Services.ExpireWiseImportExportService,SOUP.Features.ExpireWise.Services.ExpireWiseNotificationService,SOUP.Features.ExpireWise.Services.ExpireWiseItemService,Microsoft.Extensions.Logging.ILogger{SOUP.ViewModels.ExpireWiseViewModel})">
-            <summary>
-            Initializes a new instance of the <see cref="T:SOUP.ViewModels.ExpireWiseViewModel"/> class.
-            </summary>
-            <param name="repository">The repository for persisting expiration data.</param>
-            <param name="fileService">The service for file import/export operations.</param>
-            <param name="dialogService">The service for displaying dialogs.</param>
-            <param name="serviceProvider">The service provider for dependency resolution.</param>
-            <param name="searchService">The search/filter service for ExpireWise.</param>
-            <param name="navigationService">The month navigation service for ExpireWise.</param>
-            <param name="importExportService">The import/export helper service for ExpireWise.</param>
-            <param name="notificationService">The notification service for ExpireWise.</param>
-            <param name="logger">Optional logger for diagnostic output.</param>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnSettingsChanged(System.Object,SOUP.Infrastructure.Services.SettingsChangedEventArgs)">
-            <summary>
-            Handles settings change notifications to apply settings dynamically.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.InitializeAsync">
-            <summary>
-            Initialize the view model and load data
+            Gets or sets the count of archived items for the selected store.
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadAndApplySettingsAsync">
             <summary>
             Loads settings from the settings service and applies expiration thresholds globally.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ValidateItem(SOUP.Core.Entities.ExpireWise.ExpirationItem,System.String@)">
-            <summary>
-            Validates an expiration item for required fields and reasonable date ranges.
-            </summary>
-        </member>
-        <member name="E:SOUP.ViewModels.ExpireWiseViewModel.FocusSearchRequested">
-            <summary>
-            Event raised when search box should be focused (triggered by Ctrl+F)
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.RebuildVisibleMonths">
-            <summary>
-            Rebuilds the visible month pills centered around the current month
-            Shows 6 months before and 6 months after current selection
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ShowSuccessToast(System.String)">
-            <summary>
-            Shows a brief success toast notification (non-blocking)
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.InitializeItemsView">
-            <summary>
-            Initializes the ICollectionView for efficient filtering and grouping.
-            This replaces manual FilteredItems rebuilding for 10-50x better performance.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.FilterPredicate(System.Object)">
-            <summary>
-            Filter predicate for ICollectionView - determines which items to show.
-            This is much more efficient than rebuilding the collection on every change.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.UpdateGlobalStatistics">
-            <summary>
-            Updates global statistics across all items (not just current month).
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadAvailableStores">
-            <summary>
-            Load available stores from the dictionary database
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnQuickAddSkuChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)">
-            <summary>
-            Handle QuickAddSku property changes with debouncing
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.DebouncedLookupSku">
-            <summary>
-            Perform the actual SKU lookup after debounce
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAdd">
-            <summary>
-            Toggle Quick Add panel (replaces old Ctrl+N modal dialog)
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.CanAddToQueue">
-            <summary>
-            Check if item can be added to queue
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.AddToQueue">
-            <summary>
-            Add item to queue (not saved to database yet)
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.RemoveFromQueue(SOUP.Core.Entities.ExpireWise.ExpirationItem)">
-            <summary>
-            Remove an item from the queue
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ClearQueue">
-            <summary>
-            Clear the entire queue
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ConfirmQueue">
-            <summary>
-            Confirm and save all queued items to database
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.ClearQuickAddForm">
-            <summary>
-            Clear the Quick Add form
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.SaveQuickAddSettings">
-            <summary>
-            Save Quick Add settings (sticky preferences)
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.LoadQuickAddSettings">
-            <summary>
-            Load settings and apply to Quick Add form
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.SaveDataOnShutdownAsync">
-            <summary>
-            JSON session persistence has been removed. The SQLite repository is the source
-            of truth and handles persistence; this method is a no-op to keep the shutdown
-            lifecycle stable where callers expect an async save method.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.Dispose">
-            <summary>
-            Releases resources used by the ViewModel.
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.Dispose(System.Boolean)">
-            <summary>
-            Releases managed and unmanaged resources.
             </summary>
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.Items">
@@ -6970,6 +7208,12 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.CurrentMonthDisplay">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._currentMonthDisplay"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedStore">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._selectedStore"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.AvailableStoreNames">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._availableStoreNames"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.IsLoading">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._isLoading"/>
@@ -7013,6 +7257,12 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedTabIndex">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._selectedTabIndex"/>
         </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ShowArchive">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._showArchive"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ArchivedItemsCount">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._archivedItemsCount"/>
+        </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._groupByStore"/>
         </member>
@@ -7027,6 +7277,12 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddExpanded">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddExpanded"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedViewIndex">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._selectedViewIndex"/>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.SidebarCollapsed">
+            <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._sidebarCollapsed"/>
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.QuickAddMonth">
             <inheritdoc cref="F:SOUP.ViewModels.ExpireWiseViewModel._quickAddMonth"/>
@@ -7067,6 +7323,11 @@
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.CurrentMonth"/> is changed.</remarks>
         </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnSelectedStoreChanged(System.String)">
+            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedStore"/> just changed.</summary>
+            <param name="value">The new property value that was set.</param>
+            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.SelectedStore"/> is changed.</remarks>
+        </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnGroupByStoreChanged(System.Boolean)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GroupByStore"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
@@ -7100,6 +7361,12 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.FocusSearchCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.FocusSearch"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.clearSearchCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ClearSearchCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ClearSearchCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ClearSearch"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.loadItemsCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.LoadItemsCommand"/>.</summary>
@@ -7149,6 +7416,30 @@
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.DeleteSelectedCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.DeleteSelected"/>.</summary>
         </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.archiveExpiredItemsCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ArchiveExpiredItemsCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ArchiveExpiredItemsCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ArchiveExpiredItems"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.viewArchiveCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ViewArchiveCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ViewArchiveCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ViewArchive"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.clearOldArchiveCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ClearOldArchiveCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ClearOldArchiveCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ClearOldArchive"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.importFromExcelCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ImportFromExcelCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ImportFromExcelCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ImportFromExcel"/>.</summary>
+        </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.importFromCsvCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ImportFromCsvCommand"/>.</summary>
         </member>
@@ -7178,6 +7469,18 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAddCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ToggleQuickAdd"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.toggleSidebarCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ToggleSidebarCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ToggleSidebarCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ToggleSidebar"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.showQuickAddDialogCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.ShowQuickAddDialogCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.ShowQuickAddDialogCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.ShowQuickAddDialog"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.addToQueueCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.AddToQueueCommand"/>.</summary>
@@ -7573,16 +7876,6 @@
         <member name="T:SOUP.ViewModels.SwiftLabelViewModel">
             <inheritdoc/>
         </member>
-        <member name="M:SOUP.ViewModels.SwiftLabelViewModel.ExecutePrintAsync">
-            <summary>
-            Execute the print operation
-            </summary>
-        </member>
-        <member name="M:SOUP.ViewModels.SwiftLabelViewModel.GenerateZplLabels(System.String,System.String,System.Int32,System.String,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double)">
-            <summary>
-            Generate ZPL (Zebra Programming Language) for all labels
-            </summary>
-        </member>
         <member name="P:SOUP.ViewModels.SwiftLabelViewModel.SelectedStore">
             <inheritdoc cref="F:SOUP.ViewModels.SwiftLabelViewModel._selectedStore"/>
         </member>
@@ -7631,21 +7924,6 @@
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.TransferNumber"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.SwiftLabelViewModel.TransferNumber"/> is changed.</remarks>
-        </member>
-        <member name="T:SOUP.ViewModels.LabelPreviewItem">
-            <summary>
-            Data class for label preview display
-            </summary>
-        </member>
-        <member name="T:SOUP.ViewModels.PaperSizeOption">
-            <summary>
-            Paper size option for label printing
-            </summary>
-        </member>
-        <member name="T:SOUP.ViewModels.MarginPreset">
-            <summary>
-            Margin preset for label printing
-            </summary>
         </member>
         <member name="T:SOUP.ViewModels.UnifiedSettingsViewModel">
             <inheritdoc/>
@@ -7787,6 +8065,19 @@
             </summary>
         </member>
         <member name="M:SOUP.Views.EssentialsBuddy.InventoryItemDialog.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:SOUP.Views.ExpireWise.DashboardView">
+            <summary>
+            Dashboard view for ExpireWise - provides at-a-glance overview of inventory status
+            </summary>
+            <summary>
+            DashboardView
+            </summary>
+        </member>
+        <member name="M:SOUP.Views.ExpireWise.DashboardView.InitializeComponent">
             <summary>
             InitializeComponent
             </summary>
@@ -8153,11 +8444,59 @@
             InitializeComponent
             </summary>
         </member>
+        <member name="T:XamlGeneratedNamespace.GeneratedInternalTypeHelper">
+            <summary>
+            GeneratedInternalTypeHelper
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateInstance(System.Type,System.Globalization.CultureInfo)">
+            <summary>
+            CreateInstance
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.GetPropertyValue(System.Reflection.PropertyInfo,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            GetPropertyValue
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.SetPropertyValue(System.Reflection.PropertyInfo,System.Object,System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            SetPropertyValue
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateDelegate(System.Type,System.Object,System.String)">
+            <summary>
+            CreateDelegate
+            </summary>
+        </member>
+        <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.AddEventHandler(System.Reflection.EventInfo,System.Object,System.Delegate)">
+            <summary>
+            AddEventHandler
+            </summary>
+        </member>
         <member name="T:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs">
             <summary>
             A helper type providing cached, reusable <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instances
             for all properties generated with <see cref="T:CommunityToolkit.Mvvm.ComponentModel.ObservablePropertyAttribute"/>.
             </summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ItemNumber">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ItemNumber" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Description">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Description" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Quantity">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Quantity" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SKU">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SKU" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsUpdated">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsUpdated" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalInLocations">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalInLocations" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.NoteType">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "NoteType" generated properties.</summary>
@@ -8374,24 +8713,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsArchivePanelOpen">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsArchivePanelOpen" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ItemNumber">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ItemNumber" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Description">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Description" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.Quantity">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "Quantity" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SKU">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SKU" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsUpdated">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsUpdated" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalInLocations">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalInLocations" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.DefaultImportPath">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "DefaultImportPath" generated properties.</summary>
@@ -8711,6 +9032,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.CurrentMonthDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "CurrentMonthDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.AvailableStoreNames">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "AvailableStoreNames" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsBusy">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsBusy" generated properties.</summary>
         </member>
@@ -8741,6 +9065,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedTabIndex">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedTabIndex" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ShowArchive">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ShowArchive" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ArchivedItemsCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ArchivedItemsCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.GroupByStore">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
@@ -8752,6 +9082,12 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddExpanded">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SelectedViewIndex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SelectedViewIndex" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SidebarCollapsed">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SidebarCollapsed" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.QuickAddMonth">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "QuickAddMonth" generated properties.</summary>
@@ -8857,6 +9193,24 @@
             A helper type providing cached, reusable <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instances
             for all properties generated with <see cref="T:CommunityToolkit.Mvvm.ComponentModel.ObservablePropertyAttribute"/>.
             </summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ItemNumber">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ItemNumber" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Description">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Description" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Quantity">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Quantity" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SKU">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SKU" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsUpdated">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsUpdated" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalInLocations">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalInLocations" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.NoteType">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "NoteType" generated properties.</summary>
@@ -9073,24 +9427,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsArchivePanelOpen">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsArchivePanelOpen" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ItemNumber">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ItemNumber" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Description">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Description" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.Quantity">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "Quantity" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SKU">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SKU" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsUpdated">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsUpdated" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalInLocations">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalInLocations" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.DefaultImportPath">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "DefaultImportPath" generated properties.</summary>
@@ -9410,6 +9746,9 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.CurrentMonthDisplay">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "CurrentMonthDisplay" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.AvailableStoreNames">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "AvailableStoreNames" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsBusy">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsBusy" generated properties.</summary>
         </member>
@@ -9440,6 +9779,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedTabIndex">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedTabIndex" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ShowArchive">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ShowArchive" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ArchivedItemsCount">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ArchivedItemsCount" generated properties.</summary>
+        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.GroupByStore">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "GroupByStore" generated properties.</summary>
         </member>
@@ -9451,6 +9796,12 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddExpanded">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddExpanded" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SelectedViewIndex">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SelectedViewIndex" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SidebarCollapsed">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SidebarCollapsed" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.QuickAddMonth">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "QuickAddMonth" generated properties.</summary>

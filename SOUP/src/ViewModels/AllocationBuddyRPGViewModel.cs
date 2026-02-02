@@ -18,29 +18,8 @@ using SOUP.Infrastructure.Services.Parsers;
 using SOUP.Services;
 
 namespace SOUP.ViewModels;
-
-/// <summary>
-/// ViewModel for the Allocation Buddy module, managing inventory allocation across store locations.
-/// </summary>
-/// <remarks>
-/// <para>
-/// This ViewModel provides functionality for:
-/// <list type="bullet">
-///   <item>Importing allocation data from Excel, CSV, or clipboard</item>
-///   <item>Managing item allocations across multiple store locations</item>
-///   <item>Moving items between locations and an item pool</item>
-///   <item>Exporting allocation data to Excel or CSV</item>
-///   <item>Auto-archiving data to preserve state between sessions</item>
-/// </list>
-/// </para>
-/// <para>
-/// Data is automatically archived before imports and when the application closes,
-/// ensuring no data loss between sessions.
-/// </para>
-/// </remarks>
 public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 {
-    #region Private Fields
 
     private static readonly System.Text.Json.JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
 
@@ -50,88 +29,28 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     private readonly ILogger<AllocationBuddyRPGViewModel>? _logger;
     private readonly Infrastructure.Services.SettingsService? _settingsService;
 
+    // AllocationBuddy services
+    private readonly Services.AllocationBuddy.ItemDictionaryService _dictionaryService;
+    private readonly Services.AllocationBuddy.AllocationCalculationService _calculationService;
+    private readonly Services.AllocationBuddy.AllocationClipboardService _clipboardService;
+    private readonly Services.AllocationBuddy.AllocationExportService _exportService;
+    private readonly Services.AllocationBuddy.AllocationImportService _importService;
+    private readonly Services.AllocationBuddy.AllocationPersistenceService _persistenceService;
+    private readonly Services.AllocationBuddy.AllocationBuddyConfiguration _configuration;
+
     // Runtime settings loaded from SettingsService
     private bool _showConfirmationDialogs = true;
     private bool _includeDescriptionsInCopy = false;
     private string _clipboardFormat = "TabSeparated";
-
-    /// <summary>
-    /// Thread-safe lookup dictionary for O(1) item access by item number.
-    /// </summary>
-    private ConcurrentDictionary<string, DictionaryItem> _itemLookupByNumber = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Thread-safe lookup dictionary for O(1) item access by SKU.
-    /// </summary>
-    private ConcurrentDictionary<string, DictionaryItem> _itemLookupBySku = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Cancellation token source for background dictionary loading operations.
-    /// </summary>
-    private CancellationTokenSource? _loadDictionariesCts;
-
-    /// <summary>
-    /// Tracks whether this instance has been disposed.
-    /// </summary>
     private bool _disposed;
-
-    /// <summary>
-    /// Duration in milliseconds for the visual flash effect when items are updated.
-    /// </summary>
-    private const int UpdateFlashDurationMs = 300;
-
-    /// <summary>
-    /// Maximum clipboard text length (10MB) to prevent denial-of-service attacks.
-    /// </summary>
-    private const int MaxClipboardTextLength = 10_000_000;
-
-    /// <summary>
-    /// Tracks whether current data has unsaved changes that need archiving.
-    /// </summary>
     private bool _hasUnarchivedChanges;
-
-    /// <summary>
-    /// Tracks the name of the last imported allocation file for session naming.
-    /// </summary>
     private string? _lastImportedFileName;
-
-    /// <summary>
-    /// Buffer storing the last deactivation operation for undo functionality.
-    /// </summary>
     private DeactivationRecord? _lastDeactivation;
-
-    #endregion
-
-    #region Observable Collections
-
-    /// <summary>
-    /// Gets the collection of location allocations, each containing items allocated to that location.
-    /// </summary>
     public ObservableCollection<LocationAllocation> LocationAllocations { get; } = new();
-
-    /// <summary>
-    /// Gets the pool of unallocated items that can be moved to locations.
-    /// </summary>
     public ObservableCollection<ItemAllocation> ItemPool { get; } = new();
-
-    /// <summary>
-    /// Gets the results of the last file import operation for display to the user.
-    /// </summary>
     public ObservableCollection<FileImportResult> FileImportResults { get; } = new();
-
-    #endregion
-
-    #region Observable Properties
-
-    /// <summary>
-    /// Gets or sets the current status message displayed to the user.
-    /// </summary>
     [ObservableProperty]
     private string _statusMessage = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the search text used to filter displayed locations and items.
-    /// </summary>
     [ObservableProperty]
     private string _searchText = string.Empty;
 
@@ -140,48 +59,13 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(FilteredLocationAllocations));
         OnPropertyChanged(nameof(FilteredItemAllocations));
     }
-
-    /// <summary>
-    /// Gets or sets the text pasted by the user for import from the welcome screen.
-    /// </summary>
     [ObservableProperty]
     private string _pasteText = string.Empty;
-
-    #endregion
-
-    #region Computed Properties
-
-    /// <summary>
-    /// Gets a value indicating whether there is no data loaded (displays welcome screen).
-    /// </summary>
     public bool HasNoData => LocationAllocations.Count == 0 && ItemPool.Count == 0;
-
-    /// <summary>
-    /// Gets a value indicating whether data is loaded (displays main interface).
-    /// </summary>
     public bool HasData => !HasNoData;
-
-    /// <summary>
-    /// Gets the total quantity of all items across all locations.
-    /// </summary>
     public int TotalEntries => LocationAllocations.Sum(l => l.Items.Sum(i => i.Quantity));
-
-    /// <summary>
-    /// Gets the number of locations with allocations.
-    /// </summary>
     public int LocationsCount => LocationAllocations.Count;
-
-    /// <summary>
-    /// Gets the number of items in the unallocated pool.
-    /// </summary>
     public int ItemPoolCount => ItemPool.Count;
-
-    /// <summary>
-    /// Gets locations filtered by the current search text.
-    /// </summary>
-    /// <remarks>
-    /// Filters by location code, location name, item number, and item description.
-    /// </remarks>
     public IEnumerable<LocationAllocation> FilteredLocationAllocations
     {
         get
@@ -198,19 +82,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     (i.Description?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)));
         }
     }
-
-    #endregion
-
-    #region Item Totals
-
-    /// <summary>
-    /// Gets a summary of total quantities per unique item across all locations.
-    /// </summary>
     public ObservableCollection<ItemTotalSummary> ItemTotals { get; } = new();
-
-    /// <summary>
-    /// Current sort mode for Item Totals
-    /// </summary>
     private string _itemTotalsSortMode = "qty-desc";
     public string ItemTotalsSortMode
     {
@@ -223,98 +95,16 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
         }
     }
-
-    /// <summary>
-    /// Recalculates the ItemTotals collection from all locations.
-    /// </summary>
     private void RefreshItemTotals()
     {
-        // Get items from locations (allocated)
-        var locationItems = LocationAllocations.SelectMany(l => l.Items).ToList();
-
-        // Build lookup for pool quantities by item number (case-insensitive)
-        var poolByItem = ItemPool
-            .GroupBy(p => p.ItemNumber, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                g => g.Key,
-                g => (Quantity: g.Sum(p => p.Quantity), Description: g.First().Description),
-                StringComparer.OrdinalIgnoreCase);
-
-        // Build lookup for location quantities by item number (case-insensitive)
-        var locationByItem = locationItems
-            .GroupBy(i => i.ItemNumber, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                g => g.Key,
-                g => (Quantity: g.Sum(i => i.Quantity), Description: g.First().Description, LocationCount: g.Count()),
-                StringComparer.OrdinalIgnoreCase);
-
-        // Get all unique item numbers from both sources
-        var allItemNumbers = locationByItem.Keys
-            .Union(poolByItem.Keys, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var grouped = allItemNumbers.Select(itemNum =>
-        {
-            var hasLocation = locationByItem.TryGetValue(itemNum, out var locData);
-            var hasPool = poolByItem.TryGetValue(itemNum, out var poolData);
-
-            return new ItemTotalSummary
-            {
-                ItemNumber = itemNum,
-                Description = hasLocation ? locData.Description : (hasPool ? poolData.Description : ""),
-                TotalQuantity = (hasLocation ? locData.Quantity : 0) + (hasPool ? poolData.Quantity : 0),
-                LocationCount = hasLocation ? locData.LocationCount : 0,
-                PoolQuantity = hasPool ? poolData.Quantity : 0
-            };
-        });
-
-        // Apply sorting based on current mode
-        IEnumerable<ItemTotalSummary> sorted = _itemTotalsSortMode switch
-        {
-            "qty-asc" => grouped.OrderBy(t => t.TotalQuantity),
-            "qty-desc" => grouped.OrderByDescending(t => t.TotalQuantity),
-            "name-asc" => grouped.OrderBy(t => t.Description),
-            "name-desc" => grouped.OrderByDescending(t => t.Description),
-            "item-asc" => grouped.OrderBy(t => t.ItemNumber),
-            "item-desc" => grouped.OrderByDescending(t => t.ItemNumber),
-            _ => grouped.OrderByDescending(t => t.TotalQuantity)
-        };
-
+        var totals = _calculationService.CalculateItemTotals(LocationAllocations, ItemPool, _itemTotalsSortMode);
         ItemTotals.Clear();
-        foreach (var t in sorted)
-        {
-            ItemTotals.Add(t);
-        }
-
-        // Update each pool item's TotalInLocations for display
-        foreach (var poolItem in ItemPool)
-        {
-            if (locationByItem.TryGetValue(poolItem.ItemNumber, out var locData))
-            {
-                poolItem.TotalInLocations = locData.Quantity;
-            }
-            else
-            {
-                poolItem.TotalInLocations = 0;
-            }
-        }
-
+        foreach (var t in totals) ItemTotals.Add(t);
+        var locationByItem = LocationAllocations.SelectMany(l => l.Items).GroupBy(i => i.ItemNumber, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity), StringComparer.OrdinalIgnoreCase);
+        foreach (var poolItem in ItemPool) poolItem.TotalInLocations = locationByItem.TryGetValue(poolItem.ItemNumber, out var quantity) ? quantity : 0;
         OnPropertyChanged(nameof(ItemTotals));
-
-        // Refresh item allocations if in item view mode
-        if (ViewMode == "items")
-        {
-            RefreshItemAllocations();
-        }
+        if (ViewMode == "items") RefreshItemAllocations();
     }
-
-    #endregion
-
-    #region View Mode
-
-    /// <summary>
-    /// Gets or sets the current view mode: "stores" (by store) or "items" (by item).
-    /// </summary>
     [ObservableProperty]
     private string _viewMode = "stores";
 
@@ -333,15 +123,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     /// <summary>True when viewing by item.</summary>
     public bool IsItemView => ViewMode == "items";
-
-    /// <summary>
-    /// Gets the collection of item allocations, each containing stores that have this item.
-    /// </summary>
     public ObservableCollection<ItemAllocationView> ItemAllocations { get; } = new();
-
-    /// <summary>
-    /// Gets items filtered by the current search text (for item view mode).
-    /// </summary>
     public IEnumerable<ItemAllocationView> FilteredItemAllocations
     {
         get
@@ -358,47 +140,13 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     (s.StoreName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)));
         }
     }
-
-    /// <summary>
-    /// Recalculates the ItemAllocations collection from all locations.
-    /// </summary>
     private void RefreshItemAllocations()
     {
-        // Get all items from all locations
-        var allItems = LocationAllocations
-            .SelectMany(loc => loc.Items.Select(item => new { Location = loc, Item = item }))
-            .GroupBy(x => x.Item.ItemNumber, StringComparer.OrdinalIgnoreCase)
-            .Select(g => new ItemAllocationView
-            {
-                ItemNumber = g.Key,
-                Description = g.First().Item.Description ?? "",
-                TotalQuantity = g.Sum(x => x.Item.Quantity),
-                StoreAllocations = new ObservableCollection<StoreAllocationEntry>(
-                    g.Select(x => new StoreAllocationEntry
-                    {
-                        StoreCode = x.Location.Location,
-                        StoreName = x.Location.LocationName,
-                        Quantity = x.Item.Quantity,
-                        Item = x.Item  // Reference to actual ItemAllocation for commands
-                    }).OrderBy(s => s.StoreCode)
-                )
-            })
-            .OrderBy(i => i.ItemNumber)
-            .ToList();
-
+        var allItems = LocationAllocations.SelectMany(loc => loc.Items.Select(item => new { Location = loc, Item = item })).GroupBy(x => x.Item.ItemNumber, StringComparer.OrdinalIgnoreCase).Select(g => new ItemAllocationView { ItemNumber = g.Key, Description = g.First().Item.Description ?? "", TotalQuantity = g.Sum(x => x.Item.Quantity), StoreAllocations = new ObservableCollection<StoreAllocationEntry>(g.Select(x => new StoreAllocationEntry { StoreCode = x.Location.Location, StoreName = x.Location.LocationName, Quantity = x.Item.Quantity, Item = x.Item }).OrderBy(s => s.StoreCode)) }).OrderBy(i => i.ItemNumber).ToList();
         ItemAllocations.Clear();
-        foreach (var item in allItems)
-        {
-            ItemAllocations.Add(item);
-        }
-
+        foreach (var item in allItems) ItemAllocations.Add(item);
         OnPropertyChanged(nameof(FilteredItemAllocations));
     }
-
-    #endregion
-
-    #region Commands
-
     /// <summary>Command to import data from an Excel or CSV file via file dialog.</summary>
     public IAsyncRelayCommand ImportCommand { get; }
 
@@ -455,11 +203,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     /// <summary>Command to open the settings window to the Allocation tab.</summary>
     public IRelayCommand OpenSettingsCommand { get; }
-
-    #endregion
-
-    #region Archive System
-
     /// <summary>Command to manually archive the current data.</summary>
     public IAsyncRelayCommand ArchiveCurrentCommand { get; }
 
@@ -477,68 +220,19 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
     {
         _logger?.LogInformation("Archive panel open changed to: {Value}", value);
     }
-
-    #endregion
-
-    #region Constructor
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AllocationBuddyRPGViewModel"/> class.
-    /// </summary>
     /// <param name="parser">The parser for processing allocation data.</param>
     /// <param name="dialogService">The service for displaying dialogs.</param>
     /// <param name="serviceProvider">The service provider for resolving dependencies.</param>
     /// <param name="logger">Optional logger for diagnostic output.</param>
-    public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, IServiceProvider serviceProvider, ILogger<AllocationBuddyRPGViewModel>? logger = null)
+    public AllocationBuddyRPGViewModel(AllocationBuddyParser parser, DialogService dialogService, IServiceProvider serviceProvider, Services.AllocationBuddy.ItemDictionaryService dictionaryService, Services.AllocationBuddy.AllocationCalculationService calculationService, Services.AllocationBuddy.AllocationClipboardService clipboardService, Services.AllocationBuddy.AllocationExportService exportService, Services.AllocationBuddy.AllocationImportService importService, Services.AllocationBuddy.AllocationPersistenceService persistenceService, Services.AllocationBuddy.AllocationBuddyConfiguration configuration, ILogger<AllocationBuddyRPGViewModel>? logger = null)
     {
-        _parser = parser;
-        _dialogService = dialogService;
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-
-        // Get settings service and subscribe to changes
+        (_parser, _dialogService, _serviceProvider, _logger, _dictionaryService, _calculationService, _clipboardService, _exportService, _importService, _persistenceService, _configuration) = (parser, dialogService, serviceProvider, logger, dictionaryService ?? throw new ArgumentNullException(nameof(dictionaryService)), calculationService ?? throw new ArgumentNullException(nameof(calculationService)), clipboardService ?? throw new ArgumentNullException(nameof(clipboardService)), exportService ?? throw new ArgumentNullException(nameof(exportService)), importService ?? throw new ArgumentNullException(nameof(importService)), persistenceService ?? throw new ArgumentNullException(nameof(persistenceService)), configuration ?? throw new ArgumentNullException(nameof(configuration)));
         _settingsService = serviceProvider.GetService<Infrastructure.Services.SettingsService>();
-        if (_settingsService != null)
-        {
-            _settingsService.SettingsChanged += OnSettingsChanged;
-        }
-
-        // Initialize import/export commands
-        ImportCommand = new AsyncRelayCommand(ImportAsync);
-        OpenSettingsCommand = new RelayCommand(OpenSettings);
-        ImportFilesCommand = new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); });
-        PasteCommand = new RelayCommand(PasteFromClipboard);
-        ImportFromPasteTextCommand = new RelayCommand(ImportFromPasteText);
-        RefreshCommand = new AsyncRelayCommand(RefreshAsync);
-        ClearCommand = new RelayCommand(ClearSearch);
-        RemoveOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) RemoveOne(item); });
-        AddOneCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) AddOne(item); });
-        MoveFromPoolCommand = new RelayCommand<ItemAllocation?>(item => { if (item != null) MoveFromPool(item); });
-        DeactivateStoreCommand = new AsyncRelayCommand<LocationAllocation?>(async loc => { if (loc != null) await DeactivateStoreAsync(loc); });
-        UndoDeactivateCommand = new RelayCommand(UndoDeactivate, () => _lastDeactivation != null);
-        ClearDataCommand = new AsyncRelayCommand(ClearDataAsync);
-        CopyLocationToClipboardCommand = new RelayCommand<LocationAllocation>(CopyLocationToClipboard);
-        CopyItemRedistributionCommand = new RelayCommand<ItemAllocationView>(CopyItemRedistribution);
-        SortItemTotalsCommand = new RelayCommand<string>(mode => { if (mode != null) ItemTotalsSortMode = mode; });
-        SetViewModeCommand = new RelayCommand<string>(mode => { if (mode != null) ViewMode = mode; });
-        ExportToExcelCommand = new AsyncRelayCommand(ExportToExcelAsync);
-        ExportToCsvCommand = new AsyncRelayCommand(ExportToCsvAsync);
-
-        // Archive commands
-        ArchiveCurrentCommand = new AsyncRelayCommand(ArchiveCurrentAsync, () => HasData);
-        ViewArchivesCommand = new AsyncRelayCommand(LoadArchivesAsync);
-
-        // Load settings and dictionaries on a background task
-        _ = LoadSettingsAsync();
-        _ = LoadDictionariesAsync();
-
-        // Load archives on startup
-        _ = LoadArchivesAsync();
+        if (_settingsService != null) _settingsService.SettingsChanged += OnSettingsChanged;
+        (ImportCommand, OpenSettingsCommand, ImportFilesCommand, PasteCommand, ImportFromPasteTextCommand, RefreshCommand, ClearCommand, RemoveOneCommand, AddOneCommand, MoveFromPoolCommand, DeactivateStoreCommand, UndoDeactivateCommand, ClearDataCommand, CopyLocationToClipboardCommand, CopyItemRedistributionCommand, SortItemTotalsCommand, SetViewModeCommand, ExportToExcelCommand, ExportToCsvCommand, ArchiveCurrentCommand, ViewArchivesCommand) = (new AsyncRelayCommand(ImportAsync), new RelayCommand(OpenSettings), new AsyncRelayCommand<string[]?>(async files => { if (files != null) await ImportFilesAsync(files); }), new RelayCommand(PasteFromClipboard), new RelayCommand(ImportFromPasteText), new AsyncRelayCommand(RefreshAsync), new RelayCommand(ClearSearch), new RelayCommand<ItemAllocation?>(item => { if (item != null) RemoveOne(item); }), new RelayCommand<ItemAllocation?>(item => { if (item != null) AddOne(item); }), new RelayCommand<ItemAllocation?>(item => { if (item != null) MoveFromPool(item); }), new AsyncRelayCommand<LocationAllocation?>(async loc => { if (loc != null) await DeactivateStoreAsync(loc); }), new RelayCommand(UndoDeactivate, () => _lastDeactivation != null), new AsyncRelayCommand(ClearDataAsync), new RelayCommand<LocationAllocation>(CopyLocationToClipboard), new RelayCommand<ItemAllocationView>(CopyItemRedistribution), new RelayCommand<string>(mode => { if (mode != null) ItemTotalsSortMode = mode; }), new RelayCommand<string>(mode => { if (mode != null) ViewMode = mode; }), new AsyncRelayCommand(ExportToExcelAsync), new AsyncRelayCommand(ExportToCsvAsync), new AsyncRelayCommand(ArchiveCurrentAsync, () => HasData), new AsyncRelayCommand(LoadArchivesAsync));
+        _ = LoadSettingsAsync(); _ = _dictionaryService.LoadDictionariesAsync(); _ = LoadArchivesAsync();
     }
 
-    /// <summary>
-    /// Loads AllocationBuddy settings from the settings service.
-    /// </summary>
     private async Task LoadSettingsAsync()
     {
         try
@@ -547,236 +241,36 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             if (settingsService != null)
             {
                 var settings = await settingsService.LoadSettingsAsync<Core.Entities.Settings.AllocationBuddySettings>("AllocationBuddy");
-                _showConfirmationDialogs = settings.ShowConfirmationDialogs;
-                _includeDescriptionsInCopy = settings.IncludeDescriptionsInCopy;
-                _clipboardFormat = settings.ClipboardFormat;
-                _logger?.LogInformation("Applied AllocationBuddy settings: ShowConfirm={Confirm}, IncludeDesc={Desc}, Format={Format}",
-                    _showConfirmationDialogs, _includeDescriptionsInCopy, _clipboardFormat);
+                (_showConfirmationDialogs, _includeDescriptionsInCopy, _clipboardFormat) = (settings.ShowConfirmationDialogs, settings.IncludeDescriptionsInCopy, settings.ClipboardFormat);
+                _logger?.LogInformation("Applied AllocationBuddy settings: ShowConfirm={Confirm}, IncludeDesc={Desc}, Format={Format}", _showConfirmationDialogs, _includeDescriptionsInCopy, _clipboardFormat);
             }
         }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "Failed to load AllocationBuddy settings, using defaults");
-        }
+        catch (Exception ex) { _logger?.LogWarning(ex, "Failed to load AllocationBuddy settings, using defaults"); }
     }
+    private void OnSettingsChanged(object? sender, Infrastructure.Services.SettingsChangedEventArgs e) { if (e.AppName == "AllocationBuddy") _ = LoadSettingsAsync(); }
 
-    /// <summary>
-    /// Handles settings change notifications to apply settings dynamically.
-    /// </summary>
-    private void OnSettingsChanged(object? sender, Infrastructure.Services.SettingsChangedEventArgs e)
-    {
-        if (e.AppName == "AllocationBuddy")
-        {
-            _ = LoadSettingsAsync();
-        }
-    }
 
-    /// <summary>
-    /// Loads dictionaries asynchronously and builds lookup tables for O(1) access
-    /// </summary>
-    private async Task LoadDictionariesAsync()
-    {
-        // Cancel any existing load operation
-        _loadDictionariesCts?.Cancel();
-        _loadDictionariesCts = new();
-        var cancellationToken = _loadDictionariesCts.Token;
-
-        try
-        {
-            await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Load store dictionary from shared location
-                var stores = InternalStoreDictionary.GetStores();
-                var mappedStores = stores.Select(s => new StoreEntry { Code = s.Code, Name = s.Name, Rank = s.Rank }).ToList();
-                _parser.SetStoreDictionary(mappedStores);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Load item dictionary from shared location
-                var items = InternalItemDictionary.GetItems();
-                _parser.SetDictionaryItems(items);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Build lookup dictionaries for O(1) access
-                BuildItemLookupDictionaries(items);
-
-                _logger?.LogInformation("Loaded {Count} dictionary items for AllocationBuddy matching", items.Count);
-            }, cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger?.LogDebug("Dictionary loading was cancelled");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to load dictionaries for AllocationBuddy");
-        }
-    }
-
-    /// <summary>
-    /// Builds thread-safe lookup dictionaries from the item list for O(1) access
-    /// </summary>
-    private void BuildItemLookupDictionaries(IReadOnlyList<DictionaryItem> items)
-    {
-        // Create new dictionaries to avoid mutation during reads
-        var newByNumber = new ConcurrentDictionary<string, DictionaryItem>(StringComparer.OrdinalIgnoreCase);
-        var newBySku = new ConcurrentDictionary<string, DictionaryItem>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var item in items)
-        {
-            // Add by item number
-            if (!string.IsNullOrEmpty(item.Number))
-            {
-                newByNumber.TryAdd(item.Number, item);
-            }
-
-            // Add by each SKU
-            if (item.Skus != null)
-            {
-                foreach (var sku in item.Skus)
-                {
-                    if (!string.IsNullOrEmpty(sku))
-                    {
-                        newBySku.TryAdd(sku, item);
-                    }
-                }
-            }
-        }
-
-        // Atomic swap of references (thread-safe due to reference assignment)
-        _itemLookupByNumber = newByNumber;
-        _itemLookupBySku = newBySku;
-    }
-
-    /// <summary>
-    /// Copies the items from a location to the clipboard.
-    /// Format depends on settings: Tab-separated or Comma-separated.
-    /// Optionally includes descriptions based on settings.
-    /// </summary>
-    private void CopyLocationToClipboard(LocationAllocation? loc)
-    {
-        if (loc == null || loc.Items.Count == 0)
-        {
-            StatusMessage = "No items to copy";
-            return;
-        }
-
-        var separator = _clipboardFormat == "CommaSeparated" ? "," : "\t";
-        var sb = new System.Text.StringBuilder();
-
-        foreach (var item in loc.Items)
-        {
-            if (_includeDescriptionsInCopy)
-            {
-                var desc = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(item.ItemNumber) : item.Description;
-                sb.AppendLine($"{item.ItemNumber}{separator}{item.Quantity}{separator}{desc}");
-            }
-            else
-            {
-                sb.AppendLine($"{item.ItemNumber}{separator}{item.Quantity}");
-            }
-        }
-
-        try
-        {
-            System.Windows.Clipboard.SetText(sb.ToString());
-            StatusMessage = $"Copied {loc.Items.Count} items for '{loc.Location}' to clipboard";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Failed to copy: {ex.Message}";
-        }
-    }
-
-    /// <summary>
-    /// Copies an item's redistribution data (all location allocations) to the clipboard.
-    /// Format: Quantity, Location for each store allocation.
-    /// Suitable for pasting into Business Central for redistribution/transfer orders.
-    /// </summary>
+    private void CopyLocationToClipboard(LocationAllocation? loc) => StatusMessage = _clipboardService.CopyLocationToClipboard(loc, _includeDescriptionsInCopy, _clipboardFormat);
     private void CopyItemRedistribution(ItemAllocationView? item)
     {
-        if (item == null || item.StoreAllocations.Count == 0)
-        {
-            StatusMessage = "No allocations to copy";
-            return;
-        }
-
+        if (item == null || item.StoreAllocations.Count == 0) { StatusMessage = "No allocations to copy"; return; }
         var separator = _clipboardFormat == "CommaSeparated" ? "," : "\t";
         var sb = new System.Text.StringBuilder();
-
-        // Add each store allocation
-        foreach (var allocation in item.StoreAllocations)
-        {
-            sb.AppendLine($"{allocation.Quantity}{separator}{allocation.StoreCode}");
-        }
-
-        try
-        {
-            System.Windows.Clipboard.SetText(sb.ToString());
-            StatusMessage = $"Copied {item.ItemNumber} redistribution to {item.StoreAllocations.Count} locations";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Failed to copy: {ex.Message}";
-        }
+        foreach (var allocation in item.StoreAllocations) sb.AppendLine($"{allocation.Quantity}{separator}{allocation.StoreCode}");
+        try { System.Windows.Clipboard.SetText(sb.ToString()); StatusMessage = $"Copied {item.ItemNumber} redistribution to {item.StoreAllocations.Count} locations"; }
+        catch (Exception ex) { StatusMessage = $"Failed to copy: {ex.Message}"; }
     }
 
     private async Task DeactivateStoreAsync(LocationAllocation loc)
     {
         if (loc == null) return;
-
-        // Confirm first (await the dialog instead of blocking)
         var confirm = new SOUP.Views.AllocationBuddy.ConfirmDialog();
         confirm.SetMessage($"Move all items from '{loc.Location}' to the Item Pool? This will clear the store.");
-        var ok = await _dialogService.ShowContentDialogAsync<bool?>(confirm);
-        if (ok != true) return;
-
-        // remember the deactivation for undo
-        var snapshot = loc.Items.Select(i => new ItemSnapshot { ItemNumber = i.ItemNumber, Description = i.Description, Quantity = i.Quantity, SKU = i.SKU }).ToList();
-        _lastDeactivation = new() { Location = loc, Items = snapshot };
-        // notify Undo command availability
+        if (await _dialogService.ShowContentDialogAsync<bool?>(confirm) != true) return;
+        _lastDeactivation = _calculationService.DeactivateStore(loc, ItemPool);
+        if (_lastDeactivation == null) return;
         (UndoDeactivateCommand as RelayCommand)?.NotifyCanExecuteChanged();
-
-        // move all items from this location into the pool
-        var items = loc.Items.ToList();
-        foreach (var it in items)
-        {
-            if (it == null) continue;
-
-            // Keep original ItemNumber to match with location items
-            var itemNumber = it.ItemNumber;
-            var description = string.IsNullOrWhiteSpace(it.Description) ? GetDescription(itemNumber) : it.Description;
-            var sku = it.SKU ?? GetSKU(itemNumber);
-
-            var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == itemNumber && p.SKU == sku);
-            if (poolItem == null)
-            {
-                ItemPool.Add(new ItemAllocation
-                {
-                    ItemNumber = itemNumber,
-                    Description = description,
-                    Quantity = it.Quantity,
-                    SKU = sku
-                });
-            }
-            else
-            {
-                poolItem.Quantity += it.Quantity;
-                SetTemporaryUpdateFlag(poolItem);
-            }
-        }
-
-        // clear the location's items and soft-disable
-        loc.Items.Clear();
-        loc.IsActive = false;
-
-        OnPropertyChanged(nameof(TotalEntries));
-        OnPropertyChanged(nameof(ItemPoolCount));
-        OnPropertyChanged(nameof(LocationsCount));
-        OnPropertyChanged(nameof(FilteredLocationAllocations));
+        OnPropertyChanged(nameof(TotalEntries)); OnPropertyChanged(nameof(ItemPoolCount)); OnPropertyChanged(nameof(LocationsCount)); OnPropertyChanged(nameof(FilteredLocationAllocations));
         RefreshItemTotals();
     }
 
@@ -785,142 +279,45 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         try
         {
             _logger?.LogInformation("ImportAsync started");
-
             var files = await _dialogService.ShowOpenFileDialogAsync("Select allocation file", "All Files", "xlsx", "csv");
-
             _logger?.LogInformation("File dialog returned: {Files}", files != null ? string.Join(", ", files) : "null");
-
-            if (files == null || files.Length == 0)
-            {
-                _logger?.LogInformation("No files selected, returning");
-                return;
-            }
-
-            // Auto-archive existing data before importing new data
+            if (files == null || files.Length == 0) { _logger?.LogInformation("No files selected, returning"); return; }
             await AutoArchiveIfNeededAsync();
-
             var file = files[0];
             _logger?.LogInformation("Importing file: {File}", file);
-
             StatusMessage = $"Importing {Path.GetFileName(file)}...";
-
-            Result<IReadOnlyList<AllocationEntry>> result;
-            if (file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-            {
-                result = await _parser.ParseCsvAsync(file);
-            }
-            else
-            {
-                result = await _parser.ParseExcelAsync(file);
-            }
-
-            _logger?.LogInformation("Parse result: Success={Success}, Count={Count}, Error={Error}",
-                result.IsSuccess, result.Value?.Count ?? 0, result.ErrorMessage);
-
-            if (!result.IsSuccess || result.Value == null)
-            {
-                StatusMessage = $"Import failed: {result.ErrorMessage}";
-                _logger?.LogError("Import failed: {Error}", result.ErrorMessage);
-                System.Windows.MessageBox.Show($"Import failed: {result.ErrorMessage}", "Import Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                return;
-            }
-
-            if (result.Value.Count == 0)
-            {
-                StatusMessage = "No valid entries found. Check file has Store, Item, and Quantity columns.";
-                _logger?.LogWarning("No entries found in file");
-                System.Windows.MessageBox.Show("No valid entries found.\n\nMake sure the file has columns for Store/Location, Item/Product, and Quantity.", "Import Warning", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                return;
-            }
-
-            PopulateFromEntries(result.Value);
-            MarkAsModified();
+            var result = file.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) ? await _parser.ParseCsvAsync(file) : await _parser.ParseExcelAsync(file);
+            _logger?.LogInformation("Parse result: Success={Success}, Count={Count}, Error={Error}", result.IsSuccess, result.Value?.Count ?? 0, result.ErrorMessage);
+            if (!result.IsSuccess || result.Value == null) { StatusMessage = $"Import failed: {result.ErrorMessage}"; _logger?.LogError("Import failed: {Error}", result.ErrorMessage); System.Windows.MessageBox.Show($"Import failed: {result.ErrorMessage}", "Import Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error); return; }
+            if (result.Value.Count == 0) { StatusMessage = "No valid entries found. Check file has Store, Item, and Quantity columns."; _logger?.LogWarning("No entries found in file"); System.Windows.MessageBox.Show("No valid entries found.\n\nMake sure the file has columns for Store/Location, Item/Product, and Quantity.", "Import Warning", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning); return; }
+            PopulateFromEntries(result.Value); MarkAsModified();
             StatusMessage = $"Imported {result.Value.Count} entries from {Path.GetFileName(file)}";
             _logger?.LogInformation("Successfully imported {Count} entries", result.Value.Count);
-
-            OnPropertyChanged(nameof(LocationsCount));
-            OnPropertyChanged(nameof(ItemPoolCount));
-            OnPropertyChanged(nameof(TotalEntries));
-            OnPropertyChanged(nameof(FilteredLocationAllocations));
+            OnPropertyChanged(nameof(LocationsCount)); OnPropertyChanged(nameof(ItemPoolCount)); OnPropertyChanged(nameof(TotalEntries)); OnPropertyChanged(nameof(FilteredLocationAllocations));
             RefreshItemTotals();
         }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Exception in ImportAsync");
-            StatusMessage = $"Import error: {ex.Message}";
-            System.Windows.MessageBox.Show($"Import error: {ex.Message}", "Import Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-        }
+        catch (Exception ex) { _logger?.LogError(ex, "Exception in ImportAsync"); StatusMessage = $"Import error: {ex.Message}"; System.Windows.MessageBox.Show($"Import error: {ex.Message}", "Import Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error); }
     }
 
-    /// <summary>
-    /// Opens a dialog to paste and import allocation data.
-    /// </summary>
     private void PasteFromClipboard()
     {
         try
         {
-            // Show paste dialog
             var dialog = new Views.AllocationBuddy.PasteDataDialog();
-            var dialogWindow = new System.Windows.Window
-            {
-                Content = dialog,
-                Title = "Paste Data",
-                SizeToContent = System.Windows.SizeToContent.WidthAndHeight,
-                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
-                Owner = System.Windows.Application.Current.MainWindow,
-                WindowStyle = System.Windows.WindowStyle.None,
-                AllowsTransparency = true,
-                Background = System.Windows.Media.Brushes.Transparent,
-                ResizeMode = System.Windows.ResizeMode.NoResize,
-                ShowInTaskbar = false
-            };
-
-            var result = dialogWindow.ShowDialog();
-            if (result != true || string.IsNullOrWhiteSpace(dialog.PastedText))
-            {
-                return;
-            }
-
+            var dialogWindow = new System.Windows.Window { Content = dialog, Title = "Paste Data", SizeToContent = System.Windows.SizeToContent.WidthAndHeight, WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner, Owner = System.Windows.Application.Current.MainWindow, WindowStyle = System.Windows.WindowStyle.None, AllowsTransparency = true, Background = System.Windows.Media.Brushes.Transparent, ResizeMode = System.Windows.ResizeMode.NoResize, ShowInTaskbar = false };
+            if (dialogWindow.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.PastedText)) return;
             var pastedText = dialog.PastedText;
-
-            // Validate text length to prevent DoS
-            if (pastedText.Length > MaxClipboardTextLength)
-            {
-                StatusMessage = $"Pasted content too large (max {MaxClipboardTextLength / 1_000_000}MB)";
-                _logger?.LogWarning("Pasted text rejected: {Length} bytes exceeds maximum", pastedText.Length);
-                return;
-            }
-
+            if (pastedText.Length > _configuration.MaxClipboardTextLengthBytes) { StatusMessage = $"Pasted content too large (max {_configuration.MaxClipboardTextLengthBytes / 1_000_000}MB)"; _logger?.LogWarning("Pasted text rejected: {Length} bytes exceeds maximum", pastedText.Length); return; }
             var parseResult = _parser.ParseFromClipboardText(pastedText);
-
-            if (!parseResult.IsSuccess || parseResult.Value == null)
-            {
-                StatusMessage = $"Import failed: {parseResult.ErrorMessage}";
-                return;
-            }
-
-            // Auto-archive is async, but for paste we'll fire-and-forget
+            if (!parseResult.IsSuccess || parseResult.Value == null) { StatusMessage = $"Import failed: {parseResult.ErrorMessage}"; return; }
             _ = AutoArchiveIfNeededAsync();
-
-            PopulateFromEntries(parseResult.Value);
-            MarkAsModified();
+            PopulateFromEntries(parseResult.Value); MarkAsModified();
             StatusMessage = $"Imported {parseResult.Value.Count} entries";
-            OnPropertyChanged(nameof(LocationsCount));
-            OnPropertyChanged(nameof(ItemPoolCount));
-            OnPropertyChanged(nameof(TotalEntries));
-            OnPropertyChanged(nameof(FilteredLocationAllocations));
+            OnPropertyChanged(nameof(LocationsCount)); OnPropertyChanged(nameof(ItemPoolCount)); OnPropertyChanged(nameof(TotalEntries)); OnPropertyChanged(nameof(FilteredLocationAllocations));
             RefreshItemTotals();
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Import failed: {ex.Message}";
-            _logger?.LogError(ex, "Failed to import pasted data");
-        }
+        catch (Exception ex) { StatusMessage = $"Import failed: {ex.Message}"; _logger?.LogError(ex, "Failed to import pasted data"); }
     }
-
-    /// <summary>
-    /// Import data from the PasteText textbox on the welcome screen.
-    /// </summary>
     private void ImportFromPasteText()
     {
         try
@@ -932,9 +329,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
 
             // Validate text length to prevent DoS
-            if (PasteText.Length > MaxClipboardTextLength)
+            if (PasteText.Length > _configuration.MaxClipboardTextLengthBytes)
             {
-                StatusMessage = $"Text too large (max {MaxClipboardTextLength / 1_000_000}MB)";
+                StatusMessage = $"Text too large (max {_configuration.MaxClipboardTextLengthBytes / 1_000_000}MB)";
                 _logger?.LogWarning("Paste text rejected: {Length} bytes exceeds maximum", PasteText.Length);
                 return;
             }
@@ -966,10 +363,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             _logger?.LogError(ex, "Failed to import from paste text");
         }
     }
-
-    /// <summary>
-    /// Import multiple files (used by drag and drop). Accepts full file paths.
-    /// </summary>
     public async Task ImportFilesAsync(string[] files)
     {
         if (files == null || files.Length == 0) return;
@@ -1078,9 +471,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             var loc = new LocationAllocation { Location = storeCode, LocationName = storeName };
             foreach (var e in g)
             {
-                var itemNumber = GetCanonicalItemNumber(e.ItemNumber ?? "");
-                var description = string.IsNullOrWhiteSpace(e.Description) ? GetDescription(itemNumber) : e.Description;
-                var sku = e.SKU ?? GetSKU(itemNumber);
+                var itemNumber = _dictionaryService.GetCanonicalItemNumber(e.ItemNumber ?? "");
+                var description = string.IsNullOrWhiteSpace(e.Description) ? _dictionaryService.GetDescription(itemNumber) : e.Description;
+                var sku = e.SKU ?? _dictionaryService.GetSKU(itemNumber);
 
                 loc.Items.Add(new ItemAllocation
                 {
@@ -1123,9 +516,9 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             var qtyToMove = Math.Max(1, result.SelectedQuantity);
             qtyToMove = Math.Min(qtyToMove, poolItem.Quantity);
 
-            var itemNumber = GetCanonicalItemNumber(item.ItemNumber);
-            var description = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(itemNumber) : item.Description;
-            var sku = item.SKU ?? GetSKU(itemNumber);
+            var itemNumber = _dictionaryService.GetCanonicalItemNumber(item.ItemNumber);
+            var description = string.IsNullOrWhiteSpace(item.Description) ? _dictionaryService.GetDescription(itemNumber) : item.Description;
+            var sku = item.SKU ?? _dictionaryService.GetSKU(itemNumber);
 
             var loc = LocationAllocations.FirstOrDefault(l => l.Location == result.SelectedLocation);
             if (loc == null)
@@ -1157,203 +550,70 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             RefreshItemTotals();
         }
     }
-
-    /// <summary>
-    /// Gets the SKU for an item number using O(1) dictionary lookup
-    /// </summary>
-    private string? GetSKU(string itemNumber)
-    {
-        var dictItem = FindDictionaryItem(itemNumber);
-        return dictItem?.Skus?.FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Gets the description for an item number using O(1) dictionary lookup
-    /// </summary>
-    private string GetDescription(string itemNumber)
-    {
-        var dictItem = FindDictionaryItem(itemNumber);
-        return dictItem?.Description ?? "";
-    }
-
-    /// <summary>
-    /// Gets the canonical item number using O(1) dictionary lookup
-    /// </summary>
-    private string GetCanonicalItemNumber(string itemNumber)
-    {
-        var dictItem = FindDictionaryItem(itemNumber);
-        return dictItem?.Number ?? itemNumber;
-    }
-
-    /// <summary>
-    /// Finds a dictionary item by number or SKU using O(1) lookup
-    /// </summary>
-    private DictionaryItem? FindDictionaryItem(string itemNumber)
-    {
-        if (string.IsNullOrEmpty(itemNumber))
-            return null;
-
-        // Try lookup by item number first
-        if (_itemLookupByNumber.TryGetValue(itemNumber, out var itemByNumber))
-            return itemByNumber;
-
-        // Try lookup by SKU
-        if (_itemLookupBySku.TryGetValue(itemNumber, out var itemBySku))
-            return itemBySku;
-
-        return null;
-    }
-
-    /// <summary>
-    /// Sets the IsUpdated flag on an item temporarily to trigger a visual flash effect
-    /// </summary>
-    private static void SetTemporaryUpdateFlag(ItemAllocation item)
+    private void SetTemporaryUpdateFlag(ItemAllocation item)
     {
         item.IsUpdated = true;
-        _ = Task.Delay(UpdateFlashDurationMs).ContinueWith(_ => item.IsUpdated = false);
+        _ = Task.Delay(_configuration.UpdateFlashDurationMs).ContinueWith(_ => item.IsUpdated = false);
     }
 
     private void RemoveOne(ItemAllocation item)
     {
-        if (item == null) return;
-        // find the exact location containing this specific item instance
-        var loc = LocationAllocations.FirstOrDefault(l => l.Items.Contains(item));
-        if (loc == null) return;
-        var target = loc.Items.First(i => ReferenceEquals(i, item));
-        if (target.Quantity <= 0) return;
-        target.Quantity -= 1;
-        // add to pool
-        var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == target.ItemNumber);
-        if (poolItem == null)
+        if (!_calculationService.RemoveOne(item, LocationAllocations, ItemPool))
         {
-            // Keep original ItemNumber to match with location items
-            var itemNumber = target.ItemNumber;
-            var description = string.IsNullOrWhiteSpace(target.Description) ? GetDescription(itemNumber) : target.Description;
-            var sku = target.SKU ?? GetSKU(itemNumber);
-
-            ItemPool.Add(new ItemAllocation
-            {
-                ItemNumber = itemNumber,
-                Description = description,
-                Quantity = 1,
-                SKU = sku
-            });
+            return;
         }
-        else
+
+        // UI updates
+        SetTemporaryUpdateFlag(item);
+        var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == item.ItemNumber);
+        if (poolItem != null)
         {
-            poolItem.Quantity += 1;
             SetTemporaryUpdateFlag(poolItem);
         }
-        // mark target updated
-        SetTemporaryUpdateFlag(target);
-        if (target.Quantity == 0)
-            loc.Items.Remove(target);
+
         OnPropertyChanged(nameof(TotalEntries));
         OnPropertyChanged(nameof(ItemPoolCount));
         RefreshItemTotals();
+        MarkAsModified();
     }
 
     private void AddOne(ItemAllocation item)
     {
-        if (item == null) return;
-        // add one from pool to this location if pool has it
+        if (!_calculationService.AddOne(item, LocationAllocations, ItemPool))
+        {
+            return;
+        }
+
+        // UI updates
+        SetTemporaryUpdateFlag(item);
         var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == item.ItemNumber);
-        if (poolItem == null || poolItem.Quantity <= 0) return;
-        // find the exact location containing this item instance (the Add button was clicked in that card)
-        var loc = LocationAllocations.FirstOrDefault(l => l.Items.Contains(item));
-        if (loc == null)
+        if (poolItem != null)
         {
-            // add to first location
-            var itemNumber = GetCanonicalItemNumber(item.ItemNumber);
-            var description = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(itemNumber) : item.Description;
-            var sku = item.SKU ?? GetSKU(itemNumber);
-
-            if (LocationAllocations.Count == 0)
-            {
-                // create default location
-                var newLoc = new LocationAllocation { Location = "Unassigned" };
-                newLoc.Items.Add(new ItemAllocation
-                {
-                    ItemNumber = itemNumber,
-                    Description = description,
-                    Quantity = 1,
-                    SKU = sku
-                });
-                LocationAllocations.Add(newLoc);
-            }
-            else
-            {
-                LocationAllocations[0].Items.Add(new ItemAllocation
-                {
-                    ItemNumber = itemNumber,
-                    Description = description,
-                    Quantity = 1,
-                    SKU = sku
-                });
-            }
-        }
-        else
-        {
-            var target = loc.Items.First(i => ReferenceEquals(i, item));
-            target.Quantity += 1;
-            SetTemporaryUpdateFlag(target);
+            SetTemporaryUpdateFlag(poolItem);
         }
 
-        poolItem.Quantity -= 1;
-        SetTemporaryUpdateFlag(poolItem);
-        if (poolItem.Quantity == 0) ItemPool.Remove(poolItem);
         OnPropertyChanged(nameof(TotalEntries));
         OnPropertyChanged(nameof(ItemPoolCount));
+        OnPropertyChanged(nameof(LocationsCount));
+        OnPropertyChanged(nameof(FilteredLocationAllocations));
         RefreshItemTotals();
+        MarkAsModified();
     }
 
     private void MoveFromPool(ItemAllocation item)
     {
-        // Move from pool to first location
-        if (item == null) return;
-        var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == item.ItemNumber);
-        if (poolItem == null) return;
-
-        var itemNumber = GetCanonicalItemNumber(item.ItemNumber);
-        var description = string.IsNullOrWhiteSpace(item.Description) ? GetDescription(itemNumber) : item.Description;
-        var sku = item.SKU ?? GetSKU(itemNumber);
-
-        if (LocationAllocations.Count == 0)
+        if (!_calculationService.MoveFromPool(item, LocationAllocations, ItemPool))
         {
-            var newLoc = new LocationAllocation { Location = "Unassigned" };
-            newLoc.Items.Add(new ItemAllocation
-            {
-                ItemNumber = itemNumber,
-                Description = description,
-                Quantity = 1,
-                SKU = sku
-            });
-            LocationAllocations.Add(newLoc);
-        }
-        else
-        {
-            var loc = LocationAllocations[0];
-            var target = loc.Items.FirstOrDefault(i => i.ItemNumber == item.ItemNumber);
-            if (target == null)
-            {
-                loc.Items.Add(new ItemAllocation
-                {
-                    ItemNumber = itemNumber,
-                    Description = description,
-                    Quantity = 1,
-                    SKU = sku
-                });
-            }
-            else
-            {
-                target.Quantity += 1;
-            }
+            return;
         }
 
-        poolItem.Quantity -= 1;
-        SetTemporaryUpdateFlag(poolItem);
-        if (poolItem.Quantity == 0) ItemPool.Remove(poolItem);
+        // UI updates
         OnPropertyChanged(nameof(TotalEntries));
+        OnPropertyChanged(nameof(ItemPoolCount));
+        OnPropertyChanged(nameof(LocationsCount));
+        OnPropertyChanged(nameof(FilteredLocationAllocations));
+        RefreshItemTotals();
+        MarkAsModified();
     }
 
     private void ClearSearch()
@@ -1366,51 +626,23 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
     private void UndoDeactivate()
     {
-        if (_lastDeactivation == null || _lastDeactivation.Location == null) return;
+        if (_lastDeactivation == null) return;
 
-        var loc = _lastDeactivation.Location;
-        // restore items from pool back to location where possible
-        foreach (var snap in _lastDeactivation.Items)
+        if (!_calculationService.UndoDeactivate(_lastDeactivation, ItemPool))
         {
-            var poolItem = ItemPool.FirstOrDefault(p => p.ItemNumber == snap.ItemNumber && p.SKU == snap.SKU);
-            var qtyAvailable = poolItem?.Quantity ?? 0;
-            var qtyToRestore = Math.Min(snap.Quantity, qtyAvailable);
-            if (qtyToRestore <= 0) continue;
-
-            var itemNumber = GetCanonicalItemNumber(snap.ItemNumber);
-            var description = string.IsNullOrWhiteSpace(snap.Description) ? GetDescription(itemNumber) : snap.Description;
-            var sku = snap.SKU ?? GetSKU(itemNumber);
-
-            var existing = loc.Items.FirstOrDefault(i => i.ItemNumber == itemNumber && i.SKU == sku);
-            if (existing == null)
-            {
-                loc.Items.Add(new ItemAllocation
-                {
-                    ItemNumber = itemNumber,
-                    Description = description,
-                    Quantity = qtyToRestore,
-                    SKU = sku
-                });
-            }
-            else
-            {
-                existing.Quantity += qtyToRestore;
-            }
-
-            if (poolItem != null)
-            {
-                poolItem.Quantity -= qtyToRestore;
-                if (poolItem.Quantity <= 0) ItemPool.Remove(poolItem);
-            }
+            return;
         }
 
-        loc.IsActive = true;
         _lastDeactivation = null;
+        (UndoDeactivateCommand as RelayCommand)?.NotifyCanExecuteChanged();
+
+        // UI updates
         OnPropertyChanged(nameof(TotalEntries));
         OnPropertyChanged(nameof(ItemPoolCount));
         OnPropertyChanged(nameof(LocationsCount));
         OnPropertyChanged(nameof(FilteredLocationAllocations));
         RefreshItemTotals();
+        MarkAsModified();
     }
 
     private async Task ClearDataAsync()
@@ -1468,10 +700,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             StatusMessage = "Failed to open settings";
         }
     }
-
-    /// <summary>
-    /// Deletes session-save archives to prevent auto-restore after clearing data.
-    /// </summary>
     private void DeleteSessionSaveArchives()
     {
         try
@@ -1649,12 +877,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         }
         return field;
     }
-
-    #region Archive System
-
-    /// <summary>
-    /// Archives the current allocation data with a name and optional notes.
-    /// </summary>
     private async Task ArchiveCurrentAsync()
     {
         if (LocationAllocations.Count == 0)
@@ -1719,10 +941,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             _logger?.LogError(ex, "Failed to archive allocation data");
         }
     }
-
-    /// <summary>
-    /// Loads the list of archives from disk.
-    /// </summary>
     private async Task LoadArchivesAsync()
     {
         try
@@ -1772,10 +990,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             _logger?.LogError(ex, "Failed to load archives");
         }
     }
-
-    /// <summary>
-    /// Loads an archived allocation into the current view.
-    /// </summary>
     private async Task LoadArchiveAsync(string filePath)
     {
         try
@@ -1836,10 +1050,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             _logger?.LogError(ex, "Failed to load archive: {FilePath}", filePath);
         }
     }
-
-    /// <summary>
-    /// Deletes an archive file.
-    /// </summary>
     private async Task DeleteArchiveAsync(string filePath)
     {
         try
@@ -1898,10 +1108,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
 
         await SaveCurrentDataAsync(sessionName, "Automatically saved when application closed");
     }
-
-    /// <summary>
-    /// Loads the most recent archive on startup to restore previous session.
-    /// </summary>
     public async Task LoadMostRecentArchiveAsync()
     {
         try
@@ -1978,10 +1184,6 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             // Silent failure - don't interrupt startup
         }
     }
-
-    /// <summary>
-    /// Saves the current allocation data to an archive file.
-    /// </summary>
     private async Task SaveCurrentDataAsync(string prefix, string notes)
     {
         try
@@ -2034,29 +1236,15 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             // Don't interrupt the user's workflow if save fails
         }
     }
-
-    /// <summary>
-    /// Marks that the current data has been modified and should be auto-archived.
-    /// </summary>
     private void MarkAsModified()
     {
         _hasUnarchivedChanges = true;
     }
-
-    #endregion
-
-    /// <summary>
-    /// Releases resources used by this ViewModel.
-    /// </summary>
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
-
-    /// <summary>
-    /// Releases unmanaged and optionally managed resources.
-    /// </summary>
     /// <param name="disposing">True to release both managed and unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
@@ -2070,131 +1258,17 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
                     _settingsService.SettingsChanged -= OnSettingsChanged;
                 }
 
-                _loadDictionariesCts?.Cancel();
-                _loadDictionariesCts?.Dispose();
-                _loadDictionariesCts = null;
+                // Dispose dictionary service
+                _dictionaryService?.Dispose();
             }
             _disposed = true;
         }
     }
 
-    public class LocationAllocation
-    {
-        public string Location { get; set; } = string.Empty;
-        public string? LocationName { get; set; }
-        public string DisplayLocation
-        {
-            get
-            {
-                // If no name or name equals code, just show code
-                if (string.IsNullOrWhiteSpace(LocationName) ||
-                    LocationName.Equals(Location, StringComparison.OrdinalIgnoreCase))
-                {
-                    return Location;
-                }
-                // Show both: "101 - Downtown Store"
-                return $"{Location} - {LocationName}";
-            }
-        }
-        public ObservableCollection<ItemAllocation> Items { get; } = new();
-        public bool IsActive { get; set; } = true;
-    }
-
-    private sealed class ItemSnapshot
-    {
-        public string ItemNumber { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public string? SKU { get; set; }
-    }
-
-    private sealed class DeactivationRecord
-    {
-        public LocationAllocation? Location { get; set; }
-        public List<ItemSnapshot> Items { get; set; } = new();
-    }
-
-    public class FileImportResult
-    {
-        public string FileName { get; set; } = string.Empty;
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public int Count { get; set; }
-    }
-
-    public partial class ItemAllocation : ObservableObject
-    {
-        [ObservableProperty]
-        private string _itemNumber = string.Empty;
-
-        [ObservableProperty]
-        private string _description = string.Empty;
-
-        [ObservableProperty]
-        private int _quantity;
-
-        [ObservableProperty]
-        private string? _sKU;
-
-        [ObservableProperty]
-        private bool _isUpdated;
-
-        /// <summary>Total quantity of this item across all locations (not including pool).</summary>
-        [ObservableProperty]
-        private int _totalInLocations;
-
-        // Notify GrandTotal when TotalInLocations changes
-        partial void OnTotalInLocationsChanged(int value)
-        {
-            OnPropertyChanged(nameof(GrandTotal));
-        }
-
-        // Notify GrandTotal when Quantity changes
-        partial void OnQuantityChanged(int value)
-        {
-            OnPropertyChanged(nameof(GrandTotal));
-        }
-
-        /// <summary>Grand total = pool quantity + all locations.</summary>
-        public int GrandTotal => Quantity + TotalInLocations;
-    }
-
-    /// <summary>
-    /// Summary of total quantity for a unique item across all locations.
-    /// </summary>
-    public class ItemTotalSummary
-    {
-        public string ItemNumber { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int TotalQuantity { get; set; }
-        public int LocationCount { get; set; }
-        /// <summary>Quantity remaining in the item pool (unallocated).</summary>
-        public int PoolQuantity { get; set; }
-        /// <summary>Total allocated quantity (TotalQuantity - PoolQuantity).</summary>
-        public int AllocatedQuantity => TotalQuantity - PoolQuantity;
-        /// <summary>Whether this item has any remaining in the pool.</summary>
-        public bool HasPoolItems => PoolQuantity > 0;
-    }
-
-    /// <summary>
-    /// View model for an item with its store allocations (item-sorted view).
-    /// </summary>
-    public class ItemAllocationView
-    {
-        public string ItemNumber { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int TotalQuantity { get; set; }
-        public ObservableCollection<StoreAllocationEntry> StoreAllocations { get; set; } = new();
-
-        public string DisplayItem => string.IsNullOrWhiteSpace(Description)
-            ? ItemNumber
-            : $"{ItemNumber} - {Description}";
-
-        public int StoreCount => StoreAllocations.Count;
-    }
 
     /// <summary>
     /// Represents a store's allocation for a specific item (used in item-sorted view).
+    /// UI-specific - includes Item reference for command binding.
     /// </summary>
     public class StoreAllocationEntry
     {
@@ -2210,22 +1284,28 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             : $"{StoreCode} - {StoreName}";
     }
 
-    #endregion
-
-    #region Archive Data Classes
-
     /// <summary>
-    /// Result from the archive dialog.
+    /// View model for an item with its store allocations (item-sorted view).
+    /// UI-specific - uses StoreAllocationEntry which has Item references for commands.
     /// </summary>
+    public class ItemAllocationView
+    {
+        public string ItemNumber { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int TotalQuantity { get; set; }
+        public ObservableCollection<StoreAllocationEntry> StoreAllocations { get; set; } = new();
+
+        public string DisplayItem => string.IsNullOrWhiteSpace(Description)
+            ? ItemNumber
+            : $"{ItemNumber} - {Description}";
+
+        public int StoreCount => StoreAllocations.Count;
+    }
     public class ArchiveDialogResult
     {
         public string Name { get; set; } = string.Empty;
         public string? Notes { get; set; }
     }
-
-    /// <summary>
-    /// ViewModel for displaying an archive in the list.
-    /// </summary>
     public class ArchiveViewModel
     {
         public string Name { get; set; } = string.Empty;
@@ -2240,34 +1320,4 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         public string DisplayDate => ArchivedAt.ToString("MMM d, yyyy h:mm tt");
         public string Summary => $"{TotalItems} items • {LocationCount} locations";
     }
-
-    /// <summary>
-    /// Data structure for archived allocation data.
-    /// </summary>
-    public class ArchiveData
-    {
-        public string Name { get; set; } = string.Empty;
-        public string? Notes { get; set; }
-        public DateTime ArchivedAt { get; set; }
-        public int TotalItems { get; set; }
-        public int LocationCount { get; set; }
-        public List<ArchivedLocation> Locations { get; set; } = new();
-    }
-
-    public class ArchivedLocation
-    {
-        public string Location { get; set; } = string.Empty;
-        public string? LocationName { get; set; }
-        public List<ArchivedItem> Items { get; set; } = new();
-    }
-
-    public class ArchivedItem
-    {
-        public string ItemNumber { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public string? SKU { get; set; }
-    }
-
-    #endregion
 }

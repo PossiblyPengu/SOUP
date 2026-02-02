@@ -69,12 +69,12 @@
         <!-- StatCard Style - Compact -->
         <Style x:Key="StatCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="Margin" Value="8"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Margin" Value="10,0"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.1" Color="Black"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -82,12 +82,12 @@
         <!-- ChartCard Style - Compact -->
         <Style x:Key="ChartCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="Margin" Value="8"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Margin" Value="10,0"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.1" Color="Black"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -100,7 +100,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Margin="8,8,8,0" CornerRadius="8" Padding="16,12">
+        <Border Grid.Row="0" Margin="10,10,10,0" CornerRadius="14" Padding="24,18">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="{StaticResource ExpireWiseAccentDarkColor}" Offset="0"/>
@@ -109,15 +109,15 @@
                     </LinearGradientBrush>
                 </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.25" Color="{StaticResource ExpireWiseAccentColor}"/>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.3" Color="{StaticResource ExpireWiseAccentColor}"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="{DynamicResource OverlayWhiteSubtleBrush}" Margin="0,0,16,0">
-                        <TextBlock Text="📊" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Grid.Column="0" Width="52" Height="52" CornerRadius="26" Background="{DynamicResource OverlayWhiteSubtleBrush}" Margin="0,0,18,0">
+                        <TextBlock Text="📊" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="Analytics Dashboard" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource SectionTitleTextBrush}"/>
@@ -128,7 +128,7 @@
             </Border>
 
         <!-- TabControl -->
-        <TabControl Grid.Row="1" Margin="8,16,8,8" Background="Transparent" BorderThickness="0">
+        <TabControl Grid.Row="1" Margin="10,20,10,10" Background="Transparent" BorderThickness="0">
             <TabControl.Resources>
                 <Style TargetType="TabControl">
                     <Setter Property="Template">
@@ -142,7 +142,7 @@
 
                                     <!-- Tab Headers -->
                                     <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
-                                            CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
+                                            CornerRadius="12" Padding="12,10" Margin="0,0,0,12">
                                         <StackPanel Orientation="Horizontal">
                                             <TabPanel IsItemsHost="True"/>
                                         </StackPanel>

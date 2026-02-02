@@ -470,7 +470,10 @@ timeout /t 1 /nobreak >nul
             _schedulerTimer?.Dispose();
             _schedulerCts?.Dispose();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error disposing update scheduler");
+        }
         _disposed = true;
     }
 }

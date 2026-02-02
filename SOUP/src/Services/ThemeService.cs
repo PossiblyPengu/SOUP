@@ -44,7 +44,7 @@ public partial class ThemeService : ObservableObject
     /// Gets or sets whether to use basic Windows theme (no custom styling).
     /// </summary>
     [ObservableProperty]
-    private bool _useBasicTheme = false;
+    private bool _useBasicTheme = true;
 
     /// <summary>
     /// Occurs when the theme changes between light and dark mode.

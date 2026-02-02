@@ -7,7 +7,23 @@
     <!-- ============================= -->
     <!-- Maps all custom brushes to system colors for basic Windows look -->
     
-    <!-- Module Icons -->
+    <!-- ============ CORNER RADII ============ -->
+    <!-- All corners set to 0 for classic Windows appearance -->
+    <CornerRadius x:Key="WindowCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="TitleBarCornerRadius">0,0,0,0</CornerRadius>
+    <CornerRadius x:Key="SidebarCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="LargeCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="MediumCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="XSmallCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="NavItemCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="IconCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="AppLogoCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="SplashIconCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+    
+    <!-- ============ MODULE ICONS ============ -->
     <sys:String x:Key="AppLogoIcon">⚡</sys:String>
     <sys:String x:Key="ExpireWiseIcon">📦</sys:String>
     <sys:String x:Key="ExpireWiseSplashIcon">📦</sys:String>
@@ -19,18 +35,78 @@
     <sys:String x:Key="SwiftLabelSplashIcon">🏷️</sys:String>
     <sys:String x:Key="OrderLogIcon">🗒️</sys:String>
     <sys:String x:Key="OrderLogSplashIcon">📓</sys:String>
+    <sys:String x:Key="OrderLogIcon">🗒️</sys:String>
+    <sys:String x:Key="OrderLogSplashIcon">📓</sys:String>
     
-    <!-- OrderLog Settings -->
+    <!-- ============ ORDERLOG SETTINGS ============ -->
     <sys:Boolean x:Key="OrderLogCardUseFullColor">False</sys:Boolean>
     
+    <!-- ============ COLORS ============ -->
     <!-- Background & Surface Colors -->
+    <Color x:Key="BackgroundColor">{x:Static SystemColors.WindowColor}</Color>
+    <Color x:Key="SurfaceColor">{x:Static SystemColors.ControlColor}</Color>
+    <Color x:Key="SurfaceHoverColor">{x:Static SystemColors.ControlLightColor}</Color>
+    <Color x:Key="SurfaceActiveColor">{x:Static SystemColors.ControlLightLightColor}</Color>
+    <Color x:Key="BorderColor">{x:Static SystemColors.ActiveBorderColor}</Color>
+    <Color x:Key="BorderDarkColor">{x:Static SystemColors.ControlDarkColor}</Color>
+    <Color x:Key="BorderLightColor">{x:Static SystemColors.ControlLightColor}</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimaryColor">{x:Static SystemColors.ControlTextColor}</Color>
+    <Color x:Key="TextSecondaryColor">{x:Static SystemColors.GrayTextColor}</Color>
+    <Color x:Key="TextTertiaryColor">{x:Static SystemColors.GrayTextColor}</Color>
+    <Color x:Key="TextDisabledColor">{x:Static SystemColors.GrayTextColor}</Color>
+    <Color x:Key="TextOnPrimaryColor">White</Color>
+    <Color x:Key="TextLinkColor">{x:Static SystemColors.HotTrackColor}</Color>
+    
+    <!-- Module Light Colors -->
+    <Color x:Key="ExpireWiseLightColor">#fff3cd</Color>
+    <Color x:Key="AllocationBuddyLightColor">#e8daff</Color>
+    <Color x:Key="EssentialsBuddyLightColor">#d4edda</Color>
+    <Color x:Key="SwiftLabelLightColor">#f8d7da</Color>
+    
+    <!-- Stock Status Colors -->
+    <Color x:Key="OutOfStockColor">#f8d7da</Color>
+    <Color x:Key="OutOfStockTextColor">#dc3545</Color>
+    <Color x:Key="LowStockColor">#fff3cd</Color>
+    <Color x:Key="LowStockTextColor">#ffc107</Color>
+    <Color x:Key="SufficientColor">#d4edda</Color>
+    <Color x:Key="SufficientTextColor">#28a745</Color>
+    <Color x:Key="InStockColor">#d4edda</Color>
+    <Color x:Key="InStockTextColor">#28a745</Color>
+    
+    <!-- Non-Essential 990 Colors -->
+    <Color x:Key="NonEssentialIn990Color">#e8daff</Color>
+    <Color x:Key="NonEssentialIn990TextColor">#6366f1</Color>
+    
+    <!-- Shadow Color -->
+    <Color x:Key="ShadowColor">#808080</Color>
+    <Color x:Key="DialogTitleBarShadowColor">#808080</Color>
+    <Color x:Key="AppLogoShadowColor">#808080</Color>
+    <Color x:Key="ExpireWiseIconShadowColor">#f59e0b</Color>
+    <Color x:Key="AllocationBuddyIconShadowColor">#6366f1</Color>
+    <Color x:Key="EssentialsBuddyIconShadowColor">#10b981</Color>
+    <Color x:Key="SwiftLabelIconShadowColor">#ec4899</Color>
+    <Color x:Key="OrderLogIconShadowColor">#14b8a6</Color>
+    <Color x:Key="LaunchButtonShadowColor">#808080</Color>
+    
+    <!-- Sidebar Colors -->
+    <Color x:Key="SidebarBackgroundColor">{x:Static SystemColors.ControlColor}</Color>
+    <Color x:Key="SidebarHoverColor">{x:Static SystemColors.ControlLightColor}</Color>
+    <Color x:Key="SidebarActiveColor">{x:Static SystemColors.HighlightColor}</Color>
+    
+    <!-- ============ BRUSHES ============ -->
+    <!-- Background & Surface Brushes -->
     <SolidColorBrush x:Key="BackgroundBrush" Color="{x:Static SystemColors.WindowColor}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{x:Static SystemColors.ControlColor}"/>
     <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
     <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{x:Static SystemColors.ControlLightLightColor}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="{x:Static SystemColors.WindowColor}"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="{x:Static SystemColors.ActiveBorderColor}"/>
     
-    <!-- Text Colors -->
+    <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
     <SolidColorBrush x:Key="TextTertiaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
@@ -38,89 +114,151 @@
     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="White"/>
     <SolidColorBrush x:Key="TextLinkBrush" Color="{x:Static SystemColors.HotTrackColor}"/>
     
-    <!-- Border & Accent -->
+    <!-- Border Brushes -->
     <SolidColorBrush x:Key="BorderBrush" Color="{x:Static SystemColors.ActiveBorderColor}"/>
-    <SolidColorBrush x:Key="AccentBrush" Color="{x:Static SystemColors.HighlightColor}"/>
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="BorderLightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="BorderDarkBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
     
-    <!-- Status Colors -->
+    <!-- 3D Border Brushes (for classic Windows raised/sunken look) -->
+    <SolidColorBrush x:Key="RaisedBorderLightBrush" Color="{x:Static SystemColors.ControlLightLightColor}"/>
+    <SolidColorBrush x:Key="RaisedBorderHighlightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="RaisedBorderDarkBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
+    <SolidColorBrush x:Key="RaisedBorderShadowBrush" Color="{x:Static SystemColors.ControlDarkDarkColor}"/>
+    
+    <SolidColorBrush x:Key="SunkenBorderDarkBrush" Color="{x:Static SystemColors.ControlDarkDarkColor}"/>
+    <SolidColorBrush x:Key="SunkenBorderShadowBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
+    <SolidColorBrush x:Key="SunkenBorderHighlightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="SunkenBorderLightBrush" Color="{x:Static SystemColors.ControlLightLightColor}"/>
+    
+    <!-- Accent & Primary Brushes -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="AccentLightBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="SecondaryLightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="SecondaryDarkBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
+    <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    
+    <!-- Status Brushes -->
     <SolidColorBrush x:Key="SuccessBrush" Color="#28a745"/>
     <SolidColorBrush x:Key="SuccessLightBrush" Color="#d4edda"/>
+    <SolidColorBrush x:Key="SuccessDarkBrush" Color="#1e7e34"/>
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="#d4edda"/>
+    
     <SolidColorBrush x:Key="WarningBrush" Color="#ffc107"/>
     <SolidColorBrush x:Key="WarningLightBrush" Color="#fff3cd"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="#e0a800"/>
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#fff3cd"/>
+    
     <SolidColorBrush x:Key="DangerBrush" Color="#dc3545"/>
     <SolidColorBrush x:Key="DangerLightBrush" Color="#f8d7da"/>
-    <SolidColorBrush x:Key="InfoBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    <SolidColorBrush x:Key="DangerDarkBrush" Color="#b02a37"/>
+    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#f8d7da"/>
     
-    <!-- OrderLog Card Colors -->
+    <SolidColorBrush x:Key="InfoBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    <SolidColorBrush x:Key="InfoLightBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    <SolidColorBrush x:Key="InfoDarkBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    
+    <!-- Stock Status Brushes -->
+    <SolidColorBrush x:Key="OutOfStockBrush" Color="#f8d7da"/>
+    <SolidColorBrush x:Key="OutOfStockTextBrush" Color="#dc3545"/>
+    <SolidColorBrush x:Key="OutOfStockAccentBrush" Color="#dc3545"/>
+    
+    <SolidColorBrush x:Key="LowStockBrush" Color="#fff3cd"/>
+    <SolidColorBrush x:Key="LowStockTextBrush" Color="#ffc107"/>
+    <SolidColorBrush x:Key="LowStockAccentBrush" Color="#ffc107"/>
+    
+    <SolidColorBrush x:Key="SufficientBrush" Color="#d4edda"/>
+    <SolidColorBrush x:Key="SufficientTextBrush" Color="#28a745"/>
+    <SolidColorBrush x:Key="SufficientAccentBrush" Color="#28a745"/>
+    
+    <SolidColorBrush x:Key="InStockBrush" Color="#d4edda"/>
+    <SolidColorBrush x:Key="InStockTextBrush" Color="#28a745"/>
+    
+    <SolidColorBrush x:Key="NonEssentialIn990Brush" Color="#e8daff"/>
+    <SolidColorBrush x:Key="NonEssentialIn990TextBrush" Color="#6366f1"/>
+    <SolidColorBrush x:Key="NonEssentialIn990AccentBrush" Color="#6366f1"/>
+    
+    <!-- Title Bar Brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ActiveCaptionColor}"/>
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#e81123"/>
+    <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="White"/>
+    
+    <!-- Sidebar Brushes -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="SidebarHoverBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
+    <SolidColorBrush x:Key="SidebarActiveBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    
+    <!-- Module Light Brushes -->
+    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="#fff3cd"/>
+    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="#e8daff"/>
+    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="#d4edda"/>
+    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="#f8d7da"/>
+    
+    <!-- OrderLog Card Brushes -->
     <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="{x:Static SystemColors.ControlColor}"/>
     <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="{x:Static SystemColors.ControlColor}"/>
     <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="{x:Static SystemColors.ControlColor}"/>
     <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="{x:Static SystemColors.ControlColor}"/>
     <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="{x:Static SystemColors.ControlColor}"/>
     
-    <!-- Title Bar -->
-    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ActiveCaptionColor}"/>
-    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
-    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#e81123"/>
-    <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="White"/>
+    <!-- Splash & Section Brushes -->
+    <SolidColorBrush x:Key="SplashTitleBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
+    <SolidColorBrush x:Key="SplashSubtitleBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
+    <SolidColorBrush x:Key="SectionTitleBarBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="{x:Static SystemColors.HighlightTextColor}"/>
+    <SolidColorBrush x:Key="StatusOnlineBrush" Color="#28a745"/>
     
-    <!-- Sidebar -->
-    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    
-    <!-- Module Colors -->
-    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="#fff3cd"/>
-    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="#e8daff"/>
-    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="#d4edda"/>
-    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="#f8d7da"/>
-    
-    <!-- Corner Radius - Set to 0 for classic Windows look -->
-    <CornerRadius x:Key="XSmallCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="SmallCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="MediumCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="LargeCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="BadgeCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="TitleBarCornerRadius">0,0,0,0</CornerRadius>
-    <CornerRadius x:Key="SidebarCornerRadius">0</CornerRadius>
-    
-    <!-- Additional common tokens used across the app -->
-    <sys:Double x:Key="CardFontSize">12</sys:Double>
-    <sys:Double x:Key="SmallFontSize">11</sys:Double>
-
-    <!-- Overlay / popup brushes -->
+    <!-- Overlay Brushes -->
+    <SolidColorBrush x:Key="OverlayLightBrush" Color="#33000000"/>
     <SolidColorBrush x:Key="OverlayMediumBrush" Color="#AA000000"/>
     <SolidColorBrush x:Key="TextOnOverlayBrush" Color="White"/>
     <SolidColorBrush x:Key="TextOnOverlayDimBrush" Color="#CCFFFFFF"/>
-
-    <!-- Border variants -->
-    <SolidColorBrush x:Key="BorderLightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
-    <SolidColorBrush x:Key="BorderDarkBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
-
-    <!-- Dialog / Title gradients and shadows -->
-    <LinearGradientBrush x:Key="DialogTitleBarGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="{Binding Source={StaticResource TitleBarBackgroundBrush}, Path=Color}" Offset="0"/>
-        <GradientStop Color="{x:Static SystemColors.ActiveCaptionColor}" Offset="1"/>
-    </LinearGradientBrush>
-    <Color x:Key="DialogTitleBarShadowColor">#40000000</Color>
-
-    <!-- Section / heading brushes -->
-    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
-
-    <!-- Window corner radius fallback -->
-    <CornerRadius x:Key="WindowCornerRadius">0</CornerRadius>
-
-    <!-- Danger / Warning dark variants -->
-    <SolidColorBrush x:Key="DangerDarkBrush" Color="#b02a37"/>
-    <SolidColorBrush x:Key="WarningDarkBrush" Color="#e0a800"/>
-    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#f8d7da"/>
-
-    <!-- Elevated widget/card style used by widgets — basic fallback -->
+    
+    <!-- ============ GRADIENT BRUSHES ============ -->
+    <!-- Replace all gradients with solid colors for basic theme -->
+    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="{x:Static SystemColors.WindowColor}"/>
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="DialogTitleBarGradient" Color="{x:Static SystemColors.ActiveCaptionColor}"/>
+    
+    <!-- Module Splash Gradients (use solid colors) -->
+    <SolidColorBrush x:Key="ExpireWiseSplashGradient" Color="#fff3cd"/>
+    <SolidColorBrush x:Key="AllocationBuddySplashGradient" Color="#e8daff"/>
+    <SolidColorBrush x:Key="EssentialsBuddySplashGradient" Color="#d4edda"/>
+    <SolidColorBrush x:Key="SwiftLabelSplashGradient" Color="#f8d7da"/>
+    <SolidColorBrush x:Key="OrderLogSplashGradient" Color="#d1fae5"/>
+    
+    <!-- Module Icon Gradients (use solid colors) -->
+    <SolidColorBrush x:Key="ExpireWiseIconGradient" Color="#ffc107"/>
+    <SolidColorBrush x:Key="AllocationBuddyIconGradient" Color="#6366f1"/>
+    <SolidColorBrush x:Key="EssentialsBuddyIconGradient" Color="#28a745"/>
+    <SolidColorBrush x:Key="SwiftLabelIconGradient" Color="#ec4899"/>
+    <SolidColorBrush x:Key="OrderLogIconGradient" Color="#14b8a6"/>
+    <SolidColorBrush x:Key="AppLogoGradient" Color="{x:Static SystemColors.HighlightColor}"/>
+    
+    <!-- Launch Button Gradients (use solid highlight color) -->
+    <SolidColorBrush x:Key="LaunchButtonGradient" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="LaunchButtonHoverGradient" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="LaunchButtonPressedGradient" Color="{x:Static SystemColors.HighlightColor}"/>
+    
+    <!-- ============ FONT SIZES ============ -->
+    <sys:Double x:Key="CardFontSize">12</sys:Double>
+    <sys:Double x:Key="SmallFontSize">11</sys:Double>
+    
+    <!-- ============ STYLES ============ -->
+    <!-- Basic control styles using default Windows appearance -->
+    
+    <!-- Elevated widget/card style -->
     <Style x:Key="WidgetElevatedCardStyle" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}"/>
+        <Setter Property="CornerRadius" Value="0"/>
         <Setter Property="Padding" Value="12"/>
     </Style>
 
@@ -133,7 +271,6 @@
         <Setter Property="Padding" Value="6,4"/>
     </Style>
     
-    <!-- Basic Styles - Use default Windows styles -->
     <Style x:Key="ModernButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>

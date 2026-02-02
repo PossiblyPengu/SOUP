@@ -158,13 +158,18 @@ public partial class OrderTemplateEditorDialog : Window
 
     private void ColorPreview_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        // TODO: Open color picker dialog (OrderColorPickerWindow)
-        // For now, just cycle through preset colors
-        var presets = new[] { "#B56576", "#E63946", "#F77F00", "#FCBF49", "#06A77D", "#277DA1", "#5A189A", "#D62828" };
-        var currentIndex = Array.IndexOf(presets, _currentColorHex);
-        var nextIndex = (currentIndex + 1) % presets.Length;
-        _currentColorHex = presets[nextIndex];
-        UpdateColorPreview();
+        // Open color picker dialog
+        var colorPicker = new OrderColorPickerWindow(_currentColorHex)
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        if (colorPicker.ShowDialog() == true)
+        {
+            _currentColorHex = colorPicker.SelectedColor;
+            UpdateColorPreview();
+        }
     }
 
     private void ColorPreset_MouseDown(object sender, MouseButtonEventArgs e)

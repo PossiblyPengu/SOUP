@@ -46,9 +46,9 @@ public partial class QuickAddDialog : UserControl
     /// </summary>
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
-        if (Tag is Action closeAction)
+        if (Tag is Action<object?> closeAction)
         {
-            closeAction();
+            closeAction(null);
         }
     }
 

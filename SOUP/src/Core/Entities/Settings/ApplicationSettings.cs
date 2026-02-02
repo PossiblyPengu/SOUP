@@ -15,7 +15,7 @@ public class ApplicationSettings
     /// <summary>
     /// When true, use basic Windows theme with no custom styling
     /// </summary>
-    public bool UseBasicTheme { get; set; } = false;
+    public bool UseBasicTheme { get; set; } = true;
 
     // ===== Startup =====
 
