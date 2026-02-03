@@ -160,7 +160,8 @@ public class OrderSearchService
         DateTime? endDate = null,
         string[]? colorHexes = null,
         NoteType? noteType = null,
-        NoteCategory? noteCategory = null)
+        NoteCategory? noteCategory = null,
+        bool expandLinkedGroups = true)
     {
         var result = items;
 
@@ -194,7 +195,58 @@ public class OrderSearchService
             result = FilterByNoteCategory(result, noteCategory);
         }
 
+        // When searching, expand results to include entire linked groups
+        if (expandLinkedGroups && !string.IsNullOrWhiteSpace(query))
+        {
+            result = ExpandLinkedGroups(result, items);
+        }
+
         return result;
+    }
+
+    /// <summary>
+    /// Expands the filtered results to include all items in any linked group
+    /// where at least one item matched the filter.
+    /// </summary>
+    /// <param name="filteredItems">Items that matched the filter</param>
+    /// <param name="allItems">All items to search for linked group members</param>
+    /// <returns>Expanded results including entire linked groups</returns>
+    public IEnumerable<OrderItem> ExpandLinkedGroups(IEnumerable<OrderItem> filteredItems, IEnumerable<OrderItem> allItems)
+    {
+        var filteredList = filteredItems.ToList();
+        
+        // Get all linked group IDs from the filtered items
+        var matchedGroupIds = filteredList
+            .Where(item => item.LinkedGroupId.HasValue)
+            .Select(item => item.LinkedGroupId!.Value)
+            .Distinct()
+            .ToHashSet();
+
+        if (matchedGroupIds.Count == 0)
+        {
+            // No linked groups in results, return as-is
+            return filteredList;
+        }
+
+        // Get all items that belong to any of the matched linked groups
+        var linkedGroupMembers = allItems
+            .Where(item => item.LinkedGroupId.HasValue && matchedGroupIds.Contains(item.LinkedGroupId.Value))
+            .ToList();
+
+        // Combine: original filtered items + linked group members (avoiding duplicates)
+        var resultIds = filteredList.Select(i => i.Id).ToHashSet();
+        var expandedResults = new List<OrderItem>(filteredList);
+
+        foreach (var member in linkedGroupMembers)
+        {
+            if (!resultIds.Contains(member.Id))
+            {
+                expandedResults.Add(member);
+                resultIds.Add(member.Id);
+            }
+        }
+
+        return expandedResults;
     }
 
     /// <summary>

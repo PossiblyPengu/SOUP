@@ -69,41 +69,22 @@
     <FontWeight x:Key="WidgetBodyFontWeight">Normal</FontWeight>
     
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
-    <!-- WIDGET-SPECIFIC COLORS                                                       -->
-    <!-- Now references main theme colors via DynamicResource for theme switching    -->
+    <!-- WIDGET-SPECIFIC BRUSHES                                                      -->
+    <!-- Colors are defined in DarkTheme.xaml and LightTheme.xaml                    -->
+    <!-- These brushes reference theme colors via DynamicResource for switching      -->
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
     
-    <!-- Status Colors (Softer variants for accessibility) -->
-    <Color x:Key="WidgetStatusNotReadyColor">#FF6B6B</Color>
-    <Color x:Key="WidgetStatusOnDeckColor">#FFB347</Color>
-    <Color x:Key="WidgetStatusInProgressColor">#4ECDC4</Color>
-    <Color x:Key="WidgetStatusDoneColor">#71717A</Color>
+    <!-- Status Brushes - Use DynamicResource for theme switching -->
+    <SolidColorBrush x:Key="WidgetStatusNotReadyBrush" Color="{DynamicResource WidgetStatusNotReadyColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusOnDeckBrush" Color="{DynamicResource WidgetStatusOnDeckColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusInProgressBrush" Color="{DynamicResource WidgetStatusInProgressColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusDoneBrush" Color="{DynamicResource WidgetStatusDoneColor}"/>
     
-    <!-- Status Background Colors (Very subtle tints) -->
-    <Color x:Key="WidgetStatusNotReadyBgColor">#2A1F1F</Color>
-    <Color x:Key="WidgetStatusOnDeckBgColor">#2A261F</Color>
-    <Color x:Key="WidgetStatusInProgressBgColor">#1F2A2A</Color>
-    <Color x:Key="WidgetStatusDoneBgColor">#1F1F1F</Color>
-    
-    <!-- Note Colors (Vibrant but not harsh) -->
-    <Color x:Key="WidgetNoteYellowColor">#FFEAA7</Color>
-    <Color x:Key="WidgetNotePinkColor">#FDA7DF</Color>
-    <Color x:Key="WidgetNoteBlueColor">#A7D8FF</Color>
-    <Color x:Key="WidgetNoteGreenColor">#A7FFD0</Color>
-    <Color x:Key="WidgetNotePurpleColor">#D0A7FF</Color>
-    
-    <!-- Status Brushes -->
-    <SolidColorBrush x:Key="WidgetStatusNotReadyBrush" Color="{StaticResource WidgetStatusNotReadyColor}"/>
-    <SolidColorBrush x:Key="WidgetStatusOnDeckBrush" Color="{StaticResource WidgetStatusOnDeckColor}"/>
-    <!-- Use global SuccessColor to match card highlight green -->
-    <SolidColorBrush x:Key="WidgetStatusInProgressBrush" Color="{StaticResource SuccessColor}"/>
-    <SolidColorBrush x:Key="WidgetStatusDoneBrush" Color="{StaticResource WidgetStatusDoneColor}"/>
-    
-    <!-- Status Background Brushes -->
-    <SolidColorBrush x:Key="WidgetStatusNotReadyBgBrush" Color="{StaticResource WidgetStatusNotReadyBgColor}"/>
-    <SolidColorBrush x:Key="WidgetStatusOnDeckBgBrush" Color="{StaticResource WidgetStatusOnDeckBgColor}"/>
-    <SolidColorBrush x:Key="WidgetStatusInProgressBgBrush" Color="{StaticResource WidgetStatusInProgressBgColor}"/>
-    <SolidColorBrush x:Key="WidgetStatusDoneBgBrush" Color="{StaticResource WidgetStatusDoneBgColor}"/>
+    <!-- Status Background Brushes - Use DynamicResource for theme switching -->
+    <SolidColorBrush x:Key="WidgetStatusNotReadyBgBrush" Color="{DynamicResource WidgetStatusNotReadyBgColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusOnDeckBgBrush" Color="{DynamicResource WidgetStatusOnDeckBgColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusInProgressBgBrush" Color="{DynamicResource WidgetStatusInProgressBgColor}"/>
+    <SolidColorBrush x:Key="WidgetStatusDoneBgBrush" Color="{DynamicResource WidgetStatusDoneBgColor}"/>
     
     <!-- ─────────────────────────────────────────────────────────────────────────── -->
     <!-- ELEVATION & SHADOWS - Modern Three-Tier System                              -->

@@ -316,6 +316,17 @@ public partial class OrderLogWidgetWindow : Window
         // Clear taskbar overlay immediately
         ClearTaskbarOverlay();
 
+        // Unsubscribe from theme changes
+        try
+        {
+            var themeService = _serviceProvider.GetService<ThemeService>();
+            if (themeService != null)
+            {
+                themeService.ThemeChanged -= OnThemeChanged;
+            }
+        }
+        catch { }
+
         // Unsubscribe from shared update scheduler
         try
         {

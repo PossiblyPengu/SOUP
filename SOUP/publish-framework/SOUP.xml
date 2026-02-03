@@ -2534,7 +2534,7 @@
             <param name="noteCategory">Category to filter by (null = all)</param>
             <returns>Filtered items</returns>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ApplyAllFilters(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory})">
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ApplyAllFilters(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.String,SOUP.Features.OrderLog.Models.OrderItem.OrderStatus[],System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String[],System.Nullable{SOUP.Features.OrderLog.Models.NoteType},System.Nullable{SOUP.Features.OrderLog.Models.NoteCategory},System.Boolean)">
             <summary>
             Applies all filters in sequence
             </summary>
@@ -2547,6 +2547,15 @@
             <param name="noteType">Note type filter</param>
             <param name="noteCategory">Note category filter (only applies to sticky notes)</param>
             <returns>Filtered items</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ExpandLinkedGroups(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
+            <summary>
+            Expands the filtered results to include all items in any linked group
+            where at least one item matched the filter.
+            </summary>
+            <param name="filteredItems">Items that matched the filter</param>
+            <param name="allItems">All items to search for linked group members</param>
+            <returns>Expanded results including entire linked groups</returns>
         </member>
         <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.GetMatches(SOUP.Features.OrderLog.Models.OrderItem,System.String)">
             <summary>
@@ -3430,6 +3439,11 @@
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.FocusSearchBox">
             <summary>
             Focuses the search box and selects all text for quick editing
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.SearchBorder_MouseLeftButtonDown(System.Object,System.Windows.Input.MouseButtonEventArgs)">
+            <summary>
+            Click handler for the search border to focus the search box
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ScrollToTop">

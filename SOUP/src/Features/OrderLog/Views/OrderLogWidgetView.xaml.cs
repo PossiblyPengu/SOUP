@@ -2499,6 +2499,15 @@ public partial class OrderLogWidgetView : UserControl
     }
 
     /// <summary>
+    /// Click handler for the search border to focus the search box
+    /// </summary>
+    private void SearchBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        FocusSearchBox();
+        e.Handled = true;
+    }
+
+    /// <summary>
     /// Scrolls the main content to the top
     /// </summary>
     private void ScrollToTop()

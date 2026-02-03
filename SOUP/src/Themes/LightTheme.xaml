@@ -23,25 +23,33 @@
     <!-- OrderLog Settings -->
     <sys:Boolean x:Key="OrderLogCardUseFullColor">False</sys:Boolean>
     
-    <!-- Background & Surface Colors -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="{x:Static SystemColors.WindowColor}"/>
-    <SolidColorBrush x:Key="SurfaceBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
-    <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{x:Static SystemColors.ControlLightLightColor}"/>
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <!-- Base Colors (for DynamicResource bindings) -->
+    <Color x:Key="BackgroundColor">#FFFFFF</Color>
+    <Color x:Key="SurfaceColor">#F0F0F0</Color>
+    <Color x:Key="SurfaceHoverColor">#E5E5E5</Color>
+    <Color x:Key="SurfaceActiveColor">#D9D9D9</Color>
+    <Color x:Key="TextPrimaryColor">#1A1A1A</Color>
+    <Color x:Key="TextSecondaryColor">#6B7280</Color>
     
-    <!-- Text Colors -->
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
-    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
-    <SolidColorBrush x:Key="TextDisabledBrush" Color="{x:Static SystemColors.GrayTextColor}"/>
+    <!-- Background & Surface Brushes -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}"/>
+    <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{StaticResource SurfaceActiveColor}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SurfaceColor}"/>
+    
+    <!-- Text Brushes -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#9CA3AF"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="#9CA3AF"/>
     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="White"/>
-    <SolidColorBrush x:Key="TextLinkBrush" Color="{x:Static SystemColors.HotTrackColor}"/>
+    <SolidColorBrush x:Key="TextLinkBrush" Color="#0078D7"/>
     
     <!-- Border & Accent -->
-    <SolidColorBrush x:Key="BorderBrush" Color="{x:Static SystemColors.ActiveBorderColor}"/>
-    <SolidColorBrush x:Key="AccentBrush" Color="{x:Static SystemColors.HighlightColor}"/>
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{x:Static SystemColors.HighlightColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#D1D5DB"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#0078D7"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#0078D7"/>
     
     <!-- Status Colors -->
     <SolidColorBrush x:Key="SuccessBrush" Color="#28a745"/>
@@ -53,15 +61,39 @@
     <SolidColorBrush x:Key="InfoBrush" Color="{x:Static SystemColors.InfoColor}"/>
     
     <!-- OrderLog Card Colors -->
-    <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="#FEE2E2"/>
+    <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="#FEF3C7"/>
+    <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="#D1FAE5"/>
     <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="#FEF9C3"/>
+
+    <!-- Widget Status Background Colors (light tints for light theme) -->
+    <Color x:Key="WidgetStatusNotReadyBgColor">#FEE2E2</Color>
+    <Color x:Key="WidgetStatusOnDeckBgColor">#FEF3C7</Color>
+    <Color x:Key="WidgetStatusInProgressBgColor">#D1FAE5</Color>
+    <Color x:Key="WidgetStatusDoneBgColor">#F3F4F6</Color>
+
+    <!-- Widget Status Text Colors (darker for contrast on light backgrounds) -->
+    <Color x:Key="WidgetStatusNotReadyColor">#DC2626</Color>
+    <Color x:Key="WidgetStatusOnDeckColor">#D97706</Color>
+    <Color x:Key="WidgetStatusInProgressColor">#059669</Color>
+    <Color x:Key="WidgetStatusDoneColor">#6B7280</Color>
+
+    <!-- Note Colors (softer for light theme) -->
+    <Color x:Key="WidgetNoteYellowColor">#FCD34D</Color>
+    <Color x:Key="WidgetNotePinkColor">#F9A8D4</Color>
+    <Color x:Key="WidgetNoteBlueColor">#93C5FD</Color>
+    <Color x:Key="WidgetNoteGreenColor">#86EFAC</Color>
+    <Color x:Key="WidgetNotePurpleColor">#C4B5FD</Color>
+
+    <!-- Success/Accent Color for widget -->
+    <Color x:Key="SuccessColor">#22C55E</Color>
+    <Color x:Key="AccentColor">#0078D7</Color>
+    <Color x:Key="BorderColor">#D1D5DB</Color>
     
-    <!-- Title Bar -->
-    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ActiveCaptionColor}"/>
-    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
+    <!-- Title Bar - Use light gray for Windows native look -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#e81123"/>
     <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="White"/>
     

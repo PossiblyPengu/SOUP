@@ -50,6 +50,27 @@
     <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="#18181b"/>
     <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="#18181b"/>
 
+    <!-- Widget Status Colors (dark theme) -->
+    <Color x:Key="WidgetStatusNotReadyBgColor">#2A1F1F</Color>
+    <Color x:Key="WidgetStatusOnDeckBgColor">#2A261F</Color>
+    <Color x:Key="WidgetStatusInProgressBgColor">#1F252A</Color>
+    <Color x:Key="WidgetStatusDoneBgColor">#1F2A1F</Color>
+    <Color x:Key="WidgetStatusNotReadyColor">#F87171</Color>
+    <Color x:Key="WidgetStatusOnDeckColor">#FBBF24</Color>
+    <Color x:Key="WidgetStatusInProgressColor">#60A5FA</Color>
+    <Color x:Key="WidgetStatusDoneColor">#4ADE80</Color>
+    
+    <!-- Widget Note Colors (dark theme) -->
+    <Color x:Key="WidgetNoteYellowColor">#FEF3C7</Color>
+    <Color x:Key="WidgetNotePinkColor">#FCE7F3</Color>
+    <Color x:Key="WidgetNoteBlueColor">#DBEAFE</Color>
+    <Color x:Key="WidgetNoteGreenColor">#D1FAE5</Color>
+    <Color x:Key="WidgetNotePurpleColor">#EDE9FE</Color>
+    
+    <!-- Widget Accent Colors (dark theme) -->
+    <Color x:Key="SuccessColor">#22C55E</Color>
+    <Color x:Key="AccentColor">#3B82F6</Color>
+
     <!-- ============================= -->
     <!-- DARK THEME COLORS             -->
     <!-- ============================= -->

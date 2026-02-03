@@ -13,10 +13,10 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
-            <!-- Merge themes: base styles first, then colors, then widget-specific -->
+            <!-- Merge themes: base styles first, then widget-specific -->
+            <!-- Color theme (DarkTheme/LightTheme) comes from the parent window's resources -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Themes/ModernStyles.xaml"/>
-                <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
                 <ResourceDictionary Source="../Themes/OrderLogWidgetTheme.xaml"/>
                 <ResourceDictionary Source="../Themes/ModernHeaderStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -1337,14 +1337,15 @@
                                 CornerRadius="24"
                                 Height="48"
                                 Margin="0,0,12,0"
-                                FocusManager.IsFocusScope="True">
+                                Cursor="IBeam"
+                                MouseLeftButtonDown="SearchBorder_MouseLeftButtonDown">
                             <Border.Background>
                                 <SolidColorBrush Color="{DynamicResource SurfaceHoverColor}" Opacity="0.95"/>
                             </Border.Background>
                             <Border.Effect>
                                 <DropShadowEffect Color="#20000000" BlurRadius="16" ShadowDepth="4" Opacity="0.2"/>
                             </Border.Effect>
-                            <Grid FocusManager.FocusedElement="{Binding ElementName=SearchBox}">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
@@ -1381,7 +1382,8 @@
                                                                       FontStyle="Italic"
                                                                       Foreground="{DynamicResource TextDisabledBrush}"
                                                                       IsHitTestVisible="False"
-                                                                      VerticalAlignment="Center">
+                                                                      VerticalAlignment="Center"
+                                                                      Margin="0,0,0,0">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -1393,7 +1395,11 @@
                                                                     </Style>
                                                                 </TextBlock.Style>
                                                             </TextBlock>
-                                                            <ScrollViewer x:Name="PART_ContentHost"/>
+                                                            <ScrollViewer x:Name="PART_ContentHost" 
+                                                                          Margin="0" 
+                                                                          VerticalAlignment="Center"
+                                                                          HorizontalScrollBarVisibility="Hidden"
+                                                                          VerticalScrollBarVisibility="Hidden"/>
                                                         </Grid>
                                                     </ControlTemplate>
                                                 </Setter.Value>
