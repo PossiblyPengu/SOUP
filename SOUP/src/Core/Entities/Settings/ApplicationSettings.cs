@@ -12,11 +12,6 @@ public class ApplicationSettings
     /// </summary>
     public bool IsDarkMode { get; set; } = true;
 
-    /// <summary>
-    /// When true, use basic Windows theme with no custom styling
-    /// </summary>
-    public bool UseBasicTheme { get; set; } = false;
-
     // ===== Startup =====
 
     /// <summary>

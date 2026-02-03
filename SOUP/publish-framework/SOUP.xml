@@ -1015,11 +1015,6 @@
             When true, use dark theme; otherwise use light theme
             </summary>
         </member>
-        <member name="P:SOUP.Core.Entities.Settings.ApplicationSettings.UseBasicTheme">
-            <summary>
-            When true, use basic Windows theme with no custom styling
-            </summary>
-        </member>
         <member name="P:SOUP.Core.Entities.Settings.ApplicationSettings.DefaultModule">
             <summary>
             The module to show when the application starts (e.g., "allocation", "essentials", "expirewise")
@@ -4549,19 +4544,9 @@
             Gets or sets whether dark mode is currently active.
             </summary>
         </member>
-        <member name="F:SOUP.Services.ThemeService._useBasicTheme">
-            <summary>
-            Gets or sets whether to use basic Windows theme (no custom styling).
-            </summary>
-        </member>
         <member name="E:SOUP.Services.ThemeService.ThemeChanged">
             <summary>
             Occurs when the theme changes between light and dark mode.
-            </summary>
-        </member>
-        <member name="M:SOUP.Services.ThemeService.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:SOUP.Services.ThemeService"/> class.
             </summary>
         </member>
         <member name="M:SOUP.Services.ThemeService.ToggleTheme">
@@ -4605,16 +4590,8 @@
             Gets or sets whether dark mode is enabled.
             </summary>
         </member>
-        <member name="P:SOUP.Services.ThemeService.ThemeSettings.UseBasicTheme">
-            <summary>
-            Gets or sets whether to use basic Windows theme.
-            </summary>
-        </member>
         <member name="P:SOUP.Services.ThemeService.IsDarkMode">
             <inheritdoc cref="F:SOUP.Services.ThemeService._isDarkMode"/>
-        </member>
-        <member name="P:SOUP.Services.ThemeService.UseBasicTheme">
-            <inheritdoc cref="F:SOUP.Services.ThemeService._useBasicTheme"/>
         </member>
         <member name="T:SOUP.Services.TrayIconService">
             <summary>
@@ -5512,9 +5489,6 @@
         <member name="P:SOUP.ViewModels.ApplicationSettingsViewModel.IsDarkMode">
             <inheritdoc cref="F:SOUP.ViewModels.ApplicationSettingsViewModel._isDarkMode"/>
         </member>
-        <member name="P:SOUP.ViewModels.ApplicationSettingsViewModel.UseBasicTheme">
-            <inheritdoc cref="F:SOUP.ViewModels.ApplicationSettingsViewModel._useBasicTheme"/>
-        </member>
         <member name="P:SOUP.ViewModels.ApplicationSettingsViewModel.DefaultModule">
             <inheritdoc cref="F:SOUP.ViewModels.ApplicationSettingsViewModel._defaultModule"/>
         </member>
@@ -5552,11 +5526,6 @@
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ApplicationSettingsViewModel.IsDarkMode"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ApplicationSettingsViewModel.IsDarkMode"/> is changed.</remarks>
-        </member>
-        <member name="M:SOUP.ViewModels.ApplicationSettingsViewModel.OnUseBasicThemeChanged(System.Boolean)">
-            <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ApplicationSettingsViewModel.UseBasicTheme"/> just changed.</summary>
-            <param name="value">The new property value that was set.</param>
-            <remarks>This method is invoked right after the value of <see cref="P:SOUP.ViewModels.ApplicationSettingsViewModel.UseBasicTheme"/> is changed.</remarks>
         </member>
         <member name="M:SOUP.ViewModels.ApplicationSettingsViewModel.OnDefaultModuleChanged(System.String)">
             <summary>Executes the logic for when <see cref="P:SOUP.ViewModels.ApplicationSettingsViewModel.DefaultModule"/> just changed.</summary>
@@ -8360,9 +8329,6 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.IsDarkMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "IsDarkMode" generated properties.</summary>
         </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.UseBasicTheme">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "UseBasicTheme" generated properties.</summary>
-        </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.SearchText">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "SearchText" generated properties.</summary>
         </member>
@@ -9058,9 +9024,6 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsDarkMode">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsDarkMode" generated properties.</summary>
-        </member>
-        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.UseBasicTheme">
-            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "UseBasicTheme" generated properties.</summary>
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.SearchText">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "SearchText" generated properties.</summary>

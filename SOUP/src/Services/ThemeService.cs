@@ -41,19 +41,10 @@ public partial class ThemeService : ObservableObject
     private bool _isDarkMode = true;
 
     /// <summary>
-    /// Gets or sets whether to use basic Windows theme (no custom styling).
-    /// </summary>
-    [ObservableProperty]
-    private bool _useBasicTheme = false;
-
-    /// <summary>
     /// Occurs when the theme changes between light and dark mode.
     /// </summary>
     public event EventHandler<bool>? ThemeChanged;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ThemeService"/> class.
-    /// </summary>
     public ThemeService()
     {
         _settingsPath = Path.Combine(Core.AppPaths.AppData, SettingsFileName);
@@ -107,52 +98,28 @@ public partial class ThemeService : ObservableObject
 
         try
         {
-            Serilog.Log.Debug("ApplyTheme: Starting. UseBasicTheme={UseBasicTheme}, IsDarkMode={IsDarkMode}", UseBasicTheme, IsDarkMode);
+            Serilog.Log.Debug("ApplyTheme: Starting. IsDarkMode={IsDarkMode}", IsDarkMode);
 
             // Clear all merged dictionaries first
             app.Resources.MergedDictionaries.Clear();
             Serilog.Log.Debug("ApplyTheme: Cleared merged dictionaries");
 
-            // If basic theme is enabled, load minimal Windows-style theme
-            if (UseBasicTheme)
+            // Load ModernStyles.xaml first (base styles), then color theme (colors override)
+            var modernStyles = new ResourceDictionary
             {
-                Serilog.Log.Debug("ApplyTheme: Using basic Windows theme");
+                Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
+            };
+            app.Resources.MergedDictionaries.Add(modernStyles);
+            Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
 
-                // Load ModernStyles first for all the control styles
-                var modernStyles = new ResourceDictionary
-                {
-                    Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(modernStyles);
-                Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
-
-                // Then override with basic theme colors
-                var basicTheme = new ResourceDictionary
-                {
-                    Source = new Uri("pack://application:,,,/Themes/BasicTheme.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(basicTheme);
-                Serilog.Log.Debug("ApplyTheme: Added BasicTheme.xaml");
-            }
-            else
+            var colorTheme = new ResourceDictionary
             {
-                // Load ModernStyles.xaml first (base styles), then color theme (colors override)
-                var modernStyles = new ResourceDictionary
-                {
-                    Source = new Uri("pack://application:,,,/Themes/ModernStyles.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(modernStyles);
-                Serilog.Log.Debug("ApplyTheme: Added ModernStyles.xaml");
-
-                var colorTheme = new ResourceDictionary
-                {
-                    Source = new Uri(IsDarkMode
-                        ? "pack://application:,,,/Themes/DarkTheme.xaml"
-                        : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
-                };
-                app.Resources.MergedDictionaries.Add(colorTheme);
-                Serilog.Log.Debug("ApplyTheme: Added {ThemeName}.xaml", IsDarkMode ? "DarkTheme" : "LightTheme");
-            }
+                Source = new Uri(IsDarkMode
+                    ? "pack://application:,,,/Themes/DarkTheme.xaml"
+                    : "pack://application:,,,/Themes/LightTheme.xaml", UriKind.Absolute)
+            };
+            app.Resources.MergedDictionaries.Add(colorTheme);
+            Serilog.Log.Debug("ApplyTheme: Added {ThemeName}.xaml", IsDarkMode ? "DarkTheme" : "LightTheme");
 
             // Raise event for any listeners
             ThemeChanged?.Invoke(this, IsDarkMode);
@@ -178,7 +145,6 @@ public partial class ThemeService : ObservableObject
                 if (settings != null)
                 {
                     IsDarkMode = settings.IsDarkMode;
-                    UseBasicTheme = settings.UseBasicTheme;
                     ApplyTheme();
                 }
             }
@@ -200,8 +166,7 @@ public partial class ThemeService : ObservableObject
         {
             var settings = new ThemeSettings
             {
-                IsDarkMode = IsDarkMode,
-                UseBasicTheme = UseBasicTheme
+                IsDarkMode = IsDarkMode
             };
 
             var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions
@@ -227,10 +192,5 @@ public partial class ThemeService : ObservableObject
         /// Gets or sets whether dark mode is enabled.
         /// </summary>
         public bool IsDarkMode { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether to use basic Windows theme.
-        /// </summary>
-        public bool UseBasicTheme { get; set; }
     }
 }

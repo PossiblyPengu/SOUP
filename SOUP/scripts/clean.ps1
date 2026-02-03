@@ -24,17 +24,58 @@ Write-Host "  SOUP Clean" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Kill any running SOUP processes first to release file locks
+$soupProcesses = Get-Process -Name "SOUP" -ErrorAction SilentlyContinue
+if ($soupProcesses) {
+    Write-Host "Stopping running SOUP processes..." -ForegroundColor Yellow
+    $soupProcesses | Stop-Process -Force
+    Start-Sleep -Milliseconds 500
+}
+
+# Also kill any dotnet processes that might be holding locks (e.g., hot reload)
+$dotnetProcesses = Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Where-Object {
+    $_.MainWindowTitle -like "*SOUP*" -or $_.CommandLine -like "*SOUP*"
+}
+if ($dotnetProcesses) {
+    Write-Host "Stopping dotnet processes..." -ForegroundColor Yellow
+    $dotnetProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
+}
+
+# Helper function to remove directory with retry
+function Remove-DirectoryWithRetry {
+    param([string]$Path, [int]$MaxRetries = 3)
+    
+    if (-not (Test-Path $Path)) { return }
+    
+    for ($i = 1; $i -le $MaxRetries; $i++) {
+        try {
+            Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            if ($i -eq $MaxRetries) {
+                Write-Host "  Warning: Could not fully remove $Path - some files may be locked" -ForegroundColor Red
+            }
+            else {
+                Write-Host "  Retry $i/$MaxRetries for $Path..." -ForegroundColor DarkYellow
+                Start-Sleep -Milliseconds 500
+            }
+        }
+    }
+}
+
 # Clean main project
 $binDir = Join-Path $srcDir "bin"
 $objDir = Join-Path $srcDir "obj"
 
 if (Test-Path $binDir) {
     Write-Host "Cleaning src\bin..." -ForegroundColor Yellow
-    Remove-Item -Path $binDir -Recurse -Force
+    Remove-DirectoryWithRetry -Path $binDir
 }
 if (Test-Path $objDir) {
     Write-Host "Cleaning src\obj..." -ForegroundColor Yellow
-    Remove-Item -Path $objDir -Recurse -Force
+    Remove-DirectoryWithRetry -Path $objDir
 }
 
 # Clean tools
@@ -45,11 +86,11 @@ foreach ($tool in $toolProjects) {
     
     if (Test-Path $binDir) {
         Write-Host "Cleaning tools\$tool\bin..." -ForegroundColor Yellow
-        Remove-Item -Path $binDir -Recurse -Force
+        Remove-DirectoryWithRetry -Path $binDir
     }
     if (Test-Path $objDir) {
         Write-Host "Cleaning tools\$tool\obj..." -ForegroundColor Yellow
-        Remove-Item -Path $objDir -Recurse -Force
+        Remove-DirectoryWithRetry -Path $objDir
     }
 }
 
@@ -68,7 +109,7 @@ foreach ($dir in $publishDirs) {
     $fullPath = Join-Path $rootDir $dir
     if (Test-Path $fullPath) {
         Write-Host "  Removing $dir..." -ForegroundColor Yellow
-        Remove-Item -Path $fullPath -Recurse -Force
+        Remove-DirectoryWithRetry -Path $fullPath
     }
 }
 
@@ -79,7 +120,7 @@ Write-Host "Cleaning installer output..." -ForegroundColor Yellow
 $installerOutput = Join-Path $rootDir "installer\Output"
 if (Test-Path $installerOutput) {
     Write-Host "  Removing installer\Output..." -ForegroundColor Yellow
-    Remove-Item -Path $installerOutput -Recurse -Force
+    Remove-DirectoryWithRetry -Path $installerOutput
 }
 
 # Clean setup exe files in installer folder

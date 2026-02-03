@@ -50,11 +50,13 @@ Write-Host ""
 
 # Get current version from csproj
 $csprojContent = Get-Content $csprojFile -Raw
-if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
+# Match version with optional prerelease suffix (e.g., 5.0.1, 5.0.1-beta, 5.0.1-beta.1)
+if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Version>') {
     $majorNum = [int]$matches[1]
     $minorNum = [int]$matches[2]
     $patchNum = [int]$matches[3]
-    $currentVersion = "$majorNum.$minorNum.$patchNum"
+    $prereleaseTag = $matches[4]  # May be $null or like "-beta"
+    $currentVersion = "$majorNum.$minorNum.$patchNum$prereleaseTag"
     
     Write-Host "Current version: v$currentVersion" -ForegroundColor Cyan
     
@@ -184,10 +186,13 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)</Version>') {
         Write-Host ""
         Write-Host "[Version] Updating..." -ForegroundColor Yellow
         
-        # Update csproj
-        $csprojContent = $csprojContent -replace '<Version>\d+\.\d+\.\d+</Version>', "<Version>$newVersion</Version>"
-        $csprojContent = $csprojContent -replace '<AssemblyVersion>\d+\.\d+\.\d+\.\d+</AssemblyVersion>', "<AssemblyVersion>$newVersion.0</AssemblyVersion>"
-        $csprojContent = $csprojContent -replace '<FileVersion>\d+\.\d+\.\d+\.\d+</FileVersion>', "<FileVersion>$newVersion.0</FileVersion>"
+        # Extract numeric version for AssemblyVersion/FileVersion (strip prerelease suffix)
+        $numericVersion = $newVersion -replace '-.*$', ''
+        
+        # Update csproj - Version can have prerelease, AssemblyVersion/FileVersion must be numeric
+        $csprojContent = $csprojContent -replace '<Version>\d+\.\d+\.\d+(-[A-Za-z0-9\.-]+)?</Version>', "<Version>$newVersion</Version>"
+        $csprojContent = $csprojContent -replace '<AssemblyVersion>\d+\.\d+\.\d+\.\d+</AssemblyVersion>', "<AssemblyVersion>$numericVersion.0</AssemblyVersion>"
+        $csprojContent = $csprojContent -replace '<FileVersion>\d+\.\d+\.\d+\.\d+</FileVersion>', "<FileVersion>$numericVersion.0</FileVersion>"
         Set-Content $csprojFile $csprojContent -NoNewline
         
         # Update AppVersion.cs

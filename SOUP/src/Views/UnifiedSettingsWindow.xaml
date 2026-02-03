@@ -329,18 +329,10 @@
                                         <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}"/>
                                     </StackPanel>
 
-                                    <CheckBox Content="Use basic theme"
-                                              IsChecked="{Binding UseBasicTheme}"
-                                              Style="{StaticResource SettingsCheckBox}"/>
-                                    <TextBlock Text="Use native Windows controls without custom styling (classic look)"
-                                               Style="{StaticResource HelperText}"
-                                               Margin="24,4,0,16"/>
-
                                     <CheckBox Content="Dark mode"
                                               IsChecked="{Binding IsDarkMode}"
-                                              IsEnabled="{Binding UseBasicTheme, Converter={StaticResource InverseBoolConverter}}"
                                               Style="{StaticResource SettingsCheckBox}"/>
-                                    <TextBlock Text="Use dark theme throughout the application (only applies when basic theme is disabled)"
+                                    <TextBlock Text="Use dark theme throughout the application"
                                                Style="{StaticResource HelperText}"
                                                Margin="24,4,0,0"/>
                                 </StackPanel>

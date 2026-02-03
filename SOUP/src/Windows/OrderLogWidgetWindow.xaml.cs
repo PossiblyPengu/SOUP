@@ -642,7 +642,7 @@ public partial class OrderLogWidgetWindow : Window
             var themeService = _serviceProvider.GetService<ThemeService>();
             if (themeService != null)
             {
-                ApplyThemeResources(themeService.IsDarkMode, themeService.UseBasicTheme);
+                ApplyThemeResources(themeService.IsDarkMode);
                 themeService.ThemeChanged += OnThemeChanged;
             }
         }
@@ -652,7 +652,7 @@ public partial class OrderLogWidgetWindow : Window
         }
     }
 
-    private void ApplyThemeResources(bool isDarkMode, bool useBasicTheme)
+    private void ApplyThemeResources(bool isDarkMode)
     {
         Resources.MergedDictionaries.Clear();
 
@@ -662,22 +662,12 @@ public partial class OrderLogWidgetWindow : Window
             Source = new Uri("pack://application:,,,/SOUP;component/Themes/ModernStyles.xaml")
         });
 
-        // Then add color theme (basic or modern)
-        if (useBasicTheme)
-        {
-            Resources.MergedDictionaries.Add(new ResourceDictionary
-            {
-                Source = new Uri("pack://application:,,,/SOUP;component/Themes/BasicTheme.xaml")
-            });
-        }
-        else
-        {
-            var themePath = isDarkMode
-                ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
-                : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
+        // Then add color theme
+        var themePath = isDarkMode
+            ? "pack://application:,,,/SOUP;component/Themes/DarkTheme.xaml"
+            : "pack://application:,,,/SOUP;component/Themes/LightTheme.xaml";
 
-            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
-        }
+        Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(themePath) });
 
         // Re-apply CardFontSize from ViewModel after theme resources are loaded
         if (_viewModel.CardFontSize > 0)
@@ -692,10 +682,9 @@ public partial class OrderLogWidgetWindow : Window
         {
             try
             {
-                var themeService = _serviceProvider.GetService<ThemeService>();
                 // Invalidate converter caches before applying new theme
                 Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache();
-                ApplyThemeResources(isDarkMode, themeService?.UseBasicTheme ?? false);
+                ApplyThemeResources(isDarkMode);
             }
             catch (Exception ex)
             {

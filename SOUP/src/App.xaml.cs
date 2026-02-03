@@ -151,7 +151,7 @@ public partial class App : Application
         services.AddSingleton<IFileImportExportService, FileImportExportService>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<NavigationService>();
-        services.AddSingleton<ThemeService>();
+        services.AddSingleton(ThemeService.Instance);
         services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>();
         services.AddSingleton<TrayIconService>();
         services.AddSingleton<UpdateService>();
