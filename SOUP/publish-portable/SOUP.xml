@@ -3684,6 +3684,21 @@
             Shows the keyboard shortcuts help dialog (future implementation)
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.JumpToInProgress_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Scrolls to the In Progress status section
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.JumpToOnDeck_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Scrolls to the On Deck status section
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.JumpToNotReady_Click(System.Object,System.Windows.RoutedEventArgs)">
+            <summary>
+            Scrolls to the Not Ready status section
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.InitializeComponent">
             <summary>
             InitializeComponent

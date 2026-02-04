@@ -349,14 +349,14 @@
     <SolidColorBrush x:Key="SplashTitleBrush" Color="White"/>
 
     <!-- Widget Status Background Colors -->
-    <Color x:Key="WidgetStatusNotReadyBgColor">#FDE7E9</Color>
+    <Color x:Key="WidgetStatusNotReadyBgColor">#FDDDDD</Color>
     <Color x:Key="WidgetStatusOnDeckBgColor">#FFF4CE</Color>
     <Color x:Key="WidgetStatusInProgressBgColor">#DFF6DD</Color>
     <Color x:Key="WidgetStatusDoneBgColor">#F0F0F0</Color>
 
     <!-- Widget Status Text Colors -->
-    <Color x:Key="WidgetStatusNotReadyColor">#D13438</Color>
-    <Color x:Key="WidgetStatusOnDeckColor">#D83B01</Color>
+    <Color x:Key="WidgetStatusNotReadyColor">#C42B1C</Color>
+    <Color x:Key="WidgetStatusOnDeckColor">#C67100</Color>
     <Color x:Key="WidgetStatusInProgressColor">#107C10</Color>
     <Color x:Key="WidgetStatusDoneColor">#5D5D5D</Color>
 

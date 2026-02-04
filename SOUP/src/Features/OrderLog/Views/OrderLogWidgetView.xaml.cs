@@ -2649,5 +2649,62 @@ public partial class OrderLogWidgetView : UserControl
         Log.Debug("Keyboard help requested (not yet implemented)");
     }
 
+    /// <summary>
+    /// Scrolls to the In Progress status section
+    /// </summary>
+    private void JumpToInProgress_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (InProgressExpander != null)
+            {
+                InProgressExpander.BringIntoView();
+                InProgressExpander.IsExpanded = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to jump to In Progress section");
+        }
+    }
+
+    /// <summary>
+    /// Scrolls to the On Deck status section
+    /// </summary>
+    private void JumpToOnDeck_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (OnDeckExpander != null)
+            {
+                OnDeckExpander.BringIntoView();
+                OnDeckExpander.IsExpanded = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to jump to On Deck section");
+        }
+    }
+
+    /// <summary>
+    /// Scrolls to the Not Ready status section
+    /// </summary>
+    private void JumpToNotReady_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (NotReadyExpander != null)
+            {
+                NotReadyExpander.BringIntoView();
+                NotReadyExpander.IsExpanded = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to jump to Not Ready section");
+        }
+    }
+
     #endregion
 }

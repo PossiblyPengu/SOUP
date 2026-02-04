@@ -57,11 +57,11 @@
     <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="#2D2D2D"/>
 
     <!-- Widget Status Colors (dark theme) -->
-    <Color x:Key="WidgetStatusNotReadyBgColor">#442726</Color>
+    <Color x:Key="WidgetStatusNotReadyBgColor">#4D1F1F</Color>
     <Color x:Key="WidgetStatusOnDeckBgColor">#433519</Color>
     <Color x:Key="WidgetStatusInProgressBgColor">#1C3D2E</Color>
     <Color x:Key="WidgetStatusDoneBgColor">#1C3D1C</Color>
-    <Color x:Key="WidgetStatusNotReadyColor">#FF99A4</Color>
+    <Color x:Key="WidgetStatusNotReadyColor">#FF6B6B</Color>
     <Color x:Key="WidgetStatusOnDeckColor">#FFD166</Color>
     <Color x:Key="WidgetStatusInProgressColor">#6CCB5F</Color>
     <Color x:Key="WidgetStatusDoneColor">#6CCB5F</Color>

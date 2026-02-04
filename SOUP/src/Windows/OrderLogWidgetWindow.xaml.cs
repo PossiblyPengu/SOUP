@@ -268,6 +268,13 @@ public partial class OrderLogWidgetWindow : Window
         {
             await _viewModel.InitializeAsync();
             
+            // Force layout update after data loads to ensure bindings refresh
+            await Dispatcher.InvokeAsync(() =>
+            {
+                WidgetView.InvalidateVisual();
+                WidgetView.UpdateLayout();
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
+            
             // Subscribe to the shared UpdateService scheduler and initialize UI from its last-known state
             var updateService = _serviceProvider.GetService<UpdateService>();
             if (updateService != null)

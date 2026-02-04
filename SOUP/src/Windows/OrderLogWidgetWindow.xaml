@@ -24,7 +24,7 @@
 
     <!-- Custom Window Chrome -->
     <Border Background="{DynamicResource BackgroundBrush}"
-            BorderBrush="{DynamicResource AccentBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
             CornerRadius="0">
         <Border.Effect>
