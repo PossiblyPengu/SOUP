@@ -3684,6 +3684,11 @@
             Shows the keyboard shortcuts help dialog (future implementation)
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.ScrollToExpander(System.Windows.Controls.Expander)">
+            <summary>
+            Scrolls to the top of the specified expander within the MainScrollViewer
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.Views.OrderLogWidgetView.JumpToInProgress_Click(System.Object,System.Windows.RoutedEventArgs)">
             <summary>
             Scrolls to the In Progress status section

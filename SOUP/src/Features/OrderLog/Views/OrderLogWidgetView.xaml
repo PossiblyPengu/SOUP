@@ -2628,28 +2628,28 @@
             
             <!-- Floating Quick Jump Navigation -->
             <Border x:Name="QuickJumpPanel"
-                    VerticalAlignment="Bottom"
+                    VerticalAlignment="Center"
                     HorizontalAlignment="Right"
-                    Margin="0,0,12,24"
+                    Margin="0,0,8,0"
                     Panel.ZIndex="100"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="20"
-                    Padding="6">
+                    CornerRadius="16"
+                    Padding="4">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.25" Color="#000000"/>
                 </Border.Effect>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Vertical">
                     <!-- In Progress Jump -->
                     <Button x:Name="JumpInProgressBtn" Click="JumpToInProgress_Click"
                             ToolTip="Jump to In Progress"
-                            Width="32" Height="32" Padding="0" Cursor="Hand"
+                            Width="28" Height="28" Padding="0" Cursor="Hand"
                             Background="Transparent" BorderThickness="0">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="16">
-                                    <Ellipse Width="12" Height="12" Fill="{DynamicResource WidgetStatusInProgressBrush}"/>
+                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="14">
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource WidgetStatusInProgressBrush}"/>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
@@ -2662,12 +2662,12 @@
                     <!-- On Deck Jump -->
                     <Button x:Name="JumpOnDeckBtn" Click="JumpToOnDeck_Click"
                             ToolTip="Jump to On Deck"
-                            Width="32" Height="32" Padding="0" Cursor="Hand"
+                            Width="28" Height="28" Padding="0" Cursor="Hand"
                             Background="Transparent" BorderThickness="0">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="16">
-                                    <Ellipse Width="12" Height="12" Fill="{DynamicResource WidgetStatusOnDeckBrush}"/>
+                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="14">
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource WidgetStatusOnDeckBrush}"/>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
@@ -2680,12 +2680,12 @@
                     <!-- Not Ready Jump -->
                     <Button x:Name="JumpNotReadyBtn" Click="JumpToNotReady_Click"
                             ToolTip="Jump to Not Ready"
-                            Width="32" Height="32" Padding="0" Cursor="Hand"
+                            Width="28" Height="28" Padding="0" Cursor="Hand"
                             Background="Transparent" BorderThickness="0">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="16">
-                                    <Ellipse Width="12" Height="12" Fill="{DynamicResource WidgetStatusNotReadyBrush}"/>
+                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="14">
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource WidgetStatusNotReadyBrush}"/>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">

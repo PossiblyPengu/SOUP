@@ -2650,17 +2650,44 @@ public partial class OrderLogWidgetView : UserControl
     }
 
     /// <summary>
+    /// Scrolls to the top of the specified expander within the MainScrollViewer
+    /// </summary>
+    private void ScrollToExpander(Expander expander)
+    {
+        if (expander == null || MainScrollViewer == null)
+            return;
+
+        expander.IsExpanded = true;
+
+        // Use dispatcher to ensure layout is updated before calculating position
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+        {
+            try
+            {
+                // Get the position of the expander relative to the scroll content
+                var transform = expander.TransformToAncestor(MainScrollViewer);
+                var point = transform.Transform(new Point(0, 0));
+                
+                // Calculate target scroll position (current offset + element position - small padding)
+                double targetOffset = MainScrollViewer.VerticalOffset + point.Y - 8;
+                MainScrollViewer.ScrollToVerticalOffset(Math.Max(0, targetOffset));
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, "Failed to calculate scroll position, falling back to BringIntoView");
+                expander.BringIntoView();
+            }
+        });
+    }
+
+    /// <summary>
     /// Scrolls to the In Progress status section
     /// </summary>
     private void JumpToInProgress_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            if (InProgressExpander != null)
-            {
-                InProgressExpander.BringIntoView();
-                InProgressExpander.IsExpanded = true;
-            }
+            ScrollToExpander(InProgressExpander);
         }
         catch (Exception ex)
         {
@@ -2675,11 +2702,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (OnDeckExpander != null)
-            {
-                OnDeckExpander.BringIntoView();
-                OnDeckExpander.IsExpanded = true;
-            }
+            ScrollToExpander(OnDeckExpander);
         }
         catch (Exception ex)
         {
@@ -2694,11 +2717,7 @@ public partial class OrderLogWidgetView : UserControl
     {
         try
         {
-            if (NotReadyExpander != null)
-            {
-                NotReadyExpander.BringIntoView();
-                NotReadyExpander.IsExpanded = true;
-            }
+            ScrollToExpander(NotReadyExpander);
         }
         catch (Exception ex)
         {
