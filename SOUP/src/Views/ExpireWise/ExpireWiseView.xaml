@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:SOUP.ViewModels"
-             xmlns:local="clr-namespace:SOUP.Views.ExpireWise"
              xmlns:views="clr-namespace:SOUP.Features.ExpireWise.Views"
              xmlns:converters="clr-namespace:SOUP.Converters"
              mc:Ignorable="d"
@@ -27,8 +26,6 @@
     </UserControl.InputBindings>
 
     <UserControl.Resources>
-        <local:StoreDisplayConverter x:Key="StoreDisplayConverter"/>
-        <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
         
@@ -233,8 +230,8 @@
                                         </LinearGradientBrush>
                                     </Border.Background>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="＋" FontSize="14" FontWeight="Bold" Foreground="#1a1a1a" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Add Item" FontSize="13" FontWeight="SemiBold" Foreground="#1a1a1a" VerticalAlignment="Center"/>
+                                        <TextBlock Text="＋" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextOnAccentBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Add Item" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextOnAccentBrush}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
@@ -771,7 +768,7 @@
                                                             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsCurrentMonth}" Value="True">
-                                                                    <Setter Property="Foreground" Value="#1a1a1a"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -890,9 +887,9 @@
                                                         </Border.Style>
                                                         <StackPanel HorizontalAlignment="Center">
                                                             <TextBlock Text="{Binding Quantity, Mode=OneWay}" 
-                                                                       FontSize="18" FontWeight="Bold" Foreground="#1a1a1a"
+                                                                       FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextOnAccentBrush}"
                                                                        HorizontalAlignment="Center"/>
-                                                            <TextBlock Text="pcs" FontSize="9" Foreground="#1a1a1a" 
+                                                            <TextBlock Text="pcs" FontSize="9" Foreground="{DynamicResource TextOnAccentBrush}" 
                                                                        Opacity="0.6" HorizontalAlignment="Center" Margin="0,-2,0,0"/>
                                                         </StackPanel>
                                                     </Border>
@@ -908,7 +905,7 @@
                                                             <Button.Style>
                                                                 <Style TargetType="Button">
                                                                     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
-                                                                    <Setter Property="Foreground" Value="#22c55e"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                                     <Setter Property="BorderThickness" Value="0"/>
                                                                     <Setter Property="Cursor" Value="Hand"/>
                                                                     <Setter Property="Template">
@@ -922,8 +919,8 @@
                                                                                 </Border>
                                                                                 <ControlTemplate.Triggers>
                                                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                                                        <Setter TargetName="Bg" Property="Background" Value="#22c55e"/>
-                                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                                        <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                                                                     </Trigger>
                                                                                 </ControlTemplate.Triggers>
                                                                             </ControlTemplate>
@@ -952,8 +949,8 @@
                                                                                 </Border>
                                                                                 <ControlTemplate.Triggers>
                                                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                                                        <Setter TargetName="Bg" Property="Background" Value="#ef4444"/>
-                                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                                        <Setter TargetName="Bg" Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                                                                     </Trigger>
                                                                                 </ControlTemplate.Triggers>
                                                                             </ControlTemplate>
@@ -1075,9 +1072,9 @@
                                                                             </Border.Background>
                                                                             <StackPanel Orientation="Horizontal">
                                                                                 <TextBlock Text="{Binding TotalUnits, Mode=OneWay}" 
-                                                                                           FontSize="16" FontWeight="Bold" Foreground="#1a1a1a"
+                                                                                           FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextOnAccentBrush}"
                                                                                            VerticalAlignment="Center"/>
-                                                                                <TextBlock Text=" pcs" FontSize="11" Foreground="#1a1a1a" 
+                                                                                <TextBlock Text=" pcs" FontSize="11" Foreground="{DynamicResource TextOnAccentBrush}" 
                                                                                            Opacity="0.7" VerticalAlignment="Center" Margin="0,1,0,0"/>
                                                                             </StackPanel>
                                                                         </Border>
@@ -1194,9 +1191,9 @@
                                                                                 </Border.Style>
                                                                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,10">
                                                                                     <TextBlock Text="{Binding Quantity, Mode=OneWay}" 
-                                                                                               FontSize="18" FontWeight="Bold" Foreground="#1a1a1a"
+                                                                                               FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextOnAccentBrush}"
                                                                                                HorizontalAlignment="Center"/>
-                                                                                    <TextBlock Text="pcs" FontSize="9" Foreground="#1a1a1a" 
+                                                                                    <TextBlock Text="pcs" FontSize="9" Foreground="{DynamicResource TextOnAccentBrush}" 
                                                                                                Opacity="0.6" HorizontalAlignment="Center" Margin="0,-1,0,0"/>
                                                                                 </StackPanel>
                                                                             </Border>
@@ -1224,7 +1221,7 @@
                                                                                         <Button.Style>
                                                                                             <Style TargetType="Button">
                                                                                                 <Setter Property="Background" Value="#1522c55e"/>
-                                                                                                <Setter Property="Foreground" Value="#22c55e"/>
+                                                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                                                                 <Setter Property="BorderThickness" Value="0"/>
                                                                                                 <Setter Property="Cursor" Value="Hand"/>
                                                                                                 <Setter Property="Template">
@@ -1243,8 +1240,8 @@
                                                                                                             </Border>
                                                                                                             <ControlTemplate.Triggers>
                                                                                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                                                                                    <Setter TargetName="Bg" Property="Background" Value="#22c55e"/>
-                                                                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                                                                    <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                                                                                    <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                                                                                                 </Trigger>
                                                                                                             </ControlTemplate.Triggers>
                                                                                                         </ControlTemplate>

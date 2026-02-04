@@ -40,7 +40,7 @@
                                 <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#1e1b4b"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AllocationBuddyLightBrush}"/>
                                 <Setter Property="Foreground" Value="{StaticResource AllocationAccentLightBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -74,7 +74,7 @@
                                 <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#1e1b4b"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AllocationBuddyLightBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -103,7 +103,7 @@
                                 <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#1e1b4b"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AllocationBuddyLightBrush}"/>
                                 <Setter Property="Foreground" Value="{StaticResource AllocationAccentLightBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -161,7 +161,7 @@
                             HorizontalAlignment="Center" Cursor="Hand">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                 <Setter Property="Padding" Value="32,14"/>
                                 <Setter Property="FontSize" Value="16"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -253,7 +253,7 @@
                                     HorizontalAlignment="Center" Margin="0,12,0,0" Cursor="Hand">
                                 <Button.Style>
                                     <Style TargetType="Button">
-                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                         <Setter Property="Padding" Value="20,10"/>
                                         <Setter Property="FontSize" Value="13"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -602,7 +602,7 @@
                                                     <Button.Style>
                                                         <Style TargetType="Button">
                                                             <Setter Property="Background" Value="#6366f1"/>
-                                                            <Setter Property="Foreground" Value="White"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                                             <Setter Property="Padding" Value="12,6"/>
                                                             <Setter Property="FontSize" Value="11"/>
                                                             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -629,7 +629,7 @@
                                                     <Button.Style>
                                                         <Style TargetType="Button">
                                                             <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                                            <Setter Property="Foreground" Value="#ef4444"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
                                                             <Setter Property="Padding" Value="12,6"/>
                                                             <Setter Property="FontSize" Value="11"/>
                                                             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -643,7 +643,7 @@
                                                                         </Border>
                                                                         <ControlTemplate.Triggers>
                                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                                <Setter TargetName="Bg" Property="Background" Value="#fecaca"/>
+                                                                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource DangerLightBrush}"/>
                                                                             </Trigger>
                                                                         </ControlTemplate.Triggers>
                                                                     </ControlTemplate>
@@ -826,8 +826,8 @@
                                                         <Setter Property="BorderBrush" Value="{DynamicResource SurfaceActiveBrush}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding HasPoolItems}" Value="True">
-                                                                <Setter Property="Background" Value="#2d1f4d"/>
-                                                                <Setter Property="BorderBrush" Value="#8b5cf6"/>
+                                                                <Setter Property="Background" Value="{DynamicResource AllocationBuddyLightBrush}"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource AllocationAccentLightBrush}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -861,7 +861,7 @@
                                                                 <Setter Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding HasPoolItems}" Value="True">
-                                                                        <Setter Property="Background" Value="#8b5cf6"/>
+                                                                        <Setter Property="Background" Value="{StaticResource AllocationAccentLightBrush}"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>

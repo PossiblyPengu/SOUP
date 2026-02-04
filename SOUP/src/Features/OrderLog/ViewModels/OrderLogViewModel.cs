@@ -398,22 +398,22 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         SaveWidgetSettings();
     }
 
-    partial void OnNotesExpandedChanged(bool _)
+    partial void OnNotesExpandedChanged(bool value)
     {
         SaveWidgetSettings();
     }
 
-    partial void OnNotReadyGroupExpandedChanged(bool _)
+    partial void OnNotReadyGroupExpandedChanged(bool value)
     {
         SaveWidgetSettings();
     }
 
-    partial void OnOnDeckGroupExpandedChanged(bool _)
+    partial void OnOnDeckGroupExpandedChanged(bool value)
     {
         SaveWidgetSettings();
     }
 
-    partial void OnInProgressGroupExpandedChanged(bool _)
+    partial void OnInProgressGroupExpandedChanged(bool value)
     {
         SaveWidgetSettings();
     }
@@ -526,7 +526,12 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             // Independent theme settings
             UseIndependentTheme = s.UseIndependentTheme;
             WidgetIsDarkMode = s.WidgetIsDarkMode;
-        if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
+            
+            // Apply font size to resources
+            if (Application.Current != null)
+            {
+                Application.Current.Resources["CardFontSize"] = CardFontSize;
+            }
         }
         catch (Exception ex)
         {

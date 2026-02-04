@@ -14,7 +14,6 @@
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:BoolToSortArrowConverter x:Key="BoolToSortArrowConverter"/>
-            <converters:BoolToSuccessColorConverter x:Key="BoolToSuccessColorConverter"/>
 
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
             <!-- Chart Converters -->

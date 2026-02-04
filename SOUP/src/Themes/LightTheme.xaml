@@ -3,34 +3,36 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <!-- ============================= -->
-    <!-- LIGHT THEME - VS-Inspired     -->
+    <!-- LIGHT THEME - Windows 11 Fluent Design -->
     <!-- ============================= -->
-    <!-- Clean, professional light theme inspired by Visual Studio -->
+    <!-- Clean, modern theme inspired by Windows 11 WinUI 3 -->
     
     <!-- ============================= -->
     <!-- DEFAULT TEXTBLOCK STYLE       -->
     <!-- ============================= -->
     <Style TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe UI, Segoe UI Emoji, Segoe UI Symbol"/>
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI, Segoe UI Emoji, Segoe UI Symbol"/>
     </Style>
 
     <!-- ============================= -->
     <!-- CORNER RADIUS VALUES          -->
     <!-- ============================= -->
-    <!-- Subtle rounding for a modern but professional look -->
-    <CornerRadius x:Key="WindowCornerRadius">6</CornerRadius>
-    <CornerRadius x:Key="TitleBarCornerRadius">6,6,0,0</CornerRadius>
-    <CornerRadius x:Key="SidebarCornerRadius">0,0,0,6</CornerRadius>
-    <CornerRadius x:Key="LargeCornerRadius">6</CornerRadius>
-    <CornerRadius x:Key="MediumCornerRadius">4</CornerRadius>
-    <CornerRadius x:Key="SmallCornerRadius">3</CornerRadius>
+    <!-- Windows 11 uses rounded corners throughout -->
+    <CornerRadius x:Key="WindowCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="TitleBarCornerRadius">8,8,0,0</CornerRadius>
+    <CornerRadius x:Key="SidebarCornerRadius">0,0,0,8</CornerRadius>
+    <CornerRadius x:Key="LargeCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="MediumCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="XSmallCornerRadius">2</CornerRadius>
+    <CornerRadius x:Key="OverlayCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="NavItemCornerRadius">4</CornerRadius>
-    <CornerRadius x:Key="IconCornerRadius">4</CornerRadius>
-    <CornerRadius x:Key="AppLogoCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="IconCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="AppLogoCornerRadius">8</CornerRadius>
     <CornerRadius x:Key="SplashIconCornerRadius">12</CornerRadius>
-    <CornerRadius x:Key="BadgeCornerRadius">3</CornerRadius>
-    <CornerRadius x:Key="CardCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">6</CornerRadius>
 
     <!-- ============================= -->
     <!-- MODULE ICONS                  -->
@@ -53,51 +55,119 @@
     <!-- ============================= -->
     <!-- LIGHT THEME COLORS            -->
     <!-- ============================= -->
-    <!-- VS-inspired professional light palette -->
+    <!-- Windows 11 WinUI 3 Light Theme Palette -->
     
-    <!-- Neutral/Surface Colors -->
-    <Color x:Key="BackgroundColor">#FFFFFF</Color>
-    <Color x:Key="SurfaceColor">#F5F5F5</Color>
-    <Color x:Key="SurfaceHoverColor">#E8E8E8</Color>
-    <Color x:Key="SurfaceActiveColor">#DCDCDC</Color>
-    <Color x:Key="BorderColor">#CCCEDB</Color>
-    <Color x:Key="BorderDarkColor">#9D9D9D</Color>
-    <Color x:Key="BorderLightColor">#E5E5E5</Color>
+    <!-- Solid Background Colors (Mica-like) -->
+    <Color x:Key="SolidBackgroundFillColorBase">#F3F3F3</Color>
+    <Color x:Key="SolidBackgroundFillColorSecondary">#EEEEEE</Color>
+    <Color x:Key="SolidBackgroundFillColorTertiary">#F9F9F9</Color>
+    <Color x:Key="SolidBackgroundFillColorQuarternary">#FFFFFF</Color>
     
-    <!-- Text Colors - High contrast for readability -->
-    <Color x:Key="TextPrimaryColor">#1E1E1E</Color>
-    <Color x:Key="TextSecondaryColor">#5D5D5D</Color>
-    <Color x:Key="TextTertiaryColor">#808080</Color>
+    <!-- Layer Colors (for elevated surfaces) -->
+    <Color x:Key="LayerFillColorDefault">#80FFFFFF</Color>
+    <Color x:Key="LayerFillColorAlt">#FFFFFF</Color>
+    <Color x:Key="LayerOnMicaBaseAltFillColorDefault">#B3FFFFFF</Color>
+    
+    <!-- Card/Surface Colors -->
+    <Color x:Key="CardBackgroundFillColorDefault">#B3FFFFFF</Color>
+    <Color x:Key="CardBackgroundFillColorSecondary">#80F6F6F6</Color>
+    
+    <!-- Neutral/Surface Colors (WinUI 3 standard) -->
+    <Color x:Key="BackgroundColor">#F3F3F3</Color>
+    <Color x:Key="SurfaceColor">#FAFAFA</Color>
+    <Color x:Key="SurfaceHoverColor">#F0F0F0</Color>
+    <Color x:Key="SurfaceActiveColor">#E5E5E5</Color>
+    <Color x:Key="SurfaceStrokeColor">#0F000000</Color>
+    
+    <!-- Control Fill Colors -->
+    <Color x:Key="ControlFillColorDefault">#B3FFFFFF</Color>
+    <Color x:Key="ControlFillColorSecondary">#80F9F9F9</Color>
+    <Color x:Key="ControlFillColorTertiary">#4DF9F9F9</Color>
+    <Color x:Key="ControlFillColorDisabled">#4DF9F9F9</Color>
+    <Color x:Key="ControlFillColorTransparent">#00FFFFFF</Color>
+    <Color x:Key="ControlFillColorInputActive">#FFFFFF</Color>
+    
+    <!-- Control Stroke Colors -->
+    <Color x:Key="ControlStrokeColorDefault">#0F000000</Color>
+    <Color x:Key="ControlStrokeColorSecondary">#29000000</Color>
+    <Color x:Key="ControlStrokeColorOnAccentDefault">#14FFFFFF</Color>
+    <Color x:Key="ControlStrokeColorOnAccentSecondary">#66000000</Color>
+    
+    <!-- Subtle Fill Colors (for subtle backgrounds) -->
+    <Color x:Key="SubtleFillColorTransparent">#00000000</Color>
+    <Color x:Key="SubtleFillColorSecondary">#0A000000</Color>
+    <Color x:Key="SubtleFillColorTertiary">#0F000000</Color>
+    <Color x:Key="SubtleFillColorDisabled">#00000000</Color>
+    
+    <!-- Divider/Stroke Colors -->
+    <Color x:Key="DividerStrokeColorDefault">#0F000000</Color>
+    <Color x:Key="BorderColor">#E5E5E5</Color>
+    <Color x:Key="BorderDarkColor">#C5C5C5</Color>
+    <Color x:Key="BorderLightColor">#F0F0F0</Color>
+    
+    <!-- Focus Stroke Colors -->
+    <Color x:Key="FocusStrokeColorOuter">#E4000000</Color>
+    <Color x:Key="FocusStrokeColorInner">#B3FFFFFF</Color>
+    
+    <!-- Text Colors (WinUI 3 standard) -->
+    <Color x:Key="TextFillColorPrimary">#E4000000</Color>
+    <Color x:Key="TextFillColorSecondary">#9E000000</Color>
+    <Color x:Key="TextFillColorTertiary">#72000000</Color>
+    <Color x:Key="TextFillColorDisabled">#5C000000</Color>
+    <Color x:Key="TextFillColorInverse">#FFFFFF</Color>
+    
+    <!-- Mapped Text Colors -->
+    <Color x:Key="TextPrimaryColor">#1A1A1A</Color>
+    <Color x:Key="TextSecondaryColor">#5C5C5C</Color>
+    <Color x:Key="TextTertiaryColor">#8C8C8C</Color>
     <Color x:Key="TextDisabledColor">#A0A0A0</Color>
     <Color x:Key="TextOnPrimaryColor">#FFFFFF</Color>
-    <Color x:Key="TextLinkColor">#0066CC</Color>
+    <Color x:Key="TextLinkColor">#0067C0</Color>
     
-    <!-- Sidebar Colors - Slightly tinted for depth -->
-    <Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
-    <Color x:Key="SidebarHoverColor">#E0E0E0</Color>
-    <Color x:Key="SidebarActiveColor">#CCE5FF</Color>
+    <!-- Windows 11 Accent Colors -->
+    <Color x:Key="AccentColor">#005FB8</Color>
+    <Color x:Key="AccentLight1Color">#0078D4</Color>
+    <Color x:Key="AccentLight2Color">#4BA1E2</Color>
+    <Color x:Key="AccentLight3Color">#98C8ED</Color>
+    <Color x:Key="AccentDark1Color">#004D99</Color>
+    <Color x:Key="AccentDark2Color">#003F7E</Color>
+    <Color x:Key="AccentDark3Color">#002F5F</Color>
     
-    <!-- VS Blue Accent -->
-    <Color x:Key="AccentColor">#0078D4</Color>
-    <Color x:Key="AccentHoverColor">#106EBE</Color>
-    <Color x:Key="AccentActiveColor">#005A9E</Color>
-    <Color x:Key="AccentLightColor">#E5F3FF</Color>
+    <!-- Legacy Accent Mappings -->
+    <Color x:Key="AccentHoverColor">#0078D4</Color>
+    <Color x:Key="AccentActiveColor">#004D99</Color>
+    <Color x:Key="AccentLightColor">#CCE4F7</Color>
+    
+    <!-- Sidebar Colors -->
+    <Color x:Key="SidebarBackgroundColor">#F9F9F9</Color>
+    <Color x:Key="SidebarHoverColor">#F0F0F0</Color>
+    <Color x:Key="SidebarActiveColor">#E5F1FB</Color>
+    
+    <!-- System Status Colors (Windows 11 standard) -->
+    <Color x:Key="SystemFillColorSuccess">#0F7B0F</Color>
+    <Color x:Key="SystemFillColorCaution">#9D5D00</Color>
+    <Color x:Key="SystemFillColorCritical">#C42B1C</Color>
+    <Color x:Key="SystemFillColorNeutral">#8A8A8A</Color>
+    <Color x:Key="SystemFillColorSuccessBackground">#DFF6DD</Color>
+    <Color x:Key="SystemFillColorCautionBackground">#FFF4CE</Color>
+    <Color x:Key="SystemFillColorCriticalBackground">#FDE7E9</Color>
+    <Color x:Key="SystemFillColorNeutralBackground">#F3F3F3</Color>
+    
+    <!-- Mapped Status Colors -->
+    <Color x:Key="SuccessColor">#0F7B0F</Color>
+    <Color x:Key="SuccessLightColor">#DFF6DD</Color>
+    <Color x:Key="WarningColor">#9D5D00</Color>
+    <Color x:Key="WarningLightColor">#FFF4CE</Color>
+    <Color x:Key="DangerColor">#C42B1C</Color>
+    <Color x:Key="DangerLightColor">#FDE7E9</Color>
+    <Color x:Key="InfoColor">#0078D4</Color>
+    <Color x:Key="InfoLightColor">#CCE4F7</Color>
     
     <!-- Module Light Background Colors -->
     <Color x:Key="ExpireWiseLightColor">#FFF8E1</Color>
     <Color x:Key="AllocationBuddyLightColor">#F3E5F5</Color>
     <Color x:Key="EssentialsBuddyLightColor">#E8F5E9</Color>
-    <Color x:Key="SwiftLabelLightColor">#FFEBEE</Color>
-    
-    <!-- Status Colors -->
-    <Color x:Key="SuccessColor">#107C10</Color>
-    <Color x:Key="SuccessLightColor">#DFF6DD</Color>
-    <Color x:Key="WarningColor">#D83B01</Color>
-    <Color x:Key="WarningLightColor">#FFF4CE</Color>
-    <Color x:Key="DangerColor">#D13438</Color>
-    <Color x:Key="DangerLightColor">#FDE7E9</Color>
-    <Color x:Key="InfoColor">#0078D4</Color>
-    <Color x:Key="InfoLightColor">#E5F3FF</Color>
+    <Color x:Key="SwiftLabelLightColor">#FCE4EC</Color>
 
     <!-- ============================= -->
     <!-- BRUSH DEFINITIONS             -->
@@ -110,21 +180,49 @@
     <SolidColorBrush x:Key="SurfaceActiveBrush" Color="{StaticResource SurfaceActiveColor}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SurfaceColor}"/>
     
+    <!-- Control Fill Brushes (WinUI 3) -->
+    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="{StaticResource ControlFillColorDefault}"/>
+    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="{StaticResource ControlFillColorSecondary}"/>
+    <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Color="{StaticResource ControlFillColorTertiary}"/>
+    <SolidColorBrush x:Key="ControlFillColorDisabledBrush" Color="{StaticResource ControlFillColorDisabled}"/>
+    
+    <!-- Card/Layer Brushes -->
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundFillColorDefault}"/>
+    <SolidColorBrush x:Key="CardBackgroundSecondaryBrush" Color="{StaticResource CardBackgroundFillColorSecondary}"/>
+    <SolidColorBrush x:Key="LayerFillBrush" Color="{StaticResource LayerFillColorDefault}"/>
+    
+    <!-- Subtle Fill Brushes -->
+    <SolidColorBrush x:Key="SubtleFillBrush" Color="{StaticResource SubtleFillColorSecondary}"/>
+    <SolidColorBrush x:Key="SubtleFillTertiaryBrush" Color="{StaticResource SubtleFillColorTertiary}"/>
+    
     <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
     <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
     <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextOnAccentBrush" Color="#1a1a1a"/><!-- Dark text for bright accent backgrounds -->
     <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
     
     <!-- Border Brushes -->
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
     <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
     <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
+    <SolidColorBrush x:Key="ControlStrokeBrush" Color="{StaticResource ControlStrokeColorDefault}"/>
+    <SolidColorBrush x:Key="ControlStrokeSecondaryBrush" Color="{StaticResource ControlStrokeColorSecondary}"/>
+    <SolidColorBrush x:Key="DividerStrokeBrush" Color="{StaticResource DividerStrokeColorDefault}"/>
+    
+    <!-- Focus Brushes -->
+    <SolidColorBrush x:Key="FocusStrokeOuterBrush" Color="{StaticResource FocusStrokeColorOuter}"/>
+    <SolidColorBrush x:Key="FocusStrokeInnerBrush" Color="{StaticResource FocusStrokeColorInner}"/>
     
     <!-- Accent Brushes -->
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="AccentLight1Brush" Color="{StaticResource AccentLight1Color}"/>
+    <SolidColorBrush x:Key="AccentLight2Brush" Color="{StaticResource AccentLight2Color}"/>
+    <SolidColorBrush x:Key="AccentLight3Brush" Color="{StaticResource AccentLight3Color}"/>
+    <SolidColorBrush x:Key="AccentDark1Brush" Color="{StaticResource AccentDark1Color}"/>
+    <SolidColorBrush x:Key="AccentLightBrush" Color="{StaticResource AccentLightColor}"/>
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource AccentColor}"/>
     
     <!-- Status Brushes -->
@@ -135,18 +233,32 @@
     <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}"/>
     <SolidColorBrush x:Key="DangerLightBrush" Color="{StaticResource DangerLightColor}"/>
     <SolidColorBrush x:Key="DangerDarkBrush" Color="#A80000"/>
-    <SolidColorBrush x:Key="WarningDarkBrush" Color="#9A2900"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="#7A4500"/>
     <SolidColorBrush x:Key="DangerBackgroundBrush" Color="{StaticResource DangerLightColor}"/>
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
+    <SolidColorBrush x:Key="InfoLightBrush" Color="{StaticResource InfoLightColor}"/>
     
     <!-- Sidebar Brushes -->
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource SidebarBackgroundColor}"/>
+    <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}"/>
+    <SolidColorBrush x:Key="SidebarActiveBrush" Color="{StaticResource SidebarActiveColor}"/>
+    
+    <!-- Navigation View Brushes (WinUI 3 style) -->
+    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="{StaticResource DividerStrokeColorDefault}"/>
+    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="{StaticResource AccentLight1Color}"/>
     
     <!-- Title Bar Brushes -->
-    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#E8E8E8"/>
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#F3F3F3"/>
     <SolidColorBrush x:Key="TitleBarTextBrush" Color="{StaticResource TextPrimaryColor}"/>
-    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#E81123"/>
+    <SolidColorBrush x:Key="TitleBarInactiveBackgroundBrush" Color="#F9F9F9"/>
+    <SolidColorBrush x:Key="TitleBarInactiveTextBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#C42B1C"/>
     <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="White"/>
+    <SolidColorBrush x:Key="CaptionButtonHoverBrush" Color="{StaticResource SubtleFillColorSecondary}"/>
+    <SolidColorBrush x:Key="CaptionButtonPressedBrush" Color="{StaticResource SubtleFillColorTertiary}"/>
     
     <!-- Module Light Brushes -->
     <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="{StaticResource ExpireWiseLightColor}"/>
@@ -273,32 +385,45 @@
     <!-- Additional Font Sizes -->
     <sys:Double x:Key="CardFontSize">12</sys:Double>
     <sys:Double x:Key="SmallFontSize">11</sys:Double>
+    <sys:Double x:Key="CaptionFontSize">12</sys:Double>
+    <sys:Double x:Key="BodyFontSize">14</sys:Double>
+    <sys:Double x:Key="SubtitleFontSize">20</sys:Double>
+    <sys:Double x:Key="TitleFontSize">28</sys:Double>
 
     <!-- ============================= -->
-    <!-- CONTROL STYLES                -->
+    <!-- CONTROL STYLES (WinUI 3)      -->
     <!-- ============================= -->
 
-    <!-- Elevated Card Style -->
+    <!-- Elevated Card Style (Windows 11) -->
     <Style x:Key="WidgetElevatedCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}"/>
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}"/>
+        <Setter Property="Padding" Value="16"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="6" ShadowDepth="1" Direction="270"/>
+                <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2" Direction="270"/>
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <!-- Filled Card Style -->
+    <Style x:Key="FilledCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}"/>
+        <Setter Property="Padding" Value="16"/>
+    </Style>
 
-    <!-- Ghost Button Style -->
+    <!-- Ghost Button Style (WinUI 3 Subtle) -->
     <Style x:Key="GhostButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Padding" Value="11,5,11,6"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -306,51 +431,20 @@
                     <Border x:Name="Bg" Background="{TemplateBinding Background}" 
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{DynamicResource SmallCornerRadius}" 
+                            CornerRadius="{DynamicResource ControlCornerRadius}" 
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SubtleFillBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    
-    <!-- Modern Button Style -->
-    <Style x:Key="ModernButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="12,6"/>
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bg" Background="{TemplateBinding Background}" 
-                            BorderBrush="{TemplateBinding BorderBrush}" 
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{DynamicResource SmallCornerRadius}" 
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                            <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SubtleFillTertiaryBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -358,64 +452,237 @@
         </Setter>
     </Style>
     
-    <!-- Modern TextBox Style -->
-    <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+    <!-- Modern Button Style (WinUI 3 Standard) -->
+    <Style x:Key="ModernButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Padding" Value="11,5,11,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ControlCornerRadius}" 
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
+                            <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Accent Button Style (WinUI 3 Primary) -->
+    <Style x:Key="AccentButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="11,5,11,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ControlCornerRadius}" 
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="{StaticResource AccentColor}" Opacity="0.15" BlurRadius="4" ShadowDepth="1" Direction="270"/>
+                        </Border.Effect>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AccentLight1Brush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AccentDark1Brush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Modern TextBox Style (WinUI 3) -->
+    <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeSecondaryBrush}"/>
+        <Setter Property="BorderThickness" Value="1,1,1,1"/>
+        <Setter Property="Padding" Value="11,5,11,6"/>
         <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
             </Trigger>
             <Trigger Property="IsFocused" Value="True">
+                <Setter Property="Background" Value="{StaticResource ControlFillColorInputActive}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                <Setter Property="BorderThickness" Value="1,1,1,2"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
     
-    <!-- Modern ComboBox Style -->
-    <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,6"/>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
+    <!-- NOTE: ModernComboBoxStyle is defined in ModernStyles.xaml with full ControlTemplate -->
+    <!-- It uses DynamicResource to pick up colors from theme dictionaries -->
     
     <!-- Modern CheckBox Style -->
     <Style x:Key="ModernCheckBoxStyle" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="Padding" Value="4,0,0,0"/>
+        <Setter Property="Padding" Value="8,0,0,0"/>
     </Style>
     
-    <!-- Modern ListBox Style -->
+    <!-- Modern ListBox Style (WinUI 3) -->
     <Style x:Key="ModernListBoxStyle" TargetType="ListBox">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="2"/>
+        <Setter Property="Padding" Value="4"/>
     </Style>
     
-    <!-- Modern DataGrid Style -->
+    <!-- Modern DataGrid Style (WinUI 3) -->
     <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderLightBrush}"/>
-        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderLightBrush}"/>
-        <Setter Property="RowBackground" Value="{DynamicResource BackgroundBrush}"/>
-        <Setter Property="AlternatingRowBackground" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource DividerStrokeBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource DividerStrokeBrush}"/>
+        <Setter Property="RowBackground" Value="Transparent"/>
+        <Setter Property="AlternatingRowBackground" Value="{DynamicResource SubtleFillBrush}"/>
+    </Style>
+    
+    <!-- Hyperlink Button Style (WinUI 3) -->
+    <Style x:Key="HyperlinkButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextLinkBrush}"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <TextBlock x:Name="ContentText" Text="{TemplateBinding Content}" 
+                                   Foreground="{TemplateBinding Foreground}"
+                                   TextDecorations="Underline"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource AccentLight1Brush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource AccentDark1Brush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Info Bar Success Style -->
+    <Style x:Key="InfoBarSuccessStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SuccessLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}"/>
+        <Setter Property="Padding" Value="16,12"/>
+    </Style>
+    
+    <!-- Info Bar Warning Style -->
+    <Style x:Key="InfoBarWarningStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource WarningLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}"/>
+        <Setter Property="Padding" Value="16,12"/>
+    </Style>
+    
+    <!-- Info Bar Error Style -->
+    <Style x:Key="InfoBarErrorStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource DangerLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}"/>
+        <Setter Property="Padding" Value="16,12"/>
+    </Style>
+    
+    <!-- Info Bar Info Style -->
+    <Style x:Key="InfoBarInfoStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource InfoLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}"/>
+        <Setter Property="Padding" Value="16,12"/>
+    </Style>
+    
+    <!-- Navigation Item Style -->
+    <Style x:Key="NavigationItemStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
+                                CornerRadius="{DynamicResource NavItemCornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                        <Rectangle x:Name="SelectionIndicator" 
+                                   Width="3" Height="16" 
+                                   Fill="{DynamicResource AccentBrush}"
+                                   RadiusX="1.5" RadiusY="1.5"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   Margin="0,0,0,0"
+                                   Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SubtleFillBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SubtleFillTertiaryBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary>

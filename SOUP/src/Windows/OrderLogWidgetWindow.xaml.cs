@@ -267,6 +267,7 @@ public partial class OrderLogWidgetWindow : Window
         try
         {
             await _viewModel.InitializeAsync();
+            
             // Subscribe to the shared UpdateService scheduler and initialize UI from its last-known state
             var updateService = _serviceProvider.GetService<UpdateService>();
             if (updateService != null)

@@ -36,22 +36,22 @@
     <Color x:Key="InfoDarkColor">#2563eb</Color>
     <Color x:Key="InfoLightColor">#60a5fa</Color>
     
-    <!-- Neutral/Surface Colors (Dark Theme) -->
-    <Color x:Key="BackgroundColor">#0f0f23</Color>
-    <Color x:Key="SurfaceColor">#18181b</Color>
-    <Color x:Key="SurfaceHoverColor">#27272a</Color>
-    <Color x:Key="SurfaceActiveColor">#3f3f46</Color>
-    <Color x:Key="BorderColor">#27272a</Color>
-    <Color x:Key="BorderDarkColor">#3f3f46</Color>
-    <Color x:Key="BorderLightColor">#18181b</Color>
+    <!-- Neutral/Surface Colors (Dark Theme - WinUI 3) -->
+    <Color x:Key="BackgroundColor">#202020</Color>
+    <Color x:Key="SurfaceColor">#2D2D2D</Color>
+    <Color x:Key="SurfaceHoverColor">#383838</Color>
+    <Color x:Key="SurfaceActiveColor">#404040</Color>
+    <Color x:Key="BorderColor">#3D3D3D</Color>
+    <Color x:Key="BorderDarkColor">#4D4D4D</Color>
+    <Color x:Key="BorderLightColor">#2D2D2D</Color>
     
-    <!-- Text Colors (Dark Theme - Light on Dark) -->
-    <Color x:Key="TextPrimaryColor">#f4f4f5</Color>
-    <Color x:Key="TextSecondaryColor">#a1a1aa</Color>
-    <Color x:Key="TextTertiaryColor">#71717a</Color>
-    <Color x:Key="TextDisabledColor">#52525b</Color>
-    <Color x:Key="TextOnPrimaryColor">#ffffff</Color>
-    <Color x:Key="TextLinkColor">#818cf8</Color>
+    <!-- Text Colors (Dark Theme - WinUI 3) -->
+    <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="TextSecondaryColor">#C5C5C5</Color>
+    <Color x:Key="TextTertiaryColor">#8B8B8B</Color>
+    <Color x:Key="TextDisabledColor">#5D5D5D</Color>
+    <Color x:Key="TextOnPrimaryColor">#000000</Color>
+    <Color x:Key="TextLinkColor">#60CDFF</Color>
     
     <!-- Light Mode Colors (for future theme switching) -->
     <Color x:Key="LightBackgroundColor">#f8fafc</Color>
@@ -189,11 +189,11 @@
     <SolidColorBrush x:Key="LightTextPrimaryBrush" Color="{StaticResource LightTextPrimaryColor}"/>
     <SolidColorBrush x:Key="LightTextSecondaryBrush" Color="{StaticResource LightTextSecondaryColor}"/>
     
-    <!-- Gradient Brushes for welcome/empty screens -->
+    <!-- Gradient Brushes for welcome/empty screens (WinUI 3 Dark) -->
     <LinearGradientBrush x:Key="WelcomeScreenGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#0f0f23" Offset="0"/>
-        <GradientStop Color="#1a1a2e" Offset="0.5"/>
-        <GradientStop Color="#16213e" Offset="1"/>
+        <GradientStop Color="#202020" Offset="0"/>
+        <GradientStop Color="#282828" Offset="0.5"/>
+        <GradientStop Color="#1C1C1C" Offset="1"/>
     </LinearGradientBrush>
     
     <!-- ============================= -->
@@ -2224,7 +2224,7 @@
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -2235,7 +2235,7 @@
     <!-- Active state for pill buttons -->
     <Style x:Key="PillButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource PillButtonStyle}">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
     </Style>
     
@@ -2247,7 +2247,7 @@
         <Setter Property="Width" Value="56"/>
         <Setter Property="Height" Value="56"/>
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
@@ -2380,7 +2380,7 @@
     </Style>
     
     <Style x:Key="SnackbarTextStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
@@ -2401,7 +2401,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -2476,7 +2476,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource BorderBrush}"/>
@@ -2902,8 +2902,8 @@
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter TargetName="ShortcutText" Property="Foreground" Value="White"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                            <Setter TargetName="ShortcutText" Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -2914,7 +2914,7 @@
     <!-- LaunchButtonStyle - Large launch button for module cards with animations -->
     <Style x:Key="LaunchButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Padding" Value="24,12"/>
@@ -3122,7 +3122,7 @@
     <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="15"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
     </Style>
 
     <!-- Window Border Style -->
@@ -3363,7 +3363,7 @@
         <Setter Property="CornerRadius" Value="{StaticResource CardCornerRadius}" />
         <Setter Property="Width" Value="{StaticResource CardWidth}" />
         <Setter Property="Margin" Value="{StaticResource CardMargin}" />
-        <Setter Property="Background" Value="#18181b" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
         <Setter Property="Padding" Value="{StaticResource CardPadding}" />
     </Style>
 
@@ -3424,7 +3424,7 @@
     <!-- Animated Primary Button with smooth hover/press -->
     <Style x:Key="AnimatedPrimaryButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="20,12"/>
         <Setter Property="FontSize" Value="14"/>

@@ -8,6 +8,7 @@
 
     <UserControl.Resources>
         <converters:HexToBrushConverter x:Key="HexToBrush"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         
         <!-- Section Header Style -->
         <Style x:Key="SectionHeader" TargetType="TextBlock">
@@ -178,7 +179,7 @@
                 <!-- Appearance Section -->
                 <TextBlock Text="APPEARANCE" Style="{StaticResource SectionHeader}"/>
                 
-                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,12">
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -236,6 +237,21 @@
                 
                 <!-- Behavior Section -->
                 <TextBlock Text="BEHAVIOR" Style="{StaticResource SectionHeader}"/>
+                
+                <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Auto Color by Vendor" Style="{StaticResource SettingLabel}"/>
+                            <TextBlock Text="Automatically assign consistent colors based on vendor name" Style="{StaticResource SettingDescription}"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource ModernToggle}" VerticalAlignment="Center"
+                                  IsChecked="{Binding AutoColorByVendor, Mode=TwoWay}"/>
+                    </Grid>
+                </Border>
                 
                 <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
                     <Grid>
@@ -405,7 +421,13 @@
                 <Border Grid.Row="1" Padding="12">
                     <StackPanel MinHeight="320" MinWidth="300">
                         <!-- Preview sample order card -->
-                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="16" Margin="0,0,0,12" ClipToBounds="True">
+                        <Border Background="{DynamicResource SurfaceHoverBrush}" 
+                                CornerRadius="20" 
+                                Margin="0,0,0,12" 
+                                ClipToBounds="True">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="6" Opacity="0.15" Color="Black"/>
+                            </Border.Effect>
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="6"/>
@@ -414,11 +436,13 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Status color bar (using Default Order Color) -->
-                                <Border Grid.Row="0" CornerRadius="16,16,0,0"
+                                <Border Grid.Row="0" 
+                                        CornerRadius="20,20,0,0"
                                         Background="{Binding DefaultOrderColor, Converter={StaticResource HexToBrush}}"/>
                                 
                                 <!-- Header with vendor name -->
-                                <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Padding="14,10">
+                                <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" 
+                                        Padding="14,10">
                                     <TextBlock Text="Sample Vendor Name"
                                                FontSize="{Binding CardFontSize}"
                                                FontWeight="SemiBold"
@@ -426,7 +450,8 @@
                                 </Border>
                                 
                                 <!-- Card body -->
-                                <StackPanel Grid.Row="2" Margin="14,8,14,14">
+                                <StackPanel Grid.Row="2" 
+                                            Margin="14,8,14,14">
                                     <TextBlock Text="Transfer: 12345, 12346"
                                                FontSize="{Binding CardFontSize}"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
@@ -444,7 +469,12 @@
                         </Border>
                         
                         <!-- Preview sticky note card -->
-                        <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="16" ClipToBounds="True">
+                        <Border Background="{DynamicResource SurfaceHoverBrush}" 
+                                CornerRadius="20" 
+                                ClipToBounds="True">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="6" Opacity="0.15" Color="Black"/>
+                            </Border.Effect>
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="6"/>
@@ -452,11 +482,13 @@
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Sticky note color bar -->
-                                <Border Grid.Row="0" CornerRadius="16,16,0,0"
+                                <Border Grid.Row="0" 
+                                        CornerRadius="20,20,0,0"
                                         Background="{Binding DefaultNoteColor, Converter={StaticResource HexToBrush}}"/>
                                 
                                 <!-- Note content -->
-                                <StackPanel Grid.Row="1" Margin="14,10,14,14">
+                                <StackPanel Grid.Row="1" 
+                                            Margin="14,8,14,14">
                                     <TextBlock Text="📌 Sample Sticky Note"
                                                FontSize="{Binding CardFontSize}"
                                                FontWeight="SemiBold"
@@ -472,20 +504,10 @@
                         
                         <!-- Settings indicator -->
                         <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="8" Padding="10" Margin="0,12,0,0">
-                            <StackPanel>
-                                <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" TextWrapping="Wrap">
-                                    <Run Text="Font Size:"/>
-                                    <Run Text="{Binding CardFontSize, StringFormat='{}{0:0}pt'}" FontWeight="SemiBold"/>
-                                    <Run Text=" • Undo:"/>
-                                    <Run Text="{Binding UndoTimeoutSeconds, StringFormat='{}{0}s'}" FontWeight="SemiBold"/>
-                                </TextBlock>
-                                <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,2,0,0">
-                                    <Run Text="Now Playing:"/>
-                                    <Run Text="{Binding ShowNowPlaying}" FontWeight="SemiBold"/>
-                                    <Run Text=" • Archived Tab:"/>
-                                    <Run Text="{Binding ShowArchived}" FontWeight="SemiBold"/>
-                                </TextBlock>
-                            </StackPanel>
+                            <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" TextWrapping="Wrap">
+                                <Run Text="Font Size:"/>
+                                <Run Text="{Binding CardFontSize, StringFormat='{}{0:0}'}" FontWeight="SemiBold"/>
+                            </TextBlock>
                         </Border>
                     </StackPanel>
                 </Border>

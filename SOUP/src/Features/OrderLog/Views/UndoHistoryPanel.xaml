@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="250"
-             Background="#F5F5F5">
+             Background="{DynamicResource BackgroundBrush}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,10 +13,10 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="#2D2D30" Padding="12,8">
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceHoverBrush}" Padding="12,8">
             <StackPanel>
-                <TextBlock Text="Undo History" FontWeight="Bold" Foreground="White" FontSize="14"/>
-                <TextBlock FontSize="11" Foreground="#B0B0B0" Margin="0,2,0,0">
+                <TextBlock Text="Undo History" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="14"/>
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0">
                     <Run Text="Undo: "/>
                     <Run Text="{Binding UndoCount, FallbackValue=0}"/>
                     <Run Text=" • Redo: "/>
@@ -32,11 +32,12 @@
                 <ItemsControl ItemsSource="{Binding RedoHistory}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#E0E0E0"
+                            <Border Background="{DynamicResource SurfaceBrush}"
                                     Margin="0,2"
                                     Padding="8,6"
-                                    BorderBrush="#CCCCCC"
-                                    BorderThickness="1">
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -47,7 +48,7 @@
                                     <TextBlock Grid.Column="0"
                                                Text="↻"
                                                FontSize="14"
-                                               Foreground="#999999"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"
                                                Margin="0,0,8,0"
                                                VerticalAlignment="Center"/>
 
@@ -55,7 +56,7 @@
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding Description}"
                                                FontSize="12"
-                                               Foreground="#666666"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
                                                TextWrapping="Wrap"
                                                VerticalAlignment="Center"/>
                                 </Grid>
@@ -65,14 +66,15 @@
                 </ItemsControl>
 
                 <!-- Current State Indicator -->
-                <Border Background="#4CAF50"
+                <Border Background="{DynamicResource SuccessBrush}"
                         Margin="0,4"
                         Padding="8,4"
+                        CornerRadius="4"
                         Visibility="{Binding HasHistory, Converter={StaticResource BoolToVisibilityConverter}}">
                     <TextBlock Text="← Current State"
                                FontSize="11"
                                FontWeight="Bold"
-                               Foreground="White"
+                               Foreground="{DynamicResource TextOnPrimaryBrush}"
                                HorizontalAlignment="Center"/>
                 </Border>
 
@@ -80,18 +82,19 @@
                 <ItemsControl ItemsSource="{Binding UndoHistory}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="White"
+                            <Border Background="{DynamicResource SurfaceBrush}"
                                     Margin="0,2"
                                     Padding="8,6"
-                                    BorderBrush="#007ACC"
+                                    BorderBrush="{DynamicResource AccentBrush}"
                                     BorderThickness="1"
+                                    CornerRadius="4"
                                     Cursor="Hand"
                                     ToolTip="Click to undo to this point">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#E3F2FD"/>
+                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -108,7 +111,7 @@
                                     <TextBlock Grid.Column="0"
                                                Text="↶"
                                                FontSize="14"
-                                               Foreground="#007ACC"
+                                               Foreground="{DynamicResource AccentBrush}"
                                                Margin="0,0,8,0"
                                                VerticalAlignment="Center"/>
 
@@ -116,7 +119,7 @@
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding Description}"
                                                FontSize="12"
-                                               Foreground="#333333"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                                TextWrapping="Wrap"
                                                VerticalAlignment="Center"/>
 
@@ -124,7 +127,7 @@
                                     <TextBlock Grid.Column="2"
                                                Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
                                                FontSize="10"
-                                               Foreground="#999999"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"
                                                Margin="8,0,0,0"
                                                VerticalAlignment="Center"/>
                                 </Grid>
@@ -136,7 +139,7 @@
                 <!-- Empty State -->
                 <TextBlock Text="No undo history"
                            FontSize="12"
-                           Foreground="#999999"
+                           Foreground="{DynamicResource TextTertiaryBrush}"
                            HorizontalAlignment="Center"
                            Margin="0,20"
                            Visibility="{Binding HasNoHistory, Converter={StaticResource BoolToVisibilityConverter}}"/>

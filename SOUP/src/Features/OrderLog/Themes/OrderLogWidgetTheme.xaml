@@ -214,7 +214,7 @@
 
     <Style x:Key="WidgetTabButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource WidgetTabButtonStyle}">
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Effect">
             <Setter.Value>
@@ -261,7 +261,7 @@
     <!-- Primary Action Button (FAB-like) -->
     <Style x:Key="WidgetPrimaryActionButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="SemiBold"/>

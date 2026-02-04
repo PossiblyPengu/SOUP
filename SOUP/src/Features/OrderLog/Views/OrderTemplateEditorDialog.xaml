@@ -149,7 +149,7 @@
                             Margin="0,0,0,8">
                         <TextBlock Text="Click to change color"
                                    FontSize="12"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource TextOnPrimaryBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
                     </Border>

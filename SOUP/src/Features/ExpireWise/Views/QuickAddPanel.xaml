@@ -88,7 +88,7 @@
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Background" Value="#22c55e"/>
+                                        <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
                                     </DataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
@@ -97,12 +97,12 @@
                                             <Condition Binding="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}}" Value="Visible"/>
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Background" Value="#ef4444"/>
+                                        <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
                                     </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" Foreground="White">
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" Foreground="{DynamicResource TextOnPrimaryBrush}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Text" Value=""/>
@@ -146,8 +146,8 @@
                 <Border.BorderThickness>1</Border.BorderThickness>
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBlock Text="✓" FontSize="12" Foreground="#22c55e" Margin="0,0,6,0"/>
-                        <TextBlock Text="ITEM FOUND" FontSize="10" FontWeight="Bold" Foreground="#22c55e"/>
+                        <TextBlock Text="✓" FontSize="12" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,6,0"/>
+                        <TextBlock Text="ITEM FOUND" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
                     </StackPanel>
                     <TextBlock Text="{Binding QuickAddItemPreview}" FontSize="14" FontWeight="SemiBold"
                                Foreground="{StaticResource ExpireWiseAccentLightBrush}"
@@ -197,7 +197,7 @@
                                 </LinearGradientBrush>
                             </Setter.Value>
                         </Setter>
-                        <Setter Property="Foreground" Value="#1a1a1a"/>
+                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}"/>
                         <Style.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
@@ -245,7 +245,7 @@
                             <Border Background="{StaticResource ExpireWiseAccentBrush}" CornerRadius="8"
                                     Padding="8,2" Margin="8,0,0,0">
                                 <TextBlock Text="{Binding QuickAddQueue.Count}" FontSize="11" FontWeight="Bold"
-                                           Foreground="#1a1a1a"/>
+                                           Foreground="{DynamicResource TextOnAccentBrush}"/>
                             </Border>
                         </StackPanel>
                         <Button Content="Clear" Command="{Binding ClearQueueCommand}"
@@ -340,8 +340,8 @@
                 <Button Grid.Row="2" Command="{Binding ConfirmQueueCommand}" Margin="0,10,0,0">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-                            <Setter Property="Background" Value="#22c55e"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
                             <Setter Property="Padding" Value="0,12"/>
                         </Style>
                     </Button.Style>

@@ -30,14 +30,13 @@
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         <converters:HexToColorConverter x:Key="HexToColorConverter"/>
-        <converters:VendorNameGroupComparerConverter x:Key="VendorNameGroupComparer"/>
         
         <!-- Modern Editable Field Style - Clean inline editing with focus indicator -->
         <Style x:Key="ModernEditableFieldStyle" TargetType="TextBox">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0,2"/>
-            <Setter Property="CaretBrush" Value="#00D4FF"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="SelectionOpacity" Value="0.4"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -161,7 +160,7 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}"/>
-                                <Setter TargetName="Icon" Property="Fill" Value="White"/>
+                                <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource TextOnPrimaryBrush}"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
@@ -264,7 +263,7 @@
                                     <TextBlock Text="{Binding LinkedItemCount}"
                                                FontSize="11"
                                                FontWeight="SemiBold"
-                                               Foreground="White"
+                                               Foreground="{DynamicResource TextOnPrimaryBrush}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
@@ -637,7 +636,7 @@
 
         <!-- Template for archived Order cards -->
         <DataTemplate x:Key="ArchivedOrderItemTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
@@ -721,7 +720,7 @@
         <!-- Template for archived Sticky Note cards -->
         <!-- Template for archived Sticky Note - fluid body-only design -->
         <DataTemplate x:Key="ArchivedStickyNoteTemplate" DataType="{x:Type models:OrderItem}">
-            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0" Opacity="0.7">
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0" Opacity="0.7">
                 <Border.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Restore" Click="UnarchiveNote_Click"/>
@@ -1066,7 +1065,7 @@
 
         <!-- Template for ARCHIVED merged order cards (no status dropdown, has restore button) -->
         <DataTemplate x:Key="ArchivedOrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                 <Border.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Restore All" Click="UnarchiveGroup_Click"/>
@@ -1438,7 +1437,7 @@
                                     Width="24" Height="24"
                                     Margin="0,0,8,0">
                                 <TextBlock Text="+" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                           Foreground="White" Margin="0,-2,0,0"/>
+                                           Foreground="{DynamicResource TextOnPrimaryBrush}" Margin="0,-2,0,0"/>
                             </Border>
                             <TextBlock Text="Order" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -1450,7 +1449,7 @@
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#FFB347"
+                            <Border Background="{DynamicResource WarningBrush}"
                                     CornerRadius="12"
                                     Width="24" Height="24"
                                     Margin="0,0,8,0">
@@ -1466,7 +1465,7 @@
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource BoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#FFB347"
+                            <Border Background="{DynamicResource WarningBrush}"
                                     CornerRadius="12"
                                     Width="24" Height="24"
                                     Margin="0,0,8,0">
@@ -1524,7 +1523,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Border Width="3" Height="16" CornerRadius="1.5" Background="#FFB347" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <Border Width="3" Height="16" CornerRadius="1.5" Background="{DynamicResource WarningBrush}" Margin="0,0,10,0" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="Notes" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="2" Text="{Binding StickyNotes.Count}"
                                        FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -1745,7 +1744,7 @@
                                                     <ContentControl Content="{Binding First}">
                                                         <ContentControl.ContentTemplate>
                                                                 <DataTemplate>
-                                                                <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
+                                                                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                                 <!-- Dynamic context menu based on NoteType -->
                                 <Border.ContextMenu>
                                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -2447,7 +2446,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <!-- Archived item card -->
-                                <Border Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
+                                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="6" Padding="0">
                                     <Border.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Copy" Click="Copy_Click" DataContext="{Binding First}" InputGestureText="Ctrl+C"/>
@@ -2634,7 +2633,7 @@
                     <Grid>
                         <!-- Album Art Background - uses width binding for square aspect -->
                         <Border CornerRadius="0" 
-                                Background="#18181b"
+                                Background="{DynamicResource SurfaceBrush}"
                                 MinHeight="180"
                                 MaxHeight="280">
                             <Grid>
@@ -2676,7 +2675,7 @@
                                                Text="Not Playing"
                                                FontSize="{DynamicResource CardFontSize}"
                                                FontWeight="Bold"
-                                               Foreground="White"
+                                               Foreground="{DynamicResource TextOnOverlayBrush}"
                                                TextTrimming="CharacterEllipsis"
                                                TextWrapping="NoWrap">
                                         <TextBlock.Effect>
@@ -2711,7 +2710,7 @@
                                                 Content="⏮"
                                                 Click="PrevTrack_Click"
                                                 Background="Transparent"
-                                                Foreground="White"
+                                                Foreground="{DynamicResource TextOnOverlayBrush}"
                                                 BorderThickness="0"
                                                 FontSize="20"
                                                 Width="44"
@@ -2745,8 +2744,8 @@
                                         <Button x:Name="PlayPauseButton"
                                                 Content="▶"
                                                 Click="PlayPause_Click"
-                                                Background="White"
-                                                Foreground="#18181b"
+                                                Background="{DynamicResource TextOnPrimaryBrush}"
+                                                Foreground="{DynamicResource SurfaceBrush}"
                                                 BorderThickness="0"
                                                 FontSize="22"
                                                 Width="50"
@@ -2782,7 +2781,7 @@
                                                 Content="⏭"
                                                 Click="NextTrack_Click"
                                                 Background="Transparent"
-                                                Foreground="White"
+                                                Foreground="{DynamicResource TextOnOverlayBrush}"
                                                 BorderThickness="0"
                                                 FontSize="20"
                                                 Width="44"
