@@ -14,10 +14,9 @@ namespace SOUP.Views;
 public partial class ExternalDataSettingsView : UserControl
 {
     /// <summary>
-    /// DEVELOPMENT ONLY: Set to true to bypass admin credential check.
-    /// TODO: Remove before release or make configurable via appsettings.
+    /// Set to true to bypass admin credential check during development.
     /// </summary>
-    private const bool DEV_BYPASS_ADMIN_CHECK = true;
+    private const bool DEV_BYPASS_ADMIN_CHECK = false;
 
     public ExternalDataSettingsView()
     {
@@ -65,6 +64,7 @@ public partial class ExternalDataSettingsView : UserControl
 
     private void CheckInitialAdminState()
     {
+#pragma warning disable CS0162 // Unreachable code detected - intentional dev bypass toggle
         // Dev bypass - skip admin check entirely
         if (DEV_BYPASS_ADMIN_CHECK)
         {
@@ -72,6 +72,7 @@ public partial class ExternalDataSettingsView : UserControl
             Unlock();
             return;
         }
+#pragma warning restore CS0162
 
         try
         {

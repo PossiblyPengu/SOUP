@@ -2123,6 +2123,24 @@ public partial class OrderLogWidgetView : UserControl
         // Ensure the RichTextBox gets focus when clicked - prevents drag behavior from blocking
         if (sender is RichTextBox rtb)
         {
+            // Check if click is on a checkbox - toggle it
+            var position = e.GetPosition(rtb);
+            if (Helpers.TextFormattingHelper.IsPositionOverCheckbox(rtb, position))
+            {
+                // Move caret to click position first
+                var textPos = rtb.GetPositionFromPoint(position, true);
+                if (textPos != null)
+                    rtb.CaretPosition = textPos;
+                
+                if (Helpers.TextFormattingHelper.ToggleCheckboxAtCurrentLine(rtb))
+                {
+                    // Save the change
+                    Helpers.TextFormattingHelper.UpdateNoteContent(sender, this);
+                    e.Handled = true;
+                    return;
+                }
+            }
+            
             rtb.Focus();
             e.Handled = false; // Let the event continue for text selection
         }
@@ -2507,13 +2525,13 @@ public partial class OrderLogWidgetView : UserControl
                 {
                     foreach (var m in grp.Members.ToList())
                     {
-                        if (vm.SelectedItems.Contains(m)) vm.SelectedItems.Remove(m);
+                        vm.SelectedItems.Remove(m);
                     }
                 }
             }
             else if (checkBox.Tag is Models.OrderItem item2)
             {
-                if (DataContext is OrderLogViewModel vm && vm.SelectedItems.Contains(item2)) vm.SelectedItems.Remove(item2);
+                if (DataContext is OrderLogViewModel vm) vm.SelectedItems.Remove(item2);
             }
         }
     }
@@ -2630,11 +2648,6 @@ public partial class OrderLogWidgetView : UserControl
         // Future implementation: Show keyboard shortcuts help dialog
         Log.Debug("Keyboard help requested (not yet implemented)");
     }
-
-    /// <summary>
-    /// Save selected order as a template
-    /// </summary>
-    
 
     #endregion
 }

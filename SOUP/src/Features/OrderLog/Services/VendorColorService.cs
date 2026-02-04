@@ -17,7 +17,7 @@ public class VendorColorService
     private readonly ILogger<VendorColorService>? _logger;
     private readonly string _mappingsFilePath;
     private Dictionary<string, string> _vendorColorMap = new();
-    private readonly object _lock = new();
+    private readonly System.Threading.Lock _lock = new();
 
     // Predefined color palette (10 distinct, accessible colors)
     private static readonly string[] ColorPalette = new[]

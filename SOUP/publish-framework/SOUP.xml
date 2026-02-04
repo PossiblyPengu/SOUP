@@ -83,11 +83,6 @@
             Action to invoke when items are reordered.
             </summary>
         </member>
-        <member name="T:SOUP.Converters.BoolToSuccessColorConverter">
-            <summary>
-            Converts a boolean value to a success/error color
-            </summary>
-        </member>
         <member name="T:SOUP.Converters.BoolToVisibilityConverter">
             <summary>
             Converts a boolean value to <see cref="T:System.Windows.Visibility"/>.
@@ -168,17 +163,6 @@
         <member name="T:SOUP.Converters.CountToVisibilityConverter">
             <summary>
             Converts a count (int) to Visibility. Returns Visible if count > 0, otherwise Collapsed.
-            </summary>
-        </member>
-        <member name="T:SOUP.Converters.NullToBoolConverter">
-            <summary>
-            Converts null to true (for RadioButton IsChecked binding when no store is selected).
-            </summary>
-        </member>
-        <member name="T:SOUP.Converters.DateEqualsConverter">
-            <summary>
-            Compares two DateTime values for equality (month/year comparison).
-            Used for RadioButton IsChecked binding in month timeline.
             </summary>
         </member>
         <member name="T:SOUP.Converters.IntToVisibilityConverter">
@@ -1756,11 +1740,6 @@
             Get the database path for diagnostic purposes
             </summary>
         </member>
-        <member name="T:SOUP.Features.ExpireWise.Converters.DateFormatConverter">
-            <summary>
-            Converter for formatting dates based on a configurable format string.
-            </summary>
-        </member>
         <member name="T:SOUP.Features.ExpireWise.Helpers.KeyboardShortcutManager">
             <summary>
             Manages keyboard shortcuts for the ExpireWise module.
@@ -2180,13 +2159,23 @@
             Uses cached brushes that match the theme colors for card backgrounds.
             </summary>
         </member>
-        <member name="T:SOUP.Features.OrderLog.Converters.VendorNameGroupComparerConverter">
+        <member name="T:SOUP.Features.OrderLog.Converters.XamlToPlainTextConverter">
             <summary>
-            Compares a member's VendorName with the group's first VendorName and
-            returns Visibility.Collapsed when they are equal or the member name
-            is empty; otherwise returns Visibility.Visible.
-            Used to avoid repeating the same vendor name inside merged cards.
+            Converts XAML FlowDocument content to plain text for display in TextBox/TextBlock.
+            Handles double-encoded XAML content gracefully.
             </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Converters.XamlToPlainTextConverter.XmlTagRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>&lt;[^&gt;]+&gt;</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '&lt;'.<br/>
+            ○ Match a character other than '&gt;' atomically at least once.<br/>
+            ○ Match '&gt;'.<br/>
+            </code>
+            </remarks>
         </member>
         <member name="T:SOUP.Features.OrderLog.Helpers.KeyboardShortcutManager">
             <summary>
@@ -2224,9 +2213,31 @@
             Load the RichTextBox document from XAML string.
             </summary>
         </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.ExtractPlainTextFromXaml(System.String,System.Int32)">
+            <summary>
+            Extracts plain text from potentially double-encoded XAML content.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.StripXmlTagsRegex(System.String)">
+            <summary>
+            Strips XML tags using regex as a fallback.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.ResetTextForeground(System.Windows.Controls.RichTextBox)">
+            <summary>
+            Resets all text foreground colors in the document to inherit from the RichTextBox.
+            This ensures theme-adaptive text colors.
+            </summary>
+        </member>
         <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.InsertTextAtCaret(System.Windows.Controls.RichTextBox,System.String,System.Boolean)">
             <summary>
             Inserts text at the caret of a RichTextBox.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.InsertPrefixAtLineStart(System.Windows.Controls.RichTextBox,System.String)">
+            <summary>
+            Inserts a prefix (bullet, checkbox, number) at the start of the current line.
+            If the line already has this prefix, removes it (toggle behavior).
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.UpdateNoteContent(System.Object,System.Windows.FrameworkElement)">
@@ -2242,6 +2253,17 @@
         <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.HandleListAutoContinuation(System.Windows.Controls.RichTextBox,System.Windows.Input.KeyEventArgs)">
             <summary>
             Handles auto-continuation of list items (bullets, checkboxes, numbered lists) when Enter is pressed.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.ToggleCheckboxAtCurrentLine(System.Windows.Controls.RichTextBox)">
+            <summary>
+            Toggles checkbox state at the current line (☐ ↔ ☑).
+            Returns true if a checkbox was toggled.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.IsPositionOverCheckbox(System.Windows.Controls.RichTextBox,System.Windows.Point)">
+            <summary>
+            Checks if the given position in a RichTextBox is over a checkbox character.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Helpers.TextFormattingHelper.LoadNoteContent(System.Object)">
@@ -2670,6 +2692,7 @@
             <param name="colorHexes">Color filter</param>
             <param name="noteType">Note type filter</param>
             <param name="noteCategory">Note category filter (only applies to sticky notes)</param>
+            <param name="expandLinkedGroups">Whether to expand linked order groups</param>
             <returns>Filtered items</returns>
         </member>
         <member name="M:SOUP.Features.OrderLog.Services.OrderSearchService.ExpandLinkedGroups(System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem},System.Collections.Generic.IEnumerable{SOUP.Features.OrderLog.Models.OrderItem})">
@@ -4053,30 +4076,6 @@
         <member name="P:SOUP.Models.NavItem.IsSelected">
             <inheritdoc cref="F:SOUP.Models.NavItem._isSelected"/>
         </member>
-        <member name="T:SOUP.Models.StoreEntry">
-            <summary>
-            Represents a store entry for SwiftLabel generation.
-            </summary>
-            <remarks>
-            This model is used by SwiftLabel to generate store labels
-            with code, name, and ranking information.
-            </remarks>
-        </member>
-        <member name="P:SOUP.Models.StoreEntry.Code">
-            <summary>
-            Gets or sets the store code identifier.
-            </summary>
-        </member>
-        <member name="P:SOUP.Models.StoreEntry.Name">
-            <summary>
-            Gets or sets the store name.
-            </summary>
-        </member>
-        <member name="P:SOUP.Models.StoreEntry.Rank">
-            <summary>
-            Gets or sets the store ranking/tier.
-            </summary>
-        </member>
         <member name="T:SOUP.Services.AppLifecycleService">
             <summary>
             Centralizes all application lifecycle management including:
@@ -5013,33 +5012,6 @@
         <member name="M:SOUP.Services.WidgetProcessService.KillWidget">
             <summary>
             Forcefully terminates the widget process.
-            </summary>
-        </member>
-        <member name="T:SOUP.Services.WidgetThreadService">
-            <summary>
-            Service that manages widget windows on separate threads to prevent modal dialog blocking.
-            The widget runs completely independently and can continue working even when
-            modal dialogs are open in the main application.
-            </summary>
-        </member>
-        <member name="E:SOUP.Services.WidgetThreadService.WidgetClosed">
-            <summary>
-            Event raised when the widget is closed
-            </summary>
-        </member>
-        <member name="M:SOUP.Services.WidgetThreadService.ShowOrderLogWidget">
-            <summary>
-            Shows the OrderLog widget on its own thread (independent from modal dialogs)
-            </summary>
-        </member>
-        <member name="M:SOUP.Services.WidgetThreadService.CloseWidget">
-            <summary>
-            Closes the widget window if open
-            </summary>
-        </member>
-        <member name="P:SOUP.Services.WidgetThreadService.IsWidgetOpen">
-            <summary>
-            Gets whether the widget is currently open
             </summary>
         </member>
         <member name="T:SOUP.Services.WindowSettingsService">
@@ -7167,6 +7139,7 @@
             <param name="navigationService">The month navigation service for ExpireWise.</param>
             <param name="importExportService">The import/export helper service for ExpireWise.</param>
             <param name="notificationService">The notification service for ExpireWise.</param>
+            <param name="itemService">The item management service for ExpireWise.</param>
             <param name="logger">Optional logger for diagnostic output.</param>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.OnSettingsChanged(System.Object,SOUP.Infrastructure.Services.SettingsChangedEventArgs)">
@@ -8484,12 +8457,6 @@
             InitializeComponent
             </summary>
         </member>
-        <member name="T:SOUP.Views.ExpireWise.StoreDisplayConverter">
-            <summary>
-            Converts a store code (Location) into a display string "CODE - Name" if available.
-            Falls back to the code if no store is found.
-            </summary>
-        </member>
         <member name="T:SOUP.Views.ExternalDataSettingsView">
             <summary>
             External data connection settings view with admin protection
@@ -8500,8 +8467,7 @@
         </member>
         <member name="F:SOUP.Views.ExternalDataSettingsView.DEV_BYPASS_ADMIN_CHECK">
             <summary>
-            DEVELOPMENT ONLY: Set to true to bypass admin credential check.
-            TODO: Remove before release or make configurable via appsettings.
+            Set to true to bypass admin credential check during development.
             </summary>
         </member>
         <member name="M:SOUP.Views.ExternalDataSettingsView.PromptForAdminCredentialsAsync">
@@ -10300,6 +10266,47 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.IsGenerating">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "IsGenerating" generated properties.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.XmlTagRegex_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the XmlTagRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.XmlTagRegex_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.XmlTagRegex_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.XmlTagRegex_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.XmlTagRegex_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.XmlTagRegex_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.XmlTagRegex_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.XmlTagRegex_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.XmlTagRegex_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
         </member>
     </members>
 </doc>

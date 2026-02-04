@@ -30,6 +30,7 @@
         <converters:LinkedGroupToVisibilityConverter x:Key="LinkedGroupToVisibilityConverter"/>
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         <converters:HexToColorConverter x:Key="HexToColorConverter"/>
+        <converters:XamlToPlainTextConverter x:Key="XamlToPlainTextConverter"/>
         
         <!-- Modern Editable Field Style - Clean inline editing with focus indicator -->
         <Style x:Key="ModernEditableFieldStyle" TargetType="TextBox">
@@ -754,7 +755,7 @@
                                   VerticalAlignment="Center"
                                   Visibility="Collapsed"/>
 
-                        <TextBox Grid.Column="1" Text="{Binding NoteContent}" 
+                        <TextBox Grid.Column="1" Text="{Binding NoteContent, Converter={StaticResource XamlToPlainTextConverter}}" 
                                  Foreground="{DynamicResource TextSecondaryBrush}" 
                                  FontSize="{DynamicResource CardFontSize}" 
                                  TextWrapping="Wrap" 

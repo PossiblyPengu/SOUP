@@ -151,6 +151,7 @@ public class OrderSearchService
     /// <param name="colorHexes">Color filter</param>
     /// <param name="noteType">Note type filter</param>
     /// <param name="noteCategory">Note category filter (only applies to sticky notes)</param>
+    /// <param name="expandLinkedGroups">Whether to expand linked order groups</param>
     /// <returns>Filtered items</returns>
     public IEnumerable<OrderItem> ApplyAllFilters(
         IEnumerable<OrderItem> items,

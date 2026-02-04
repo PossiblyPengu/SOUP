@@ -18,7 +18,7 @@ public class OrderTemplateService
     private readonly ILogger<OrderTemplateService>? _logger;
     private readonly string _templatesFilePath;
     private List<OrderTemplate> _templates = new();
-    private readonly object _lock = new();
+    private readonly System.Threading.Lock _lock = new();
 
     public OrderTemplateService(ILogger<OrderTemplateService>? logger = null)
     {

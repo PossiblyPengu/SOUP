@@ -335,7 +335,6 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private string _newNoteColorHex = OrderLogColors.DefaultOrder;
     private string _stickyNoteColorHex = OrderLogColors.DefaultNote; // Yellow default for sticky notes
 
-    public event Action? GroupStatesReset;
     public event Action<OrderItem>? ItemAdded;
 
     public OrderLogViewModel(

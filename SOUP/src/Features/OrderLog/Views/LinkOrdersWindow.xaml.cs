@@ -65,14 +65,14 @@ public partial class LinkOrdersWindow : Window
         }
 
         // Filter by search text
-        var searchText = SearchBox.Text?.Trim().ToLowerInvariant();
+        var searchText = SearchBox.Text?.Trim();
         if (!string.IsNullOrEmpty(searchText))
         {
             var matches =
-                (order.VendorName?.ToLowerInvariant().Contains(searchText) ?? false) ||
-                (order.TransferNumbers?.ToLowerInvariant().Contains(searchText) ?? false) ||
-                (order.WhsShipmentNumbers?.ToLowerInvariant().Contains(searchText) ?? false) ||
-                (order.DisplayTitle?.ToLowerInvariant().Contains(searchText) ?? false);
+                (order.VendorName?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (order.TransferNumbers?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (order.WhsShipmentNumbers?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (order.DisplayTitle?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false);
 
             if (!matches)
             {

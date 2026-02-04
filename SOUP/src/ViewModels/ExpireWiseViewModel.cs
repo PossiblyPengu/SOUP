@@ -451,6 +451,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// <param name="navigationService">The month navigation service for ExpireWise.</param>
     /// <param name="importExportService">The import/export helper service for ExpireWise.</param>
     /// <param name="notificationService">The notification service for ExpireWise.</param>
+    /// <param name="itemService">The item management service for ExpireWise.</param>
     /// <param name="logger">Optional logger for diagnostic output.</param>
     public ExpireWiseViewModel(
         IExpireWiseRepository repository,

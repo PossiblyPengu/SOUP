@@ -8,9 +8,8 @@ namespace SOUP.Features.OrderLog.Views;
 
 public partial class OrderTemplateEditorDialog : Window
 {
-    public OrderTemplate Template { get; private set; }
+    public new OrderTemplate Template { get; private set; }
     private string _currentColorHex = "#B56576";
-    private readonly bool _isEditMode;
 
     /// <summary>
     /// Create a new template from scratch
@@ -18,7 +17,6 @@ public partial class OrderTemplateEditorDialog : Window
     public OrderTemplateEditorDialog()
     {
         InitializeComponent();
-        _isEditMode = false;
         TitleText.Text = "Create Template";
         DefaultStatusComboBox.SelectedIndex = 0; // NotReady
 
@@ -40,7 +38,6 @@ public partial class OrderTemplateEditorDialog : Window
     public OrderTemplateEditorDialog(OrderTemplate template)
     {
         InitializeComponent();
-        _isEditMode = true;
         TitleText.Text = "Edit Template";
         Template = template;
 
@@ -73,7 +70,6 @@ public partial class OrderTemplateEditorDialog : Window
     public OrderTemplateEditorDialog(OrderItem order)
     {
         InitializeComponent();
-        _isEditMode = false;
         TitleText.Text = "Save as Template";
 
         Template = new OrderTemplate

@@ -19,7 +19,7 @@ public partial class QuickAddPanel : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Auto-focus the SKU input when panel loads
-        Dispatcher.BeginInvoke(new System.Action(() =>
+        _ = Dispatcher.BeginInvoke(new System.Action(() =>
         {
             SkuInput.Focus();
             SkuInput.SelectAll();
@@ -46,7 +46,7 @@ public partial class QuickAddPanel : UserControl
     public void FocusSkuInput()
     {
         // Focus and select all text in SKU input
-        Dispatcher.BeginInvoke(new System.Action(() =>
+        _ = Dispatcher.BeginInvoke(new System.Action(() =>
         {
             SkuInput.Focus();
             SkuInput.SelectAll();
@@ -59,7 +59,7 @@ public partial class QuickAddPanel : UserControl
     public void ClearAndRefocus()
     {
         SkuInput.Clear();
-        Dispatcher.BeginInvoke(new System.Action(() =>
+        _ = Dispatcher.BeginInvoke(new System.Action(() =>
         {
             SkuInput.Focus();
         }), System.Windows.Threading.DispatcherPriority.Loaded);
