@@ -20,8 +20,13 @@ Quick and easy build scripts for the SOUP project.
 |--------|-------------|
 | `dev.ps1` | Quick commands (build, run, widget, watch, clean, etc.) |
 | `build.ps1` | Full build with options |
-| `run.ps1` | Run the application |
-| `run-widget.ps1` | Run in widget mode only |
+| `run.ps1` | Run the application (launcher) |
+| `run-widget.ps1` | Run OrderLog widget (standalone) |
+| `run-expirewise.ps1` | Run ExpireWise module directly |
+| `run-orderlog.ps1` | Run OrderLog module directly |
+| `run-allocation.ps1` | Run AllocationBuddy module directly |
+| `run-essentials.ps1` | Run EssentialsBuddy module directly |
+| `run-swiftlabel.ps1` | Run SwiftLabel module directly |
 | `watch.ps1` | Hot reload development |
 | `clean.ps1` | Clean build artifacts |
 | `publish.ps1` | Publish for distribution |
@@ -65,6 +70,25 @@ Quick and easy build scripts for the SOUP project.
 .\scripts\run.ps1                      # Build and run (Debug)
 .\scripts\run.ps1 -Release             # Build and run (Release)
 .\scripts\run.ps1 -NoBuild             # Run without building
+```
+
+### Module Scripts - Run specific modules directly
+
+Each module can be launched directly, skipping the launcher:
+
+```powershell
+.\scripts\run-expirewise.ps1           # Build and run ExpireWise
+.\scripts\run-orderlog.ps1             # Build and run OrderLog
+.\scripts\run-allocation.ps1           # Build and run AllocationBuddy
+.\scripts\run-essentials.ps1           # Build and run EssentialsBuddy
+.\scripts\run-swiftlabel.ps1           # Build and run SwiftLabel
+.\scripts\run-widget.ps1               # Build and run widget (standalone)
+```
+
+All module scripts support `-NoBuild` to run without rebuilding:
+
+```powershell
+.\scripts\run-expirewise.ps1 -NoBuild  # Run ExpireWise without building
 ```
 
 ### watch.ps1 - Hot Reload Development

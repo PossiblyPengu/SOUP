@@ -21,7 +21,7 @@ public static class AppVersion
     /// <summary>
     /// The current application version string (e.g., "4.6.1").
     /// </summary>
-    public const string Version = "5.0.3";
+    public const string Version = "5.1.0";
 
     /// <summary>
     /// The current version display string with 'v' prefix (e.g., "v4.6.1").
@@ -36,7 +36,7 @@ public static class AppVersion
     /// <summary>
     /// The build date in ISO format.
     /// </summary>
-    public const string BuildDate = "2026-02-03";
+    public const string BuildDate = "2026-02-04";
 
     /// <summary>
     /// Full version string with channel (e.g., "v4.3.0 - Stable").
@@ -48,6 +48,10 @@ public static class AppVersion
     /// </summary>
     public static IReadOnlyList<ChangelogEntry> Changelog { get; } = new List<ChangelogEntry>
     {
+        new("5.1.0", "2026-02-04", "Release Update", new[]
+        {
+            "feat: Enhance ExpireWiseView with scrolling and property change handling- Added PropertyChanged event handling to scroll MainContentScrollViewer to top when SelectedStore changes.- Removed unused selection change handling for ItemsGrid.- Implemented horizontal scrolling for TimelineScroll with mouse wheel.feat: Introduce development bypass for admin checks in ExternalDataSettingsView- Added DEV_BYPASS_ADMIN_CHECK constant to skip admin credential verification during development.feat: Update UnifiedSettingsWindow layout with Data Backup section- Added a new section for data backup options including export, import, and open data folder buttons.- Adjusted layout to accommodate new features.fix: Lazy-load OrderLog settings view in UnifiedSettingsWindow- Modified logic to create OrderLogSettingsView only if OrderLogSettings is available.feat: Improve theme handling in OrderLogWidgetWindow- Added event subscription for widget theme setting changes.- Implemented logic to apply independent theme settings based on ViewModel.feat: Add PowerShell scripts for module execution- Created scripts for running AllocationBuddy, EssentialsBuddy, ExpireWise, Fun Stuff, OrderLog, and SwiftLabel modules with build options.feat: Implement database backup service- Added DatabaseBackupService for exporting and importing SQLite database backups.- Supports creating ZIP archives and includes metadata for backups.feat: Introduce converters for ExpireWise- Added NullToBoolConverter, DateEqualsConverter, and IntToVisibilityConverter for UI binding scenarios.feat: Create StoreTabModel and StoreDropdownItem models- Implemented models for managing store tabs and dropdown items in ExpireWise."
+        }),
         new("4.36.0", "2026-01-29", "Release Update", new[]
         {
             "feat: Add modernization progress documentation for Order Log Widget- Created MODERNIZATION_PROGRESS.md to outline the phases and changes made during the UI modernization of the Order Log Widget.- Documented completed phases including styling updates for cards, fields, dropdowns, buttons, and form controls.- Highlighted key improvements, statistics, and optional future enhancements.style: Introduce modern header styles for buttons and search bar- Added ModernHeaderStyles.xaml with new styles for pill buttons, icon buttons, and a floating search bar.- Implemented animations for hover effects and scaling.test: Set up infrastructure tests with xUnit- Created GlobalUsings.cs to include xUnit globally for tests.- Established Infrastructure.Tests.csproj with necessary package references for testing.- Implemented SqliteRepositoryTests.cs to validate repository functionality with SQLite.- Developed FileImportExportServiceTests.cs to ensure correct import/export behavior for files."

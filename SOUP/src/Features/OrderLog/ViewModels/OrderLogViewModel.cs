@@ -134,6 +134,18 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _notesOnlyMode = false;
 
+    /// <summary>
+    /// Gets or sets whether the widget uses its own independent theme toggle.
+    /// </summary>
+    [ObservableProperty]
+    private bool _useIndependentTheme = false;
+
+    /// <summary>
+    /// Gets or sets the widget's dark mode state when using independent theme.
+    /// </summary>
+    [ObservableProperty]
+    private bool _widgetIsDarkMode = true;
+
     // Search & Filter Properties
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -197,6 +209,26 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         RefreshDisplayItems();
     }
+
+    partial void OnUseIndependentThemeChanged(bool value)
+    {
+        SaveWidgetSettings();
+        OnWidgetThemeSettingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    partial void OnWidgetIsDarkModeChanged(bool value)
+    {
+        SaveWidgetSettings();
+        if (UseIndependentTheme)
+        {
+            OnWidgetThemeSettingChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Event raised when the widget theme settings change.
+    /// </summary>
+    public event EventHandler? OnWidgetThemeSettingChanged;
 
     partial void OnColorFiltersChanged(string[]? value)
     {
@@ -346,6 +378,21 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger?.LogInformation("OrderLogViewModel initialized");
     }
 
+    // Settings save handlers for properties modified from the settings view
+    partial void OnCardFontSizeChanged(double value)
+    {
+        // Update the DynamicResource so the widget reflects the change immediately
+        if (Application.Current != null)
+            Application.Current.Resources["CardFontSize"] = value;
+        SaveWidgetSettings();
+    }
+    partial void OnShowNowPlayingChanged(bool value) => SaveWidgetSettings();
+    partial void OnShowArchivedChanged(bool value) => SaveWidgetSettings();
+    partial void OnDefaultOrderColorChanged(string value) => SaveWidgetSettings();
+    partial void OnDefaultNoteColorChanged(string value) => SaveWidgetSettings();
+    partial void OnSortByStatusChanged(bool value) => SaveWidgetSettings();
+    partial void OnSortStatusDescendingChanged(bool value) => SaveWidgetSettings();
+
     partial void OnNotesOnlyModeChanged(bool value)
     {
         SaveWidgetSettings();
@@ -403,7 +450,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             NotReadyGroupExpanded = NotReadyGroupExpanded,
             OnDeckGroupExpanded = OnDeckGroupExpanded,
             InProgressGroupExpanded = InProgressGroupExpanded,
-            NotesExpanded = NotesExpanded
+            NotesExpanded = NotesExpanded,
+            UseIndependentTheme = UseIndependentTheme,
+            WidgetIsDarkMode = WidgetIsDarkMode
         };
         _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
     }
@@ -474,6 +523,9 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             OnDeckGroupExpanded = s.OnDeckGroupExpanded;
             InProgressGroupExpanded = s.InProgressGroupExpanded;
             NotesExpanded = s.NotesExpanded;
+            // Independent theme settings
+            UseIndependentTheme = s.UseIndependentTheme;
+            WidgetIsDarkMode = s.WidgetIsDarkMode;
         if (Application.Current != null) Application.Current.Resources["CardFontSize"] = CardFontSize;
         }
         catch (Exception ex)
@@ -1617,14 +1669,33 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     {
         if (item == null) return;
 
-        var collection = _itemIds.Contains(item.Id) ? Items : ArchivedItems;
+        // Determine which collection the item belongs to
+        ObservableCollection<OrderItem> collection;
+        if (item.NoteType == NoteType.StickyNote)
+        {
+            collection = StickyNotes;
+        }
+        else if (_itemIds.Contains(item.Id))
+        {
+            collection = Items;
+        }
+        else
+        {
+            collection = ArchivedItems;
+        }
+
         var currentIndex = collection.IndexOf(item);
 
         if (currentIndex < 0 || currentIndex == newIndex) return;
         if (newIndex < 0 || newIndex >= collection.Count) return;
 
         collection.Move(currentIndex, newIndex);
-        RefreshDisplayItems();
+        
+        // Only refresh display items for orders, not sticky notes
+        if (item.NoteType != NoteType.StickyNote)
+        {
+            RefreshDisplayItems();
+        }
     }
 
     /// <summary>
@@ -1635,6 +1706,16 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public async Task MoveOrdersAsync(System.Collections.Generic.List<OrderItem> droppedItems, OrderItem? target)
     {
         if (droppedItems == null || droppedItems.Count == 0) return;
+
+        // Check if we're operating on sticky notes
+        bool isNotesOperation = droppedItems.Any(d => d.NoteType == NoteType.StickyNote);
+        if (isNotesOperation)
+        {
+            // Handle sticky notes reordering
+            MoveItemsInCollection(droppedItems, target, StickyNotes);
+            await SaveAsync();
+            return;
+        }
 
         // If single item and it has a linked group, expand to full group
         if (droppedItems.Count == 1 && droppedItems[0].LinkedGroupId != null)

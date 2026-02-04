@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SOUP.Core.Entities.ExpireWise;
 using SOUP.Core.Interfaces;
+using SOUP.Features.ExpireWise.Models;
 using SOUP.Infrastructure.Services.Parsers;
 using SOUP.Services;
 using SOUP.Views;
@@ -52,14 +53,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private ObservableCollection<ExpirationItem> _items = new();
 
     /// <summary>
-    /// Gets or sets the filtered items for the current month view.
-    /// </summary>
-    [ObservableProperty]
-    private ObservableCollection<ExpirationItem> _filteredItems = new();
-
-    /// <summary>
     /// Gets the collection view for efficient filtering and grouping.
-    /// Replaces manual FilteredItems rebuilding for 10-50x performance improvement.
     /// </summary>
     private ICollectionView? _itemsView;
     public ICollectionView? ItemsView
@@ -71,15 +65,20 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ObservableCollection<MonthGroup> _availableMonths = new();
 
+    /// <summary>
+    /// Timeline view - months with their items for vertical scrolling
+    /// </summary>
     [ObservableProperty]
-    private ObservableCollection<ExpirationItem> _notifications = new();
+    private ObservableCollection<MonthWithItems> _timelineMonths = new();
+
+    /// <summary>
+    /// Notifications list (populated by CheckNotifications, used internally)
+    /// </summary>
+    private readonly List<ExpirationItem> _notificationsList = new();
 
     [ObservableProperty]
     private ExpireWiseAnalyticsViewModel _analytics = new();
 
-    /// <summary>
-    /// Gets or sets the available months that have expiring items.
-    /// </summary>
     /// <summary>
     /// Gets or sets the currently selected expiration item.
     /// </summary>
@@ -200,6 +199,74 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private int _totalMonths;
 
+    /// <summary>
+    /// Gets or sets the sort option for items within each month column.
+    /// Options: "Date", "Description", "Location", "Quantity"
+    /// </summary>
+    [ObservableProperty]
+    private string _timelineSortBy = "Date";
+
+    /// <summary>
+    /// Available sort options for the timeline view.
+    /// </summary>
+    public string[] TimelineSortOptions { get; } = ["Date", "Description", "Location", "Quantity"];
+
+    #endregion
+
+    #region Page Navigation
+
+    /// <summary>
+    /// Gets or sets the current page: "Timeline" or "Archive".
+    /// </summary>
+    [ObservableProperty]
+    private string _currentPage = "Timeline";
+
+    /// <summary>
+    /// Archive items collection (expired items before current month).
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<ExpirationItem> _archiveItems = new();
+
+    /// <summary>
+    /// Archive items grouped by month for display.
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<MonthWithItems> _archiveMonths = new();
+
+    /// <summary>
+    /// Total count of archived items.
+    /// </summary>
+    [ObservableProperty]
+    private int _archiveItemCount;
+
+    /// <summary>
+    /// Total units in archive.
+    /// </summary>
+    [ObservableProperty]
+    private int _archiveTotalUnits;
+
+    /// <summary>
+    /// Search text for archive filtering.
+    /// </summary>
+    [ObservableProperty]
+    private string _archiveSearchText = string.Empty;
+
+    /// <summary>
+    /// Sort option for archive view.
+    /// </summary>
+    [ObservableProperty]
+    private string _archiveSortBy = "Date";
+
+    #endregion
+
+    #region Kanban Urgency Collections
+
+    /// <summary>
+    /// Count of overdue/expired items (used in UI summary).
+    /// </summary>
+    [ObservableProperty]
+    private int _overdueCount;
+
     #endregion
 
     #region UI State
@@ -221,6 +288,18 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty]
     private bool _groupByStore = true;
+
+    /// <summary>
+    /// Gets or sets the currently selected store for filtering.
+    /// Null means "All Stores".
+    /// </summary>
+    [ObservableProperty]
+    private Data.Entities.StoreEntity? _selectedStore;
+
+    /// <summary>
+    /// Event raised when the SelectedStore property changes.
+    /// </summary>
+    public event Action<Data.Entities.StoreEntity?>? SelectedStoreChanged;
 
     /// <summary>
     /// Event raised when the GroupByStore property changes.
@@ -321,9 +400,25 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private Data.Entities.DictionaryItemEntity? _quickAddLookedUpItem;
 
     /// <summary>
-    /// Available stores for dropdown selection.
+    /// Available stores for dropdown selection (includes "No Store" option).
     /// </summary>
     public ObservableCollection<Data.Entities.StoreEntity> AvailableStores { get; } = new();
+
+    /// <summary>
+    /// Stores for the tab navigation with item counts.
+    /// </summary>
+    public ObservableCollection<StoreTabModel> StoreTabModels { get; } = new();
+
+    /// <summary>
+    /// Items for the store dropdown selector (includes "All Stores" option).
+    /// </summary>
+    public ObservableCollection<StoreDropdownItem> StoreDropdownItems { get; } = new();
+
+    /// <summary>
+    /// The currently selected store dropdown item.
+    /// </summary>
+    [ObservableProperty]
+    private StoreDropdownItem? _selectedStoreDropdownItem;
 
     /// <summary>
     /// Queue of items pending confirmation (not yet saved to database).
@@ -550,13 +645,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             var threshold = settings?.WarningThresholdDays ?? ExpirationItem.WarningDaysThreshold;
 
             var list = await _notificationService.GetNotificationsAsync(Items, threshold, enabled);
-            Notifications.Clear();
-            foreach (var it in list)
-                Notifications.Add(it);
+            _notificationsList.Clear();
+            _notificationsList.AddRange(list);
 
-            if (Notifications.Count > 0)
+            if (_notificationsList.Count > 0)
             {
-                StatusMessage = $"{Notifications.Count} upcoming expiration(s)";
+                StatusMessage = $"{_notificationsList.Count} upcoming expiration(s)";
             }
         }
         catch (Exception ex)
@@ -570,13 +664,13 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private void RemoveNotification(ExpirationItem? item)
     {
         if (item == null) return;
-        Notifications.Remove(item);
+        _notificationsList.Remove(item);
     }
 
     [RelayCommand]
     private void ClearNotifications()
     {
-        Notifications.Clear();
+        _notificationsList.Clear();
     }
 
     [RelayCommand]
@@ -605,6 +699,9 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
             HasData = Items.Count > 0;
             TotalItems = Items.Count;
+
+            // Update item counts per store
+            UpdateStoreItemCounts();
 
             // Calculate total months with data (distinct months across all items)
             TotalMonths = Items
@@ -647,6 +744,100 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         AvailableMonths.Clear();
         foreach (var g in groups)
             AvailableMonths.Add(g);
+        
+        // Also build the timeline view
+        BuildTimelineView();
+    }
+
+    /// <summary>
+    /// Builds the timeline view showing Archive (expired) + current month + next 5 months.
+    /// </summary>
+    private void BuildTimelineView()
+    {
+        TimelineMonths.Clear();
+        
+        // Get items filtered by store if selected
+        var items = Items.Where(i => !i.IsDeleted).AsEnumerable();
+        _logger?.LogDebug("BuildTimelineView: Total items={Count}, SelectedStore={Store}", 
+            Items.Count(i => !i.IsDeleted), SelectedStore?.Code ?? "ALL");
+        
+        if (SelectedStore != null && !string.IsNullOrEmpty(SelectedStore.Code))
+        {
+            // Match by either Code or Name (imported data may use either)
+            items = items.Where(i => 
+                string.Equals(i.Location, SelectedStore.Code, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.Location, SelectedStore.Name, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        // Apply text search if any
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            items = _searchService.Search(items, SearchText);
+        }
+        
+        // Apply status filter
+        if (StatusFilter != "All")
+        {
+            var status = StatusFilter switch
+            {
+                "Good" => ExpirationStatus.Good,
+                "Warning" => ExpirationStatus.Warning,
+                "Critical" => ExpirationStatus.Critical,
+                "Expired" => ExpirationStatus.Expired,
+                _ => (ExpirationStatus?)null
+            };
+            if (status.HasValue)
+            {
+                items = items.Where(i => i.Status == status.Value);
+            }
+        }
+        
+        var itemsList = items.ToList();
+        _logger?.LogDebug("BuildTimelineView: After filter items={Count}", itemsList.Count);
+        
+        var today = DateTime.Today;
+        var currentMonthStart = new DateTime(today.Year, today.Month, 1);
+        
+        // Separate expired items (before current month) from future items
+        var expiredItems = itemsList.Where(i => i.ExpiryDate < currentMonthStart).ToList();
+        var futureItems = itemsList.Where(i => i.ExpiryDate >= currentMonthStart).ToList();
+        _logger?.LogDebug("BuildTimelineView: Expired={ExpiredCount}, Future={FutureCount}", 
+            expiredItems.Count, futureItems.Count);
+        
+        // Update overdue count (for the badge on Archive tab)
+        OverdueCount = Items.Count(i => !i.IsDeleted && i.ExpiryDate < currentMonthStart);
+        
+        // Group future items by month for lookup
+        var itemsByMonth = futureItems
+            .GroupBy(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
+            .ToDictionary(g => g.Key, g => g.ToList());
+        
+        // Add current month + next 5 months (6 total) - NO archive in timeline anymore
+        for (int i = 0; i < 6; i++)
+        {
+            var month = currentMonthStart.AddMonths(i);
+            var monthItems = itemsByMonth.TryGetValue(month, out var list) ? list : new List<ExpirationItem>();
+            var sortedItems = SortItems(monthItems);
+            
+            var monthWithItems = new MonthWithItems
+            {
+                Month = month,
+                SortBy = TimelineSortBy,
+                Items = new ObservableCollection<ExpirationItem>(sortedItems)
+            };
+            TimelineMonths.Add(monthWithItems);
+        }
+    }
+    
+    private IEnumerable<ExpirationItem> SortItems(IEnumerable<ExpirationItem> items)
+    {
+        return TimelineSortBy switch
+        {
+            "Description" => items.OrderBy(i => i.Description),
+            "Location" => items.OrderBy(i => i.Location ?? "").ThenBy(i => i.ExpiryDate),
+            "Quantity" => items.OrderByDescending(i => i.Quantity).ThenBy(i => i.ExpiryDate),
+            _ => items.OrderBy(i => i.ExpiryDate) // Default: Date
+        };
     }
 
     /// <summary>
@@ -659,6 +850,9 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         AvailableMonths.Clear();
         foreach (var g in groups)
             AvailableMonths.Add(g);
+        
+        // Also rebuild timeline
+        BuildTimelineView();
     }
 
     [RelayCommand]
@@ -683,6 +877,378 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             _navigationService.NavigateToMonth(monthGroup.Month.Year, monthGroup.Month.Month);
             CurrentMonth = _navigationService.CurrentMonth;
         }
+    }
+
+    /// <summary>
+    /// Collapses all months and store groups in the timeline view.
+    /// </summary>
+    [RelayCommand]
+    private void CollapseAll()
+    {
+        foreach (var month in TimelineMonths)
+        {
+            month.IsExpanded = false;
+        }
+    }
+
+    /// <summary>
+    /// Expands all months and store groups in the timeline view.
+    /// </summary>
+    [RelayCommand]
+    private void ExpandAll()
+    {
+        foreach (var month in TimelineMonths)
+        {
+            month.IsExpanded = true;
+            // Also expand all store groups within each month
+            foreach (var store in month.ItemsByStore)
+            {
+                store.IsExpanded = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Navigates to the Timeline page.
+    /// </summary>
+    [RelayCommand]
+    private void GoToTimeline()
+    {
+        CurrentPage = "Timeline";
+    }
+
+    /// <summary>
+    /// Navigates to the Archive page.
+    /// </summary>
+    [RelayCommand]
+    private void GoToArchive()
+    {
+        CurrentPage = "Archive";
+        BuildArchiveView();
+    }
+
+    /// <summary>
+    /// Builds the archive view with expired items grouped by month.
+    /// </summary>
+    private void BuildArchiveView()
+    {
+        ArchiveMonths.Clear();
+        
+        var today = DateTime.Today;
+        var currentMonthStart = new DateTime(today.Year, today.Month, 1);
+        
+        // Get all expired items (before current month)
+        var expiredItems = Items
+            .Where(i => !i.IsDeleted && i.ExpiryDate < currentMonthStart)
+            .AsEnumerable();
+        
+        // Apply store filter if selected
+        if (SelectedStore != null && !string.IsNullOrEmpty(SelectedStore.Code))
+        {
+            expiredItems = expiredItems.Where(i => 
+                string.Equals(i.Location, SelectedStore.Code, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.Location, SelectedStore.Name, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(ArchiveSearchText))
+        {
+            expiredItems = _searchService.Search(expiredItems, ArchiveSearchText);
+        }
+        
+        var expiredList = expiredItems.ToList();
+        ArchiveItems = new ObservableCollection<ExpirationItem>(expiredList);
+        ArchiveItemCount = expiredList.Count;
+        ArchiveTotalUnits = expiredList.Sum(i => i.Units);
+        
+        // Group by month (newest first)
+        var groupedByMonth = expiredList
+            .GroupBy(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
+            .OrderByDescending(g => g.Key);
+        
+        foreach (var group in groupedByMonth)
+        {
+            var sortedItems = SortArchiveItems(group);
+            var monthWithItems = new MonthWithItems
+            {
+                Month = group.Key,
+                IsArchive = true,
+                SortBy = ArchiveSortBy,
+                Items = new ObservableCollection<ExpirationItem>(sortedItems)
+            };
+            ArchiveMonths.Add(monthWithItems);
+        }
+    }
+    
+    private IEnumerable<ExpirationItem> SortArchiveItems(IEnumerable<ExpirationItem> items)
+    {
+        return ArchiveSortBy switch
+        {
+            "Description" => items.OrderBy(i => i.Description),
+            "Location" => items.OrderBy(i => i.Location ?? "").ThenBy(i => i.ExpiryDate),
+            "Quantity" => items.OrderByDescending(i => i.Quantity).ThenBy(i => i.ExpiryDate),
+            _ => items.OrderByDescending(i => i.ExpiryDate) // Default: Date (newest first for archive)
+        };
+    }
+
+    partial void OnArchiveSearchTextChanged(string value)
+    {
+        if (CurrentPage == "Archive")
+        {
+            BuildArchiveView();
+        }
+    }
+
+    partial void OnArchiveSortByChanged(string value)
+    {
+        if (CurrentPage == "Archive")
+        {
+            BuildArchiveView();
+        }
+    }
+
+    /// <summary>
+    /// Exports archive items to CSV.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportArchiveToCsvAsync()
+    {
+        if (ArchiveItems.Count == 0)
+        {
+            StatusMessage = "No archive items to export";
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*",
+            DefaultExt = ".csv",
+            FileName = $"ExpireWise_Archive_{DateTime.Now:yyyyMMdd}"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                IsBusy = true;
+                BusyMessage = "Exporting archive...";
+                
+                var lines = new List<string>
+                {
+                    "Description,Location,Quantity,Units,Expiry Date,Status"
+                };
+                
+                foreach (var item in ArchiveItems.OrderByDescending(i => i.ExpiryDate))
+                {
+                    var desc = item.Description?.Replace(",", ";") ?? "";
+                    var loc = item.Location?.Replace(",", ";") ?? "";
+                    lines.Add($"\"{desc}\",\"{loc}\",{item.Quantity},{item.Units},{item.ExpiryDate:yyyy-MM-dd},{item.Status}");
+                }
+                
+                await File.WriteAllLinesAsync(dialog.FileName, lines);
+                StatusMessage = $"Exported {ArchiveItems.Count} archive items to CSV";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to export archive to CSV");
+                StatusMessage = "Export failed: " + ex.Message;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Exports archive items to Excel.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportArchiveToExcelAsync()
+    {
+        if (ArchiveItems.Count == 0)
+        {
+            StatusMessage = "No archive items to export";
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*",
+            DefaultExt = ".xlsx",
+            FileName = $"ExpireWise_Archive_{DateTime.Now:yyyyMMdd}"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                IsBusy = true;
+                BusyMessage = "Exporting archive to Excel...";
+                
+                await _importExportService.ExportToExcelAsync(
+                    dialog.FileName, 
+                    ArchiveItems.OrderByDescending(i => i.ExpiryDate).ToList());
+                    
+                StatusMessage = $"Exported {ArchiveItems.Count} archive items to Excel";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to export archive to Excel");
+                StatusMessage = "Export failed: " + ex.Message;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deletes all items in the archive (with confirmation).
+    /// </summary>
+    [RelayCommand]
+    private async Task ClearArchiveAsync()
+    {
+        if (ArchiveItems.Count == 0)
+        {
+            StatusMessage = "Archive is empty";
+            return;
+        }
+        
+        var result = System.Windows.MessageBox.Show(
+            $"Are you sure you want to permanently delete {ArchiveItems.Count} archived items?\n\nThis action cannot be undone.",
+            "Clear Archive",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+            
+        if (result == System.Windows.MessageBoxResult.Yes)
+        {
+            try
+            {
+                IsBusy = true;
+                BusyMessage = "Clearing archive...";
+                
+                var itemsToDelete = ArchiveItems.ToList();
+                foreach (var item in itemsToDelete)
+                {
+                    Items.Remove(item);
+                    await _repository.DeleteAsync(item.Id);
+                }
+                
+                StatusMessage = $"Deleted {itemsToDelete.Count} archived items";
+                BuildArchiveView();
+                BuildTimelineView(); // Refresh timeline too
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to clear archive");
+                StatusMessage = "Failed to clear archive: " + ex.Message;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Command to select a store for filtering.
+    /// </summary>
+    [RelayCommand]
+    private void SelectStore(object? storeParam)
+    {
+        // Handle both StoreEntity and StoreTabModel parameters
+        if (storeParam is StoreTabModel tabModel)
+        {
+            SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == tabModel.Code);
+        }
+        else if (storeParam is Data.Entities.StoreEntity entity)
+        {
+            SelectedStore = entity;
+        }
+        else
+        {
+            SelectedStore = null; // All stores
+        }
+    }
+
+    /// <summary>
+    /// Navigate to the previous store in the carousel.
+    /// Cycles from first store to "All Stores" (null), then to last store.
+    /// </summary>
+    [RelayCommand]
+    private void PreviousStore()
+    {
+        // Use StoreTabModels for navigation (excludes "No Store" option)
+        if (StoreTabModels.Count == 0) return;
+        
+        if (SelectedStore == null)
+        {
+            // Currently on "All Stores" - go to last store
+            var lastTab = StoreTabModels.LastOrDefault();
+            SelectedStore = lastTab != null ? AvailableStores.FirstOrDefault(s => s.Code == lastTab.Code) : null;
+        }
+        else
+        {
+            var currentTab = StoreTabModels.FirstOrDefault(t => t.Code == SelectedStore.Code);
+            var currentIndex = currentTab != null ? StoreTabModels.IndexOf(currentTab) : -1;
+            
+            if (currentIndex <= 0)
+            {
+                // At first store - go to "All Stores"
+                SelectedStore = null;
+            }
+            else
+            {
+                var prevTab = StoreTabModels[currentIndex - 1];
+                SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == prevTab.Code);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Navigate to the next store in the carousel.
+    /// Cycles from last store to "All Stores" (null), then to first store.
+    /// </summary>
+    [RelayCommand]
+    private void NextStore()
+    {
+        // Use StoreTabModels for navigation (excludes "No Store" option)
+        if (StoreTabModels.Count == 0) return;
+        
+        if (SelectedStore == null)
+        {
+            // Currently on "All Stores" - go to first store
+            var firstTab = StoreTabModels.FirstOrDefault();
+            SelectedStore = firstTab != null ? AvailableStores.FirstOrDefault(s => s.Code == firstTab.Code) : null;
+        }
+        else
+        {
+            var currentTab = StoreTabModels.FirstOrDefault(t => t.Code == SelectedStore.Code);
+            var currentIndex = currentTab != null ? StoreTabModels.IndexOf(currentTab) : -1;
+            
+            if (currentIndex < 0 || currentIndex >= StoreTabModels.Count - 1)
+            {
+                // At last store or not found - go to "All Stores"
+                SelectedStore = null;
+            }
+            else
+            {
+                var nextTab = StoreTabModels[currentIndex + 1];
+                SelectedStore = AvailableStores.FirstOrDefault(s => s.Code == nextTab.Code);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Command to navigate directly to a specific month.
+    /// </summary>
+    [RelayCommand]
+    private void GoToMonthDirect(DateTime month)
+    {
+        _navigationService.NavigateToMonth(month.Year, month.Month);
+        CurrentMonth = _navigationService.CurrentMonth;
     }
 
     partial void OnCurrentMonthChanged(DateTime value)
@@ -809,6 +1375,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                         .Distinct()
                         .Count();
                     TotalItems = Items.Count;
+                    UpdateStoreItemCounts();
 
                     BuildAvailableMonths();
                     ApplyFilters();
@@ -980,6 +1547,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                         _logger?.LogWarning("Could not find item in collection at index {Index}", index);
                     }
 
+                    UpdateStoreItemCounts();
                     BuildAvailableMonths();
                     ApplyFilters();
                     UpdateLastSaved();
@@ -1041,6 +1609,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             if (success)
             {
                 Items.Remove(SelectedItem);
+                TotalItems = Items.Count;
+                UpdateStoreItemCounts();
                 BuildAvailableMonths();
                 ApplyFilters();
                 StatusMessage = $"Deleted item {itemNumber}";
@@ -1057,6 +1627,65 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         {
             StatusMessage = $"Error: {ex.Message}";
             _logger?.LogError(ex, "Exception while deleting item");
+        }
+    }
+
+    /// <summary>
+    /// Deletes a specific item (used by Kanban card quick actions).
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteItemByParameter(ExpirationItem? item)
+    {
+        if (item == null) return;
+
+        try
+        {
+            var success = await _repository.DeleteAsync(item.Id);
+            if (success)
+            {
+                Items.Remove(item);
+                TotalItems = Items.Count;
+                UpdateStoreItemCounts();
+                BuildAvailableMonths();
+                ApplyFilters();
+                StatusMessage = $"Removed {item.Description}";
+                UpdateLastSaved();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error: {ex.Message}";
+            _logger?.LogError(ex, "Exception while deleting item {ItemNumber}", item.ItemNumber);
+        }
+    }
+
+    /// <summary>
+    /// Marks an item as handled (removes it from tracking).
+    /// </summary>
+    [RelayCommand]
+    private async Task MarkHandled(ExpirationItem? item)
+    {
+        if (item == null) return;
+
+        try
+        {
+            // Soft delete (mark as handled)
+            var success = await _repository.DeleteAsync(item.Id);
+            if (success)
+            {
+                Items.Remove(item);
+                TotalItems = Items.Count;
+                UpdateStoreItemCounts();
+                BuildAvailableMonths();
+                ApplyFilters();
+                StatusMessage = $"Marked {item.Description} as handled";
+                UpdateLastSaved();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error: {ex.Message}";
+            _logger?.LogError(ex, "Exception while marking item handled {ItemNumber}", item.ItemNumber);
         }
     }
 
@@ -1083,6 +1712,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 }
 
             // Refresh views
+            TotalItems = Items.Count;
+            UpdateStoreItemCounts();
             BuildAvailableMonths();
             ApplyFilters();
             UpdateLastSaved();
@@ -1351,6 +1982,54 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         }
     }
 
+    partial void OnSelectedStoreChanged(Data.Entities.StoreEntity? value)
+    {
+        SelectedStoreChanged?.Invoke(value);
+        
+        // Update IsSelected on StoreTabModels
+        foreach (var storeTab in StoreTabModels)
+        {
+            storeTab.IsSelected = value != null && storeTab.Code == value.Code;
+        }
+        
+        // Sync dropdown selection (avoid re-entrancy)
+        var targetDropdownItem = value == null 
+            ? StoreDropdownItems.FirstOrDefault(x => x.IsAllStores)
+            : StoreDropdownItems.FirstOrDefault(x => x.Code == value.Code);
+        if (_selectedStoreDropdownItem != targetDropdownItem)
+        {
+            _selectedStoreDropdownItem = targetDropdownItem;
+            OnPropertyChanged(nameof(SelectedStoreDropdownItem));
+        }
+        
+        // Re-apply filter when store changes
+        ApplyFilters();
+        
+        // Rebuild timeline for selected store
+        BuildTimelineView();
+    }
+
+    partial void OnSelectedStoreDropdownItemChanged(StoreDropdownItem? value)
+    {
+        // When dropdown changes, update the actual SelectedStore
+        if (value == null || value.IsAllStores)
+        {
+            if (SelectedStore != null)
+                SelectedStore = null;
+        }
+        else
+        {
+            var store = AvailableStores.FirstOrDefault(s => s.Code == value.Code);
+            if (SelectedStore != store)
+                SelectedStore = store;
+        }
+    }
+
+    partial void OnTimelineSortByChanged(string value)
+    {
+        BuildTimelineView();
+    }
+
     partial void OnSearchTextChanged(string value)
     {
         // Debounce search to avoid filtering on every keystroke
@@ -1360,7 +2039,8 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             System.Windows.Application.Current?.Dispatcher.Invoke(() =>
             {
                 _itemsView?.Refresh();
-                ApplyFilters(); // Still needed for FilteredItems and stats
+                ApplyFilters(); // Updates stats
+                BuildTimelineView(); // Rebuild timeline with search filter
             });
         }, null, 300, System.Threading.Timeout.Infinite);
     }
@@ -1368,12 +2048,13 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     partial void OnStatusFilterChanged(string value)
     {
         _itemsView?.Refresh();
-        ApplyFilters(); // Still needed for FilteredItems and stats
+        ApplyFilters(); // Updates stats
+        BuildTimelineView(); // Rebuild timeline with status filter
     }
 
     /// <summary>
     /// Initializes the ICollectionView for efficient filtering and grouping.
-    /// This replaces manual FilteredItems rebuilding for 10-50x better performance.
+    /// Uses CollectionViewSource for efficient filtering and virtualization.
     /// </summary>
     private void InitializeItemsView()
     {
@@ -1405,6 +2086,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         // Exclude deleted items
         if (item.IsDeleted) return false;
 
+        // Store filter - when a specific store is selected
+        if (SelectedStore != null && !string.IsNullOrEmpty(SelectedStore.Code))
+        {
+            if (!string.Equals(item.Location, SelectedStore.Code, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
         // Month filter - use navigation service range
         var start = CurrentMonth;
         var end = CurrentMonth.AddMonths(1).AddDays(-1);
@@ -1458,6 +2145,12 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         // Start from all active items
         var all = Items.Where(i => !i.IsDeleted).AsEnumerable();
 
+        // Filter by selected store (primary filter for store-by-store navigation)
+        if (SelectedStore != null)
+        {
+            all = all.Where(i => string.Equals(i.Location, SelectedStore.Code, StringComparison.OrdinalIgnoreCase));
+        }
+
         // Filter to current month via navigation service range
         var start = CurrentMonth;
         var end = CurrentMonth.AddMonths(1).AddDays(-1);
@@ -1488,13 +2181,6 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             filtered = _searchService.Search(filtered, SearchText);
-        }
-
-        // Final sort and populate
-        FilteredItems.Clear();
-        foreach (var item in filtered.OrderBy(i => i.Location ?? string.Empty).ThenBy(i => i.ExpiryDate))
-        {
-            FilteredItems.Add(item);
         }
 
         // Update month stats
@@ -1537,6 +2223,37 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         TotalItems = Items.Count;
         ExpiredCount = Items.Count(i => i.ExpiryDate < today);
         ExpiringSoonCount = Items.Count(i => i.ExpiryDate >= today && i.ExpiryDate <= warningDate);
+        
+        // Update overdue count for summary display
+        UpdateOverdueCount();
+    }
+
+    /// <summary>
+    /// Updates the count of overdue/expired items for summary display.
+    /// </summary>
+    private void UpdateOverdueCount()
+    {
+        var today = DateTime.Today;
+
+        // Start with all active items
+        var items = Items.Where(i => !i.IsDeleted).AsEnumerable();
+
+        // Filter by store if selected
+        if (SelectedStore != null && !string.IsNullOrEmpty(SelectedStore.Code))
+        {
+            items = items.Where(i => 
+                string.Equals(i.Location, SelectedStore.Code, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.Location, SelectedStore.Name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply search filter if any
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            items = _searchService.Search(items, SearchText);
+        }
+
+        // Count items that have expired (before today)
+        OverdueCount = items.Count(i => i.ExpiryDate < today);
     }
 
     [RelayCommand]
@@ -1575,20 +2292,80 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             var stores = db.GetAllStores();
 
             AvailableStores.Clear();
-            // Add a default "(No Store)" option
+            StoreTabModels.Clear();
+            StoreDropdownItems.Clear();
+
+            // Add a default "(No Store)" option for Quick Add dropdown
             AvailableStores.Add(new Data.Entities.StoreEntity { Code = "", Name = "(No Store)" });
+
+            // Add "All Stores" option to dropdown
+            StoreDropdownItems.Add(StoreDropdownItem.CreateAllStores());
 
             // Order by store number (Code) instead of alphabetically by Name
             foreach (var store in stores.OrderBy(s => s.Code))
             {
                 AvailableStores.Add(store);
+                var tabModel = StoreTabModel.FromEntity(store);
+                StoreTabModels.Add(tabModel);
+                StoreDropdownItems.Add(StoreDropdownItem.FromStoreTab(tabModel));
             }
 
-            _logger?.LogInformation("Loaded {Count} stores for Quick Add", stores.Count);
+            // Set default selection to "All Stores"
+            SelectedStoreDropdownItem = StoreDropdownItems.FirstOrDefault();
+
+            // Update item counts for each store
+            UpdateStoreItemCounts();
+
+            _logger?.LogInformation("Loaded {Count} stores for store tabs", stores.Count);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to load stores");
+        }
+    }
+
+    /// <summary>
+    /// Updates the item counts for each store tab based on current Items collection.
+    /// </summary>
+    private void UpdateStoreItemCounts()
+    {
+        if (Items == null || Items.Count == 0)
+        {
+            foreach (var store in StoreTabModels)
+            {
+                store.ItemCount = 0;
+            }
+            foreach (var item in StoreDropdownItems)
+            {
+                item.ItemCount = 0;
+            }
+            return;
+        }
+
+        // Get all unique locations from items
+        var activeItems = Items.Where(i => !i.IsDeleted).ToList();
+        var totalCount = activeItems.Count;
+
+        foreach (var store in StoreTabModels)
+        {
+            // Match by either Code or Name (imported data may use either)
+            store.ItemCount = activeItems.Count(i => 
+                string.Equals(i.Location, store.Code, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.Location, store.Name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Sync dropdown items
+        foreach (var dropdownItem in StoreDropdownItems)
+        {
+            if (dropdownItem.IsAllStores)
+            {
+                dropdownItem.ItemCount = totalCount;
+            }
+            else
+            {
+                var matchingTab = StoreTabModels.FirstOrDefault(t => t.Code == dropdownItem.Code);
+                dropdownItem.ItemCount = matchingTab?.ItemCount ?? 0;
+            }
         }
     }
 
@@ -1691,7 +2468,21 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private void ToggleQuickAdd()
     {
         QuickAddExpanded = !QuickAddExpanded;
-        StatusMessage = QuickAddExpanded ? "Quick Add panel opened (Ctrl+Shift+Q)" : "Quick Add panel closed";
+        
+        if (QuickAddExpanded)
+        {
+            // Auto-select current store from main view if one is selected
+            if (SelectedStore != null)
+            {
+                var matchingStore = AvailableStores.FirstOrDefault(s => s.Code == SelectedStore.Code);
+                if (matchingStore != null)
+                {
+                    QuickAddStore = matchingStore;
+                }
+            }
+        }
+        
+        StatusMessage = QuickAddExpanded ? "Quick Add panel opened (Ctrl+N)" : "Quick Add panel closed";
     }
 
     /// <summary>
@@ -1717,7 +2508,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 ItemNumber = _quickAddLookedUpItem.Number,
                 Description = _quickAddLookedUpItem.Description,
                 Location = QuickAddStore?.Code ?? string.Empty,
-                Quantity = QuickAddUnits,
+                Quantity = 1, // Default to 1, user can edit in queue
                 ExpiryDate = expiryDate
             };
 
@@ -1754,6 +2545,26 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         QuickAddQueue.Remove(item);
         HasQueuedItems = QuickAddQueue.Count > 0;
         StatusMessage = $"Removed from queue: {item.ItemNumber}";
+    }
+
+    /// <summary>
+    /// Increase quantity of a queued item
+    /// </summary>
+    [RelayCommand]
+    private void IncreaseQueueItemQuantity(ExpirationItem? item)
+    {
+        if (item == null) return;
+        item.Quantity++;
+    }
+
+    /// <summary>
+    /// Decrease quantity of a queued item (minimum 1)
+    /// </summary>
+    [RelayCommand]
+    private void DecreaseQueueItemQuantity(ExpirationItem? item)
+    {
+        if (item == null || item.Quantity <= 1) return;
+        item.Quantity--;
     }
 
     /// <summary>
@@ -2030,4 +2841,87 @@ public class MonthGroup
     public bool IsCurrentMonth { get; set; }
 
     public bool HasCriticalOrExpired => CriticalCount > 0 || ExpiredCount > 0;
+}
+
+/// <summary>
+/// Represents a month with its items for the timeline view
+/// </summary>
+public partial class MonthWithItems : ObservableObject
+{
+    public DateTime Month { get; set; }
+    public bool IsArchive { get; set; }
+    
+    /// <summary>
+    /// The current sort option (Date, Description, Location, Quantity).
+    /// Used to sort items within store groups.
+    /// </summary>
+    public string SortBy { get; set; } = "Date";
+    
+    /// <summary>
+    /// Whether this month section is expanded (showing items).
+    /// </summary>
+    [ObservableProperty]
+    private bool _isExpanded = true;
+    
+    public string DisplayName => IsArchive ? "📦 Archive" : Month.ToString("MMMM yyyy");
+    public string ShortName => IsArchive ? "Archive" : Month.ToString("MMM yyyy");
+    public ObservableCollection<ExpirationItem> Items { get; set; } = new();
+    public int ItemCount => Items.Count;
+    public int TotalUnits => Items.Sum(i => i.Units);
+    public int CriticalCount => Items.Count(i => i.Status == ExpirationStatus.Critical);
+    public int ExpiredCount => Items.Count(i => i.Status == ExpirationStatus.Expired);
+    public bool HasCriticalOrExpired => CriticalCount > 0 || ExpiredCount > 0;
+    
+    /// <summary>
+    /// Returns true if this is the current calendar month.
+    /// </summary>
+    public bool IsCurrentMonth => !IsArchive && Month.Year == DateTime.Today.Year && Month.Month == DateTime.Today.Month;
+    
+    /// <summary>
+    /// Returns true if this month is in the past (but not archive).
+    /// </summary>
+    public bool IsPastMonth => !IsArchive && Month < new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    /// <summary>
+    /// Gets items grouped by store location for the "All Stores" view.
+    /// Respects the current sort option.
+    /// </summary>
+    public ObservableCollection<StoreGroup> ItemsByStore => new(Items
+        .GroupBy(i => i.Location ?? "Unknown")
+        .OrderBy(g => g.Key)
+        .Select(g => new StoreGroup 
+        { 
+            StoreName = g.Key, 
+            Items = new ObservableCollection<ExpirationItem>(SortGroupItems(g)),
+            ItemCount = g.Count(),
+            TotalUnits = g.Sum(i => i.Units)
+        }));
+    
+    private IEnumerable<ExpirationItem> SortGroupItems(IEnumerable<ExpirationItem> items)
+    {
+        return SortBy switch
+        {
+            "Description" => items.OrderBy(i => i.Description),
+            "Location" => items.OrderBy(i => i.Location ?? "").ThenBy(i => i.ExpiryDate),
+            "Quantity" => items.OrderByDescending(i => i.Quantity).ThenBy(i => i.ExpiryDate),
+            _ => items.OrderBy(i => i.ExpiryDate) // Default: Date
+        };
+    }
+}
+
+/// <summary>
+/// Represents a group of items for a specific store within a month.
+/// </summary>
+public partial class StoreGroup : ObservableObject
+{
+    public string StoreName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Whether this store group is expanded (showing items).
+    /// </summary>
+    [ObservableProperty]
+    private bool _isExpanded = true;
+    public ObservableCollection<ExpirationItem> Items { get; set; } = new();
+    public int ItemCount { get; set; }
+    public int TotalUnits { get; set; }
 }

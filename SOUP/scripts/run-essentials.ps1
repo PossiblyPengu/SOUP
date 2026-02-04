@@ -1,9 +1,9 @@
 # ============================================================================
-# SOUP Run OrderLog Widget (Standalone)
+# SOUP Run EssentialsBuddy Module
 # ============================================================================
 # Usage:
-#   .\scripts\run-widget.ps1              # Build and run widget
-#   .\scripts\run-widget.ps1 -NoBuild     # Run without building
+#   .\scripts\run-essentials.ps1              # Build and run EssentialsBuddy
+#   .\scripts\run-essentials.ps1 -NoBuild     # Run without building
 # ============================================================================
 
 param(
@@ -39,9 +39,9 @@ $configuration = "Debug"
 $dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  SOUP - OrderLog Widget (Standalone)" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Magenta
+Write-Host "  SOUP - EssentialsBuddy Module" -ForegroundColor Magenta
+Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
 if ($NoBuild) {
@@ -53,9 +53,9 @@ if ($NoBuild) {
         exit 1
     }
     
-    Write-Host "Running Widget (no build)..." -ForegroundColor Yellow
-    & $exePath --widget
+    Write-Host "Running EssentialsBuddy (no build)..." -ForegroundColor Yellow
+    & $exePath --module essentials --no-widget
 } else {
-    Write-Host "Building and running Widget..." -ForegroundColor Yellow
-    & $dotnetPath run --project $projectFile --configuration $configuration -- --widget
+    Write-Host "Building and running EssentialsBuddy..." -ForegroundColor Yellow
+    & $dotnetPath run --project $projectFile --configuration $configuration -- --module essentials --no-widget
 }

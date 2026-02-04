@@ -1,9 +1,9 @@
 # ============================================================================
-# SOUP Run OrderLog Widget (Standalone)
+# SOUP Run Fun Stuff (Easter Eggs)
 # ============================================================================
 # Usage:
-#   .\scripts\run-widget.ps1              # Build and run widget
-#   .\scripts\run-widget.ps1 -NoBuild     # Run without building
+#   .\scripts\run-funstuff.ps1              # Build and run with fun stuff enabled
+#   .\scripts\run-funstuff.ps1 -NoBuild     # Run without building
 # ============================================================================
 
 param(
@@ -39,9 +39,12 @@ $configuration = "Debug"
 $dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  SOUP - OrderLog Widget (Standalone)" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Red
+Write-Host "  SOUP - Fun Stuff (Easter Eggs)" -ForegroundColor Red
+Write-Host "========================================" -ForegroundColor Red
+Write-Host ""
+Write-Host "Note: Fun Stuff is enabled via module configuration." -ForegroundColor DarkGray
+Write-Host "This script just launches the main app." -ForegroundColor DarkGray
 Write-Host ""
 
 if ($NoBuild) {
@@ -53,9 +56,9 @@ if ($NoBuild) {
         exit 1
     }
     
-    Write-Host "Running Widget (no build)..." -ForegroundColor Yellow
-    & $exePath --widget
+    Write-Host "Running FunStuff (no build)..." -ForegroundColor Yellow
+    & $exePath --module funstuff --no-widget
 } else {
-    Write-Host "Building and running Widget..." -ForegroundColor Yellow
-    & $dotnetPath run --project $projectFile --configuration $configuration -- --widget
+    Write-Host "Building and running FunStuff..." -ForegroundColor Yellow
+    & $dotnetPath run --project $projectFile --configuration $configuration -- --module funstuff --no-widget
 }

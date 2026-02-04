@@ -167,6 +167,14 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
     {
         if (_isDragging || _isFinishingDrag) return;
 
+        // Don't interfere with editable controls - let them handle their own mouse events
+        if (IsClickOnEditableControl(e.OriginalSource as DependencyObject))
+        {
+            _draggedElement = null;
+            _draggedPanelChild = null;
+            return;
+        }
+
         // Check if the click is on a section drag handle.
         // Historically we returned here to let the old DragDrop system handle
         // individual member drags from merged/grouped cards. To prevent
@@ -770,6 +778,25 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
             border.BorderBrush = _originalBorderBrush;
             border.BorderThickness = _originalBorderThickness;
             border.Effect = null;
+            
+            // Reset scale transform with animation
+            if (border.RenderTransform is ScaleTransform scaleTransform)
+            {
+                var scaleXAnimation = new DoubleAnimation
+                {
+                    To = 1.0,
+                    Duration = TimeSpan.FromMilliseconds(150),
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                var scaleYAnimation = new DoubleAnimation
+                {
+                    To = 1.0,
+                    Duration = TimeSpan.FromMilliseconds(150),
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleXAnimation);
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleYAnimation);
+            }
         }
 
         // Clear any link-mode target feedback
@@ -875,11 +902,31 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
         {
             Color = shadowColor,
             BlurRadius = isLinkMode ? 25 : DRAG_SHADOW_BLUR,
-            ShadowDepth = isLinkMode ? 0 : 8, // Elevated shadow for reorder, glow for link
+            ShadowDepth = isLinkMode ? 0 : 12, // Elevated shadow for reorder, glow for link
             Direction = 270, // Shadow below
-            Opacity = isLinkMode ? 0.7 : DRAG_SHADOW_OPACITY
+            Opacity = isLinkMode ? 0.7 : 0.35
         };
         border.Effect = dropShadow;
+
+        // Add slight scale transform for "lifted" effect
+        var scaleTransform = new ScaleTransform(1.0, 1.0);
+        border.RenderTransform = scaleTransform;
+        border.RenderTransformOrigin = new Point(0.5, 0.5);
+
+        var scaleXAnimation = new DoubleAnimation
+        {
+            To = 1.02,
+            Duration = TimeSpan.FromMilliseconds(150),
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        var scaleYAnimation = new DoubleAnimation
+        {
+            To = 1.02,
+            Duration = TimeSpan.FromMilliseconds(150),
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleXAnimation);
+        scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleYAnimation);
 
         // Animate to target color
         var colorAnimation = new ColorAnimation
@@ -1044,6 +1091,46 @@ public class OrderLogFluidDragBehavior : Behavior<Panel>
                 break;
 
             current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the click originated from an editable control (TextBox, RichTextBox, etc.)
+    /// that should handle its own mouse events for text selection.
+    /// </summary>
+    private bool IsClickOnEditableControl(DependencyObject? source)
+    {
+        var current = source;
+        while (current != null)
+        {
+            // Check for editable text controls
+            if (current is System.Windows.Controls.Primitives.TextBoxBase || // TextBox, RichTextBox
+                current is PasswordBox ||
+                current is ComboBox { IsEditable: true })
+            {
+                return true;
+            }
+            
+            // Check for document elements that are children of RichTextBox
+            if (current is System.Windows.Documents.TextElement ||
+                current is System.Windows.Documents.FlowDocument ||
+                current is System.Windows.Controls.Primitives.DocumentViewerBase)
+            {
+                return true;
+            }
+
+            // Stop if we've reached the panel
+            if (current == AssociatedObject)
+                break;
+
+            // Walk up both visual and logical trees
+            var visualParent = VisualTreeHelper.GetParent(current);
+            var logicalParent = LogicalTreeHelper.GetParent(current);
+            
+            // Prefer visual parent, but fall back to logical for document elements
+            current = visualParent ?? logicalParent;
         }
 
         return false;

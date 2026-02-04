@@ -1,9 +1,9 @@
 # ============================================================================
-# SOUP Run OrderLog Widget (Standalone)
+# SOUP Run SwiftLabel Module
 # ============================================================================
 # Usage:
-#   .\scripts\run-widget.ps1              # Build and run widget
-#   .\scripts\run-widget.ps1 -NoBuild     # Run without building
+#   .\scripts\run-swiftlabel.ps1              # Build and run SwiftLabel
+#   .\scripts\run-swiftlabel.ps1 -NoBuild     # Run without building
 # ============================================================================
 
 param(
@@ -39,9 +39,9 @@ $configuration = "Debug"
 $dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  SOUP - OrderLog Widget (Standalone)" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor DarkCyan
+Write-Host "  SOUP - SwiftLabel Module" -ForegroundColor DarkCyan
+Write-Host "========================================" -ForegroundColor DarkCyan
 Write-Host ""
 
 if ($NoBuild) {
@@ -53,9 +53,9 @@ if ($NoBuild) {
         exit 1
     }
     
-    Write-Host "Running Widget (no build)..." -ForegroundColor Yellow
-    & $exePath --widget
+    Write-Host "Running SwiftLabel (no build)..." -ForegroundColor Yellow
+    & $exePath --module swiftlabel --no-widget
 } else {
-    Write-Host "Building and running Widget..." -ForegroundColor Yellow
-    & $dotnetPath run --project $projectFile --configuration $configuration -- --widget
+    Write-Host "Building and running SwiftLabel..." -ForegroundColor Yellow
+    & $dotnetPath run --project $projectFile --configuration $configuration -- --module swiftlabel --no-widget
 }

@@ -155,6 +155,7 @@ public partial class App : Application
         services.AddSingleton<SOUP.Infrastructure.Services.SettingsService>();
         services.AddSingleton<TrayIconService>();
         services.AddSingleton<UpdateService>();
+        services.AddSingleton<DatabaseBackupService>();
         services.AddSingleton<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>(sp =>
             new SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser(
                 sp.GetService<ILogger<SOUP.Infrastructure.Services.Parsers.AllocationBuddyParser>>()));
@@ -162,7 +163,13 @@ public partial class App : Application
         // ViewModels - Shell
         services.AddSingleton<LauncherViewModel>();
         services.AddSingleton<MainWindowViewModel>();
-        services.AddTransient<UnifiedSettingsViewModel>();
+        services.AddTransient<UnifiedSettingsViewModel>(sp => new UnifiedSettingsViewModel(
+            sp.GetRequiredService<ApplicationSettingsViewModel>(),
+            sp.GetRequiredService<DictionaryManagementViewModel>(),
+            sp.GetService<AllocationBuddySettingsViewModel>(),
+            sp.GetService<EssentialsBuddySettingsViewModel>(),
+            sp.GetService<ExpireWiseSettingsViewModel>(),
+            sp.GetService<SOUP.Features.OrderLog.ViewModels.OrderLogViewModel>()));
         services.AddSingleton<ApplicationSettingsViewModel>();
         services.AddTransient<DictionaryManagementViewModel>(sp =>
             new DictionaryManagementViewModel(
@@ -444,6 +451,19 @@ public partial class App : Application
             {
                 var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                 mainWindow.Show();
+
+                // Handle --module flag to launch specific module directly
+                var requestedModule = AppLifecycleService.RequestedModule;
+                if (!string.IsNullOrEmpty(requestedModule))
+                {
+                    Log.Information("Module requested via command line: {Module}", requestedModule);
+                    var launcherVm = _host.Services.GetRequiredService<LauncherViewModel>();
+                    var launched = await launcherVm.LaunchModuleByNameAsync(requestedModule);
+                    if (!launched)
+                    {
+                        Log.Warning("Failed to launch requested module: {Module}", requestedModule);
+                    }
+                }
             }
 
             if (showWidgetProcess)
@@ -492,11 +512,24 @@ public partial class App : Application
         }
         else
         {
-            // No splash shown (widget process), if we deferred main/window display earlier, show now
+            // No splash shown (widget process or --no-widget flag), if we deferred main/window display earlier, show now
             if (showMainWindow)
             {
                 var mainWindow = _host.Services.GetRequiredService<MainWindow>();
                 mainWindow.Show();
+
+                // Handle --module flag to launch specific module directly
+                var requestedModule = AppLifecycleService.RequestedModule;
+                if (!string.IsNullOrEmpty(requestedModule))
+                {
+                    Log.Information("Module requested via command line: {Module}", requestedModule);
+                    var launcherVm = _host.Services.GetRequiredService<LauncherViewModel>();
+                    var launched = await launcherVm.LaunchModuleByNameAsync(requestedModule);
+                    if (!launched)
+                    {
+                        Log.Warning("Failed to launch requested module: {Module}", requestedModule);
+                    }
+                }
             }
         }
     }

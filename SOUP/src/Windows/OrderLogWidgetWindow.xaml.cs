@@ -324,6 +324,7 @@ public partial class OrderLogWidgetWindow : Window
             {
                 themeService.ThemeChanged -= OnThemeChanged;
             }
+            _viewModel.OnWidgetThemeSettingChanged -= OnWidgetThemeSettingChanged;
         }
         catch { }
 
@@ -653,14 +654,52 @@ public partial class OrderLogWidgetWindow : Window
             var themeService = _serviceProvider.GetService<ThemeService>();
             if (themeService != null)
             {
-                ApplyThemeResources(themeService.IsDarkMode);
+                // Determine which theme to use: widget's own setting or app's setting
+                bool isDark = _viewModel.UseIndependentTheme 
+                    ? _viewModel.WidgetIsDarkMode 
+                    : themeService.IsDarkMode;
+                    
+                ApplyThemeResources(isDark);
                 themeService.ThemeChanged += OnThemeChanged;
+                
+                // Subscribe to ViewModel's theme setting changes
+                _viewModel.OnWidgetThemeSettingChanged += OnWidgetThemeSettingChanged;
             }
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to apply theme");
         }
+    }
+    
+    private void OnWidgetThemeSettingChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            try
+            {
+                if (_viewModel.UseIndependentTheme)
+                {
+                    // Use widget's own dark mode setting
+                    Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache();
+                    ApplyThemeResources(_viewModel.WidgetIsDarkMode);
+                }
+                else
+                {
+                    // Fall back to app's theme
+                    var themeService = _serviceProvider.GetService<ThemeService>();
+                    if (themeService != null)
+                    {
+                        Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache();
+                        ApplyThemeResources(themeService.IsDarkMode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to apply widget theme setting change");
+            }
+        });
     }
 
     private void ApplyThemeResources(bool isDarkMode)
@@ -695,7 +734,17 @@ public partial class OrderLogWidgetWindow : Window
             {
                 // Invalidate converter caches before applying new theme
                 Features.OrderLog.Converters.StatusToColorConverter.InvalidateCache();
-                ApplyThemeResources(isDarkMode);
+                
+                if (_viewModel.UseIndependentTheme)
+                {
+                    // Widget uses its own theme - re-apply it to ensure it overrides app resources
+                    ApplyThemeResources(_viewModel.WidgetIsDarkMode);
+                }
+                else
+                {
+                    // Follow app's theme
+                    ApplyThemeResources(isDarkMode);
+                }
             }
             catch (Exception ex)
             {

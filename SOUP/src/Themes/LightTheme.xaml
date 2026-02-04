@@ -3,11 +3,38 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <!-- ============================= -->
-    <!-- LIGHT THEME - Windows Native  -->
+    <!-- LIGHT THEME - VS-Inspired     -->
     <!-- ============================= -->
-    <!-- Uses system colors for native Windows look -->
+    <!-- Clean, professional light theme inspired by Visual Studio -->
     
-    <!-- Module Icons -->
+    <!-- ============================= -->
+    <!-- DEFAULT TEXTBLOCK STYLE       -->
+    <!-- ============================= -->
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI, Segoe UI Emoji, Segoe UI Symbol"/>
+    </Style>
+
+    <!-- ============================= -->
+    <!-- CORNER RADIUS VALUES          -->
+    <!-- ============================= -->
+    <!-- Subtle rounding for a modern but professional look -->
+    <CornerRadius x:Key="WindowCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="TitleBarCornerRadius">6,6,0,0</CornerRadius>
+    <CornerRadius x:Key="SidebarCornerRadius">0,0,0,6</CornerRadius>
+    <CornerRadius x:Key="LargeCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="MediumCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">3</CornerRadius>
+    <CornerRadius x:Key="XSmallCornerRadius">2</CornerRadius>
+    <CornerRadius x:Key="NavItemCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="IconCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="AppLogoCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="SplashIconCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">3</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">4</CornerRadius>
+
+    <!-- ============================= -->
+    <!-- MODULE ICONS                  -->
+    <!-- ============================= -->
     <sys:String x:Key="AppLogoIcon">⚡</sys:String>
     <sys:String x:Key="ExpireWiseIcon">📦</sys:String>
     <sys:String x:Key="ExpireWiseSplashIcon">📦</sys:String>
@@ -23,13 +50,58 @@
     <!-- OrderLog Settings -->
     <sys:Boolean x:Key="OrderLogCardUseFullColor">False</sys:Boolean>
     
-    <!-- Base Colors (for DynamicResource bindings) -->
+    <!-- ============================= -->
+    <!-- LIGHT THEME COLORS            -->
+    <!-- ============================= -->
+    <!-- VS-inspired professional light palette -->
+    
+    <!-- Neutral/Surface Colors -->
     <Color x:Key="BackgroundColor">#FFFFFF</Color>
-    <Color x:Key="SurfaceColor">#F0F0F0</Color>
-    <Color x:Key="SurfaceHoverColor">#E5E5E5</Color>
-    <Color x:Key="SurfaceActiveColor">#D9D9D9</Color>
-    <Color x:Key="TextPrimaryColor">#1A1A1A</Color>
-    <Color x:Key="TextSecondaryColor">#6B7280</Color>
+    <Color x:Key="SurfaceColor">#F5F5F5</Color>
+    <Color x:Key="SurfaceHoverColor">#E8E8E8</Color>
+    <Color x:Key="SurfaceActiveColor">#DCDCDC</Color>
+    <Color x:Key="BorderColor">#CCCEDB</Color>
+    <Color x:Key="BorderDarkColor">#9D9D9D</Color>
+    <Color x:Key="BorderLightColor">#E5E5E5</Color>
+    
+    <!-- Text Colors - High contrast for readability -->
+    <Color x:Key="TextPrimaryColor">#1E1E1E</Color>
+    <Color x:Key="TextSecondaryColor">#5D5D5D</Color>
+    <Color x:Key="TextTertiaryColor">#808080</Color>
+    <Color x:Key="TextDisabledColor">#A0A0A0</Color>
+    <Color x:Key="TextOnPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="TextLinkColor">#0066CC</Color>
+    
+    <!-- Sidebar Colors - Slightly tinted for depth -->
+    <Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
+    <Color x:Key="SidebarHoverColor">#E0E0E0</Color>
+    <Color x:Key="SidebarActiveColor">#CCE5FF</Color>
+    
+    <!-- VS Blue Accent -->
+    <Color x:Key="AccentColor">#0078D4</Color>
+    <Color x:Key="AccentHoverColor">#106EBE</Color>
+    <Color x:Key="AccentActiveColor">#005A9E</Color>
+    <Color x:Key="AccentLightColor">#E5F3FF</Color>
+    
+    <!-- Module Light Background Colors -->
+    <Color x:Key="ExpireWiseLightColor">#FFF8E1</Color>
+    <Color x:Key="AllocationBuddyLightColor">#F3E5F5</Color>
+    <Color x:Key="EssentialsBuddyLightColor">#E8F5E9</Color>
+    <Color x:Key="SwiftLabelLightColor">#FFEBEE</Color>
+    
+    <!-- Status Colors -->
+    <Color x:Key="SuccessColor">#107C10</Color>
+    <Color x:Key="SuccessLightColor">#DFF6DD</Color>
+    <Color x:Key="WarningColor">#D83B01</Color>
+    <Color x:Key="WarningLightColor">#FFF4CE</Color>
+    <Color x:Key="DangerColor">#D13438</Color>
+    <Color x:Key="DangerLightColor">#FDE7E9</Color>
+    <Color x:Key="InfoColor">#0078D4</Color>
+    <Color x:Key="InfoLightColor">#E5F3FF</Color>
+
+    <!-- ============================= -->
+    <!-- BRUSH DEFINITIONS             -->
+    <!-- ============================= -->
     
     <!-- Background & Surface Brushes -->
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
@@ -41,173 +113,309 @@
     <!-- Text Brushes -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
-    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#9CA3AF"/>
-    <SolidColorBrush x:Key="TextDisabledBrush" Color="#9CA3AF"/>
-    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="White"/>
-    <SolidColorBrush x:Key="TextLinkBrush" Color="#0078D7"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLinkColor}"/>
     
-    <!-- Border & Accent -->
-    <SolidColorBrush x:Key="BorderBrush" Color="#D1D5DB"/>
-    <SolidColorBrush x:Key="AccentBrush" Color="#0078D7"/>
-    <SolidColorBrush x:Key="PrimaryBrush" Color="#0078D7"/>
+    <!-- Border Brushes -->
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
+    <SolidColorBrush x:Key="BorderDarkBrush" Color="{StaticResource BorderDarkColor}"/>
     
-    <!-- Status Colors -->
-    <SolidColorBrush x:Key="SuccessBrush" Color="#28a745"/>
-    <SolidColorBrush x:Key="SuccessLightBrush" Color="#d4edda"/>
-    <SolidColorBrush x:Key="WarningBrush" Color="#ffc107"/>
-    <SolidColorBrush x:Key="WarningLightBrush" Color="#fff3cd"/>
-    <SolidColorBrush x:Key="DangerBrush" Color="#dc3545"/>
-    <SolidColorBrush x:Key="DangerLightBrush" Color="#f8d7da"/>
-    <SolidColorBrush x:Key="InfoBrush" Color="{x:Static SystemColors.InfoColor}"/>
+    <!-- Accent Brushes -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource AccentColor}"/>
     
-    <!-- OrderLog Card Colors -->
-    <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="#FEE2E2"/>
-    <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="#FEF3C7"/>
-    <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="#D1FAE5"/>
-    <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="#FEF9C3"/>
-
-    <!-- Widget Status Background Colors (light tints for light theme) -->
-    <Color x:Key="WidgetStatusNotReadyBgColor">#FEE2E2</Color>
-    <Color x:Key="WidgetStatusOnDeckBgColor">#FEF3C7</Color>
-    <Color x:Key="WidgetStatusInProgressBgColor">#D1FAE5</Color>
-    <Color x:Key="WidgetStatusDoneBgColor">#F3F4F6</Color>
-
-    <!-- Widget Status Text Colors (darker for contrast on light backgrounds) -->
-    <Color x:Key="WidgetStatusNotReadyColor">#DC2626</Color>
-    <Color x:Key="WidgetStatusOnDeckColor">#D97706</Color>
-    <Color x:Key="WidgetStatusInProgressColor">#059669</Color>
-    <Color x:Key="WidgetStatusDoneColor">#6B7280</Color>
-
-    <!-- Note Colors (softer for light theme) -->
-    <Color x:Key="WidgetNoteYellowColor">#FCD34D</Color>
-    <Color x:Key="WidgetNotePinkColor">#F9A8D4</Color>
-    <Color x:Key="WidgetNoteBlueColor">#93C5FD</Color>
-    <Color x:Key="WidgetNoteGreenColor">#86EFAC</Color>
-    <Color x:Key="WidgetNotePurpleColor">#C4B5FD</Color>
-
-    <!-- Success/Accent Color for widget -->
-    <Color x:Key="SuccessColor">#22C55E</Color>
-    <Color x:Key="AccentColor">#0078D7</Color>
-    <Color x:Key="BorderColor">#D1D5DB</Color>
+    <!-- Status Brushes -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="{StaticResource SuccessLightColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="WarningLightBrush" Color="{StaticResource WarningLightColor}"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}"/>
+    <SolidColorBrush x:Key="DangerLightBrush" Color="{StaticResource DangerLightColor}"/>
+    <SolidColorBrush x:Key="DangerDarkBrush" Color="#A80000"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="#9A2900"/>
+    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="{StaticResource DangerLightColor}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
     
-    <!-- Title Bar - Use light gray for Windows native look -->
-    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
-    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
-    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#e81123"/>
+    <!-- Sidebar Brushes -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource SidebarBackgroundColor}"/>
+    
+    <!-- Title Bar Brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#E8E8E8"/>
+    <SolidColorBrush x:Key="TitleBarTextBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#E81123"/>
     <SolidColorBrush x:Key="CloseButtonHoverTextBrush" Color="White"/>
     
-    <!-- Sidebar -->
-    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{x:Static SystemColors.ControlColor}"/>
+    <!-- Module Light Brushes -->
+    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="{StaticResource ExpireWiseLightColor}"/>
+    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="{StaticResource AllocationBuddyLightColor}"/>
+    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="{StaticResource EssentialsBuddyLightColor}"/>
+    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="{StaticResource SwiftLabelLightColor}"/>
     
-    <!-- Module Colors -->
-    <SolidColorBrush x:Key="ExpireWiseLightBrush" Color="#fff3cd"/>
-    <SolidColorBrush x:Key="AllocationBuddyLightBrush" Color="#e8daff"/>
-    <SolidColorBrush x:Key="EssentialsBuddyLightBrush" Color="#d4edda"/>
-    <SolidColorBrush x:Key="SwiftLabelLightBrush" Color="#f8d7da"/>
-    
-    <!-- Corner Radius - Set to 0 for classic Windows look -->
-    <CornerRadius x:Key="XSmallCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="SmallCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="MediumCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="LargeCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="BadgeCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
-    <CornerRadius x:Key="TitleBarCornerRadius">0,0,0,0</CornerRadius>
-    <CornerRadius x:Key="SidebarCornerRadius">0</CornerRadius>
-    
-    <!-- Additional common tokens used across the app -->
-    <sys:Double x:Key="CardFontSize">12</sys:Double>
-    <sys:Double x:Key="SmallFontSize">11</sys:Double>
+    <!-- OrderLog Card Colors -->
+    <SolidColorBrush x:Key="OrderLogCardNotReadyBrush" Color="#FDE7E9"/>
+    <SolidColorBrush x:Key="OrderLogCardOnDeckBrush" Color="#FFF4CE"/>
+    <SolidColorBrush x:Key="OrderLogCardInProgressBrush" Color="#DFF6DD"/>
+    <SolidColorBrush x:Key="OrderLogCardDoneBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="OrderLogCardNoteBrush" Color="#FFF8DC"/>
 
-    <!-- Overlay / popup brushes -->
-    <SolidColorBrush x:Key="OverlayMediumBrush" Color="#AA000000"/>
+    <!-- Module Splash Gradients (keep dark gradients for visual impact) -->
+    <LinearGradientBrush x:Key="ExpireWiseSplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0f0f1a" Offset="0"/>
+        <GradientStop Color="#1a1510" Offset="0.3"/>
+        <GradientStop Color="#4a2c10" Offset="0.7"/>
+        <GradientStop Color="#92400e" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="AllocationBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0f0f1a" Offset="0"/>
+        <GradientStop Color="#1a1a35" Offset="0.3"/>
+        <GradientStop Color="#1e1b5a" Offset="0.7"/>
+        <GradientStop Color="#3730a3" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="EssentialsBuddySplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0f0f1a" Offset="0"/>
+        <GradientStop Color="#0f1a1a" Offset="0.3"/>
+        <GradientStop Color="#064e3b" Offset="0.7"/>
+        <GradientStop Color="#047857" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SwiftLabelSplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0f0f1a" Offset="0"/>
+        <GradientStop Color="#1a0f1a" Offset="0.3"/>
+        <GradientStop Color="#4a1d4a" Offset="0.7"/>
+        <GradientStop Color="#86198f" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="OrderLogSplashGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0f0f1a" Offset="0"/>
+        <GradientStop Color="#0f1a1f" Offset="0.3"/>
+        <GradientStop Color="#134e5e" Offset="0.7"/>
+        <GradientStop Color="#0d9488" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Module Icon Gradients -->
+    <LinearGradientBrush x:Key="ExpireWiseIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#f59e0b" Offset="0"/>
+        <GradientStop Color="#fbbf24" Offset="0.5"/>
+        <GradientStop Color="#f97316" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="ExpireWiseIconShadowColor">#f59e0b</Color>
+
+    <LinearGradientBrush x:Key="AllocationBuddyIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#6366f1" Offset="0"/>
+        <GradientStop Color="#818cf8" Offset="0.5"/>
+        <GradientStop Color="#4f46e5" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="AllocationBuddyIconShadowColor">#6366f1</Color>
+
+    <LinearGradientBrush x:Key="EssentialsBuddyIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#10b981" Offset="0"/>
+        <GradientStop Color="#34d399" Offset="0.5"/>
+        <GradientStop Color="#059669" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="EssentialsBuddyIconShadowColor">#10b981</Color>
+
+    <LinearGradientBrush x:Key="SwiftLabelIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#a855f7" Offset="0"/>
+        <GradientStop Color="#c084fc" Offset="0.5"/>
+        <GradientStop Color="#9333ea" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="SwiftLabelIconShadowColor">#a855f7</Color>
+
+    <LinearGradientBrush x:Key="OrderLogIconGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#14b8a6" Offset="0"/>
+        <GradientStop Color="#2dd4bf" Offset="0.5"/>
+        <GradientStop Color="#0d9488" Offset="1"/>
+    </LinearGradientBrush>
+    <Color x:Key="OrderLogIconShadowColor">#14b8a6</Color>
+
+    <!-- Splash Screen Text -->
+    <SolidColorBrush x:Key="SplashTitleBrush" Color="White"/>
+
+    <!-- Widget Status Background Colors -->
+    <Color x:Key="WidgetStatusNotReadyBgColor">#FDE7E9</Color>
+    <Color x:Key="WidgetStatusOnDeckBgColor">#FFF4CE</Color>
+    <Color x:Key="WidgetStatusInProgressBgColor">#DFF6DD</Color>
+    <Color x:Key="WidgetStatusDoneBgColor">#F0F0F0</Color>
+
+    <!-- Widget Status Text Colors -->
+    <Color x:Key="WidgetStatusNotReadyColor">#D13438</Color>
+    <Color x:Key="WidgetStatusOnDeckColor">#D83B01</Color>
+    <Color x:Key="WidgetStatusInProgressColor">#107C10</Color>
+    <Color x:Key="WidgetStatusDoneColor">#5D5D5D</Color>
+
+    <!-- Widget Note Colors -->
+    <Color x:Key="WidgetNoteYellowColor">#FFF4CE</Color>
+    <Color x:Key="WidgetNotePinkColor">#FCE4EC</Color>
+    <Color x:Key="WidgetNoteBlueColor">#E3F2FD</Color>
+    <Color x:Key="WidgetNoteGreenColor">#E8F5E9</Color>
+    <Color x:Key="WidgetNotePurpleColor">#F3E5F5</Color>
+
+    <!-- Overlay / Popup Brushes -->
+    <SolidColorBrush x:Key="OverlayMediumBrush" Color="#88000000"/>
     <SolidColorBrush x:Key="TextOnOverlayBrush" Color="White"/>
     <SolidColorBrush x:Key="TextOnOverlayDimBrush" Color="#CCFFFFFF"/>
 
-    <!-- Border variants -->
-    <SolidColorBrush x:Key="BorderLightBrush" Color="{x:Static SystemColors.ControlLightColor}"/>
-    <SolidColorBrush x:Key="BorderDarkBrush" Color="{x:Static SystemColors.ControlDarkColor}"/>
-
-    <!-- Dialog / Title gradients and shadows -->
+    <!-- Dialog / Title Gradients -->
     <LinearGradientBrush x:Key="DialogTitleBarGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="{Binding Source={StaticResource TitleBarBackgroundBrush}, Path=Color}" Offset="0"/>
-        <GradientStop Color="{x:Static SystemColors.ActiveCaptionColor}" Offset="1"/>
+        <GradientStop Color="#F5F5F5" Offset="0"/>
+        <GradientStop Color="#E8E8E8" Offset="1"/>
     </LinearGradientBrush>
-    <Color x:Key="DialogTitleBarShadowColor">#40000000</Color>
+    <Color x:Key="DialogTitleBarShadowColor">#18000000</Color>
 
-    <!-- Section / heading brushes -->
-    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="{x:Static SystemColors.ControlTextColor}"/>
+    <!-- Section Heading -->
+    <SolidColorBrush x:Key="SectionTitleTextBrush" Color="{StaticResource TextPrimaryColor}"/>
 
-    <!-- Window corner radius fallback -->
-    <CornerRadius x:Key="WindowCornerRadius">0</CornerRadius>
+    <!-- Additional Font Sizes -->
+    <sys:Double x:Key="CardFontSize">12</sys:Double>
+    <sys:Double x:Key="SmallFontSize">11</sys:Double>
 
-    <!-- Danger / Warning dark variants -->
-    <SolidColorBrush x:Key="DangerDarkBrush" Color="#b02a37"/>
-    <SolidColorBrush x:Key="WarningDarkBrush" Color="#e0a800"/>
-    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#f8d7da"/>
+    <!-- ============================= -->
+    <!-- CONTROL STYLES                -->
+    <!-- ============================= -->
 
-    <!-- Elevated widget/card style used by widgets — basic fallback -->
+    <!-- Elevated Card Style -->
     <Style x:Key="WidgetElevatedCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}"/>
         <Setter Property="Padding" Value="12"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="6" ShadowDepth="1" Direction="270"/>
+            </Setter.Value>
+        </Setter>
     </Style>
 
-    <!-- Ghost / subtle button style -->
+    <!-- Ghost Button Style -->
     <Style x:Key="GhostButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource SmallCornerRadius}" 
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     
-    <!-- Basic Styles - Use default Windows styles -->
+    <!-- Modern Button Style -->
     <Style x:Key="ModernButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource SmallCornerRadius}" 
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SurfaceActiveBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     
+    <!-- Modern TextBox Style -->
     <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     
+    <!-- Modern ComboBox Style -->
     <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     
+    <!-- Modern CheckBox Style -->
     <Style x:Key="ModernCheckBoxStyle" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="4,0,0,0"/>
     </Style>
     
+    <!-- Modern ListBox Style -->
     <Style x:Key="ModernListBoxStyle" TargetType="ListBox">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="2"/>
     </Style>
     
+    <!-- Modern DataGrid Style -->
     <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="GridLinesVisibility" Value="All"/>
-        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderLightBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderLightBrush}"/>
+        <Setter Property="RowBackground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="AlternatingRowBackground" Value="{DynamicResource SurfaceBrush}"/>
     </Style>
 
 </ResourceDictionary>

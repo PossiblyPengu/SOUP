@@ -1,4 +1,6 @@
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using SOUP.Core.Common;
 
 namespace SOUP.Core.Entities.ExpireWise;
@@ -23,8 +25,21 @@ namespace SOUP.Core.Entities.ExpireWise;
 /// </list>
 /// </para>
 /// </remarks>
-public class ExpirationItem : BaseEntity
+public class ExpirationItem : BaseEntity, INotifyPropertyChanged
 {
+    /// <summary>
+    /// Occurs when a property value changes.
+    /// </summary>
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// Raises the PropertyChanged event.
+    /// </summary>
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
     /// <summary>
     /// Number of days until expiry to show critical status (configurable, default 7 days).
     /// </summary>
@@ -55,15 +70,32 @@ public class ExpirationItem : BaseEntity
     /// </summary>
     public string? Location { get; set; }
 
+    private int _units;
     /// <summary>
     /// Gets or sets the number of units.
     /// </summary>
-    public int Units { get; set; }
+    public int Units 
+    { 
+        get => _units; 
+        set
+        {
+            if (_units != value)
+            {
+                _units = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Quantity));
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or sets the quantity (alias for Units).
     /// </summary>
-    public int Quantity { get => Units; set => Units = value; }
+    public int Quantity 
+    { 
+        get => Units; 
+        set => Units = value; 
+    }
 
     /// <summary>
     /// Gets or sets the expiration date (month/year).

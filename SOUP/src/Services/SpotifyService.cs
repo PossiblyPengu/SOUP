@@ -225,6 +225,33 @@ public class SpotifyService : INotifyPropertyChanged
 
             string? title = mediaProperties?.Title;
             string? artist = mediaProperties?.Artist;
+            string? albumArtist = mediaProperties?.AlbumArtist;
+            
+            // Log raw data from Windows API for debugging
+            Log.Debug("SMTC Raw Data - Title: '{Title}', Artist: '{Artist}', AlbumArtist: '{AlbumArtist}'", 
+                title, artist, albumArtist);
+            
+            // Try to extract featured artists from the title
+            // Spotify often puts them in formats like "Song (feat. Artist2)" or "Song (with Artist2)"
+            string? featuredArtists = ExtractFeaturedArtists(title);
+            
+            // Build complete artist string
+            string completeArtist = artist ?? "";
+            if (!string.IsNullOrEmpty(featuredArtists) && 
+                !string.IsNullOrEmpty(artist) &&
+                !artist.Contains(featuredArtists, StringComparison.OrdinalIgnoreCase))
+            {
+                // Add featured artists that aren't already in the artist field
+                completeArtist = $"{artist}, {featuredArtists}";
+            }
+            
+            // Clean the title if we extracted featured artists from it
+            string cleanTitle = title ?? "";
+            if (!string.IsNullOrEmpty(featuredArtists))
+            {
+                cleanTitle = RemoveFeaturedFromTitle(title);
+            }
+            
             bool isPlaying = playbackInfo?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
             // Detect if track changed by comparing title+artist
@@ -252,8 +279,8 @@ public class SpotifyService : INotifyPropertyChanged
                 if (!string.IsNullOrEmpty(title))
                 {
                     HasMedia = true;
-                    TrackTitle = title;
-                    ArtistName = artist ?? "";
+                    TrackTitle = cleanTitle;
+                    ArtistName = completeArtist;
                     IsPlaying = isPlaying;
 
                     // Prefer not to clear existing album art immediately if fetch fails.
@@ -442,6 +469,72 @@ public class SpotifyService : INotifyPropertyChanged
         {
             Log.Warning(ex, "Failed to send media key");
         }
+    }
+
+    /// <summary>
+    /// Extract featured artists from song title patterns like:
+    /// "Song (feat. Artist2)", "Song (ft. Artist2)", "Song (with Artist2)"
+    /// </summary>
+    private static string? ExtractFeaturedArtists(string? title)
+    {
+        if (string.IsNullOrEmpty(title))
+            return null;
+
+        // Common patterns: (feat. X), (ft. X), (with X), [feat. X], [ft. X]
+        var patterns = new[]
+        {
+            @"\(feat\.?\s+(.+?)\)",   // (feat. Artist) or (feat Artist)
+            @"\(ft\.?\s+(.+?)\)",     // (ft. Artist) or (ft Artist)  
+            @"\(with\s+(.+?)\)",      // (with Artist)
+            @"\[feat\.?\s+(.+?)\]",   // [feat. Artist]
+            @"\[ft\.?\s+(.+?)\]",     // [ft. Artist]
+            @"\[with\s+(.+?)\]",      // [with Artist]
+            @"\s+-\s+feat\.?\s+(.+)$", // - feat. Artist at end
+            @"\s+-\s+ft\.?\s+(.+)$",   // - ft. Artist at end
+        };
+
+        foreach (var pattern in patterns)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(
+                title, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                return match.Groups[1].Value.Trim();
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Remove featured artist portion from the title for cleaner display.
+    /// </summary>
+    private static string RemoveFeaturedFromTitle(string? title)
+    {
+        if (string.IsNullOrEmpty(title))
+            return "";
+
+        // Same patterns as above, but replace with empty
+        var patterns = new[]
+        {
+            @"\s*\(feat\.?\s+.+?\)",
+            @"\s*\(ft\.?\s+.+?\)",
+            @"\s*\(with\s+.+?\)",
+            @"\s*\[feat\.?\s+.+?\]",
+            @"\s*\[ft\.?\s+.+?\]",
+            @"\s*\[with\s+.+?\]",
+            @"\s*-\s+feat\.?\s+.+$",
+            @"\s*-\s+ft\.?\s+.+$",
+        };
+
+        string result = title;
+        foreach (var pattern in patterns)
+        {
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result, pattern, "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
+        return result.Trim();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

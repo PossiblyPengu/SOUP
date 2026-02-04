@@ -169,6 +169,56 @@ public partial class LauncherViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Launches a module by name. Used for command-line --module flag.
+    /// </summary>
+    /// <param name="moduleName">Case-insensitive module name: expirewise, allocation, essentials, swiftlabel, orderlog</param>
+    /// <returns>True if module was launched, false if not found or disabled.</returns>
+    public async Task<bool> LaunchModuleByNameAsync(string moduleName)
+    {
+        var normalizedName = moduleName?.ToLowerInvariant()?.Trim() ?? "";
+        _logger?.LogInformation("Launching module by name: {ModuleName}", moduleName);
+
+        switch (normalizedName)
+        {
+            case "expirewise":
+            case "expire":
+                if (!IsExpireWiseEnabled) return false;
+                LaunchExpireWise();
+                return true;
+
+            case "allocation":
+            case "allocationbuddy":
+                if (!IsAllocationBuddyEnabled) return false;
+                LaunchAllocationBuddy();
+                return true;
+
+            case "essentials":
+            case "essentialsbuddy":
+                if (!IsEssentialsBuddyEnabled) return false;
+                LaunchEssentialsBuddy();
+                return true;
+
+            case "swiftlabel":
+            case "swift":
+            case "label":
+                if (!IsSwiftLabelEnabled) return false;
+                LaunchSwiftLabel();
+                return true;
+
+            case "orderlog":
+            case "order":
+            case "orders":
+                if (!IsOrderLogEnabled) return false;
+                await LaunchOrderLogAsync();
+                return true;
+
+            default:
+                _logger?.LogWarning("Unknown module requested: {ModuleName}", moduleName);
+                return false;
+        }
+    }
+
+    /// <summary>
     /// Ensures the MainWindow is visible and activated (for when it's hidden due to widget mode)
     /// </summary>
     private static void EnsureMainWindowVisible()

@@ -214,11 +214,16 @@ public partial class UnifiedSettingsWindow : Window
             // Lazy-create the OrderLog settings view to avoid loading heavy controls unnecessarily
             try
             {
-                if (PanelOrderLog.Child == null)
+                if (PanelOrderLog.Child == null && _viewModel.OrderLogSettings != null)
                 {
                     var orderLogView = new OrderLogSettingsView();
                     orderLogView.DataContext = _viewModel.OrderLogSettings;
                     PanelOrderLog.Child = orderLogView;
+                    Serilog.Log.Debug("OrderLogSettingsView created with DataContext");
+                }
+                else if (_viewModel.OrderLogSettings == null)
+                {
+                    Serilog.Log.Warning("OrderLogSettings is null - OrderLog module may not be enabled");
                 }
             }
             catch (Exception ex)

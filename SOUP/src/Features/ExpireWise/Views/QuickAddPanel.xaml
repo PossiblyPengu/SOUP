@@ -6,7 +6,7 @@
              xmlns:vm="clr-namespace:SOUP.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ExpireWiseViewModel}"
-             d:DesignHeight="200" d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="380">
 
     <UserControl.Resources>
         <!-- ExpireWise Accent Colors -->
@@ -16,284 +16,354 @@
         <SolidColorBrush x:Key="ExpireWiseAccentBrush" Color="{StaticResource ExpireWiseAccentColor}"/>
         <SolidColorBrush x:Key="ExpireWiseAccentLightBrush" Color="{StaticResource ExpireWiseAccentLightColor}"/>
         <SolidColorBrush x:Key="ExpireWiseAccentDarkBrush" Color="{StaticResource ExpireWiseAccentDarkColor}"/>
+
+        <!-- Input Field Style -->
+        <Style x:Key="InputField" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Label Style -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Margin" Value="4,0,0,6"/>
+        </Style>
     </UserControl.Resources>
 
-    <!-- Quick Add Content -->
-    <Grid Margin="20,16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/> <!-- Queue Section -->
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="110"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Form -->
+            <RowDefinition Height="*"/>    <!-- Queue -->
+        </Grid.RowDefinitions>
 
-                <!-- Row 0: SKU Input -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="SKU/Item #:" FontSize="13"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,0,16,0"/>
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- FORM SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <StackPanel Grid.Row="0" Margin="16,12,16,0">
+            
+            <!-- SKU/Item Number -->
+            <TextBlock Text="SKU / ITEM NUMBER" Style="{StaticResource FieldLabel}"/>
+            <Border Style="{StaticResource InputField}" Margin="0,0,0,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource BackgroundBrush}"
-                        CornerRadius="8" Padding="14,10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" 
+                               Margin="0,0,10,0" Opacity="0.5"/>
 
-                        <TextBox x:Name="SkuInput" Grid.Column="0"
-                                 Text="{Binding QuickAddSku, UpdateSourceTrigger=PropertyChanged}"
-                                 Background="Transparent" BorderThickness="0"
-                                 Foreground="{DynamicResource TextPrimaryBrush}"
-                                 FontSize="14" VerticalAlignment="Center"
-                                 CaretBrush="{DynamicResource TextPrimaryBrush}">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox">
+                    <TextBox x:Name="SkuInput" Grid.Column="1"
+                             Text="{Binding QuickAddSku, UpdateSourceTrigger=PropertyChanged}"
+                             Background="Transparent" BorderThickness="0"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             FontSize="14" VerticalAlignment="Center"
+                             CaretBrush="{DynamicResource TextPrimaryBrush}"/>
+                    
+                    <TextBlock Grid.Column="1" Text="Enter SKU or scan barcode..." 
+                               FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}"
+                               VerticalAlignment="Center" IsHitTestVisible="False"
+                               Visibility="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Invert}"/>
+
+                    <!-- Validation Status -->
+                    <Border Grid.Column="2" Width="26" Height="26" CornerRadius="13" Margin="8,0,0,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Background" Value="#22c55e"/>
+                                    </DataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding QuickAddIsValidating}" Value="False"/>
+                                            <Condition Binding="{Binding QuickAddIsValid}" Value="False"/>
+                                            <Condition Binding="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}}" Value="Visible"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Background" Value="#ef4444"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" Foreground="White">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value=""/>
                                     <Style.Triggers>
-                                        <Trigger Property="Text" Value="">
-                                            <Setter Property="Background">
-                                                <Setter.Value>
-                                                    <VisualBrush Stretch="None" AlignmentX="Left">
-                                                        <VisualBrush.Visual>
-                                                            <TextBlock Text="Enter SKU or item number..."
-                                                                       Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                                        </VisualBrush.Visual>
-                                                    </VisualBrush>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
-
-                        <!-- Status Icon -->
-                        <Border Grid.Column="1" Width="24" Height="24" CornerRadius="12"
-                                Margin="8,0,0,0" VerticalAlignment="Center">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <!-- Loading -->
                                         <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            <Setter Property="Text" Value="⏳"/>
                                         </DataTrigger>
-                                        <!-- Found -->
                                         <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                            <Setter Property="Text" Value="✓"/>
                                         </DataTrigger>
-                                        <!-- Not Found -->
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
                                                 <Condition Binding="{Binding QuickAddIsValidating}" Value="False"/>
                                                 <Condition Binding="{Binding QuickAddIsValid}" Value="False"/>
-                                                <Condition Binding="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}}" Value="Visible"/>
                                             </MultiDataTrigger.Conditions>
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                            <Setter Property="Text" Value="✗"/>
                                         </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Border.Style>
-                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       FontSize="12" Foreground="White">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value=""/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
-                                                <Setter Property="Text" Value="⏳"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
-                                                <Setter Property="Text" Value="✓"/>
-                                            </DataTrigger>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding QuickAddIsValidating}" Value="False"/>
-                                                    <Condition Binding="{Binding QuickAddIsValid}" Value="False"/>
-                                                </MultiDataTrigger.Conditions>
-                                                <Setter Property="Text" Value="✗"/>
-                                            </MultiDataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <!-- Row 1: Store and Quantity -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Store:" FontSize="13"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,14,16,0"/>
-
-                <Grid Grid.Row="1" Grid.Column="1" Margin="0,14,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="16"/>
-                        <ColumnDefinition Width="150"/>
-                    </Grid.ColumnDefinitions>
-
-                    <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding AvailableStores}"
-                              SelectedItem="{Binding QuickAddStore}"
-                              DisplayMemberPath="Name"
-                              Style="{StaticResource ModernComboBoxStyle}"/>
-
-                    <Border Grid.Column="2" Background="{DynamicResource BackgroundBrush}"
-                            CornerRadius="8" Padding="14,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Qty:" FontSize="13"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBox Grid.Column="1"
-                                     Text="{Binding QuickAddUnits, UpdateSourceTrigger=PropertyChanged}"
-                                     Background="Transparent" BorderThickness="0"
-                                     Foreground="{DynamicResource TextPrimaryBrush}"
-                                     FontSize="14" VerticalAlignment="Center"
-                                     CaretBrush="{DynamicResource TextPrimaryBrush}"
-                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
-                                     HorizontalAlignment="Stretch" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="2" Text="units" FontSize="12"
-                                       Foreground="{DynamicResource TextTertiaryBrush}"
-                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        </Grid>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Border>
                 </Grid>
+            </Border>
 
-                <!-- Row 2: Expiry Date -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Expires:" FontSize="13"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center" Margin="0,14,16,0"/>
+            <!-- Item Preview Card - shown when SKU is valid -->
+            <Border CornerRadius="10" Padding="12" Margin="0,0,0,14"
+                    Visibility="{Binding QuickAddItemPreview, Converter={StaticResource StringToVisibilityConverter}}">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#15f59e0b" Offset="0"/>
+                        <GradientStop Color="#10d97706" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#40f59e0b" Offset="0"/>
+                        <GradientStop Color="#20d97706" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Border.BorderThickness>1</Border.BorderThickness>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <TextBlock Text="✓" FontSize="12" Foreground="#22c55e" Margin="0,0,6,0"/>
+                        <TextBlock Text="ITEM FOUND" FontSize="10" FontWeight="Bold" Foreground="#22c55e"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding QuickAddItemPreview}" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource ExpireWiseAccentLightBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
 
-                <Grid Grid.Row="2" Grid.Column="1" Margin="0,14,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+            <!-- Store Selection -->
+            <TextBlock Text="STORE" Style="{StaticResource FieldLabel}"/>
+            <ComboBox ItemsSource="{Binding AvailableStores}"
+                      SelectedItem="{Binding QuickAddStore}"
+                      DisplayMemberPath="Name"
+                      Style="{StaticResource ModernComboBoxStyle}"
+                      Margin="0,0,0,14"/>
 
-                    <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding QuickAddMonths}"
-                              SelectedValue="{Binding QuickAddMonth}"
-                              SelectedValuePath="Value"
-                              DisplayMemberPath="Name"
-                              Style="{StaticResource ModernComboBoxStyle}"/>
+            <!-- Expiration Date -->
+            <TextBlock Text="EXPIRATION" Style="{StaticResource FieldLabel}"/>
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0"
+                          ItemsSource="{Binding QuickAddMonths}"
+                          SelectedValue="{Binding QuickAddMonth}"
+                          SelectedValuePath="Value"
+                          DisplayMemberPath="Name"
+                          Style="{StaticResource ModernComboBoxStyle}"/>
+                <ComboBox Grid.Column="2"
+                          ItemsSource="{Binding QuickAddYears}"
+                          SelectedItem="{Binding QuickAddYear}"
+                          Style="{StaticResource ModernComboBoxStyle}"/>
+            </Grid>
 
-                    <ComboBox Grid.Column="2"
-                              ItemsSource="{Binding QuickAddYears}"
-                              SelectedItem="{Binding QuickAddYear}"
-                              Style="{StaticResource ModernComboBoxStyle}"/>
-                </Grid>
+            <!-- Add Button -->
+            <Button Command="{Binding AddToQueueCommand}" Margin="0,4,0,0"
+                    IsEnabled="{Binding QuickAddIsValid}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                        <Setter Property="Padding" Value="0,12"/>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="0"/>
+                                    <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Foreground" Value="#1a1a1a"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentLightColor}" Offset="0"/>
+                                            <GradientStop Color="{StaticResource ExpireWiseAccentColor}" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="＋" FontSize="16" FontWeight="Bold" Margin="0,0,8,0"/>
+                    <TextBlock Text="Add to Queue" FontSize="13" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
 
-                <!-- Row 3: Item Preview & Button -->
-                <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
-                        Background="{DynamicResource BackgroundBrush}"
-                        CornerRadius="8" Padding="14,12" Margin="0,18,0,0"
-                        Visibility="{Binding QuickAddItemPreview, Converter={StaticResource StringToVisibilityConverter}}">
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- QUEUE SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Margin="16,20,16,16"
+                Visibility="{Binding HasQueuedItems, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Queue Header -->
+                <Border Grid.Row="0" Background="{DynamicResource BackgroundBrush}" 
+                        CornerRadius="10" Padding="12,10" Margin="0,0,0,10">
                     <Grid>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="✓" FontSize="14" Foreground="{DynamicResource SuccessBrush}"
-                                       Margin="0,0,10,0" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="13" VerticalAlignment="Center">
-                                <Run Text="Item:" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                <Run Text="{Binding QuickAddItemPreview}"
-                                     Foreground="{StaticResource ExpireWiseAccentLightBrush}"
-                                     FontWeight="SemiBold"/>
-                            </TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Queue" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <Border Background="{StaticResource ExpireWiseAccentBrush}" CornerRadius="8"
+                                    Padding="8,2" Margin="8,0,0,0">
+                                <TextBlock Text="{Binding QuickAddQueue.Count}" FontSize="11" FontWeight="Bold"
+                                           Foreground="#1a1a1a"/>
+                            </Border>
                         </StackPanel>
-                        <Button Command="{Binding AddToQueueCommand}"
+                        <Button Content="Clear" Command="{Binding ClearQueueCommand}"
                                 HorizontalAlignment="Right"
-                                Style="{StaticResource PrimaryButton}"
-                                Padding="24,10">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="➕" FontSize="14" Margin="0,0,8,0"/>
-                                <TextBlock Text="Add to Queue" FontSize="13" FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Button>
+                                Style="{StaticResource SecondaryButton}"
+                                Padding="10,4" FontSize="11"/>
                     </Grid>
                 </Border>
 
-                <!-- Row 4: Queue Section -->
-                <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,16,0,0"
-                        Background="{DynamicResource BackgroundBrush}"
-                        CornerRadius="8" Padding="16"
-                        Visibility="{Binding HasQueuedItems, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,12">
-                            <TextBlock Text="Queued Items" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Content="Clear All" Command="{Binding ClearQueueCommand}"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Padding="12,6" FontSize="11" Margin="0,0,8,0"/>
-                                <Button Command="{Binding ConfirmQueueCommand}"
-                                        Style="{StaticResource PrimaryButton}"
-                                        Padding="16,6">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="✓" FontSize="12" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Confirm All" FontSize="11" FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
+                <!-- Queue Items List -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding QuickAddQueue}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource BackgroundBrush}"
+                                        CornerRadius="8" Padding="10,8" Margin="0,0,0,6"
+                                        BorderThickness="1" BorderBrush="Transparent">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/> <!-- Quantity -->
+                                            <ColumnDefinition Width="*"/>    <!-- Details -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Remove -->
+                                        </Grid.ColumnDefinitions>
 
-                        <ItemsControl ItemsSource="{Binding QuickAddQueue}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{DynamicResource SurfaceBrush}"
-                                            BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="1" CornerRadius="6"
-                                            Padding="12,8" Margin="0,0,0,6">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock Grid.Column="0" Text="📦" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock FontSize="12" FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}">
-                                                    <Run Text="{Binding ItemNumber}"/>
-                                                    <Run Text="-" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                                    <Run Text="{Binding Description}"/>
-                                                </TextBlock>
-                                                <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}">
-                                                    <Run Text="{Binding Quantity}"/>
-                                                    <Run Text="units •"/>
-                                                    <Run Text="{Binding Location}"/>
-                                                    <Run Text="• Expires:"/>
-                                                    <Run Text="{Binding ExpiryDate, StringFormat='MMM yyyy'}"/>
-                                                </TextBlock>
+                                        <!-- Editable Quantity -->
+                                        <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                                                CornerRadius="6" Margin="0,0,10,0" MinWidth="52">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="−" ToolTip="Decrease"
+                                                        Command="{Binding DataContext.DecreaseQueueItemQuantityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Width="22" Height="28" FontSize="14" FontWeight="Bold"
+                                                        Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding Quantity}" FontSize="14" FontWeight="Bold"
+                                                           Foreground="{StaticResource ExpireWiseAccentLightBrush}"
+                                                           VerticalAlignment="Center" MinWidth="20" TextAlignment="Center"/>
+                                                <Button Content="＋" ToolTip="Increase"
+                                                        Command="{Binding DataContext.IncreaseQueueItemQuantityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Width="22" Height="28" FontSize="12" FontWeight="Bold"
+                                                        Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </StackPanel>
+                                        </Border>
 
-                                            <Button Grid.Column="2" Content="✕" ToolTip="Remove from queue"
-                                                    Command="{Binding DataContext.RemoveFromQueueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource IconButton}"
-                                                    Width="24" Height="24" FontSize="12"
-                                                    Foreground="{DynamicResource DangerBrush}"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                        <!-- Item Details -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       TextTrimming="CharacterEllipsis">
+                                                <Run Text="{Binding Description}"/>
+                                            </TextBlock>
+                                            <WrapPanel Margin="0,4,0,0">
+                                                <Border Background="{DynamicResource SurfaceBrush}" 
+                                                        CornerRadius="4" Padding="5,2" Margin="0,0,5,0">
+                                                    <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               Text="{Binding Location, Mode=OneWay}"/>
+                                                </Border>
+                                                <Border Background="{DynamicResource SurfaceBrush}" 
+                                                        CornerRadius="4" Padding="5,2">
+                                                    <TextBlock FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               Text="{Binding ExpiryDate, StringFormat='End of MMM yyyy', Mode=OneWay}"/>
+                                                </Border>
+                                            </WrapPanel>
+                                        </StackPanel>
+
+                                        <Button Grid.Column="2" Content="✕" ToolTip="Remove"
+                                                Command="{Binding DataContext.RemoveFromQueueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource IconButton}"
+                                                Width="24" Height="24" FontSize="11"
+                                                Foreground="{DynamicResource TextTertiaryBrush}"
+                                                VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Confirm Button -->
+                <Button Grid.Row="2" Command="{Binding ConfirmQueueCommand}" Margin="0,10,0,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                            <Setter Property="Background" Value="#22c55e"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Padding" Value="0,12"/>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Margin="0,0,8,0"/>
+                        <TextBlock Text="Confirm All" FontSize="13" FontWeight="SemiBold"/>
                     </StackPanel>
-                </Border>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Empty Queue State -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Visibility="{Binding HasQueuedItems, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"
+                    Margin="20">
+            <TextBlock Text="📦" FontSize="36" HorizontalAlignment="Center" Opacity="0.35"/>
+            <TextBlock Text="No items in queue" FontSize="12" 
+                       Foreground="{DynamicResource TextTertiaryBrush}" 
+                       HorizontalAlignment="Center" Margin="0,10,0,0"/>
+            <TextBlock Text="Scan or enter a SKU above" FontSize="11" 
+                       Foreground="{DynamicResource TextTertiaryBrush}" 
+                       HorizontalAlignment="Center" Margin="0,2,0,0" Opacity="0.7"/>
+        </StackPanel>
     </Grid>
 </UserControl>

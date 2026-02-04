@@ -568,32 +568,52 @@ public partial class OrderLogWidgetView : UserControl
 
     private void WireUpFluidDragBehavior()
     {
-        // Find the ItemsControl and its panel
+        // Find the ItemsControl and its panel for orders
         var itemsControl = FindVisualChild<ItemsControl>(ActiveItemsPanel);
-        if (itemsControl == null)
+        if (itemsControl != null)
         {
-            return;
+            // Wait for the panel to be generated
+            itemsControl.Loaded += (s, e) =>
+            {
+                var panel = FindVisualChild<Panel>(itemsControl);
+                if (panel == null)
+                {
+                    return;
+                }
+
+                // Find attached fluid drag behavior
+                var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
+                _fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+
+                if (_fluidDragBehavior != null)
+                {
+                    _fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
+                    _fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
+                }
+            };
         }
-
-        // Wait for the panel to be generated
-        itemsControl.Loaded += (s, e) =>
+        
+        // Wire up notes section drag behavior
+        if (NotesSection is { } section)
         {
-            var panel = FindVisualChild<Panel>(itemsControl);
-            if (panel == null)
+            var notesItemsControl = FindVisualChild<ItemsControl>(section);
+            if (notesItemsControl != null)
             {
-                return;
-            }
+                notesItemsControl.Loaded += (s, e) =>
+                {
+                    var panel = FindVisualChild<Panel>(notesItemsControl);
+                    if (panel == null) return;
 
-            // Find attached fluid drag behavior
-            var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
-            _fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+                    var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
+                    var notesDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
 
-            if (_fluidDragBehavior != null)
-            {
-                _fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
-                _fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
+                    if (notesDragBehavior != null)
+                    {
+                        notesDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
+                    }
+                };
             }
-        };
+        }
     }
 
     private async void OnFluidDragReorderComplete(List<OrderItem> items, OrderItem? target)
@@ -1621,8 +1641,18 @@ public partial class OrderLogWidgetView : UserControl
     {
         // Locate the OrderItem robustly: ContextMenu menu items don't always have DataContext set.
         OrderItem? order = null;
-        MenuItem? menuItem = sender as MenuItem;
-        if (menuItem != null)
+        
+        // Handle Button clicks (from toolbar)
+        if (sender is Button btn)
+        {
+            // Prefer CommandParameter when supplied
+            if (btn.CommandParameter is OrderItem cp)
+                order = cp;
+            else
+                order = btn.DataContext as OrderItem;
+        }
+        // Handle MenuItem clicks (from context menu)
+        else if (sender is MenuItem menuItem)
         {
             // Prefer CommandParameter when supplied (more reliable inside ContextMenu)
             if (menuItem.CommandParameter is OrderItem cp)
@@ -2087,6 +2117,16 @@ public partial class OrderLogWidgetView : UserControl
 
     private void InsertDivider_Click(object sender, RoutedEventArgs e)
         => Helpers.TextFormattingHelper.InsertDivider(sender, this);
+
+    private void NoteContent_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Ensure the RichTextBox gets focus when clicked - prevents drag behavior from blocking
+        if (sender is RichTextBox rtb)
+        {
+            rtb.Focus();
+            e.Handled = false; // Let the event continue for text selection
+        }
+    }
 
     private void NoteContent_PreviewKeyDown(object sender, KeyEventArgs e)
     {

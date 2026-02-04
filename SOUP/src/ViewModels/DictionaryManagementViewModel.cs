@@ -127,6 +127,20 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private int _totalPages = 1;
 
     [ObservableProperty]
+    private int _filteredItemCount;
+
+    [ObservableProperty]
+    private int _selectedPageSize = 100;
+
+    public int[] PageSizeOptions { get; } = { 50, 100, 200, 500 };
+
+    partial void OnSelectedPageSizeChanged(int value)
+    {
+        CurrentPage = 1;
+        UpdateDisplayedItems();
+    }
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SortDescription))]
     private string _itemSortBy = "Number";
 
@@ -171,8 +185,6 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
         "Private Label",
         "Tags"
     };
-
-    private const int PageSize = 100;
 
     public ObservableCollection<string> StoreRanks { get; } = new() { "AA", "A", "B", "C", "D" };
 
@@ -268,7 +280,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
                 foreach (var store in _allStores) Stores.Add(store);
 
                 // Calculate pages
-                TotalPages = Math.Max(1, (int)Math.Ceiling(_allItems.Count / (double)PageSize));
+                TotalPages = Math.Max(1, (int)Math.Ceiling(_allItems.Count / (double)SelectedPageSize));
                 CurrentPage = 1;
 
                 // Show first page of items
@@ -774,14 +786,15 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
         };
 
         var filteredList = filtered.ToList();
-        TotalPages = Math.Max(1, (int)Math.Ceiling(filteredList.Count / (double)PageSize));
+        FilteredItemCount = filteredList.Count;
+        TotalPages = Math.Max(1, (int)Math.Ceiling(filteredList.Count / (double)SelectedPageSize));
 
         if (CurrentPage > TotalPages) CurrentPage = TotalPages;
         if (CurrentPage < 1) CurrentPage = 1;
 
         var pageItems = filteredList
-            .Skip((CurrentPage - 1) * PageSize)
-            .Take(PageSize)
+            .Skip((CurrentPage - 1) * SelectedPageSize)
+            .Take(SelectedPageSize)
             .ToList();
 
         // Clear and repopulate instead of replacing the collection

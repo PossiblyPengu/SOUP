@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -28,6 +27,7 @@ public partial class ExpireWiseView : UserControl
         {
             vm.FocusSearchRequested += OnFocusSearchRequested;
             vm.GroupByStoreChanged += OnGroupByStoreChanged;
+            vm.PropertyChanged += OnViewModelPropertyChanged;
             InitializeViewModelAsync(vm);
 
             // Apply initial grouping state
@@ -64,9 +64,19 @@ public partial class ExpireWiseView : UserControl
         {
             vm.FocusSearchRequested -= OnFocusSearchRequested;
             vm.GroupByStoreChanged -= OnGroupByStoreChanged;
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
         }
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ExpireWiseViewModel.SelectedStore))
+        {
+            // Scroll main content to top when store changes
+            MainContentScrollViewer?.ScrollToTop();
+        }
     }
 
     private void OnGroupByStoreChanged(bool groupByStore)
@@ -89,22 +99,17 @@ public partial class ExpireWiseView : UserControl
 
     private void OnItemsGridSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (DataContext is not ExpireWiseViewModel vm) return;
+        // No longer using DataGrid - timeline view handles selection differently
+        // This method is kept for backward compatibility if DataGrid is re-enabled
+    }
 
-        vm.SelectedItems.Clear();
-        // Sync selected items (SelectedItems contains object collection)
-        if (ItemsGrid?.SelectedItems != null)
+    private void TimelineScroll_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        // Enable horizontal scrolling with mouse wheel on the timeline
+        if (sender is ScrollViewer scrollViewer)
         {
-            foreach (var obj in ItemsGrid.SelectedItems.Cast<object>())
-            {
-                if (obj is ExpirationItem item)
-                {
-                    vm.SelectedItems.Add(item);
-                }
-            }
-
-            // Keep the single SelectedItem property pointing to first selected item
-            vm.SelectedItem = ItemsGrid.SelectedItems.Cast<object>().OfType<ExpirationItem>().FirstOrDefault();
+            scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta);
+            e.Handled = true;
         }
     }
 }

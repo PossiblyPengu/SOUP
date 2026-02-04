@@ -520,35 +520,57 @@
                     </Border>
                     
                     <!-- Pagination -->
-                    <Border Grid.Row="3" Background="{DynamicResource SurfaceHoverBrush}" Padding="12,10"
+                    <Border Grid.Row="3" Background="{DynamicResource SurfaceHoverBrush}" Padding="12,8"
                             CornerRadius="0,0,8,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             
+                            <!-- Page navigation -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal">
                                 <Button Content="⏮" Command="{Binding FirstPageCommand}" Style="{StaticResource CompactButton}" 
-                                        Padding="8,6" Margin="0,0,4,0"/>
+                                        Padding="8,6" Margin="0,0,4,0" ToolTip="First page"/>
                                 <Button Content="◀" Command="{Binding PreviousPageCommand}" Style="{StaticResource CompactButton}" 
-                                        Padding="10,6"/>
+                                        Padding="10,6" ToolTip="Previous page"/>
                             </StackPanel>
                             
-                            <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}">
-                                <Run Text="Page "/>
-                                <Run Text="{Binding CurrentPage, Mode=OneWay}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <Run Text=" of "/>
-                                <Run Text="{Binding TotalPages, Mode=OneWay}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            </TextBlock>
+                            <!-- Page info -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center">
+                                    <Run Text="Page "/>
+                                    <Run Text="{Binding CurrentPage, Mode=OneWay}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <Run Text=" of "/>
+                                    <Run Text="{Binding TotalPages, Mode=OneWay}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </TextBlock>
+                                <TextBlock FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0">
+                                    <Run Text="Showing "/>
+                                    <Run Text="{Binding FilteredItems.Count, Mode=OneWay}"/>
+                                    <Run Text=" of "/>
+                                    <Run Text="{Binding FilteredItemCount, Mode=OneWay}"/>
+                                    <Run Text=" items"/>
+                                </TextBlock>
+                            </StackPanel>
                             
-                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <!-- Page size selector -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock Text="Per page:" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding PageSizeOptions}" 
+                                          SelectedItem="{Binding SelectedPageSize}"
+                                          Style="{StaticResource ModernComboBox}"
+                                          Width="65" Height="28" FontSize="11"/>
+                            </StackPanel>
+                            
+                            <!-- Next/Last buttons -->
+                            <StackPanel Grid.Column="3" Orientation="Horizontal">
                                 <Button Content="▶" Command="{Binding NextPageCommand}" Style="{StaticResource CompactButton}" 
-                                        Padding="10,6" Margin="0,0,4,0"/>
+                                        Padding="10,6" Margin="0,0,4,0" ToolTip="Next page"/>
                                 <Button Content="⏭" Command="{Binding LastPageCommand}" Style="{StaticResource CompactButton}" 
-                                        Padding="8,6"/>
+                                        Padding="8,6" ToolTip="Last page"/>
                             </StackPanel>
                         </Grid>
                     </Border>

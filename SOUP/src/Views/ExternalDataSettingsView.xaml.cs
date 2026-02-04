@@ -13,6 +13,12 @@ namespace SOUP.Views;
 /// </summary>
 public partial class ExternalDataSettingsView : UserControl
 {
+    /// <summary>
+    /// DEVELOPMENT ONLY: Set to true to bypass admin credential check.
+    /// TODO: Remove before release or make configurable via appsettings.
+    /// </summary>
+    private const bool DEV_BYPASS_ADMIN_CHECK = true;
+
     public ExternalDataSettingsView()
     {
         InitializeComponent();
@@ -59,6 +65,14 @@ public partial class ExternalDataSettingsView : UserControl
 
     private void CheckInitialAdminState()
     {
+        // Dev bypass - skip admin check entirely
+        if (DEV_BYPASS_ADMIN_CHECK)
+        {
+            Serilog.Log.Warning("DEV_BYPASS_ADMIN_CHECK is enabled - skipping admin verification");
+            Unlock();
+            return;
+        }
+
         try
         {
             using var identity = WindowsIdentity.GetCurrent();

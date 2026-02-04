@@ -151,6 +151,15 @@ public static class TextFormattingHelper
     }
 
     /// <summary>
+    /// Updates the NoteContent property directly from a RichTextBox.
+    /// </summary>
+    public static void UpdateNoteContentFromRichTextBox(RichTextBox rtb, OrderItem order)
+    {
+        if (rtb == null || order == null) return;
+        order.NoteContent = GetDocumentXaml(rtb);
+    }
+
+    /// <summary>
     /// Handles auto-continuation of list items (bullets, checkboxes, numbered lists) when Enter is pressed.
     /// </summary>
     public static void HandleListAutoContinuation(RichTextBox rtb, KeyEventArgs e)

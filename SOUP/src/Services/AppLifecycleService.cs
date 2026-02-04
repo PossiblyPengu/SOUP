@@ -41,6 +41,31 @@ public sealed class AppLifecycleService
         arg.Equals("--no-widget", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
+    /// Gets the module to launch directly, if specified via --module flag.
+    /// Returns null if no module specified (normal launcher mode).
+    /// </summary>
+    public static string? RequestedModule
+    {
+        get
+        {
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i].Equals("--module", StringComparison.OrdinalIgnoreCase))
+                {
+                    return args[i + 1];
+                }
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Checks if a specific module was requested via command line.
+    /// </summary>
+    public static bool HasModuleRequest => !string.IsNullOrEmpty(RequestedModule);
+
+    /// <summary>
     /// Gets whether the widget process is currently running.
     /// </summary>
     public bool IsWidgetRunning => _widgetProcessService?.IsWidgetOpen == true;
@@ -224,7 +249,15 @@ public sealed class AppLifecycleService
         }
 
         var currentPid = Environment.ProcessId;
-        var soupProcesses = Process.GetProcessesByName("SOUP")
+        
+        // When running via 'dotnet run', process name is 'dotnet', not 'SOUP'
+        var currentProcessName = Process.GetCurrentProcess().ProcessName;
+        var processNamesToSearch = currentProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase)
+            ? new[] { "dotnet", "SOUP" }
+            : new[] { "SOUP" };
+
+        var soupProcesses = processNamesToSearch
+            .SelectMany(name => Process.GetProcessesByName(name))
             .Where(p => p.Id != currentPid)
             .ToList();
 
@@ -268,13 +301,48 @@ public sealed class AppLifecycleService
         {
             try
             {
-                Process.Start(new ProcessStartInfo
+                // When running via 'dotnet run', we need to use a different launch approach
+                var isDotnetRun = currentProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase);
+                
+                if (isDotnetRun)
                 {
-                    FileName = exePath,
-                    Arguments = "--no-widget", // Prevent duplicate widget launch
-                    UseShellExecute = false
-                });
-                _logger?.LogInformation("Launched new main app instance");
+                    // For dotnet run scenarios, try to find the project file and run it
+                    // This is mainly for development; in production the exe is used directly
+                    var workingDir = AppContext.BaseDirectory;
+                    var projectFile = System.IO.Path.Combine(workingDir, "..", "..", "..", "SOUP.csproj");
+                    if (System.IO.File.Exists(projectFile))
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "dotnet",
+                            Arguments = $"run --project \"{projectFile}\" -- --no-widget",
+                            UseShellExecute = false,
+                            WorkingDirectory = System.IO.Path.GetDirectoryName(projectFile)
+                        });
+                        _logger?.LogInformation("Launched new main app instance via dotnet run");
+                    }
+                    else
+                    {
+                        // Fallback: try to launch with the current exe anyway
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = exePath,
+                            Arguments = "--no-widget",
+                            UseShellExecute = false
+                        });
+                        _logger?.LogInformation("Launched new main app instance (fallback)");
+                    }
+                }
+                else
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        Arguments = "--no-widget", // Prevent duplicate widget launch
+                        UseShellExecute = false
+                    });
+                    _logger?.LogInformation("Launched new main app instance");
+                }
             }
             catch (Exception ex)
             {

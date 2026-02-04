@@ -1,9 +1,9 @@
 # ============================================================================
-# SOUP Run OrderLog Widget (Standalone)
+# SOUP Run AllocationBuddy Module
 # ============================================================================
 # Usage:
-#   .\scripts\run-widget.ps1              # Build and run widget
-#   .\scripts\run-widget.ps1 -NoBuild     # Run without building
+#   .\scripts\run-allocation.ps1              # Build and run AllocationBuddy
+#   .\scripts\run-allocation.ps1 -NoBuild     # Run without building
 # ============================================================================
 
 param(
@@ -39,9 +39,9 @@ $configuration = "Debug"
 $dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  SOUP - OrderLog Widget (Standalone)" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Blue
+Write-Host "  SOUP - AllocationBuddy Module" -ForegroundColor Blue
+Write-Host "========================================" -ForegroundColor Blue
 Write-Host ""
 
 if ($NoBuild) {
@@ -53,9 +53,9 @@ if ($NoBuild) {
         exit 1
     }
     
-    Write-Host "Running Widget (no build)..." -ForegroundColor Yellow
-    & $exePath --widget
+    Write-Host "Running AllocationBuddy (no build)..." -ForegroundColor Yellow
+    & $exePath --module allocation --no-widget
 } else {
-    Write-Host "Building and running Widget..." -ForegroundColor Yellow
-    & $dotnetPath run --project $projectFile --configuration $configuration -- --widget
+    Write-Host "Building and running AllocationBuddy..." -ForegroundColor Yellow
+    & $dotnetPath run --project $projectFile --configuration $configuration -- --module allocation --no-widget
 }

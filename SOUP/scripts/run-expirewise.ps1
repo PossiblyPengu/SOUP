@@ -1,9 +1,9 @@
 # ============================================================================
-# SOUP Run OrderLog Widget (Standalone)
+# SOUP Run ExpireWise Module
 # ============================================================================
 # Usage:
-#   .\scripts\run-widget.ps1              # Build and run widget
-#   .\scripts\run-widget.ps1 -NoBuild     # Run without building
+#   .\scripts\run-expirewise.ps1              # Build and run ExpireWise
+#   .\scripts\run-expirewise.ps1 -NoBuild     # Run without building
 # ============================================================================
 
 param(
@@ -39,9 +39,9 @@ $configuration = "Debug"
 $dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  SOUP - OrderLog Widget (Standalone)" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Yellow
+Write-Host "  SOUP - ExpireWise Module" -ForegroundColor Yellow
+Write-Host "========================================" -ForegroundColor Yellow
 Write-Host ""
 
 if ($NoBuild) {
@@ -53,9 +53,9 @@ if ($NoBuild) {
         exit 1
     }
     
-    Write-Host "Running Widget (no build)..." -ForegroundColor Yellow
-    & $exePath --widget
+    Write-Host "Running ExpireWise (no build)..." -ForegroundColor Yellow
+    & $exePath --module expirewise --no-widget
 } else {
-    Write-Host "Building and running Widget..." -ForegroundColor Yellow
-    & $dotnetPath run --project $projectFile --configuration $configuration -- --widget
+    Write-Host "Building and running ExpireWise..." -ForegroundColor Yellow
+    & $dotnetPath run --project $projectFile --configuration $configuration -- --module expirewise --no-widget
 }

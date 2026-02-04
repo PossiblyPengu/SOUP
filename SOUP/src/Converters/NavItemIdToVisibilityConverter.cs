@@ -7,16 +7,27 @@ using SOUP.Models;
 namespace SOUP.Converters;
 
 /// <summary>
-/// Converts a NavItem to Visibility based on whether its Id matches the parameter.
+/// Converts a NavItem or string to Visibility based on whether its Id/value matches the parameter.
 /// </summary>
 public class NavItemIdToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is NavItem navItem && parameter is string expectedId)
+        if (parameter is not string expectedId)
+            return Visibility.Collapsed;
+
+        // Handle NavItem
+        if (value is NavItem navItem)
         {
             return navItem.Id == expectedId ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        // Handle string (e.g., CurrentModuleName)
+        if (value is string stringValue)
+        {
+            return stringValue == expectedId ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         return Visibility.Collapsed;
     }
 

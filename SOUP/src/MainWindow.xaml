@@ -644,17 +644,6 @@
                     
                     <!-- Widget (OrderLog) + Theme Toggle -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Command="{Binding LauncherViewModel.OpenOrderLogWidgetCommand}"
-                                Visibility="{Binding SelectedNavItem, Converter={StaticResource NavItemIdToVisibility}, ConverterParameter=OrderLog}"
-                                Style="{DynamicResource SecondaryButtonStyle}"
-                                ToolTip="Open docked widget (Ctrl+Alt+W)"
-                                Margin="0,0,8,0" Padding="10,6">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="▫" FontSize="14" Margin="0,0,6,0"/>
-                                <TextBlock Text="Widget" FontSize="13"/>
-                            </StackPanel>
-                        </Button>
-
                         <!-- Theme Toggle Button -->
                         <Button Command="{Binding ToggleThemeCommand}"
                                 Cursor="Hand" Background="Transparent" BorderThickness="0"

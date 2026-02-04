@@ -721,11 +721,57 @@
 
                     <!-- Dictionary Panel -->
                     <Border x:Name="PanelDictionary" Visibility="Collapsed">
-                        <local:DictionaryManagementView DataContext="{Binding DictionaryManagement}"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Data Backup Section -->
+                            <Border Grid.Row="0" Style="{StaticResource SettingsCard}" Margin="0,0,0,16"
+                                    DataContext="{Binding ApplicationSettings}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                        <TextBlock Text="💾" FontSize="16" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Data Backup" Style="{StaticResource SectionTitle}"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Export and import your entire database including items, stores, expiration records, and order history."
+                                               Style="{StaticResource HelperText}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,12"/>
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="📤 Export Backup"
+                                                Command="{Binding ExportDatabaseCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="16,10"
+                                                Margin="0,0,12,0"/>
+                                        <Button Content="📥 Import Backup"
+                                                Command="{Binding ImportDatabaseCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="16,10"
+                                                Margin="0,0,12,0"/>
+                                        <Button Content="📁 Open Data Folder"
+                                                Command="{Binding OpenDataFolderCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="16,10"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Backups are saved as ZIP archives containing all SQLite databases."
+                                               Style="{StaticResource HelperText}"
+                                               Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <local:DictionaryManagementView Grid.Row="1" DataContext="{Binding DictionaryManagement}"/>
+                        </Grid>
                     </Border>
                     
                     <!-- OrderLog Panel -->
-                        <Border x:Name="PanelOrderLog" Grid.Row="1" Visibility="Collapsed" Margin="12" />
+                        <Border x:Name="PanelOrderLog" Visibility="Collapsed">
+                            <!-- Content loaded lazily in code-behind via OrderLogSettingsView -->
+                        </Border>
 
                     <!-- About Panel (embedded) -->
                         <Border x:Name="PanelAbout" Grid.Row="1" Visibility="Collapsed" Margin="12" />
