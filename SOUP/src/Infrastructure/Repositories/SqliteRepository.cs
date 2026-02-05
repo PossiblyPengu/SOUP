@@ -228,6 +228,10 @@ public class SqliteRepository<T> : IRepository<T> where T : BaseEntity
             cmd.ExecuteNonQuery();
             return Task.FromResult(entity);
         }
+        catch (ArgumentNullException)
+        {
+            throw; // Re-throw null argument exceptions without logging entity.Id
+        }
         catch (Exception ex)
         {
             Logger?.LogError(ex, "Error updating entity: {Id}", entity.Id);

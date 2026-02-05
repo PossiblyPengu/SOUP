@@ -1528,6 +1528,56 @@
             Delete all stores
             </summary>
         </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.GetAllVendors">
+            <summary>
+            Get all vendors, ordered by use count (most used first)
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.GetVendor(System.String)">
+            <summary>
+            Get a vendor by name (case-insensitive lookup)
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.FindVendors(System.Func{SOUP.Data.Entities.VendorEntity,System.Boolean},System.Nullable{System.Int32})">
+            <summary>
+            Find vendors matching a predicate
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.SearchVendors(System.String,System.Int32)">
+            <summary>
+            Search vendors by partial name match (for autocomplete)
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.GetVendorCount">
+            <summary>
+            Get vendor count
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.UpsertVendor(SOUP.Data.Entities.VendorEntity)">
+            <summary>
+            Insert or update a vendor
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.UpsertVendors(System.Collections.Generic.IEnumerable{SOUP.Data.Entities.VendorEntity})">
+            <summary>
+            Insert or update multiple vendors
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.IncrementVendorUseCount(System.String)">
+            <summary>
+            Increment the use count for a vendor (call when vendor is used in an order)
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.DeleteVendor(System.String)">
+            <summary>
+            Delete a vendor
+            </summary>
+        </member>
+        <member name="M:SOUP.Data.DictionaryDbContext.DeleteAllVendors">
+            <summary>
+            Delete all vendors
+            </summary>
+        </member>
         <member name="P:SOUP.Data.DictionaryDbContext.HasItems">
             <summary>
             Check if the database has been initialized with data
@@ -1536,6 +1586,11 @@
         <member name="P:SOUP.Data.DictionaryDbContext.HasStores">
             <summary>
             Check if stores have been initialized
+            </summary>
+        </member>
+        <member name="P:SOUP.Data.DictionaryDbContext.HasVendors">
+            <summary>
+            Check if vendors have been initialized
             </summary>
         </member>
         <member name="P:SOUP.Data.DictionaryDbContext.IsDisposed">
@@ -1576,6 +1631,37 @@
         <member name="P:SOUP.Data.Entities.StoreEntity.Code">
             <summary>
             Primary key - store code
+            </summary>
+        </member>
+        <member name="T:SOUP.Data.Entities.VendorEntity">
+            <summary>
+            Entity for vendor entries used in OrderLog cards.
+            Stores vendor names for autocomplete and standardization.
+            </summary>
+        </member>
+        <member name="P:SOUP.Data.Entities.VendorEntity.Name">
+            <summary>
+            Primary key - vendor name (normalized to uppercase for matching)
+            </summary>
+        </member>
+        <member name="P:SOUP.Data.Entities.VendorEntity.DisplayName">
+            <summary>
+            Display name (original casing as entered by user)
+            </summary>
+        </member>
+        <member name="P:SOUP.Data.Entities.VendorEntity.Code">
+            <summary>
+            Optional vendor code/abbreviation
+            </summary>
+        </member>
+        <member name="P:SOUP.Data.Entities.VendorEntity.UseCount">
+            <summary>
+            Number of times this vendor has been used (for sorting by popularity)
+            </summary>
+        </member>
+        <member name="P:SOUP.Data.Entities.VendorEntity.ColorHex">
+            <summary>
+            Optional color hex code associated with this vendor (for auto-coloring)
             </summary>
         </member>
         <member name="T:SOUP.Data.InternalItemDictionary">
@@ -1966,143 +2052,72 @@
             InitializeComponent
             </summary>
         </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.CardGridPlacement">
-             <summary>
-             Helper that maps card visuals into a simple 2-column grid and computes
-             an insertion index based on mouse position. Supports single- and
-             double-wide cards (double-wide occupy both columns in a row).
-            
-             This is intentionally conservative: it inspects ActualWidth/Height
-             of card Borders and the panel width to determine spans.
-             </summary>
-        </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator">
+        <member name="T:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior">
             <summary>
-            Manages card shift animations for fluid drag and drop.
-            Calculates insertion points and animates cards to make space for dragged items.
+            iOS-style sliding reorder behavior for OrderLog cards.
+            <para>
+            Features:
+            - Center-based swap detection (more intuitive)
+            - Temporal swap cooldown (prevents oscillation)
+            - Staggered cascade animations (polished feel)
+            - Spring physics with overshoot (iOS-authentic)
+            - Ctrl+Drag to link items instead of reorder
+            </para>
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.CalculateInsertionIndex(System.Windows.Point,System.Windows.FrameworkElement,System.Double@)">
+        <member name="P:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.AnimationDuration">
+            <summary>Animation duration in milliseconds (default: 180ms)</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.RequireDragHandle">
+            <summary>When true, drag can only be initiated from elements with Tag="DragHandle".</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.EnableReordering">
+            <summary>When false, reordering is disabled and only link-mode (Ctrl+Drag) is allowed.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.LockHorizontalPosition">
+            <summary>When true (default), cards only move vertically during drag.</summary>
+        </member>
+        <member name="E:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.ReorderComplete">
+            <summary>Event raised when a reorder operation completes.</summary>
+        </member>
+        <member name="E:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.LinkComplete">
+            <summary>Event raised when a link operation completes.</summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.PerformSlidingReorder">
             <summary>
-            Calculates the insertion index based on mouse position relative to the panel.
+            Core sliding reorder algorithm with center-based swap detection,
+            temporal cooldown, and staggered animations.
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.AnimateCardShift(System.Int32,System.Int32,System.Windows.FrameworkElement,System.Nullable{System.Double})">
+        <member name="M:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.AnimateNeighborsForSwap(System.Collections.Generic.List{System.Windows.FrameworkElement},System.Int32,System.Int32,SOUP.Features.OrderLog.Models.OrderItem)">
             <summary>
-            Animates cards to shift and make space for the dragged item.
+            Animates neighbor cards with staggered delays for a cascading effect.
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.AnimateSwap(System.Windows.FrameworkElement,System.Double)">
+        <member name="M:SOUP.Features.OrderLog.Behaviors.SlidingReorderBehavior.AnimateCardSlide(System.Windows.FrameworkElement,System.Double,System.TimeSpan)">
             <summary>
-            Animates a single card to swap positions. Used for iOS-style slide-past reordering.
-            The card slides to an offset position while the dragged card passes by.
-            </summary>
-            <param name="element">The neighbor card to animate</param>
-            <param name="yOffset">The absolute Y offset to animate to (positive = move down, negative = move up)</param>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.ResetAllCardPositions">
-            <summary>
-            Resets all card positions to their original state (no offset).
+            Animates a single card with spring physics (overshoot effect).
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.ShowInsertionIndicator(System.Int32,System.Windows.FrameworkElement)">
+        <member name="T:SOUP.Features.OrderLog.Behaviors.VendorAutocompleteBehavior">
             <summary>
-            Shows the insertion indicator at the specified index.
+            Attached behavior that adds vendor autocomplete functionality to a TextBox.
+            Shows a popup with matching vendor suggestions as the user types.
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.HideInsertionIndicator">
+        <member name="P:SOUP.Features.OrderLog.Behaviors.VendorAutocompleteBehavior.IsEnabled">
             <summary>
-            Hides the insertion indicator.
+            Whether autocomplete is enabled
             </summary>
         </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.CardShiftAnimator.ClearTransforms">
+        <member name="P:SOUP.Features.OrderLog.Behaviors.VendorAutocompleteBehavior.MinimumSearchLength">
             <summary>
-            Clears all transforms and removes them from elements.
+            Minimum characters before showing suggestions
             </summary>
         </member>
-        <member name="T:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior">
-             <summary>
-             Fluid drag-and-drop behavior for OrderLog cards with smooth animations.
-             <para>
-             Features:
-             - iOS-like fluid card shifting during drag
-             - Ctrl+Drag to link items instead of reorder
-             - Multi-item drag support
-             - Hardware accelerated: GPU-rendered transforms, no layout invalidation
-             </para>
-             </summary>
-             <remarks>
-             Usage in XAML:
-             <![CDATA[
-             <StackPanel>
-                 <i:Interaction.Behaviors>
-                     <behaviors:OrderLogFluidDragBehavior AnimationDuration="300"/>
-                 </i:Interaction.Behaviors>
-             </StackPanel>
-             ]]>
-            
-             Wire up events in code-behind:
-             <![CDATA[
-             behavior.ReorderComplete += async (items, target) => {
-                 await viewModel.MoveOrdersAsync(items, target);
-             };
-             behavior.LinkComplete += async (items, target) => {
-                 await viewModel.LinkItemsAsync(items, target);
-             };
-             ]]>
-             </remarks>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.AnimationDuration">
+        <member name="P:SOUP.Features.OrderLog.Behaviors.VendorAutocompleteBehavior.MaxSuggestions">
             <summary>
-            Animation duration in milliseconds (default: 300ms)
-            </summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.RequireDragHandle">
-            <summary>
-            When true, drag can only be initiated from elements with Tag="DragHandle".
-            When false (default), drag can be initiated from anywhere on the card.
-            </summary>
-        </member>
-        <member name="P:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.EnableReordering">
-            <summary>
-            When false, reordering is disabled and only link-mode (Ctrl+Drag) is allowed.
-            </summary>
-        </member>
-        <member name="E:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.ReorderComplete">
-            <summary>
-            Event raised when a reorder operation completes.
-            </summary>
-        </member>
-        <member name="E:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.LinkComplete">
-            <summary>
-            Event raised when a link operation completes.
-            </summary>
-        </member>
-        <member name="F:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior._shiftedCards">
-            <summary>
-            Tracks which cards have been shifted during drag.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.PerformSwapBasedReorder(System.Windows.Point)">
-            <summary>
-            Swap-based reordering: move items in the collection as the user drags.
-            After moving, we re-acquire references to the new visual elements.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.GetTranslateTransform">
-            <summary>
-            Gets the TranslateTransform from the current drag transform group.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.IsClickOnEditableControl(System.Windows.DependencyObject)">
-            <summary>
-            Checks if the click originated from an editable control (TextBox, RichTextBox, etc.)
-            that should handle its own mouse events for text selection.
-            </summary>
-        </member>
-        <member name="M:SOUP.Features.OrderLog.Behaviors.OrderLogFluidDragBehavior.IsClickOnDragHandle(System.Windows.DependencyObject)">
-            <summary>
-            Checks if the click originated from a drag handle element (Tag="DragHandle").
+            Maximum number of suggestions to show
             </summary>
         </member>
         <member name="T:SOUP.Features.OrderLog.Constants.OrderLogColors">
@@ -2348,6 +2363,21 @@
             <summary>
             Called by a UI timer to raise PropertyChanged for computed properties.
             Only raises notifications if the displayed value actually changed.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.ResetInProgressTimer">
+            <summary>
+            Resets the "In Progress" timer, clearing accumulated time and current session.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.ResetOnDeckTimer">
+            <summary>
+            Resets the "On Deck" timer, clearing stored duration and restarting if currently OnDeck.
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Models.OrderItem.ResetAllTimers">
+            <summary>
+            Resets all timers (both In Progress and On Deck).
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.Models.OrderItem.SyncTimestampsFrom(SOUP.Features.OrderLog.Models.OrderItem)">
@@ -2862,6 +2892,50 @@
             Clears all history
             </summary>
         </member>
+        <member name="T:SOUP.Features.OrderLog.Services.VendorAutocompleteService">
+            <summary>
+            Provides vendor autocomplete functionality by searching the dictionary database.
+            Caches all vendors in memory for fast filtering.
+            </summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.Services.VendorAutocompleteService.Instance">
+            <summary>
+            Singleton instance for shared access
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorAutocompleteService.EnsureLoaded">
+            <summary>
+            Ensures vendors are loaded into memory cache
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorAutocompleteService.RefreshCache">
+            <summary>
+            Refreshes the vendor cache from database
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorAutocompleteService.GetAllVendorNames">
+            <summary>
+            Gets all vendor display names for dropdown population
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorAutocompleteService.Search(System.String,System.Int32)">
+            <summary>
+            Searches vendors by partial name match (for autocomplete filtering)
+            </summary>
+            <param name="searchTerm">Partial text to search</param>
+            <param name="limit">Maximum results to return</param>
+            <returns>List of matching vendor display names, ordered by usage frequency</returns>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorAutocompleteService.CalculateMatchScore(System.String,System.String)">
+            <summary>
+            Calculate a match score for ranking results
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.Services.VendorAutocompleteService.RecordVendorUsage(System.String)">
+            <summary>
+            Increments use count for a vendor (call when vendor is selected/used)
+            </summary>
+        </member>
         <member name="T:SOUP.Features.OrderLog.Services.VendorColorService">
             <summary>
             Service for managing automatic color assignment to vendors
@@ -2963,6 +3037,7 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AllItems">
             <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
@@ -2995,6 +3070,13 @@
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RedoHistory">
             <summary>
             Gets the redo history for display in UI
+            </summary>
+        </member>
+        <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RepairArchivedItemsAsync">
+            <summary>
+            Repairs data inconsistencies caused by the archiving bug where IsArchived wasn't being set.
+            Finds items that have Status=Done or have PreviousStatus set (indicating they were archived before)
+            but are in the active Items collection with IsArchived=false, and moves them to ArchivedItems.
             </summary>
         </member>
         <member name="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UndoAsync">
@@ -3400,6 +3482,12 @@
             <summary>Executes the logic for when <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusMessage"/> just changed.</summary>
             <param name="value">The new property value that was set.</param>
             <remarks>This method is invoked right after the value of <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.StatusMessage"/> is changed.</remarks>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.repairArchivedItemsCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RepairArchivedItemsCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RepairArchivedItemsCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.RepairArchivedItemsAsync"/>.</summary>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.archiveOrderCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.ArchiveOrderCommand"/>.</summary>
@@ -6856,6 +6944,7 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel._itemsView">
             <summary>
@@ -7203,6 +7292,11 @@
             <summary>
             Rebuilds the visible month pills centered around the current month
             Shows 6 months before and 6 months after current selection
+            </summary>
+        </member>
+        <member name="M:SOUP.ViewModels.ExpireWiseViewModel.Today">
+            <summary>
+            Navigates to the current month (today).
             </summary>
         </member>
         <member name="M:SOUP.ViewModels.ExpireWiseViewModel.CollapseAll">
@@ -7631,6 +7725,12 @@
         </member>
         <member name="P:SOUP.ViewModels.ExpireWiseViewModel.NextMonthCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.NextMonth"/>.</summary>
+        </member>
+        <member name="F:SOUP.ViewModels.ExpireWiseViewModel.todayCommand">
+            <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.TodayCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.ViewModels.ExpireWiseViewModel.TodayCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.ViewModels.ExpireWiseViewModel.Today"/>.</summary>
         </member>
         <member name="F:SOUP.ViewModels.ExpireWiseViewModel.goToMonthCommand">
             <summary>The backing field for <see cref="P:SOUP.ViewModels.ExpireWiseViewModel.GoToMonthCommand"/>.</summary>

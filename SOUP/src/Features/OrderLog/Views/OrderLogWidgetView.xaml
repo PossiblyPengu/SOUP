@@ -223,6 +223,28 @@
 
                 <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
                     <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" ClipToBounds="True">
+                        <Border.ContextMenu>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Set Status">
+                                    <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
+                                    <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
+                                    <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
+                                </MenuItem>
+                                <MenuItem Header="Reset Timer">
+                                    <MenuItem Header="Reset In Progress Timer" Click="ResetInProgressTimer_Click"/>
+                                    <MenuItem Header="Reset On Deck Timer" Click="ResetOnDeckTimer_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="Reset All Timers" Click="ResetAllTimers_Click"/>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}"/>
+                                <MenuItem Header="Link with..." Click="LinkWith_Click"/>
+                                <MenuItem Header="Unlink" Click="Unlink_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Archive" Click="QuickArchive_Click"/>
+                                <MenuItem Header="Delete" Click="DeleteNote_Click" Foreground="{DynamicResource DangerBrush}"/>
+                            </ContextMenu>
+                        </Border.ContextMenu>
                         <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -301,7 +323,11 @@
                                          VerticalAlignment="Center"
                                          TabIndex="0"
                                          GotFocus="EditableField_GotFocus"
-                                         LostFocus="EditableField_LostFocus"/>
+                                         LostFocus="EditableField_LostFocus">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:VendorAutocompleteBehavior/>
+                                    </i:Interaction.Behaviors>
+                                </TextBox>
                             </Grid>
 
                             <!-- Status ComboBox -->
@@ -941,7 +967,11 @@
                                                      FontWeight="SemiBold"
                                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                                      GotFocus="EditableField_GotFocus"
-                                                     LostFocus="EditableField_LostFocus"/>
+                                                     LostFocus="EditableField_LostFocus">
+                                                <i:Interaction.Behaviors>
+                                                    <behaviors:VendorAutocompleteBehavior/>
+                                                </i:Interaction.Behaviors>
+                                            </TextBox>
                                         </Grid>
 
                                         <!-- Editable Transfer Numbers -->
@@ -1590,7 +1620,11 @@
                                          BorderThickness="1"
                                          Padding="10,6"
                                          FontSize="13"
-                                         Margin="0,0,0,10"/>
+                                         Margin="0,0,0,10">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:VendorAutocompleteBehavior/>
+                                    </i:Interaction.Behaviors>
+                                </TextBox>
 
                                 <!-- Transfer Numbers -->
                                 <TextBlock Text="Transfer Numbers (Optional)"
@@ -1670,7 +1704,7 @@
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal">
                                         <i:Interaction.Behaviors>
-                                            <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" RequireDragHandle="True" EnableReordering="True" />
+                                            <behaviors:SlidingReorderBehavior AnimationDuration="180" RequireDragHandle="True" EnableReordering="True" />
                                         </i:Interaction.Behaviors>
                                     </WrapPanel>
                                 </ItemsPanelTemplate>
@@ -1728,7 +1762,7 @@
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Vertical" Background="Transparent">
                                         <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" EnableReordering="False" RequireDragHandle="True" />
+                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" EnableReordering="False" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                 </StackPanel>
                             </ItemsPanelTemplate>
@@ -1754,6 +1788,12 @@
                                             <MenuItem Header="Not Ready" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}"/>
                                             <MenuItem Header="On Deck" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.OnDeck}"/>
                                             <MenuItem Header="In Progress" Click="SetStatus_Click" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}"/>
+                                        </MenuItem>
+                                        <MenuItem Header="Reset Timer" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}">
+                                            <MenuItem Header="Reset In Progress Timer" Click="ResetInProgressTimer_Click"/>
+                                            <MenuItem Header="Reset On Deck Timer" Click="ResetOnDeckTimer_Click"/>
+                                            <Separator/>
+                                            <MenuItem Header="Reset All Timers" Click="ResetAllTimers_Click"/>
                                         </MenuItem>
                                         <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
@@ -1835,7 +1875,11 @@
                                                              Foreground="{DynamicResource TextPrimaryBrush}"
                                                              CaretBrush="#00D4FF"
                                                              SelectionBrush="{DynamicResource AccentBrush}"
-                                                             Padding="0"/>
+                                                             Padding="0">
+                                                        <i:Interaction.Behaviors>
+                                                            <behaviors:VendorAutocompleteBehavior/>
+                                                        </i:Interaction.Behaviors>
+                                                    </TextBox>
                                                 </Grid>
 
                                                 <Grid Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}">
@@ -2184,7 +2228,7 @@
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical">
                                             <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" EnableReordering="False" RequireDragHandle="True" />
+                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" EnableReordering="False" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                         </StackPanel>
                                     </ItemsPanelTemplate>
@@ -2274,7 +2318,7 @@
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical">
                                             <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" EnableReordering="False" RequireDragHandle="True" />
+                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" EnableReordering="False" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                         </StackPanel>
                                     </ItemsPanelTemplate>
@@ -2364,7 +2408,7 @@
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical">
                                             <i:Interaction.Behaviors>
-                                                <behaviors:OrderLogFluidDragBehavior AnimationDuration="200" RequireDragHandle="True" />
+                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" RequireDragHandle="True" />
                                             </i:Interaction.Behaviors>
                                         </StackPanel>
                                     </ItemsPanelTemplate>
@@ -3144,6 +3188,10 @@
                                           Command="{Binding ImportFromCsvCommand}"
                                           InputGestureText="Ctrl+Shift+I"
                                           ToolTip="Import items from CSV file"/>
+                                <Separator/>
+                                <MenuItem Header="🔧 Repair Archive Data"
+                                          Command="{Binding RepairArchivedItemsCommand}"
+                                          ToolTip="Move completed items that got stuck in the active list to the archive"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>

@@ -1,84 +1,146 @@
 using System;
 using System.IO;
-using System.Linq;
-using LiteDB;
+using System.Text.Json;
+using Microsoft.Data.Sqlite;
 
 var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-var dbDir = Path.Combine(appData, "SOUP", "OrderLog");
-var dbPath = Path.Combine(dbDir, "orders.db");
+var dbPath = Path.Combine(appData, "SOUP", "OrderLog", "orders.db");
 
 if (!File.Exists(dbPath))
 {
-    Console.WriteLine($"DB not found: {dbPath}");
+    Console.WriteLine($"Database not found: {dbPath}");
     return 1;
 }
 
-using var db = new LiteDatabase(dbPath);
-var col = db.GetCollection<BsonDocument>("orders");
-var all = col.FindAll().ToList();
-Console.WriteLine($"Total orders in DB: {all.Count}");
+Console.WriteLine($"Database: {dbPath}");
+Console.WriteLine(new string('-', 60));
 
-bool IsBlank(BsonDocument doc)
+var connectionString = new SqliteConnectionStringBuilder
 {
-    string Get(BsonValue? v) => v == null ? string.Empty : (v.IsString ? v.AsString : v.ToString());
-    var v = Get(doc["VendorName"]);
-    var t = Get(doc["TransferNumbers"]);
-    var w = Get(doc["WhsShipmentNumbers"]);
-    var n = Get(doc["NoteContent"]);
-    return string.IsNullOrWhiteSpace(v) && string.IsNullOrWhiteSpace(t) && string.IsNullOrWhiteSpace(w) && string.IsNullOrWhiteSpace(n);
+    DataSource = dbPath,
+    Mode = SqliteOpenMode.ReadOnly
+}.ToString();
+
+using var connection = new SqliteConnection(connectionString);
+connection.Open();
+
+// Count total items
+using (var cmd = connection.CreateCommand())
+{
+    cmd.CommandText = "SELECT COUNT(*) FROM Orders";
+    var count = Convert.ToInt32(cmd.ExecuteScalar());
+    Console.WriteLine($"Total items in database: {count}");
 }
 
-var blanks = all.Where(IsBlank).ToList();
-Console.WriteLine($"Blank (practically-empty) orders: {blanks.Count}");
-
-if (blanks.Count > 0)
+// Count by IsArchived status
+using (var cmd = connection.CreateCommand())
 {
-    Console.WriteLine("--- Blank items ---");
-    foreach (var b in blanks)
+    cmd.CommandText = "SELECT Data FROM Orders";
+    using var reader = cmd.ExecuteReader();
+    
+    int archivedCount = 0;
+    int activeCount = 0;
+    int doneCount = 0;
+    int hasPreviousStatus = 0;
+    
+    while (reader.Read())
     {
-        var id = b.ContainsKey("_id") ? b["_id"].ToString() : (b.ContainsKey("Id") ? b["Id"].ToString() : "<no-id>");
-        var created = b.ContainsKey("CreatedAt") ? b["CreatedAt"].ToString() : "";
-        Console.WriteLine($"Id: {id} CreatedAt: {created}");
-    }
-}
-
-var emptyVendor = all.Where(d => { var v = d.ContainsKey("VendorName") ? d["VendorName"] : null; return v == null || (v.IsString && string.IsNullOrWhiteSpace(v.AsString)); }).ToList();
-Console.WriteLine($"Records with empty VendorName: {emptyVendor.Count}");
-// If invoked with 'delete', remove the practically-empty records from the DB.
-if (args.Length > 0 && args[0].Equals("delete", StringComparison.OrdinalIgnoreCase))
-{
-    if (blanks.Count == 0)
-    {
-        Console.WriteLine("No blank records to delete.");
-        return 0;
-    }
-
-    Console.WriteLine("Deleting blank records...");
-    foreach (var b in blanks)
-    {
-        // Attempt to determine _id
-        var id = b.ContainsKey("_id") ? b["_id"] : (b.ContainsKey("Id") ? b["Id"] : null);
-        if (id != null)
+        var json = reader.GetString(0);
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        
+        bool isArchived = root.TryGetProperty("IsArchived", out var archivedProp) && archivedProp.GetBoolean();
+        
+        // Status can be int or string
+        int status = 0;
+        if (root.TryGetProperty("Status", out var statusProp))
         {
-            try
+            if (statusProp.ValueKind == JsonValueKind.Number)
+                status = statusProp.GetInt32();
+            else if (statusProp.ValueKind == JsonValueKind.String)
             {
-                // _collection.Delete accepts BsonValue for id
-                col.Delete(id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to delete id {id}: {ex.Message}");
+                var statusStr = statusProp.GetString() ?? "";
+                status = statusStr switch
+                {
+                    "Done" => 3,
+                    "InProgress" => 2,
+                    "OnDeck" => 1,
+                    _ => 0
+                };
             }
         }
+        
+        bool hasPrevStatus = root.TryGetProperty("PreviousStatus", out var prevProp) && prevProp.ValueKind != JsonValueKind.Null;
+        
+        if (isArchived) archivedCount++;
+        else activeCount++;
+        
+        if (status == 3) doneCount++; // Done = 3
+        if (hasPrevStatus) hasPreviousStatus++;
     }
-
-    Console.WriteLine("Delete operation complete.");
-    // Re-run quick counts
-    var allAfter = col.FindAll().ToList();
-    Console.WriteLine($"Total orders after delete: {allAfter.Count}");
-    var blanksAfter = allAfter.Where(IsBlank).ToList();
-    Console.WriteLine($"Blank orders remaining: {blanksAfter.Count}");
-    return 0;
+    
+    Console.WriteLine($"Items with IsArchived=true: {archivedCount}");
+    Console.WriteLine($"Items with IsArchived=false: {activeCount}");
+    Console.WriteLine($"Items with Status=Done: {doneCount}");
+    Console.WriteLine($"Items with PreviousStatus set: {hasPreviousStatus}");
 }
 
+Console.WriteLine(new string('-', 60));
+
+// Check for inconsistent items (should be archived but aren't)
+Console.WriteLine("\nChecking for inconsistent items...");
+using (var cmd = connection.CreateCommand())
+{
+    cmd.CommandText = "SELECT Data FROM Orders";
+    using var reader = cmd.ExecuteReader();
+    
+    int inconsistentCount = 0;
+    
+    while (reader.Read())
+    {
+        var json = reader.GetString(0);
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        
+        bool isArchived = root.TryGetProperty("IsArchived", out var archivedProp) && archivedProp.GetBoolean();
+        
+        // Status can be int or string
+        int status = 0;
+        if (root.TryGetProperty("Status", out var statusProp))
+        {
+            if (statusProp.ValueKind == JsonValueKind.Number)
+                status = statusProp.GetInt32();
+            else if (statusProp.ValueKind == JsonValueKind.String)
+            {
+                var statusStr = statusProp.GetString() ?? "";
+                status = statusStr switch
+                {
+                    "Done" => 3,
+                    "InProgress" => 2,
+                    "OnDeck" => 1,
+                    _ => 0
+                };
+            }
+        }
+        
+        bool hasPrevStatus = root.TryGetProperty("PreviousStatus", out var prevProp) && prevProp.ValueKind != JsonValueKind.Null;
+        
+        // Items that should be archived but aren't
+        if (!isArchived && (status == 3 || hasPrevStatus))
+        {
+            inconsistentCount++;
+            var vendor = root.TryGetProperty("VendorName", out var v) ? v.GetString() : "(no vendor)";
+            var id = root.TryGetProperty("Id", out var idProp) ? idProp.GetString() : "(no id)";
+            Console.WriteLine($"  Inconsistent: {vendor} (Status={status}, HasPrevStatus={hasPrevStatus})");
+        }
+    }
+    
+    if (inconsistentCount == 0)
+        Console.WriteLine("No inconsistent items found.");
+    else
+        Console.WriteLine($"\nTotal inconsistent items: {inconsistentCount}");
+}
+
+Console.WriteLine(new string('-', 60));
+Console.WriteLine("Done.");
 return 0;

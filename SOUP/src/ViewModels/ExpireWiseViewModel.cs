@@ -870,6 +870,17 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         CurrentMonth = _navigationService.CurrentMonth;
     }
 
+    /// <summary>
+    /// Navigates to the current month (today).
+    /// </summary>
+    [RelayCommand]
+    private void Today()
+    {
+        var now = DateTime.Now;
+        _navigationService.NavigateToMonth(now.Year, now.Month);
+        CurrentMonth = _navigationService.CurrentMonth;
+    }
+
     [RelayCommand]
     private void GoToMonth(MonthGroup? monthGroup)
     {

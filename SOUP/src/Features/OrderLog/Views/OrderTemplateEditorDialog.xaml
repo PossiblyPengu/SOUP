@@ -1,6 +1,8 @@
 <Window x:Class="SOUP.Features.OrderLog.Views.OrderTemplateEditorDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors"
         xmlns:models="clr-namespace:SOUP.Features.OrderLog.Models"
         Title="Template Editor"
         Height="550"
@@ -80,7 +82,11 @@
                              Background="{DynamicResource SurfaceBrush}"
                              BorderBrush="{DynamicResource BorderBrush}"
                              BorderThickness="1"
-                             Margin="0,0,0,16"/>
+                             Margin="0,0,0,16">
+                        <i:Interaction.Behaviors>
+                            <behaviors:VendorAutocompleteBehavior/>
+                        </i:Interaction.Behaviors>
+                    </TextBox>
 
                     <!-- Transfer Numbers -->
                     <TextBlock Text="Transfer Numbers"

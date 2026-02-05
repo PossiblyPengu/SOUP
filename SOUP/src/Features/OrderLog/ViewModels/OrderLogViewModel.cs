@@ -611,6 +611,47 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Repairs data inconsistencies caused by the archiving bug where IsArchived wasn't being set.
+    /// Finds items that have Status=Done or have PreviousStatus set (indicating they were archived before)
+    /// but are in the active Items collection with IsArchived=false, and moves them to ArchivedItems.
+    /// </summary>
+    [RelayCommand]
+    public async Task RepairArchivedItemsAsync()
+    {
+        // Check for items that should be archived:
+        // 1. Status is Done (completed)
+        // 2. PreviousStatus is set (meaning they were archived at some point)
+        var itemsToRepair = Items.Where(i => 
+            i.Status == OrderItem.OrderStatus.Done || 
+            i.PreviousStatus != null).ToList();
+        
+        // Log diagnostic info
+        var totalActive = Items.Count;
+        var totalArchived = ArchivedItems.Count;
+        _logger?.LogInformation(
+            "Repair diagnostic: Active={Active}, Archived={Archived}, ToRepair={ToRepair}", 
+            totalActive, totalArchived, itemsToRepair.Count);
+
+        if (itemsToRepair.Count == 0)
+        {
+            StatusMessage = $"No items to repair (Active: {totalActive}, Archived: {totalArchived})";
+            return;
+        }
+
+        foreach (var item in itemsToRepair)
+        {
+            RemoveFromItems(item);
+            AddToArchived(item);
+        }
+
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+        StatusMessage = $"Repaired {itemsToRepair.Count} items - moved to archive (Active: {Items.Count}, Archived: {ArchivedItems.Count})";
+        _logger?.LogInformation("Repaired {Count} items with IsArchived inconsistency", itemsToRepair.Count);
+    }
+
     [RelayCommand]
     public async Task ArchiveOrderAsync(OrderItem? item)
     {

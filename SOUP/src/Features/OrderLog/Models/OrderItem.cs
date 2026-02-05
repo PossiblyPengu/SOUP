@@ -279,6 +279,49 @@ public partial class OrderItem : ObservableObject
         OnPropertyChanged(nameof(TimeOnDeckDisplay));
     }
 
+    /// <summary>
+    /// Resets the "In Progress" timer, clearing accumulated time and current session.
+    /// </summary>
+    public void ResetInProgressTimer()
+    {
+        AccumulatedTimeTicks = 0;
+        if (Status == OrderStatus.InProgress)
+        {
+            StartedAt = DateTime.Now; // Restart current session
+        }
+        else
+        {
+            StartedAt = null;
+        }
+        RefreshTimeInProgress();
+    }
+
+    /// <summary>
+    /// Resets the "On Deck" timer, clearing stored duration and restarting if currently OnDeck.
+    /// </summary>
+    public void ResetOnDeckTimer()
+    {
+        OnDeckDurationTicks = 0;
+        if (Status == OrderStatus.OnDeck)
+        {
+            OnDeckAt = DateTime.Now; // Restart current session
+        }
+        else
+        {
+            OnDeckAt = null;
+        }
+        RefreshTimeOnDeck();
+    }
+
+    /// <summary>
+    /// Resets all timers (both In Progress and On Deck).
+    /// </summary>
+    public void ResetAllTimers()
+    {
+        ResetInProgressTimer();
+        ResetOnDeckTimer();
+    }
+
     partial void OnStatusChanged(OrderStatus value)
     {
         UpdateStatusColor(value);

@@ -114,14 +114,14 @@ public class KeyboardShortcutManager
                     }
                     break;
 
-                // Ctrl+T: Go to today's month (TODO: Implement TodayCommand)
-                // case Key.T when ctrl:
-                //     if (viewModel.TodayCommand.CanExecute(null))
-                //     {
-                //         viewModel.TodayCommand.Execute(null);
-                //         e.Handled = true;
-                //     }
-                //     break;
+                // Ctrl+T: Go to today's month
+                case Key.T when ctrl:
+                    if (viewModel.TodayCommand.CanExecute(null))
+                    {
+                        viewModel.TodayCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                    break;
 
                 // Ctrl+R: Refresh/reload items
                 case Key.R when ctrl:

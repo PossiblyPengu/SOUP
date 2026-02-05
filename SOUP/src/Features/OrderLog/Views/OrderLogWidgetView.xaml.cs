@@ -35,7 +35,7 @@ public partial class OrderLogWidgetView : UserControl
     private Storyboard? _marqueeStoryboard;
     private bool _isMarqueeRunning = false;
     private Random _random = new();
-    private Behaviors.OrderLogFluidDragBehavior? _fluidDragBehavior;
+    private Behaviors.SlidingReorderBehavior? _fluidDragBehavior;
     private KeyboardShortcutManager? _keyboardShortcutManager;
 
     public OrderLogWidgetView()
@@ -585,7 +585,7 @@ public partial class OrderLogWidgetView : UserControl
 
                 // Find attached fluid drag behavior
                 var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
-                _fluidDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+                _fluidDragBehavior = behaviors.OfType<Behaviors.SlidingReorderBehavior>().FirstOrDefault();
 
                 if (_fluidDragBehavior != null)
                 {
@@ -607,7 +607,7 @@ public partial class OrderLogWidgetView : UserControl
                     if (panel == null) return;
 
                     var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
-                    var notesDragBehavior = behaviors.OfType<Behaviors.OrderLogFluidDragBehavior>().FirstOrDefault();
+                    var notesDragBehavior = behaviors.OfType<Behaviors.SlidingReorderBehavior>().FirstOrDefault();
 
                     if (notesDragBehavior != null)
                     {
@@ -1759,6 +1759,36 @@ public partial class OrderLogWidgetView : UserControl
                     _ = vm.SetStatusAsync(order, status);
                 }
             }
+        }
+    }
+
+    private void ResetInProgressTimer_Click(object sender, RoutedEventArgs e)
+    {
+        var order = GetOrderItemFromContextMenu(sender);
+        if (order != null && DataContext is OrderLogViewModel vm)
+        {
+            order.ResetInProgressTimer();
+            _ = vm.SaveAsync();
+        }
+    }
+
+    private void ResetOnDeckTimer_Click(object sender, RoutedEventArgs e)
+    {
+        var order = GetOrderItemFromContextMenu(sender);
+        if (order != null && DataContext is OrderLogViewModel vm)
+        {
+            order.ResetOnDeckTimer();
+            _ = vm.SaveAsync();
+        }
+    }
+
+    private void ResetAllTimers_Click(object sender, RoutedEventArgs e)
+    {
+        var order = GetOrderItemFromContextMenu(sender);
+        if (order != null && DataContext is OrderLogViewModel vm)
+        {
+            order.ResetAllTimers();
+            _ = vm.SaveAsync();
         }
     }
 
