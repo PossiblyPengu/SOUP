@@ -2301,7 +2301,7 @@
                         </Expander>
 
                         <!-- Not Ready Section -->
-                        <Expander x:Name="NotReadyExpander" IsExpanded="{Binding NotReadyGroupExpanded, Mode=TwoWay}" Margin="0,0,0,8">
+                        <Expander x:Name="NotReadyExpander" IsExpanded="{Binding NotReadyGroupExpanded, Mode=TwoWay}" Margin="0,0,0,48">
                             <Expander.Style>
                                 <Style TargetType="Expander">
                                     <Setter Property="Background" Value="Transparent"/>
@@ -2628,9 +2628,9 @@
             
             <!-- Floating Quick Jump Navigation -->
             <Border x:Name="QuickJumpPanel"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Bottom"
                     HorizontalAlignment="Right"
-                    Margin="0,0,8,0"
+                    Margin="0,0,8,24"
                     Panel.ZIndex="100"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"

@@ -385,7 +385,7 @@ public class ColorChangeAction : UndoableAction
 {
     private readonly List<OrderItem> _items;
     private readonly string _newColor;
-    private readonly Dictionary<OrderItem, string?> _previousColors;
+    private readonly Dictionary<OrderItem, string> _previousColors;
 
     public override string Description =>
         _items.Count == 1
@@ -396,7 +396,7 @@ public class ColorChangeAction : UndoableAction
     {
         _items = items.ToList();
         _newColor = newColor;
-        _previousColors = _items.ToDictionary(item => item, item => item.ColorHex ?? string.Empty);
+        _previousColors = _items.ToDictionary(item => item, item => item.ColorHex);
     }
 
     public override void Execute()
@@ -413,7 +413,7 @@ public class ColorChangeAction : UndoableAction
         {
             if (_previousColors.TryGetValue(item, out var previousColor))
             {
-                item.ColorHex = string.IsNullOrEmpty(previousColor) ? null : previousColor;
+                item.ColorHex = previousColor;
             }
         }
     }

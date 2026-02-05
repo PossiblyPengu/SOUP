@@ -613,30 +613,64 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public async Task ArchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
-        if (_itemIds.Contains(item.Id))
+        if (!_itemIds.Contains(item.Id)) return;
+
+        // Get all linked items to archive together
+        List<OrderItem> itemsToArchive;
+        if (item.LinkedGroupId != null)
         {
-            RemoveFromItems(item);
-            AddToArchived(item);
-            RefreshDisplayItems();
-            RefreshArchivedDisplayItems();
-            await SaveAsync();
-            StatusMessage = "Archived item";
+            var gid = item.LinkedGroupId.Value;
+            itemsToArchive = Items.Where(i => i.LinkedGroupId == gid).ToList();
         }
+        else
+        {
+            itemsToArchive = new List<OrderItem> { item };
+        }
+
+        foreach (var it in itemsToArchive)
+        {
+            RemoveFromItems(it);
+            AddToArchived(it);
+        }
+
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+        StatusMessage = itemsToArchive.Count == 1 
+            ? "Archived item" 
+            : $"Archived {itemsToArchive.Count} linked items";
     }
 
     [RelayCommand]
     public async Task UnarchiveOrderAsync(OrderItem? item)
     {
         if (item == null) return;
-        if (_archivedItemIds.Contains(item.Id))
+        if (!_archivedItemIds.Contains(item.Id)) return;
+
+        // Get all linked items to unarchive together
+        List<OrderItem> itemsToUnarchive;
+        if (item.LinkedGroupId != null)
         {
-            RemoveFromArchived(item);
-            AddToItems(item, insertAtTop: true);
-            RefreshDisplayItems();
-            RefreshArchivedDisplayItems();
-            await SaveAsync();
-            StatusMessage = "Unarchived item";
+            var gid = item.LinkedGroupId.Value;
+            itemsToUnarchive = ArchivedItems.Where(i => i.LinkedGroupId == gid).ToList();
         }
+        else
+        {
+            itemsToUnarchive = new List<OrderItem> { item };
+        }
+
+        foreach (var it in itemsToUnarchive)
+        {
+            RemoveFromArchived(it);
+            AddToItems(it, insertAtTop: true);
+        }
+
+        RefreshDisplayItems();
+        RefreshArchivedDisplayItems();
+        await SaveAsync();
+        StatusMessage = itemsToUnarchive.Count == 1 
+            ? "Unarchived item" 
+            : $"Unarchived {itemsToUnarchive.Count} linked items";
     }
 
     public void CycleSortMode()
@@ -2139,6 +2173,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             if (_archivedItemIds.Contains(item.Id)) return;
 
+            item.IsArchived = true;
             ArchivedItems.Add(item);
             _archivedItemIds.Add(item.Id);
         }
@@ -2153,6 +2188,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         {
             if (!_archivedItemIds.Contains(item.Id)) return;
 
+            item.IsArchived = false;
             ArchivedItems.Remove(item);
             _archivedItemIds.Remove(item.Id);
         }

@@ -27,9 +27,9 @@ public class OrderTemplate
         {
             Id = Guid.NewGuid(),
             NoteType = NoteType.Order,
-            VendorName = VendorName,
-            TransferNumbers = TransferNumbers,
-            WhsShipmentNumbers = WhsShipmentNumbers,
+            VendorName = VendorName ?? string.Empty,
+            TransferNumbers = TransferNumbers ?? string.Empty,
+            WhsShipmentNumbers = WhsShipmentNumbers ?? string.Empty,
             ColorHex = ColorHex,
             Status = DefaultStatus,
             IsArchived = false,

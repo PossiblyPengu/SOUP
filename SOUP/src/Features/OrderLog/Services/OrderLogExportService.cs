@@ -238,18 +238,18 @@ public class OrderLogExportService : IOrderLogExportService
             Status = status,
             CreatedAt = createdAt,
             CompletedAt = completedAt,
-            TransferNumbers = string.IsNullOrWhiteSpace(transfers) ? null : transfers,
-            WhsShipmentNumbers = string.IsNullOrWhiteSpace(shipments) ? null : shipments
+            TransferNumbers = transfers ?? string.Empty,
+            WhsShipmentNumbers = shipments ?? string.Empty
         };
 
         if (noteType == NoteType.StickyNote)
         {
-            item.NoteTitle = string.IsNullOrWhiteSpace(vendorOrTitle) ? null : vendorOrTitle;
-            item.NoteContent = string.IsNullOrWhiteSpace(noteContent) ? null : noteContent;
+            item.NoteTitle = vendorOrTitle ?? string.Empty;
+            item.NoteContent = noteContent ?? string.Empty;
         }
         else
         {
-            item.VendorName = string.IsNullOrWhiteSpace(vendorOrTitle) ? null : vendorOrTitle;
+            item.VendorName = vendorOrTitle ?? string.Empty;
         }
 
         return item;

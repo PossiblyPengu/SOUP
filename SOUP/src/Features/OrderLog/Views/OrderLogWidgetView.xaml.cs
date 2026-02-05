@@ -2660,7 +2660,7 @@ public partial class OrderLogWidgetView : UserControl
         expander.IsExpanded = true;
 
         // Use dispatcher to ensure layout is updated before calculating position
-        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+        _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
         {
             try
             {
