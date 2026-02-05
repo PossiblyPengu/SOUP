@@ -2432,6 +2432,45 @@
 
                 <!-- Archived Notes Panel (separate tab) -->
                 <StackPanel x:Name="ArchivedItemsPanel" Visibility="Collapsed">
+                    <!-- Archived Sort Header -->
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Margin="6,0,6,10" Padding="10,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Archived Items" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Click="ArchivedSortToggle_Click" ToolTip="Click to cycle sort mode"
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="8,4">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⇅" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="SortLabel" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Date"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ArchivedSortModeEnum}" Value="VendorName">
+                                                                    <Setter Property="Text" Value="Vendor"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                    </Border>
                     <ListBox x:Name="ArchivedListBox"
                              ItemsSource="{Binding DisplayArchivedItems}"
                              BorderThickness="0"

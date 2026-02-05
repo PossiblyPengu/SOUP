@@ -126,6 +126,7 @@ public partial class OrderLogWidgetView : UserControl
             AnimateTabTransition(ActiveItemsPanel, ArchivedItemsPanel);
             AddButtonsPanel.Visibility = Visibility.Collapsed;
             NotesHeaderPanel.Visibility = Visibility.Collapsed;
+            QuickJumpPanel.Visibility = Visibility.Collapsed;
             if (AddOrderCard != null) AddOrderCard.Visibility = Visibility.Collapsed;
         }
         else
@@ -139,6 +140,7 @@ public partial class OrderLogWidgetView : UserControl
             AnimateTabTransition(ArchivedItemsPanel, ActiveItemsPanel);
             AddButtonsPanel.Visibility = Visibility.Visible;
             NotesHeaderPanel.Visibility = Visibility.Visible;
+            QuickJumpPanel.Visibility = Visibility.Visible;
         }
     }
 
@@ -646,6 +648,12 @@ public partial class OrderLogWidgetView : UserControl
         {
             vm.CycleSortMode();
         }
+    }
+
+    private void ArchivedSortToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm) return;
+        vm.CycleArchivedSortMode();
     }
 
     /// <summary>

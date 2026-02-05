@@ -64,6 +64,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly OrderGroupingService _groupingService;
 
     public OrderGroupingService.OrderLogSortMode SortModeEnum { get; private set; } = OrderGroupingService.OrderLogSortMode.Status;
+    
+    public OrderGroupingService.OrderLogSortMode ArchivedSortModeEnum { get; private set; } = OrderGroupingService.OrderLogSortMode.CreatedAt;
 
     [ObservableProperty]
     private int _displayItemsCount;
@@ -682,6 +684,19 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             _ => OrderGroupingService.OrderLogSortMode.Status
         };
         RefreshDisplayItems();
+    }
+
+    [RelayCommand]
+    public void CycleArchivedSortMode()
+    {
+        ArchivedSortModeEnum = ArchivedSortModeEnum switch
+        {
+            OrderGroupingService.OrderLogSortMode.CreatedAt => OrderGroupingService.OrderLogSortMode.VendorName,
+            OrderGroupingService.OrderLogSortMode.VendorName => OrderGroupingService.OrderLogSortMode.CreatedAt,
+            _ => OrderGroupingService.OrderLogSortMode.CreatedAt
+        };
+        OnPropertyChanged(nameof(ArchivedSortModeEnum));
+        RefreshArchivedDisplayItems();
     }
     
     [RelayCommand]
@@ -2041,13 +2056,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
 
         var snapshot = filtered.ToList();
         var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sortMode = ArchivedSortModeEnum;
 
         // Build groups on background thread
         var built = await Task.Run(() =>
         {
             var filteredCollection = new ObservableCollection<OrderItem>(snapshot);
-            // For archived items, sort by CreatedAt (most recent first) to make archive browsing intuitive
-            return _groupingService.BuildDisplayCollection(filteredCollection, false, true, OrderGroupingService.OrderLogSortMode.CreatedAt);
+            // Use the archived sort mode setting
+            return _groupingService.BuildDisplayCollection(filteredCollection, false, true, sortMode);
         }).ConfigureAwait(false);
         sw.Stop();
 

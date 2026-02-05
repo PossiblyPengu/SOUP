@@ -2962,6 +2962,7 @@
             <inheritdoc/>
             <inheritdoc/>
             <inheritdoc/>
+            <inheritdoc/>
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.AllItems">
             <summary>Helper to get all items (active + archived) without repeated Concat calls</summary>
@@ -3411,6 +3412,12 @@
         </member>
         <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveOrderCommand">
             <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IAsyncRelayCommand`1"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.UnarchiveOrderAsync(SOUP.Features.OrderLog.Models.OrderItem)"/>.</summary>
+        </member>
+        <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.cycleArchivedSortModeCommand">
+            <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CycleArchivedSortModeCommand"/>.</summary>
+        </member>
+        <member name="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CycleArchivedSortModeCommand">
+            <summary>Gets an <see cref="T:CommunityToolkit.Mvvm.Input.IRelayCommand"/> instance wrapping <see cref="M:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.CycleArchivedSortMode"/>.</summary>
         </member>
         <member name="F:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.moveUpCommand">
             <summary>The backing field for <see cref="P:SOUP.Features.OrderLog.ViewModels.OrderLogViewModel.MoveUpCommand"/>.</summary>
