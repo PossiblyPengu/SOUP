@@ -1534,13 +1534,12 @@
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="{DynamicResource AccentBrush}"
-                                    CornerRadius="12"
-                                    Width="24" Height="24"
-                                    Margin="0,0,8,0">
-                                <TextBlock Text="+" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                           Foreground="{DynamicResource TextOnPrimaryBrush}" Margin="0,-2,0,0"/>
-                            </Border>
+                            <Grid Width="26" Height="26" Margin="0,0,8,0">
+                                <Ellipse Fill="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="+" FontSize="18" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextOnPrimaryBrush}"/>
+                            </Grid>
                             <TextBlock Text="Order" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
@@ -1551,12 +1550,11 @@
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="{DynamicResource WarningBrush}"
-                                    CornerRadius="12"
-                                    Width="24" Height="24"
-                                    Margin="0,0,8,0">
-                                <TextBlock Text="📝" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
+                            <Grid Width="26" Height="26" Margin="0,0,8,0">
+                                <Ellipse Fill="{DynamicResource WarningBrush}"/>
+                                <TextBlock Text="📝" FontSize="13" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Note" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
@@ -1567,12 +1565,11 @@
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource BoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="{DynamicResource WarningBrush}"
-                                    CornerRadius="12"
-                                    Width="24" Height="24"
-                                    Margin="0,0,8,0">
-                                <TextBlock Text="📝" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
+                            <Grid Width="26" Height="26" Margin="0,0,8,0">
+                                <Ellipse Fill="{DynamicResource WarningBrush}"/>
+                                <TextBlock Text="📝" FontSize="13" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Note" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
