@@ -25,6 +25,12 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
     private readonly ExternalConnectionConfig _externalConfig;
     private bool _disposed;
 
+    /// <summary>
+    /// Static event fired when dictionary data (items or stores) is updated.
+    /// Subscribe to this to refresh cached data.
+    /// </summary>
+    public static event EventHandler? DictionaryDataChanged;
+
     // Event handlers stored for unsubscription
     private readonly EventHandler<SyncProgressEventArgs>? _progressHandler;
     private readonly EventHandler<SyncCompletedEventArgs>? _completedHandler;
@@ -1031,6 +1037,10 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
             StatusMessage = $"Imported {imported} new items, updated {updated} existing items from Excel";
             _logger?.LogInformation("Imported {Imported} new, {Updated} updated items from Excel", imported, updated);
+            
+            // Notify subscribers that dictionary data has changed
+            if (imported > 0 || updated > 0)
+                DictionaryDataChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
@@ -1170,6 +1180,10 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
 
             StatusMessage = $"Imported {imported} new stores, updated {updated} existing stores from Excel";
             _logger?.LogInformation("Imported {Imported} new, {Updated} updated stores from Excel", imported, updated);
+            
+            // Notify subscribers that dictionary data has changed
+            if (imported > 0 || updated > 0)
+                DictionaryDataChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {

@@ -51,92 +51,92 @@
         <!-- ═══════════════════════════════════════════════════════════════════ -->
         <StackPanel Grid.Row="0" Margin="16,12,16,0">
             
-            <!-- SKU/Item Number -->
-            <TextBlock Text="SKU / ITEM NUMBER" Style="{StaticResource FieldLabel}"/>
+            <!-- SKU/Item Number - Multiline -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <TextBlock Text="SKU / ITEM NUMBER" Style="{StaticResource FieldLabel}" Margin="4,0,0,0"/>
+                <TextBlock Text="(one per line, or paste SKU + Qty from Excel)" 
+                           FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}" 
+                           Margin="8,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+            
             <Border Style="{StaticResource InputField}" Margin="0,0,0,14">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="🔍" FontSize="14" VerticalAlignment="Center" 
-                               Margin="0,0,10,0" Opacity="0.5"/>
-
-                    <TextBox x:Name="SkuInput" Grid.Column="1"
-                             Text="{Binding QuickAddSku, UpdateSourceTrigger=PropertyChanged}"
-                             Background="Transparent" BorderThickness="0"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             FontSize="14" VerticalAlignment="Center"
-                             CaretBrush="{DynamicResource TextPrimaryBrush}"/>
-                    
-                    <TextBlock Grid.Column="1" Text="Enter SKU or scan barcode..." 
-                               FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}"
-                               VerticalAlignment="Center" IsHitTestVisible="False"
-                               Visibility="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Invert}"/>
-
-                    <!-- Validation Status -->
-                    <Border Grid.Column="2" Width="26" Height="26" CornerRadius="13" Margin="8,0,0,0">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
-                                    </DataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding QuickAddIsValidating}" Value="False"/>
-                                            <Condition Binding="{Binding QuickAddIsValid}" Value="False"/>
-                                            <Condition Binding="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}}" Value="Visible"/>
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" Foreground="{DynamicResource TextOnPrimaryBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value=""/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
-                                            <Setter Property="Text" Value="⏳"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding QuickAddIsValid}" Value="True">
-                                            <Setter Property="Text" Value="✓"/>
-                                        </DataTrigger>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding QuickAddIsValidating}" Value="False"/>
-                                                <Condition Binding="{Binding QuickAddIsValid}" Value="False"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Text" Value="✗"/>
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Border>
-                </Grid>
+                <TextBox x:Name="SkuInput"
+                         Text="{Binding QuickAddSku, UpdateSourceTrigger=PropertyChanged}"
+                         Background="Transparent" BorderThickness="0"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         FontSize="13" FontFamily="Consolas"
+                         AcceptsReturn="True" AcceptsTab="False"
+                         TextWrapping="NoWrap"
+                         MinHeight="60" MaxHeight="100"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Disabled"
+                         VerticalContentAlignment="Top"
+                         CaretBrush="{DynamicResource TextPrimaryBrush}">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <VisualBrush Stretch="None" AlignmentX="Left" AlignmentY="Top">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Text="Enter SKUs (one per line)..." 
+                                                               FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               Margin="0,1,0,0"/>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="Text" Value="{x:Null}">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <VisualBrush Stretch="None" AlignmentX="Left" AlignmentY="Top">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Text="Enter SKUs (one per line)..." 
+                                                               FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               Margin="0,1,0,0"/>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
             </Border>
 
-            <!-- Item Preview Card - shown when SKU is valid -->
+            <!-- Validation Status Summary - shown when input has content -->
             <Border CornerRadius="10" Padding="12" Margin="0,0,0,14"
-                    Visibility="{Binding QuickAddItemPreview, Converter={StaticResource StringToVisibilityConverter}}">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#15f59e0b" Offset="0"/>
-                        <GradientStop Color="#10d97706" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
+                    Visibility="{Binding QuickAddSku, Converter={StaticResource StringToVisibilityConverter}}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#15f59e0b" Offset="0"/>
+                                    <GradientStop Color="#10d97706" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding QuickAddHasErrors}" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#20ef4444" Offset="0"/>
+                                            <GradientStop Color="#10dc2626" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <Border.BorderBrush>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="#40f59e0b" Offset="0"/>
@@ -146,12 +146,27 @@
                 <Border.BorderThickness>1</Border.BorderThickness>
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBlock Text="✓" FontSize="12" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,6,0"/>
-                        <TextBlock Text="ITEM FOUND" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
+                        <TextBlock FontSize="12" Margin="0,0,6,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="✓"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding QuickAddIsValidating}" Value="True">
+                                            <Setter Property="Text" Value="⏳"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding QuickAddHasErrors}" Value="True">
+                                            <Setter Property="Text" Value="⚠"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="{Binding QuickAddItemPreview}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                    <TextBlock Text="{Binding QuickAddItemPreview}" FontSize="14" FontWeight="SemiBold"
-                               Foreground="{StaticResource ExpireWiseAccentLightBrush}"
-                               TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 

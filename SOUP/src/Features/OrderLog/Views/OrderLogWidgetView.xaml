@@ -9,7 +9,8 @@
              xmlns:vm="clr-namespace:SOUP.Features.OrderLog.ViewModels"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:behaviors="clr-namespace:SOUP.Features.OrderLog.Behaviors"
-             xmlns:commonBehaviors="clr-namespace:SOUP.Behaviors">
+             xmlns:commonBehaviors="clr-namespace:SOUP.Behaviors"
+             KeyDown="UserControl_KeyDown">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -31,6 +32,8 @@
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         <converters:HexToColorConverter x:Key="HexToColorConverter"/>
         <converters:XamlToPlainTextConverter x:Key="XamlToPlainTextConverter"/>
+        <converters:IsLinkSourceToBrushConverter x:Key="IsLinkSourceToBrushConverter"/>
+        <converters:IsLinkSourceToThicknessConverter x:Key="IsLinkSourceToThicknessConverter"/>
         
         <!-- Modern Editable Field Style - Clean inline editing with focus indicator -->
         <Style x:Key="ModernEditableFieldStyle" TargetType="TextBox">
@@ -222,7 +225,25 @@
         </Style>
 
                 <DataTemplate x:Key="OrderItemTemplate" DataType="{x:Type models:OrderItem}">
-                    <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" Margin="6" ClipToBounds="True">
+                    <!-- Outer border for link mode highlighting -->
+                    <Border x:Name="LinkHighlightBorder" Margin="6" CornerRadius="10" Padding="2"
+                            MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave">
+                        <Border.BorderBrush>
+                            <MultiBinding Converter="{StaticResource IsLinkSourceToBrushConverter}">
+                                <Binding Path="."/>
+                                <Binding Path="DataContext.LinkModeSource" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                <Binding Path="DataContext.IsLinkMode" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                            </MultiBinding>
+                        </Border.BorderBrush>
+                        <Border.BorderThickness>
+                            <MultiBinding Converter="{StaticResource IsLinkSourceToThicknessConverter}">
+                                <Binding Path="."/>
+                                <Binding Path="DataContext.LinkModeSource" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                <Binding Path="DataContext.IsLinkMode" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                            </MultiBinding>
+                        </Border.BorderThickness>
+                    <Border Style="{StaticResource OrderLogWidgetElevatedCardStyle}" ClipToBounds="True"
+                            MouseLeftButtonDown="Card_MouseLeftButtonDown" KeyDown="Card_KeyDown" Focusable="True">
                         <Border.ContextMenu>
                             <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="Set Status">
@@ -238,7 +259,6 @@
                                 </MenuItem>
                                 <Separator/>
                                 <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}"/>
-                                <MenuItem Header="Link with..." Click="LinkWith_Click"/>
                                 <MenuItem Header="Unlink" Click="Unlink_Click"/>
                                 <Separator/>
                                 <MenuItem Header="Archive" Click="QuickArchive_Click"/>
@@ -350,7 +370,38 @@
                                 <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
                             </ComboBox>
 
-                            <Button Grid.Column="4" Style="{StaticResource WidgetDragHandleStyle}" Tag="DragHandle" IsTabStop="False"/>
+                            <!-- Link Button -->
+                            <Button Grid.Column="4" Click="LinkButton_Click" ToolTip="Link with another order" IsTabStop="False"
+                                    VerticalAlignment="Center" Margin="4,0,0,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="6"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Opacity" Value="0.5"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <TextBlock Text="🔗" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Opacity" Value="1"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                         </Grid>
                     </Border>
 
@@ -457,6 +508,7 @@
                     </StackPanel>
                 </Grid>
             </Border>
+            </Border>
         </DataTemplate>
 
         <!-- Modern Sticky Note Template - Clean, minimal design with inline toolbar -->
@@ -558,22 +610,6 @@
 
                         <!-- Floating action buttons (separate column, not overlapping) -->
                         <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Top" Margin="4,0,0,0">
-                            <!-- Drag handle -->
-                            <Border Tag="DragHandle" Cursor="SizeAll" ToolTip="Drag to reorder" Margin="0,0,0,4"
-                                    Background="Transparent" Padding="4" CornerRadius="4">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Opacity" Value="0.3"/>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="0.8"/>
-                                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <TextBlock Text="⋮⋮" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Bold"/>
-                            </Border>
                             <!-- Archive button -->
                             <Button Click="QuickArchive_Click" ToolTip="Archive" Cursor="Hand" Margin="0,0,0,4" Focusable="False">
                                 <Button.Style>
@@ -841,7 +877,25 @@
 
         <!-- Template for merged order cards in widget view (vertical stacking) -->
         <DataTemplate x:Key="OrderItemGroupMergedTemplate" DataType="{x:Type vm:OrderItemGroup}">
-            <Border Style="{DynamicResource OrderLogWidgetElevatedCardStyle}" ClipToBounds="True">
+            <!-- Outer border for link mode highlighting -->
+            <Border x:Name="LinkHighlightBorder" Margin="0" CornerRadius="10" Padding="2"
+                    MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave">
+                <Border.BorderBrush>
+                    <MultiBinding Converter="{StaticResource IsLinkSourceToBrushConverter}">
+                        <Binding Path="."/>
+                        <Binding Path="DataContext.LinkModeSource" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                        <Binding Path="DataContext.IsLinkMode" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                    </MultiBinding>
+                </Border.BorderBrush>
+                <Border.BorderThickness>
+                    <MultiBinding Converter="{StaticResource IsLinkSourceToThicknessConverter}">
+                        <Binding Path="."/>
+                        <Binding Path="DataContext.LinkModeSource" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                        <Binding Path="DataContext.IsLinkMode" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                    </MultiBinding>
+                </Border.BorderThickness>
+            <Border Style="{DynamicResource OrderLogWidgetElevatedCardStyle}" ClipToBounds="True"
+                    MouseLeftButtonDown="Card_MouseLeftButtonDown" KeyDown="Card_KeyDown" Focusable="True">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -858,7 +912,13 @@
                     <Border Grid.Row="1" Background="{DynamicResource SurfaceHoverBrush}"
                             Padding="14,10" Margin="0">
                         <Grid>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="🔗" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
                                 <TextBlock Text="Merged"
                                            FontSize="11"
@@ -877,7 +937,7 @@
                             </StackPanel>
 
                             <!-- Unified Status ComboBox -->
-                            <ComboBox HorizontalAlignment="Right"
+                            <ComboBox Grid.Column="1"
                                       SelectedValue="{Binding First.Status, Mode=TwoWay}"
                                       SelectedValuePath="Tag"
                                       SelectionChanged="UnifiedStatusComboBox_SelectionChanged"
@@ -886,6 +946,7 @@
                                       Padding="8,6"
                                       MinHeight="28"
                                       MinWidth="120"
+                                      Margin="0,0,8,0"
                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                       Style="{DynamicResource ModernComboBoxStyle}">
                                 <ComboBoxItem Content="Not Ready" Tag="{x:Static models:OrderItem+OrderStatus.NotReady}" Foreground="{DynamicResource DangerBrush}"/>
@@ -920,22 +981,50 @@
                                     </Border.Style>
 
                                     <StackPanel>
-                                        <!-- Section Header with Drag Handle (text left, handle right) -->
+                                        <!-- Section Header with unlink button -->
                                         <Grid Margin="0,0,0,4">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-
                                             <TextBlock Grid.Column="0" Text="{Binding VendorName, TargetNullValue='Order'}"
                                                        FontSize="11"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextTertiaryBrush}"
-                                                       Visibility="{Binding DataContext.IsGroup, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBoolToVis}}"
-                                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
-
-                                            <!-- Drag Handle (unified style) -->
-                                            <Button Grid.Column="1" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" HorizontalAlignment="Right"/>
+                                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                                       VerticalAlignment="Center"/>
+                                            <!-- Unlink this item button -->
+                                            <Button Grid.Column="1" Click="UnlinkSingleItem_Click" ToolTip="Remove from group" IsTabStop="False"
+                                                    VerticalAlignment="Center">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Padding" Value="4"/>
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                        <Setter Property="Opacity" Value="0.4"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                                                                        <TextBlock Text="🔗" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource DangerBrush}"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="1"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
                                         </Grid>
 
                                         <!-- Editable VendorName -->
@@ -1076,21 +1165,8 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-
-                    <!-- Actions Footer -->
-                    <Border Grid.Row="3"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="0,1,0,0"
-                            Padding="12,8">
-                        <Button Content="Unlink"
-                                Click="Unlink_Click"
-                                Style="{DynamicResource GhostButtonStyle}"
-                                Padding="8,4"
-                                FontSize="11"
-                                HorizontalAlignment="Right"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    </Border>
                 </Grid>
+            </Border>
             </Border>
         </DataTemplate>
 
@@ -1222,20 +1298,6 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-
-                    <!-- Actions Footer -->
-                    <Border Grid.Row="3"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="0,1,0,0"
-                            Padding="12,8">
-                        <Button Content="Unlink"
-                                Click="Unlink_Click"
-                                Style="{DynamicResource GhostButtonStyle}"
-                                Padding="8,4"
-                                FontSize="11"
-                                HorizontalAlignment="Right"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    </Border>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -1243,6 +1305,15 @@
     </UserControl.Resources>
 
     <Grid Background="{DynamicResource BackgroundBrush}">
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsLinkMode}" Value="True">
+                        <Setter Property="Cursor" Value="Cross"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -1702,11 +1773,7 @@
                         <ItemsControl ItemsSource="{Binding StickyNotes}" Margin="0,0,0,8">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal">
-                                        <i:Interaction.Behaviors>
-                                            <behaviors:SlidingReorderBehavior AnimationDuration="180" RequireDragHandle="True" EnableReordering="True" />
-                                        </i:Interaction.Behaviors>
-                                    </WrapPanel>
+                                    <WrapPanel Orientation="Horizontal"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -1760,11 +1827,7 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical" Background="Transparent">
-                                        <i:Interaction.Behaviors>
-                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" EnableReordering="False" RequireDragHandle="True" />
-                                            </i:Interaction.Behaviors>
-                                </StackPanel>
+                                <StackPanel Orientation="Vertical" Background="Transparent"/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
@@ -1798,7 +1861,6 @@
                                         <MenuItem Header="Move Up" Click="MoveUp_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Move Down" Click="MoveDown_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <Separator Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
-                                        <MenuItem Header="Link with..." Click="LinkWith_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <MenuItem Header="Unlink" Click="Unlink_Click" Visibility="{Binding NoteType, Converter={StaticResource ShowForOrdersConverter}}"/>
                                         <!-- NOTE MENU ITEMS -->
                                         <MenuItem Header="Change Color..." Click="ChangeColor_Click" CommandParameter="{Binding}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
@@ -1931,10 +1993,6 @@
                                                 <ComboBoxItem Content="In Progress" Tag="{x:Static models:OrderItem+OrderStatus.InProgress}" Foreground="{DynamicResource SuccessBrush}"/>
                                                 <ComboBoxItem Content="Done" Tag="{x:Static models:OrderItem+OrderStatus.Done}" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                             </ComboBox>
-
-                                            <!-- Drag handle for sticky notes (notes need a handle too) -->
-                                            <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" Visibility="{Binding NoteType, Converter={StaticResource ShowForNotesConverter}}"/>
-                                            <!-- Drag handle moved into the body for single-item cards to match merged/linked sections -->
                                         </Grid>
                                     </Border>
 
@@ -1986,9 +2044,6 @@
                                                          FontSize="{DynamicResource CardFontSize}"
                                                          GotFocus="EditableField_GotFocus"
                                                          LostFocus="EditableField_LostFocus"/>
-
-                                                <!-- Drag handle (visible because this block is only shown for orders) -->
-                                                <Button Grid.Column="2" Tag="DragHandle" Style="{StaticResource WidgetDragHandleStyle}" Margin="6,0,0,0" HorizontalAlignment="Right"/>
                                             </Grid>
 
                                             <!-- Editable WHS Shipment Numbers -->
@@ -2116,18 +2171,6 @@
                                                             </Style>
                                                         </Button.Style>
                                                     </Button>
-                                                    <Button Tag="DragHandle" Margin="4,0,0,0">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button" BasedOn="{StaticResource WidgetDragHandleStyle}">
-                                                                <Setter Property="Opacity" Value="0.5"/>
-                                                                <Style.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter Property="Opacity" Value="1"/>
-                                                                    </Trigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Button.Style>
-                                                    </Button>
                                                 </StackPanel>
                                             </Grid>
                                         </Grid>
@@ -2226,11 +2269,7 @@
                             <ItemsControl ItemsSource="{Binding InProgressItems}" Margin="0,8,0,0">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical">
-                                            <i:Interaction.Behaviors>
-                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" EnableReordering="False" RequireDragHandle="True" />
-                                            </i:Interaction.Behaviors>
-                                        </StackPanel>
+                                        <StackPanel Orientation="Vertical"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
@@ -2316,11 +2355,7 @@
                             <ItemsControl ItemsSource="{Binding OnDeckItems}" Margin="0,8,0,0">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical">
-                                            <i:Interaction.Behaviors>
-                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" EnableReordering="False" RequireDragHandle="True" />
-                                            </i:Interaction.Behaviors>
-                                        </StackPanel>
+                                        <StackPanel Orientation="Vertical"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
@@ -2406,11 +2441,7 @@
                             <ItemsControl ItemsSource="{Binding NotReadyItems}" Margin="0,8,0,0">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical">
-                                            <i:Interaction.Behaviors>
-                                                <behaviors:SlidingReorderBehavior AnimationDuration="180" RequireDragHandle="True" />
-                                            </i:Interaction.Behaviors>
-                                        </StackPanel>
+                                        <StackPanel Orientation="Vertical"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>

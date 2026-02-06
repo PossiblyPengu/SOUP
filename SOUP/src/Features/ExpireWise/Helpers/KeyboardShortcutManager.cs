@@ -27,11 +27,11 @@ public class KeyboardShortcutManager
 
             switch (e.Key)
             {
-                // Ctrl+N: Add new item
+                // Ctrl+N: Toggle Quick Add panel
                 case Key.N when ctrl && !shift:
-                    if (viewModel.AddItemCommand.CanExecute(null))
+                    if (viewModel.ToggleQuickAddCommand.CanExecute(null))
                     {
-                        viewModel.AddItemCommand.Execute(null);
+                        viewModel.ToggleQuickAddCommand.Execute(null);
                         e.Handled = true;
                     }
                     break;

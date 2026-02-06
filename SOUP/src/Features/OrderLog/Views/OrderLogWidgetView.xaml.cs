@@ -35,7 +35,6 @@ public partial class OrderLogWidgetView : UserControl
     private Storyboard? _marqueeStoryboard;
     private bool _isMarqueeRunning = false;
     private Random _random = new();
-    private Behaviors.SlidingReorderBehavior? _fluidDragBehavior;
     private KeyboardShortcutManager? _keyboardShortcutManager;
 
     public OrderLogWidgetView()
@@ -45,6 +44,16 @@ public partial class OrderLogWidgetView : UserControl
         Unloaded += OnUnloaded;
         InitializeEqualizerTimer();
         InitializeMarqueeTimer();
+    }
+
+    private void UserControl_KeyDown(object sender, KeyEventArgs e)
+    {
+        // ESC cancels link mode
+        if (e.Key == Key.Escape && DataContext is OrderLogViewModel vm && vm.IsLinkMode)
+        {
+            vm.CancelLinkMode();
+            e.Handled = true;
+        }
     }
 
     private void ActiveTab_Click(object sender, RoutedEventArgs e)
@@ -387,9 +396,6 @@ public partial class OrderLogWidgetView : UserControl
         // Initialize Spotify service asynchronously
         InitializeSpotifyAndWireUpAsync();
 
-        // Wire up fluid drag behavior events
-        WireUpFluidDragBehavior();
-
         // Initialize theme and subscribe to changes
         var isDarkMode = ThemeService.Instance.IsDarkMode;
         UpdateThemeIcon(isDarkMode);
@@ -568,73 +574,84 @@ public partial class OrderLogWidgetView : UserControl
         UpdateNowPlayingUI();
     }
 
-    private void WireUpFluidDragBehavior()
+    private void Card_MouseEnter(object sender, MouseEventArgs e)
     {
-        // Find the ItemsControl and its panel for orders
-        var itemsControl = FindVisualChild<ItemsControl>(ActiveItemsPanel);
-        if (itemsControl != null)
+        if (DataContext is not OrderLogViewModel vm || !vm.IsLinkMode) return;
+        if (sender is not Border border) return;
+
+        // Get the item from this card
+        var item = border.DataContext switch
         {
-            // Wait for the panel to be generated
-            itemsControl.Loaded += (s, e) =>
+            OrderItem oi => oi,
+            ViewModels.OrderItemGroup group => group.First,
+            _ => null
+        };
+
+        // Don't highlight the source card (it already has a blue border)
+        if (item != null && vm.LinkModeSource != null && item.Id != vm.LinkModeSource.Id)
+        {
+            // Green border for hover target
+            border.BorderBrush = new SolidColorBrush(Color.FromRgb(34, 197, 94)); // Tailwind green-500
+            border.BorderThickness = new Thickness(2);
+        }
+    }
+
+    private void Card_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm) return;
+        if (sender is not Border border) return;
+
+        // Get the item from this card
+        var item = border.DataContext switch
+        {
+            OrderItem oi => oi,
+            ViewModels.OrderItemGroup group => group.First,
+            _ => null
+        };
+
+        // Don't clear if this is the source card (keep blue border)
+        if (item != null && vm.LinkModeSource != null && item.Id == vm.LinkModeSource.Id)
+        {
+            return;
+        }
+
+        // Clear hover highlight
+        border.ClearValue(Border.BorderBrushProperty);
+        border.ClearValue(Border.BorderThicknessProperty);
+    }
+
+    private async void Card_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (DataContext is not OrderLogViewModel vm || !vm.IsLinkMode) return;
+
+        // Get the order item from the clicked card
+        OrderItem? targetItem = null;
+        if (sender is FrameworkElement fe)
+        {
+            targetItem = fe.DataContext switch
             {
-                var panel = FindVisualChild<Panel>(itemsControl);
-                if (panel == null)
-                {
-                    return;
-                }
-
-                // Find attached fluid drag behavior
-                var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
-                _fluidDragBehavior = behaviors.OfType<Behaviors.SlidingReorderBehavior>().FirstOrDefault();
-
-                if (_fluidDragBehavior != null)
-                {
-                    _fluidDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
-                    _fluidDragBehavior.LinkComplete += OnFluidDragLinkComplete;
-                }
+                OrderItem item => item,
+                ViewModels.OrderItemGroup group => group.First,
+                _ => null
             };
         }
-        
-        // Wire up notes section drag behavior
-        if (NotesSection is { } section)
+
+        if (targetItem != null)
         {
-            var notesItemsControl = FindVisualChild<ItemsControl>(section);
-            if (notesItemsControl != null)
-            {
-                notesItemsControl.Loaded += (s, e) =>
-                {
-                    var panel = FindVisualChild<Panel>(notesItemsControl);
-                    if (panel == null) return;
-
-                    var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(panel);
-                    var notesDragBehavior = behaviors.OfType<Behaviors.SlidingReorderBehavior>().FirstOrDefault();
-
-                    if (notesDragBehavior != null)
-                    {
-                        notesDragBehavior.ReorderComplete += OnFluidDragReorderComplete;
-                    }
-                };
-            }
+            e.Handled = true;
+            await vm.CompleteLinkModeAsync(targetItem);
         }
     }
 
-    private async void OnFluidDragReorderComplete(List<OrderItem> items, OrderItem? target)
+    private void Card_KeyDown(object sender, KeyEventArgs e)
     {
-        if (DataContext is OrderLogViewModel vm)
+        if (DataContext is OrderLogViewModel vm && vm.IsLinkMode && e.Key == Key.Escape)
         {
-            await vm.MoveOrdersAsync(items, target);
-            vm.StatusMessage = $"Reordered {items.Count} item(s)";
+            vm.CancelLinkMode();
+            e.Handled = true;
         }
     }
 
-    private async void OnFluidDragLinkComplete(List<OrderItem> items, OrderItem? target)
-    {
-        if (DataContext is OrderLogViewModel vm)
-        {
-            await vm.LinkItemsAsync(items, target);
-            vm.StatusMessage = $"Linked {items.Count} item(s)";
-        }
-    }
     private void SortToggle_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not OrderLogViewModel vm) return;
@@ -715,13 +732,6 @@ public partial class OrderLogWidgetView : UserControl
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
             viewModel.PropertyChanged -= ViewModel_NavigationPropertyChanged;
             viewModel.ItemAdded -= ViewModel_ItemAdded;
-        }
-
-        // Clean up drag behavior subscriptions
-        if (_fluidDragBehavior != null)
-        {
-            _fluidDragBehavior.ReorderComplete -= OnFluidDragReorderComplete;
-            _fluidDragBehavior.LinkComplete -= OnFluidDragLinkComplete;
         }
 
         // Cleanup keyboard shortcuts
@@ -1792,7 +1802,31 @@ public partial class OrderLogWidgetView : UserControl
         }
     }
 
-    private async void LinkWith_Click(object sender, RoutedEventArgs e)
+    private void LinkButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not FrameworkElement fe) return;
+            
+            var order = fe.DataContext as OrderItem;
+            if (order == null)
+            {
+                Log.Warning("LinkButton_Click: Could not get OrderItem from button DataContext");
+                return;
+            }
+
+            if (DataContext is OrderLogViewModel vm)
+            {
+                vm.StartLinkMode(order);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to start link mode from button");
+        }
+    }
+
+    private void LinkWith_Click(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -1805,22 +1839,46 @@ public partial class OrderLogWidgetView : UserControl
 
             if (DataContext is OrderLogViewModel vm)
             {
-                var ownerWindow = Window.GetWindow(this);
-                var dlg = new LinkOrdersWindow(order, vm);
-                if (ownerWindow != null)
-                    dlg.Owner = ownerWindow;
-
-                if (dlg.ShowDialog() == true)
-                {
-                    await vm.SaveAsync();
-                    vm.RefreshDisplayItems();
-                    vm.StatusMessage = "Orders linked";
-                }
+                // Enter link mode - user clicks another card to complete
+                vm.StartLinkMode(order);
             }
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to link orders in widget view");
+            Log.Warning(ex, "Failed to start link mode");
+        }
+    }
+
+    private async void UnlinkSingleItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (DataContext is not OrderLogViewModel vm) return;
+            if (sender is not FrameworkElement fe) return;
+
+            // Get the OrderItem from button's DataContext (it's in the member template)
+            if (fe.DataContext is not OrderItem item)
+            {
+                Log.Warning("UnlinkSingleItem_Click: Could not get OrderItem from DataContext");
+                return;
+            }
+
+            if (item.LinkedGroupId == null)
+            {
+                vm.StatusMessage = "Item is not linked";
+                return;
+            }
+
+            // Just clear this one item's LinkedGroupId
+            item.LinkedGroupId = null;
+
+            await vm.SaveAsync();
+            vm.RefreshDisplayItems();
+            vm.StatusMessage = $"Removed {item.VendorName ?? "item"} from group";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to unlink single item");
         }
     }
 

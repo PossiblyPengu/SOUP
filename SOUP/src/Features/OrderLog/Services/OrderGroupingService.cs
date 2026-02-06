@@ -113,8 +113,15 @@ public class OrderGroupingService
         onDeckItems.Clear();
         inProgressItems.Clear();
 
-        var srcList = sourceItems.Where(i => i.IsRenderable && !i.IsStickyNote).ToList();
+        // Sort source items by CreatedAt (newest first) to get date-sorted groups
+        var srcList = sourceItems
+            .Where(i => i.IsRenderable && !i.IsStickyNote)
+            .OrderByDescending(i => i.CreatedAt)
+            .ToList();
         var seenGroupIds = new HashSet<Guid?>();
+
+        // Create groups, preserving date order
+        var allGroups = new List<(OrderItemGroup Group, DateTime SortDate)>();
 
         foreach (var item in srcList)
         {
@@ -133,6 +140,14 @@ public class OrderGroupingService
                 group = new OrderItemGroup(members);
             }
 
+            // Use the newest item's date for group sorting
+            var sortDate = group.Members.Max(m => m.CreatedAt);
+            allGroups.Add((group, sortDate));
+        }
+
+        // Sort groups by date (newest first) and add to appropriate collection
+        foreach (var (group, _) in allGroups.OrderByDescending(g => g.SortDate))
+        {
             var status = group.First?.Status ?? OrderItem.OrderStatus.NotReady;
             switch (status)
             {

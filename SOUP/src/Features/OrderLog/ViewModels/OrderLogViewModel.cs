@@ -258,6 +258,55 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    // Link mode state
+    [ObservableProperty]
+    private bool _isLinkMode;
+
+    [ObservableProperty]
+    private OrderItem? _linkModeSource;
+
+    partial void OnIsLinkModeChanged(bool value)
+    {
+        if (value && LinkModeSource != null)
+        {
+            StatusMessage = $"🔗 Click another card to link with {LinkModeSource.VendorName ?? "this item"}...";
+        }
+        else
+        {
+            UpdateDefaultStatus();
+        }
+    }
+
+    /// <summary>Enter link mode with the specified item as the source.</summary>
+    public void StartLinkMode(OrderItem source)
+    {
+        LinkModeSource = source;
+        IsLinkMode = true;
+    }
+
+    /// <summary>Cancel link mode without linking.</summary>
+    public void CancelLinkMode()
+    {
+        LinkModeSource = null;
+        IsLinkMode = false;
+    }
+
+    /// <summary>Complete link mode by linking the source to the target.</summary>
+    public async Task CompleteLinkModeAsync(OrderItem target)
+    {
+        if (!IsLinkMode || LinkModeSource == null || target == LinkModeSource)
+        {
+            CancelLinkMode();
+            return;
+        }
+
+        var source = LinkModeSource;
+        CancelLinkMode();
+
+        await LinkItemsAsync(new List<OrderItem> { source }, target);
+        StatusMessage = $"Linked {source.VendorName ?? "item"} with {target.VendorName ?? "item"}";
+    }
+
     partial void OnStatusMessageChanged(string value)
     {
         // Auto-clear status message after timeout (unless it's empty or the default count message)

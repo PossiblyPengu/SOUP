@@ -14,16 +14,4 @@ public interface IEssentialsBuddyRepository : IRepository<InventoryItem>
     /// </summary>
     /// <returns>A collection of low-stock items.</returns>
     Task<IEnumerable<InventoryItem>> GetItemsBelowThresholdAsync();
-
-    /// <summary>
-    /// Gets the master list of essential items.
-    /// </summary>
-    /// <returns>A collection of master list items.</returns>
-    Task<IEnumerable<MasterListItem>> GetMasterListAsync();
-
-    /// <summary>
-    /// Updates the master list of essential items.
-    /// </summary>
-    /// <param name="items">The updated master list items.</param>
-    Task UpdateMasterListAsync(IEnumerable<MasterListItem> items);
 }

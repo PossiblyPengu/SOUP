@@ -66,10 +66,26 @@ public class DatabaseBackupService
                     // SQLite uses WAL mode, so we need to checkpoint before backup
                     await CheckpointDatabaseAsync(dbPath);
 
-                    // Copy database to archive
-                    archive.CreateEntryFromFile(dbPath, archiveName);
-                    exportedFiles.Add(archiveName);
-                    _logger?.LogDebug("Added {Database} to backup archive", archiveName);
+                    // Copy database to temp file first (handles locked files)
+                    // Use FileShare.ReadWrite to allow copying even when db is in use
+                    var tempPath = Path.GetTempFileName();
+                    try
+                    {
+                        using (var source = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        using (var dest = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                        {
+                            await source.CopyToAsync(dest);
+                        }
+                        
+                        archive.CreateEntryFromFile(tempPath, archiveName);
+                        exportedFiles.Add(archiveName);
+                        _logger?.LogDebug("Added {Database} to backup archive", archiveName);
+                    }
+                    finally
+                    {
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+                    }
 
                     // Also backup WAL and SHM files if they exist (for completeness)
                     var walPath = dbPath + "-wal";
@@ -77,8 +93,22 @@ public class DatabaseBackupService
 
                     if (File.Exists(walPath))
                     {
-                        archive.CreateEntryFromFile(walPath, archiveName + "-wal");
-                        _logger?.LogDebug("Added {Database}-wal to backup archive", archiveName);
+                        var walTempPath = Path.GetTempFileName();
+                        try
+                        {
+                            using (var source = new FileStream(walPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            using (var dest = new FileStream(walTempPath, FileMode.Create, FileAccess.Write))
+                            {
+                                await source.CopyToAsync(dest);
+                            }
+                            archive.CreateEntryFromFile(walTempPath, archiveName + "-wal");
+                            _logger?.LogDebug("Added {Database}-wal to backup archive", archiveName);
+                        }
+                        finally
+                        {
+                            if (File.Exists(walTempPath))
+                                File.Delete(walTempPath);
+                        }
                     }
                 }
                 catch (IOException ex)

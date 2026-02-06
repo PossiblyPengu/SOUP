@@ -203,7 +203,6 @@ public partial class App : Application
                 services.AddSingleton<SOUP.Features.ExpireWise.Services.ExpireWiseItemService>();
 
             services.AddSingleton<ExpireWiseViewModel>();
-            services.AddTransient<ExpirationItemDialogViewModel>();
             services.AddTransient<ExpireWiseSettingsViewModel>();
         }
 
@@ -301,13 +300,17 @@ public partial class App : Application
         });
 
         // Initialize tray icon service (must be on UI thread)
-        Dispatcher.Invoke(() =>
+        // Skip for widget process - the main app handles the tray icon
+        if (!AppLifecycleService.IsWidgetProcess)
         {
-            var trayService = _host.Services.GetRequiredService<TrayIconService>();
-            trayService.Initialize();
-            splash?.SetStatus("Initializing UI...");
-            Log.Information("Tray icon initialized");
-        });
+            Dispatcher.Invoke(() =>
+            {
+                var trayService = _host.Services.GetRequiredService<TrayIconService>();
+                trayService.Initialize();
+                splash?.SetStatus("Initializing UI...");
+                Log.Information("Tray icon initialized");
+            });
+        }
 
         // Initialize the shared dictionary database at startup
         try

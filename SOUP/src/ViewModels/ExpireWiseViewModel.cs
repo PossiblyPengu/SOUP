@@ -395,9 +395,21 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     private string _quickAddItemPreview = string.Empty;
 
     /// <summary>
+    /// Gets or sets whether Quick Add has validation errors (some items not found).
+    /// </summary>
+    [ObservableProperty]
+    private bool _quickAddHasErrors;
+
+    /// <summary>
     /// The looked-up dictionary item for Quick Add (cached).
+    /// Used when single SKU is entered.
     /// </summary>
     private Data.Entities.DictionaryItemEntity? _quickAddLookedUpItem;
+
+    /// <summary>
+    /// Parsed items from multi-line input (SKU, Qty, Found item).
+    /// </summary>
+    private List<(string Sku, int Qty, Data.Entities.DictionaryItemEntity? Item)> _quickAddParsedItems = new();
 
     /// <summary>
     /// Available stores for dropdown selection (includes "No Store" option).
@@ -486,6 +498,9 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             _settingsService.SettingsChanged += OnSettingsChanged;
         }
 
+        // Subscribe to dictionary data changes (e.g., stores/items imported)
+        DictionaryManagementViewModel.DictionaryDataChanged += OnDictionaryDataChanged;
+
         // Load available stores from dictionary
         LoadAvailableStores();
 
@@ -493,6 +508,19 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         PropertyChanged += OnQuickAddSkuChanged;
 
         UpdateMonthDisplay();
+    }
+
+    /// <summary>
+    /// Handles dictionary data changes (items/stores imported) to refresh cached data.
+    /// </summary>
+    private void OnDictionaryDataChanged(object? sender, EventArgs e)
+    {
+        // Reload stores on UI thread
+        System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+        {
+            LoadAvailableStores();
+            _logger?.LogInformation("Reloaded stores after dictionary data changed");
+        });
     }
 
     /// <summary>
@@ -1281,194 +1309,6 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     public bool CanGoToPreviousMonth => true;
     public bool CanGoToNextMonth => true;
 
-    [RelayCommand]
-    private async Task AddItem()
-    {
-        _logger?.LogInformation("Add item clicked");
-
-        try
-        {
-            // Show dialog
-            var dialogViewModel = new ExpirationItemDialogViewModel();
-            dialogViewModel.InitializeForAdd();
-
-            // Apply sticky settings if available
-            if (_settings != null)
-            {
-                dialogViewModel.RememberSettings = _settings.RememberLastLocation || _settings.RememberLastExpiryDate;
-
-                if (_settings.RememberLastLocation && !string.IsNullOrEmpty(_settings.LastSelectedStore))
-                {
-                    dialogViewModel.SelectedStore = dialogViewModel.AvailableStores
-                        .FirstOrDefault(s => s.Code == _settings.LastSelectedStore);
-                }
-
-                if (_settings.RememberLastExpiryDate && _settings.LastExpiryMonth.HasValue && _settings.LastExpiryYear.HasValue)
-                {
-                    dialogViewModel.ExpiryMonth = _settings.LastExpiryMonth.Value;
-                    dialogViewModel.ExpiryYear = _settings.LastExpiryYear.Value;
-                }
-
-                dialogViewModel.DefaultUnits = _settings.DefaultUnits;
-            }
-
-            var dialog = new ExpirationItemDialog
-            {
-                DataContext = dialogViewModel
-            };
-
-            var result = await _dialogService.ShowContentDialogAsync<List<ExpirationItem>?>(dialog);
-
-            if (result == null || result.Count == 0)
-            {
-                _logger?.LogInformation("Add item cancelled or no items provided");
-                return;
-            }
-
-            // Show loading indicator
-            IsBusy = true;
-            BusyMessage = $"Adding {result.Count} item(s)...";
-            IsLoading = true;
-
-            var addedCount = 0;
-            var failedCount = 0;
-            var errors = new List<string>();
-
-            try
-            {
-                // Add items one by one with error handling
-                foreach (var item in result)
-                {
-                    try
-                    {
-                        // Validate item before adding
-                        var isValid = ValidateItem(item, out var errorMessage);
-                        if (!isValid)
-                        {
-                            failedCount++;
-                            errors.Add($"{item.ItemNumber}: {errorMessage}");
-                            _logger?.LogWarning("Validation failed for item {ItemNumber}: {Error}",
-                                item.ItemNumber, errorMessage);
-                            continue;
-                        }
-
-                        // Add to database
-                        var addedItem = await _itemService.AddAsync(item);
-
-                        // Verify it was actually added
-                        if (addedItem != null && addedItem.Id != Guid.Empty)
-                        {
-                            Items.Add(addedItem);
-                            addedCount++;
-                            _logger?.LogInformation("Successfully added item {ItemNumber} (ID: {Id})",
-                                addedItem.ItemNumber, addedItem.Id);
-                        }
-                        else
-                        {
-                            failedCount++;
-                            errors.Add($"{item.ItemNumber}: Failed to add (no item returned)");
-                            _logger?.LogWarning("Item service returned null or empty ID for {ItemNumber}",
-                                item.ItemNumber);
-                        }
-                    }
-                    catch (Exception itemEx)
-                    {
-                        failedCount++;
-                        errors.Add($"{item.ItemNumber}: {itemEx.Message}");
-                        _logger?.LogError(itemEx, "Failed to add item {ItemNumber}", item.ItemNumber);
-                    }
-                }
-
-                // Recalculate counts and refresh display
-                if (addedCount > 0)
-                {
-                    TotalMonths = Items
-                        .Select(i => new DateTime(i.ExpiryDate.Year, i.ExpiryDate.Month, 1))
-                        .Distinct()
-                        .Count();
-                    TotalItems = Items.Count;
-                    UpdateStoreItemCounts();
-
-                    BuildAvailableMonths();
-                    ApplyFilters();
-                    UpdateLastSaved();
-
-                    // Save sticky settings if RememberSettings is enabled
-                    if (_settings != null && dialogViewModel.RememberSettings)
-                    {
-                        if (dialogViewModel.SelectedStore != null)
-                        {
-                            _settings.LastSelectedStore = dialogViewModel.SelectedStore.Code;
-                        }
-                        _settings.LastExpiryMonth = dialogViewModel.ExpiryMonth;
-                        _settings.LastExpiryYear = dialogViewModel.ExpiryYear;
-                        _settings.DefaultUnits = dialogViewModel.DefaultUnits;
-
-                        // Persist to disk
-                        await SaveQuickAddSettings();
-                    }
-                }
-
-                // Show results
-                if (failedCount == 0)
-                {
-                    // All succeeded
-                    if (addedCount == 1)
-                    {
-                        StatusMessage = $"✓ Added item: {result[0].ItemNumber}";
-                        ShowSuccessToast($"Added {result[0].ItemNumber}");
-                    }
-                    else
-                    {
-                        StatusMessage = $"✓ Added {addedCount} items successfully";
-                        ShowSuccessToast($"Added {addedCount} items");
-                    }
-                    _logger?.LogInformation("Successfully added {Count} items", addedCount);
-                }
-                else if (addedCount == 0)
-                {
-                    // All failed
-                    StatusMessage = $"✗ Failed to add {failedCount} item(s)";
-                    var errorSummary = string.Join("\n", errors.Take(3));
-                    if (errors.Count > 3)
-                        errorSummary += $"\n... and {errors.Count - 3} more";
-
-                    _dialogService.ShowError($"Failed to add items:\n\n{errorSummary}", "Add Items Failed");
-                    _logger?.LogError("Failed to add all {Count} items", failedCount);
-                }
-                else
-                {
-                    // Partial success
-                    StatusMessage = $"✓ Added {addedCount}, ✗ Failed {failedCount}";
-                    var errorSummary = string.Join("\n", errors.Take(3));
-                    if (errors.Count > 3)
-                        errorSummary += $"\n... and {errors.Count - 3} more";
-
-                    _dialogService.ShowWarning(
-                        $"Added {addedCount} item(s) successfully.\n\n" +
-                        $"Failed to add {failedCount} item(s):\n{errorSummary}",
-                        "Partial Success");
-                    _logger?.LogWarning("Partial success: {Added} added, {Failed} failed",
-                        addedCount, failedCount);
-                }
-            }
-            finally
-            {
-                IsLoading = false;
-                IsBusy = false;
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error adding items: {ex.Message}";
-            _logger?.LogError(ex, "Exception while adding items");
-            _dialogService.ShowError($"An error occurred while adding items:\n\n{ex.Message}", "Error");
-
-            IsLoading = false;
-            IsBusy = false;
-        }
-    }
-
     /// <summary>
     /// Shows a brief success toast notification (non-blocking)
     /// </summary>
@@ -1505,92 +1345,24 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
 
         try
         {
-            // Show dialog
-            var dialogViewModel = new ExpirationItemDialogViewModel();
-            dialogViewModel.InitializeForEdit(SelectedItem);
+            // Open Quick Add panel with selected item's values pre-filled
+            QuickAddExpanded = true;
 
-            var dialog = new ExpirationItemDialog
-            {
-                DataContext = dialogViewModel
-            };
+            // Set the SKU to the selected item's item number
+            QuickAddSku = SelectedItem.ItemNumber;
 
-            var result = await _dialogService.ShowContentDialogAsync<List<ExpirationItem>?>(dialog);
+            // Set store and date
+            QuickAddStore = AvailableStores.FirstOrDefault(s => s.Code == SelectedItem.Location);
+            QuickAddMonth = SelectedItem.ExpiryDate.Month;
+            QuickAddYear = SelectedItem.ExpiryDate.Year;
 
-            if (result == null || result.Count == 0)
-            {
-                _logger?.LogInformation("Edit item cancelled");
-                return;
-            }
-
-            // Show loading indicator
-            IsBusy = true;
-            BusyMessage = "Updating item...";
-            IsLoading = true;
-
-            try
-            {
-                var itemToUpdate = result[0];
-
-                // Validate item before updating
-                var isValid = ValidateItem(itemToUpdate, out var errorMessage);
-                if (!isValid)
-                {
-                    _dialogService.ShowError($"Validation failed:\n\n{errorMessage}", "Invalid Item");
-                    _logger?.LogWarning("Validation failed for item {ItemNumber}: {Error}",
-                        itemToUpdate.ItemNumber, errorMessage);
-                    return;
-                }
-
-                // Update in database
-                var updatedItem = await _itemService.UpdateAsync(itemToUpdate);
-
-                // Verify it was updated
-                if (updatedItem != null && updatedItem.Id != Guid.Empty)
-                {
-                    // Update in collection
-                    var index = Items.IndexOf(SelectedItem);
-                    if (index >= 0)
-                    {
-                        Items[index] = updatedItem;
-                        SelectedItem = updatedItem; // Update selection
-                    }
-                    else
-                    {
-                        _logger?.LogWarning("Could not find item in collection at index {Index}", index);
-                    }
-
-                    UpdateStoreItemCounts();
-                    BuildAvailableMonths();
-                    ApplyFilters();
-                    UpdateLastSaved();
-
-                    StatusMessage = $"✓ Updated item: {updatedItem.ItemNumber}";
-                    ShowSuccessToast($"Updated {updatedItem.ItemNumber}");
-                    _logger?.LogInformation("Successfully updated item {ItemNumber} (ID: {Id})",
-                        updatedItem.ItemNumber, updatedItem.Id);
-                }
-                else
-                {
-                    _dialogService.ShowError("Failed to update item (no item returned from database).",
-                        "Update Failed");
-                    _logger?.LogWarning("Item service returned null or empty ID for {ItemNumber}",
-                        originalItemNumber);
-                }
-            }
-            finally
-            {
-                IsLoading = false;
-                IsBusy = false;
-            }
+            StatusMessage = $"Edit '{originalItemNumber}' - modify values and add to queue, then delete the original";
+            _logger?.LogInformation("Pre-filled Quick Add for editing {ItemNumber}", originalItemNumber);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error updating item: {ex.Message}";
-            _logger?.LogError(ex, "Exception while updating item {ItemNumber}", originalItemNumber);
-            _dialogService.ShowError($"An error occurred while updating the item:\n\n{ex.Message}", "Error");
-
-            IsLoading = false;
-            IsBusy = false;
+            StatusMessage = $"Error editing item: {ex.Message}";
+            _logger?.LogError(ex, "Exception while editing item {ItemNumber}", originalItemNumber);
         }
     }
 
@@ -2396,7 +2168,9 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 // Clear validation state if SKU is empty
                 QuickAddIsValidating = false;
                 _quickAddLookedUpItem = null;
+                _quickAddParsedItems.Clear();
                 QuickAddItemPreview = string.Empty;
+                QuickAddHasErrors = false;
                 QuickAddIsValid = false; // Last - triggers command notification
                 return;
             }
@@ -2404,6 +2178,7 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             // Start validation indicator
             QuickAddIsValidating = true;
             QuickAddItemPreview = string.Empty;
+            QuickAddHasErrors = false;
             QuickAddIsValid = false; // Last - triggers command notification
 
             // Set up debounce timer (300ms)
@@ -2417,58 +2192,159 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Perform the actual SKU lookup after debounce
+    /// Parse input lines, handling tab-separated SKU+Qty from Excel.
+    /// Returns list of (SKU, Quantity) tuples.
+    /// </summary>
+    private List<(string Sku, int Qty)> ParseSkuInputLines()
+    {
+        var results = new List<(string Sku, int Qty)>();
+
+        if (string.IsNullOrWhiteSpace(QuickAddSku))
+            return results;
+
+        var lines = QuickAddSku.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            // Check for tab-separated (Excel paste) or multiple spaces
+            var parts = trimmed.Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length >= 2)
+            {
+                // Last part might be quantity - check if it's a number
+                var lastPart = parts[^1].Trim();
+                if (int.TryParse(lastPart, out var qty) && qty > 0)
+                {
+                    // Everything except last part is the SKU
+                    var skuPart = string.Join(" ", parts[..^1]).Trim();
+                    results.Add((skuPart, qty));
+                }
+                else
+                {
+                    // No quantity found, whole thing is SKU, use default
+                    results.Add((parts[0].Trim(), 1));
+                }
+            }
+            else
+            {
+                // Just SKU, use default quantity of 1
+                results.Add((trimmed, 1));
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Perform the actual SKU lookup after debounce.
+    /// Supports multi-line input with tab-separated quantities.
     /// </summary>
     private void DebouncedLookupSku()
     {
-        var sku = QuickAddSku?.Trim();
-        if (string.IsNullOrWhiteSpace(sku))
+        if (string.IsNullOrWhiteSpace(QuickAddSku))
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 QuickAddIsValidating = false;
                 _quickAddLookedUpItem = null;
+                _quickAddParsedItems.Clear();
                 QuickAddItemPreview = string.Empty;
-                QuickAddIsValid = false; // Last - triggers command notification
+                QuickAddHasErrors = false;
+                QuickAddIsValid = false;
             });
             return;
         }
 
         try
         {
-            var result = _itemLookupService.Search(sku);
+            var parsedLines = ParseSkuInputLines();
+            var parsedItems = new List<(string Sku, int Qty, Data.Entities.DictionaryItemEntity? Item)>();
+            var foundCount = 0;
+            var notFoundCount = 0;
+
+            foreach (var (sku, qty) in parsedLines)
+            {
+                var result = _itemLookupService.Search(sku);
+                if (result.Found && result.Item != null)
+                {
+                    parsedItems.Add((sku, qty, result.Item));
+                    foundCount++;
+                }
+                else
+                {
+                    parsedItems.Add((sku, qty, null));
+                    notFoundCount++;
+                }
+            }
 
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 QuickAddIsValidating = false;
+                _quickAddParsedItems = parsedItems;
 
-                if (result.Found && result.Item != null)
+                // For backwards compatibility with single-item entry
+                _quickAddLookedUpItem = parsedItems.Count == 1 && parsedItems[0].Item != null 
+                    ? parsedItems[0].Item 
+                    : null;
+
+                // Build preview text
+                if (parsedItems.Count == 0)
                 {
-                    // IMPORTANT: Set _quickAddLookedUpItem BEFORE QuickAddIsValid
-                    // because setting QuickAddIsValid triggers OnQuickAddIsValidChanged which checks _quickAddLookedUpItem
-                    _quickAddLookedUpItem = result.Item;
-                    QuickAddItemPreview = $"{result.Item.Description} ({result.Item.Number})";
-                    QuickAddIsValid = true; // This triggers command notification - must be last
-                    _logger?.LogDebug("Quick Add SKU lookup success: {Sku} → {Item}", sku, result.Item.Number);
+                    QuickAddItemPreview = string.Empty;
+                    QuickAddHasErrors = false;
+                    QuickAddIsValid = false;
+                }
+                else if (notFoundCount == 0)
+                {
+                    // All items found
+                    if (parsedItems.Count == 1)
+                    {
+                        var item = parsedItems[0].Item!;
+                        QuickAddItemPreview = $"✓ {item.Description} ({item.Number})";
+                    }
+                    else
+                    {
+                        QuickAddItemPreview = $"✓ All {foundCount} items found in Business Central";
+                    }
+                    QuickAddHasErrors = false;
+                    QuickAddIsValid = true;
+                }
+                else if (foundCount == 0)
+                {
+                    // No items found
+                    QuickAddItemPreview = parsedItems.Count == 1
+                        ? $"❌ SKU not found: {parsedItems[0].Sku}"
+                        : $"❌ {notFoundCount} item(s) not found in Business Central";
+                    QuickAddHasErrors = true;
+                    QuickAddIsValid = false;
                 }
                 else
                 {
-                    _quickAddLookedUpItem = null;
-                    QuickAddItemPreview = string.Empty;
-                    QuickAddIsValid = false; // Last - triggers command notification
-                    _logger?.LogDebug("Quick Add SKU not found: {Sku}", sku);
+                    // Mixed results
+                    var notFoundSkus = parsedItems.Where(p => p.Item == null).Select(p => p.Sku);
+                    QuickAddItemPreview = $"✓ {foundCount} found, ❌ {notFoundCount} not found: {string.Join(", ", notFoundSkus.Take(3))}";
+                    QuickAddHasErrors = true;
+                    QuickAddIsValid = false;
                 }
+
+                _logger?.LogDebug("Quick Add parsed {Total} SKUs: {Found} found, {NotFound} not found", 
+                    parsedItems.Count, foundCount, notFoundCount);
             });
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Quick Add SKU lookup error: {Sku}", sku);
+            _logger?.LogError(ex, "Quick Add SKU lookup error");
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 QuickAddIsValidating = false;
                 _quickAddLookedUpItem = null;
+                _quickAddParsedItems.Clear();
                 QuickAddItemPreview = string.Empty;
-                QuickAddIsValid = false; // Last - triggers command notification
+                QuickAddHasErrors = false;
+                QuickAddIsValid = false;
             });
         }
     }
@@ -2498,44 +2374,79 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Check if item can be added to queue
+    /// Check if item can be added to queue.
+    /// Supports both single item and multi-item input.
     /// </summary>
-    private bool CanAddToQueue() => QuickAddIsValid && _quickAddLookedUpItem != null;
+    private bool CanAddToQueue() => QuickAddIsValid && (_quickAddLookedUpItem != null || _quickAddParsedItems.Any(p => p.Item != null));
 
     /// <summary>
-    /// Add item to queue (not saved to database yet)
+    /// Add item(s) to queue (not saved to database yet).
+    /// Supports multi-line input with tab-separated quantities.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanAddToQueue))]
     private void AddToQueue()
     {
-        if (_quickAddLookedUpItem == null) return;
-
         try
         {
-            // Create expiration item (not saved yet)
             var expiryDate = new DateTime(QuickAddYear, QuickAddMonth, DateTime.DaysInMonth(QuickAddYear, QuickAddMonth));
+            var location = QuickAddStore?.Code ?? string.Empty;
+            var addedCount = 0;
 
-            var queuedItem = new ExpirationItem
+            // Check if we have multiple parsed items
+            if (_quickAddParsedItems.Count > 0)
             {
-                ItemNumber = _quickAddLookedUpItem.Number,
-                Description = _quickAddLookedUpItem.Description,
-                Location = QuickAddStore?.Code ?? string.Empty,
-                Quantity = 1, // Default to 1, user can edit in queue
-                ExpiryDate = expiryDate
-            };
+                foreach (var (sku, qty, item) in _quickAddParsedItems)
+                {
+                    if (item == null) continue; // Skip not-found items
 
-            // Add to queue
-            QuickAddQueue.Add(queuedItem);
+                    var queuedItem = new ExpirationItem
+                    {
+                        ItemNumber = item.Number,
+                        Description = item.Description,
+                        Location = location,
+                        Quantity = qty,
+                        ExpiryDate = expiryDate
+                    };
+
+                    QuickAddQueue.Add(queuedItem);
+                    addedCount++;
+                }
+            }
+            else if (_quickAddLookedUpItem != null)
+            {
+                // Legacy single-item support
+                var queuedItem = new ExpirationItem
+                {
+                    ItemNumber = _quickAddLookedUpItem.Number,
+                    Description = _quickAddLookedUpItem.Description,
+                    Location = location,
+                    Quantity = 1,
+                    ExpiryDate = expiryDate
+                };
+
+                QuickAddQueue.Add(queuedItem);
+                addedCount = 1;
+            }
+
             HasQueuedItems = QuickAddQueue.Count > 0;
 
             // Show feedback
-            StatusMessage = $"Added to queue: {queuedItem.ItemNumber} ({QuickAddQueue.Count} items)";
-            _logger?.LogInformation("Added to queue: {Item}", queuedItem.ItemNumber);
+            if (addedCount == 1)
+            {
+                StatusMessage = $"Added to queue: {QuickAddQueue.Last().ItemNumber} ({QuickAddQueue.Count} items total)";
+            }
+            else
+            {
+                StatusMessage = $"Added {addedCount} items to queue ({QuickAddQueue.Count} items total)";
+            }
+            _logger?.LogInformation("Added {Count} items to queue", addedCount);
 
-            // Clear SKU input for next entry
+            // Clear input for next entry
             QuickAddSku = string.Empty;
             _quickAddLookedUpItem = null;
+            _quickAddParsedItems.Clear();
             QuickAddItemPreview = string.Empty;
+            QuickAddHasErrors = false;
             QuickAddIsValid = false;
             QuickAddIsValidating = false;
         }
@@ -2820,6 +2731,9 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
                 _settingsService.SettingsChanged -= OnSettingsChanged;
             }
 
+            // Unsubscribe from dictionary data changes
+            DictionaryManagementViewModel.DictionaryDataChanged -= OnDictionaryDataChanged;
+
             // Dispose managed resources
             (_repository as IDisposable)?.Dispose();
             if (_notificationTimer != null)
@@ -2936,4 +2850,19 @@ public partial class StoreGroup : ObservableObject
     public ObservableCollection<ExpirationItem> Items { get; set; } = new();
     public int ItemCount { get; set; }
     public int TotalUnits { get; set; }
+}
+
+/// <summary>
+/// Month option for dropdown selection.
+/// </summary>
+public class MonthOption
+{
+    public int Value { get; }
+    public string Name { get; }
+
+    public MonthOption(int value, string name)
+    {
+        Value = value;
+        Name = name;
+    }
 }

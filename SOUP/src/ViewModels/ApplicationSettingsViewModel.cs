@@ -355,28 +355,36 @@ public partial class ApplicationSettingsViewModel : ObservableObject
             _isExporting = true;
             StatusMessage = "Preparing export...";
 
-            var dialog = new SaveFileDialog
+            // File dialogs must be shown on UI thread
+            string? selectedPath = null;
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                Title = "Export Database Backup",
-                FileName = DatabaseBackupService.GenerateBackupFileName(),
-                Filter = "ZIP Archive (*.zip)|*.zip",
-                DefaultExt = "zip",
-                InitialDirectory = AppPaths.Desktop
-            };
+                var dialog = new SaveFileDialog
+                {
+                    Title = "Export Database Backup",
+                    FileName = DatabaseBackupService.GenerateBackupFileName(),
+                    Filter = "ZIP Archive (*.zip)|*.zip",
+                    DefaultExt = "zip",
+                    InitialDirectory = AppPaths.Desktop
+                };
 
-            if (dialog.ShowDialog() != true)
+                if (dialog.ShowDialog() == true)
+                    selectedPath = dialog.FileName;
+            });
+
+            if (string.IsNullOrEmpty(selectedPath))
             {
                 StatusMessage = string.Empty;
                 return;
             }
 
             StatusMessage = "Exporting databases...";
-            var (count, files) = await _backupService.ExportDatabasesAsync(dialog.FileName);
+            var (count, files) = await _backupService.ExportDatabasesAsync(selectedPath);
 
             if (count > 0)
             {
                 StatusMessage = $"Exported {count} database(s): {string.Join(", ", files)}";
-                Serilog.Log.Information("Database backup exported to {Path}", dialog.FileName);
+                Serilog.Log.Information("Database backup exported to {Path}", selectedPath);
             }
             else
             {
@@ -404,19 +412,27 @@ public partial class ApplicationSettingsViewModel : ObservableObject
             _isImporting = true;
             StatusMessage = string.Empty;
 
-            var dialog = new OpenFileDialog
+            // File dialogs must be shown on UI thread
+            string? selectedPath = null;
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                Title = "Import Database Backup",
-                Filter = "ZIP Archive (*.zip)|*.zip",
-                DefaultExt = "zip",
-                CheckFileExists = true
-            };
+                var dialog = new OpenFileDialog
+                {
+                    Title = "Import Database Backup",
+                    Filter = "ZIP Archive (*.zip)|*.zip",
+                    DefaultExt = "zip",
+                    CheckFileExists = true
+                };
 
-            if (dialog.ShowDialog() != true)
+                if (dialog.ShowDialog() == true)
+                    selectedPath = dialog.FileName;
+            });
+
+            if (string.IsNullOrEmpty(selectedPath))
                 return;
 
             // Get backup info for confirmation
-            var backupInfo = _backupService.GetBackupInfo(dialog.FileName);
+            var backupInfo = _backupService.GetBackupInfo(selectedPath);
             if (backupInfo == null || backupInfo.Databases.Length == 0)
             {
                 StatusMessage = "Invalid or empty backup file";
@@ -434,11 +450,15 @@ public partial class ApplicationSettingsViewModel : ObservableObject
 
             confirmMessage += "\n\nYour current databases will be backed up before import.\n\nContinue?";
 
-            var result = System.Windows.MessageBox.Show(
-                confirmMessage,
-                "Confirm Import",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Warning);
+            System.Windows.MessageBoxResult result = System.Windows.MessageBoxResult.No;
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                result = System.Windows.MessageBox.Show(
+                    confirmMessage,
+                    "Confirm Import",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Warning);
+            });
 
             if (result != System.Windows.MessageBoxResult.Yes)
             {
@@ -447,19 +467,22 @@ public partial class ApplicationSettingsViewModel : ObservableObject
             }
 
             StatusMessage = "Importing databases...";
-            var (count, files) = await _backupService.ImportDatabasesAsync(dialog.FileName);
+            var (count, files) = await _backupService.ImportDatabasesAsync(selectedPath);
 
             if (count > 0)
             {
                 StatusMessage = $"Imported {count} database(s). Restart the application to apply changes.";
-                Serilog.Log.Information("Database backup imported from {Path}", dialog.FileName);
+                Serilog.Log.Information("Database backup imported from {Path}", selectedPath);
 
-                System.Windows.MessageBox.Show(
-                    $"Successfully imported {count} database(s):\n{string.Join(", ", files)}\n\n" +
-                    "Please restart the application for changes to take effect.",
-                    "Import Complete",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Information);
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Successfully imported {count} database(s):\n{string.Join(", ", files)}\n\n" +
+                        "Please restart the application for changes to take effect.",
+                        "Import Complete",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Information);
+                });
             }
             else
             {
