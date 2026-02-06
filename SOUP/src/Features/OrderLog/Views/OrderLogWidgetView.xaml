@@ -2813,14 +2813,12 @@
 
         <!-- Now Playing Mini-Player (Collapsible - rises from bottom) -->
         <Border x:Name="NowPlayingSection" Grid.Row="4"
-                Background="{DynamicResource SurfaceBrush}"
-                BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,1,0,0"
+                Background="Transparent"
+                BorderThickness="0"
             Margin="0,-20,0,0"
             Panel.ZIndex="50"
                 Visibility="{Binding ShowNowPlaying, Converter={StaticResource BoolToVis}, FallbackValue=Visible}">
             <Grid>
-                <!-- (shadow moved outside NowPlaying; kept empty here) -->
                 <StackPanel>
                 <!-- Full Album Art Player (collapsible - rises from bottom) -->
                 <Border x:Name="NowPlayingContent" 
@@ -2828,7 +2826,7 @@
                         MouseEnter="NowPlayingContent_MouseEnter"
                         MouseLeave="NowPlayingContent_MouseLeave">
                     <Grid>
-                        <!-- Album Art Background - uses width binding for square aspect -->
+                        <!-- Album Art Background -->
                         <Border CornerRadius="0" 
                                 Background="{DynamicResource SurfaceBrush}"
                                 MinHeight="180"
@@ -2858,60 +2856,64 @@
                                 <Border>
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="#00000000" Offset="0"/>
-                                            <GradientStop Color="#55000000" Offset="0.6"/>
-                                            <GradientStop Color="#DD000000" Offset="1"/>
+                                            <GradientStop Color="#00000000" Offset="0.0"/>
+                                            <GradientStop Color="#33000000" Offset="0.4"/>
+                                            <GradientStop Color="#CC000000" Offset="0.85"/>
+                                            <GradientStop Color="#EE000000" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Border.Background>
                                 </Border>
                                 
                                 <!-- Track Info + Controls overlaid at bottom -->
-                                <StackPanel VerticalAlignment="Bottom" Margin="12,0,12,10">
+                                <StackPanel VerticalAlignment="Bottom" Margin="16,0,16,14">
                                     <!-- Track Title -->
                                     <TextBlock x:Name="TrackTitleText"
                                                Text="Not Playing"
-                                               FontSize="{DynamicResource CardFontSize}"
+                                               FontSize="15"
                                                FontWeight="Bold"
-                                               Foreground="{DynamicResource TextOnOverlayBrush}"
+                                               Foreground="White"
                                                TextTrimming="CharacterEllipsis"
                                                TextWrapping="NoWrap">
                                         <TextBlock.Effect>
-                                            <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.5"/>
+                                            <DropShadowEffect ShadowDepth="1" BlurRadius="4" Opacity="0.6"/>
                                         </TextBlock.Effect>
                                     </TextBlock>
                                     
                                     <!-- Artist Name -->
                                     <TextBlock x:Name="ArtistNameText"
                                                Text=""
-                                               FontSize="{DynamicResource CardFontSize}"
-                                               Foreground="{DynamicResource TextOnOverlayBrush}"
+                                               FontSize="12"
+                                               Foreground="#CCFFFFFF"
                                                TextTrimming="CharacterEllipsis"
                                                Margin="0,2,0,0">
                                         <TextBlock.Effect>
-                                            <DropShadowEffect ShadowDepth="1" BlurRadius="2" Opacity="0.4"/>
+                                            <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.4"/>
                                         </TextBlock.Effect>
                                     </TextBlock>
                                 </StackPanel>
                                 
-                                <!-- Playback Control Bar - Fades in on hover -->
+                                <!-- Playback Control Bar - Frosted pill, fades in on hover -->
                                 <Border x:Name="ControlBar"
                                         VerticalAlignment="Center"
                                         HorizontalAlignment="Center"
-                                        Background="{DynamicResource OverlayMediumBrush}"
-                                        CornerRadius="25"
-                                        Padding="8,4"
+                                        Background="#99000000"
+                                        CornerRadius="28"
+                                        Padding="6,4"
                                         Opacity="0">
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="0" BlurRadius="16" Opacity="0.3" Color="#000000"/>
+                                    </Border.Effect>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                         <!-- Previous Button -->
                                         <Button x:Name="PrevButton"
                                                 Content="⏮"
                                                 Click="PrevTrack_Click"
                                                 Background="Transparent"
-                                                Foreground="{DynamicResource TextOnOverlayBrush}"
+                                                Foreground="White"
                                                 BorderThickness="0"
-                                                FontSize="20"
-                                                Width="44"
-                                                Height="44"
+                                                FontSize="18"
+                                                Width="42"
+                                                Height="42"
                                                 Cursor="Hand"
                                                 ToolTip="Previous">
                                             <Button.Style>
@@ -2919,15 +2921,15 @@
                                                     <Setter Property="Template">
                                                         <Setter.Value>
                                                             <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="ButtonBorder" Background="Transparent" CornerRadius="22">
+                                                                <Border x:Name="ButtonBorder" Background="Transparent" CornerRadius="21">
                                                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
                                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#33FFFFFF"/>
+                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#22FFFFFF"/>
                                                                     </Trigger>
                                                                     <Trigger Property="IsPressed" Value="True">
-                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#55FFFFFF"/>
+                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#44FFFFFF"/>
                                                                     </Trigger>
                                                                 </ControlTemplate.Triggers>
                                                             </ControlTemplate>
@@ -2941,13 +2943,13 @@
                                         <Button x:Name="PlayPauseButton"
                                                 Content="▶"
                                                 Click="PlayPause_Click"
-                                                Background="{DynamicResource TextOnPrimaryBrush}"
-                                                Foreground="{DynamicResource SurfaceBrush}"
+                                                Background="White"
+                                                Foreground="#111111"
                                                 BorderThickness="0"
-                                                FontSize="22"
-                                                Width="50"
-                                                Height="50"
-                                                Margin="6,0"
+                                                FontSize="20"
+                                                Width="48"
+                                                Height="48"
+                                                Margin="4,0"
                                                 Cursor="Hand"
                                                 ToolTip="Play/Pause">
                                             <Button.Style>
@@ -2955,7 +2957,7 @@
                                                     <Setter Property="Template">
                                                         <Setter.Value>
                                                             <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" CornerRadius="25">
+                                                                <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" CornerRadius="24">
                                                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
@@ -2978,11 +2980,11 @@
                                                 Content="⏭"
                                                 Click="NextTrack_Click"
                                                 Background="Transparent"
-                                                Foreground="{DynamicResource TextOnOverlayBrush}"
+                                                Foreground="White"
                                                 BorderThickness="0"
-                                                FontSize="20"
-                                                Width="44"
-                                                Height="44"
+                                                FontSize="18"
+                                                Width="42"
+                                                Height="42"
                                                 Cursor="Hand"
                                                 ToolTip="Next">
                                             <Button.Style>
@@ -2990,15 +2992,15 @@
                                                     <Setter Property="Template">
                                                         <Setter.Value>
                                                             <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="ButtonBorder" Background="Transparent" CornerRadius="22">
+                                                                <Border x:Name="ButtonBorder" Background="Transparent" CornerRadius="21">
                                                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
                                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#33FFFFFF"/>
+                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#22FFFFFF"/>
                                                                     </Trigger>
                                                                     <Trigger Property="IsPressed" Value="True">
-                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#55FFFFFF"/>
+                                                                        <Setter TargetName="ButtonBorder" Property="Background" Value="#44FFFFFF"/>
                                                                     </Trigger>
                                                                 </ControlTemplate.Triggers>
                                                             </ControlTemplate>
@@ -3014,9 +3016,11 @@
                     </Grid>
                 </Border>
                 
-                <!-- Toggle Header (at bottom) -->
-                <Border Background="Transparent" 
-                        Padding="10,8"
+                <!-- Collapsed Mini-Bar (sleek bottom strip) -->
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,7"
                         Cursor="Hand"
                         MouseLeftButtonDown="NowPlayingHeader_Click"
                         ToolTip="Click to expand • Double-click to open Spotify">
@@ -3027,83 +3031,97 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <!-- Left side: Equalizer/Icon -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <!-- Animated Equalizer Bars -->
-                            <Canvas x:Name="EqualizerPanel" Width="14" Height="12" Margin="0,0,6,0" Visibility="Collapsed">
-                                <Rectangle x:Name="EqBar1" Canvas.Left="0" Canvas.Bottom="0" Width="3" Height="12" 
-                                           Fill="{DynamicResource AccentBrush}" RadiusX="1" RadiusY="1"
-                                           RenderTransformOrigin="0.5,1">
-                                    <Rectangle.RenderTransform>
-                                        <ScaleTransform ScaleY="1"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="EqBar2" Canvas.Left="5" Canvas.Bottom="0" Width="3" Height="12" 
-                                           Fill="{DynamicResource AccentBrush}" RadiusX="1" RadiusY="1"
-                                           RenderTransformOrigin="0.5,1">
-                                    <Rectangle.RenderTransform>
-                                        <ScaleTransform ScaleY="0.6"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                                <Rectangle x:Name="EqBar3" Canvas.Left="10" Canvas.Bottom="0" Width="3" Height="12" 
-                                           Fill="{DynamicResource AccentBrush}" RadiusX="1" RadiusY="1"
-                                           RenderTransformOrigin="0.5,1">
-                                    <Rectangle.RenderTransform>
-                                        <ScaleTransform ScaleY="0.8"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
-                            </Canvas>
-                            <!-- Static music icon when not playing -->
-                            <TextBlock x:Name="MusicIcon" Text="🎵" FontSize="{DynamicResource CardFontSize}" Margin="0,0,6,0"/>
-                        </StackPanel>
+                        <!-- Left: Equalizer / Music Icon -->
+                        <Border Grid.Column="0" 
+                                Background="{DynamicResource SurfaceHoverBrush}" 
+                                CornerRadius="12" 
+                                Width="24" Height="24" 
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <!-- Animated Equalizer Bars -->
+                                <Canvas x:Name="EqualizerPanel" Width="14" Height="12" Visibility="Collapsed" 
+                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Rectangle x:Name="EqBar1" Canvas.Left="0" Canvas.Bottom="0" Width="3" Height="12" 
+                                               Fill="{DynamicResource AccentBrush}" RadiusX="1.5" RadiusY="1.5"
+                                               RenderTransformOrigin="0.5,1">
+                                        <Rectangle.RenderTransform>
+                                            <ScaleTransform ScaleY="1"/>
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle x:Name="EqBar2" Canvas.Left="5" Canvas.Bottom="0" Width="3" Height="12" 
+                                               Fill="{DynamicResource AccentBrush}" RadiusX="1.5" RadiusY="1.5"
+                                               RenderTransformOrigin="0.5,1">
+                                        <Rectangle.RenderTransform>
+                                            <ScaleTransform ScaleY="0.6"/>
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle x:Name="EqBar3" Canvas.Left="10" Canvas.Bottom="0" Width="3" Height="12" 
+                                               Fill="{DynamicResource AccentBrush}" RadiusX="1.5" RadiusY="1.5"
+                                               RenderTransformOrigin="0.5,1">
+                                        <Rectangle.RenderTransform>
+                                            <ScaleTransform ScaleY="0.8"/>
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Canvas>
+                                <!-- Static music icon when not playing -->
+                                <TextBlock x:Name="MusicIcon" Text="🎵" FontSize="11" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
                         
-                        <!-- Center: Track Info - header on left, scrolling track/artist on the right when collapsed -->
-                        <Grid Grid.Column="1" Margin="0,0,8,0" ClipToBounds="True">
+                        <!-- Center: Track Info -->
+                        <Grid Grid.Column="1" Margin="0,0,8,0" ClipToBounds="True" VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Static label (always visible as a small header) -->
+                            <!-- Static label -->
                             <TextBlock x:Name="NowPlayingHeaderText"
                                        Grid.Column="0"
                                        Text="Now Playing"
-                                       FontSize="{DynamicResource CardFontSize}"
+                                       FontSize="12"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                        VerticalAlignment="Center"
                                        Margin="0,0,8,0"/>
 
-                            <!-- Scrolling track info (shows when collapsed and track exists) -->
-                            <Canvas x:Name="MarqueeContainer" Grid.Column="1" Height="20" Visibility="Collapsed" ClipToBounds="True">
+                            <!-- Scrolling track info -->
+                            <Canvas x:Name="MarqueeContainer" Grid.Column="1" Height="18" Visibility="Collapsed" ClipToBounds="True">
                                 <StackPanel x:Name="MarqueeContent" Orientation="Horizontal" Canvas.Top="0">
                                     <StackPanel.RenderTransform>
                                         <TranslateTransform x:Name="MarqueeTransform" X="0"/>
                                     </StackPanel.RenderTransform>
                                     <TextBlock x:Name="CollapsedTrackTitle"
-                                               FontSize="{DynamicResource CardFontSize}"
+                                               FontSize="12"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    <TextBlock Text=" • "
-                                               FontSize="{DynamicResource CardFontSize}"
+                                    <TextBlock Text="  ·  "
+                                               FontSize="12"
                                                Foreground="{DynamicResource TextTertiaryBrush}"/>
                                     <TextBlock x:Name="CollapsedArtistName"
-                                               FontSize="{DynamicResource CardFontSize}"
+                                               FontSize="12"
                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <!-- Spacer for seamless loop -->
-                                    <TextBlock x:Name="MarqueeSpacer" Text="          " FontSize="{DynamicResource CardFontSize}"/>
+                                    <TextBlock x:Name="MarqueeSpacer" Text="          " FontSize="12"/>
                                 </StackPanel>
                             </Canvas>
                         </Grid>
                         
-                        <!-- Right side: Toggle icon -->
-                        <TextBlock x:Name="NowPlayingToggleIcon" 
-                                   Grid.Column="2"
-                                   Text="▲" 
-                                   FontSize="10" 
-                                   HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        <!-- Right: Chevron toggle -->
+                        <Border Grid.Column="2" 
+                                Background="{DynamicResource SurfaceHoverBrush}" 
+                                CornerRadius="10" 
+                                Width="20" Height="20"
+                                VerticalAlignment="Center">
+                            <TextBlock x:Name="NowPlayingToggleIcon" 
+                                       Text="▲" 
+                                       FontSize="9" 
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </Border>
                     </Grid>
                 </Border>
                 </StackPanel>

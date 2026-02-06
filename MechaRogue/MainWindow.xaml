@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:MechaRogue.ViewModels"
         xmlns:local="clr-namespace:MechaRogue"
         xmlns:controls="clr-namespace:MechaRogue.Controls"
+        xmlns:behaviors="clr-namespace:MechaRogue.Behaviors"
         mc:Ignorable="d"
         Title="MechaRogue - Roguelite Mech Battles" 
         Height="850" Width="1280"
@@ -139,6 +140,27 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        
+        <!-- Mini part template for compact squad display -->
+        <DataTemplate x:Key="PartMiniTemplate">
+            <Border Background="#0a1a30" CornerRadius="3" Padding="3" Margin="1"
+                    Opacity="{Binding IsBroken, Converter={x:Static local:BoolToOpacityConverter.Instance}}"
+                    ToolTip="{Binding Name}">
+                <Grid Height="4">
+                    <Rectangle Fill="#333" RadiusX="2" RadiusY="2"/>
+                    <Rectangle Fill="{StaticResource SuccessBrush}" RadiusX="2" RadiusY="2"
+                               HorizontalAlignment="Left">
+                        <Rectangle.Width>
+                            <MultiBinding Converter="{x:Static local:HealthBarWidthConverter.Instance}">
+                                <Binding Path="CurrentDurability"/>
+                                <Binding Path="MaxDurability"/>
+                                <Binding Source="40"/>
+                            </MultiBinding>
+                        </Rectangle.Width>
+                    </Rectangle>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
     
     <Grid>
@@ -245,11 +267,12 @@
             
             <Grid Grid.Row="1" Margin="12,6">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="70"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="220"/>
                 </Grid.ColumnDefinitions>
                 
+                <!-- Left Panel: Player Squad Info -->
                 <Border Grid.Column="0" Style="{StaticResource CardBorder}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -262,63 +285,45 @@
                             <ItemsControl ItemsSource="{Binding PlayerSquad}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#0a2540" CornerRadius="8" Padding="10" Margin="3"
+                                        <Border Background="#0a2540" CornerRadius="6" Padding="8" Margin="2"
                                                 BorderThickness="2" Cursor="Hand"
-                                                BorderBrush="{Binding IsOperational, Converter={x:Static local:BoolToBorderConverter.Instance}}">
+                                                BorderBrush="{Binding IsOperational, Converter={x:Static local:BoolToBorderConverter.Instance}}"
+                                                behaviors:MechAnimationBehavior.Animation="{Binding CurrentAnimation}"
+                                                behaviors:MechAnimationBehavior.IsEnemy="False">
                                             <Border.InputBindings>
                                                 <MouseBinding MouseAction="LeftClick" 
                                                               Command="{Binding DataContext.SelectMechCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               CommandParameter="{Binding}"/>
                                             </Border.InputBindings>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <!-- Pixel Sprite -->
-                                                <Border Grid.Column="0" Background="#061222" CornerRadius="4" Padding="4" Margin="0,0,10,0"
-                                                        Opacity="{Binding IsOperational, Converter={x:Static local:BoolToOpacityConverter.Instance}}">
-                                                    <controls:PixelSpriteControl Sprite="{Binding Sprite}" PixelScale="3" IsFlipped="{Binding IsFlipped}"
-                                                                                  IsDimmed="{Binding IsOperational, Converter={x:Static local:InverseBoolConverter.Instance}}"/>
-                                                </Border>
-                                                
-                                                <Grid Grid.Column="1">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                                                        <TextBlock Text=" | " Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                        <TextBlock Foreground="{StaticResource WarningBrush}" FontSize="12">
-                                                            <Run Text="ATK:"/><Run Text="{Binding TotalAttack, Mode=OneWay}"/>
-                                                        </TextBlock>
-                                                        <TextBlock Text=" " Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                        <TextBlock Foreground="{StaticResource SuccessBrush}" FontSize="12">
-                                                            <Run Text="DEF:"/><Run Text="{Binding TotalDefense, Mode=OneWay}"/>
-                                                        </TextBlock>
-                                                        <TextBlock Text=" " Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                        <TextBlock Foreground="#60a5fa" FontSize="12">
-                                                            <Run Text="SPD:"/><Run Text="{Binding Speed, Mode=OneWay}"/>
-                                                        </TextBlock>
-                                                    </StackPanel>
-                                                    <Grid Grid.Row="1" Margin="0,5,0,3">
-                                                        <ProgressBar Height="8" Minimum="0" Maximum="100" Value="{Binding MedaforceCharge}"
-                                                                     Foreground="{StaticResource PurpleBrush}" Background="#333"/>
-                                                        <TextBlock Text="{Binding MedaforceCharge, StringFormat=MF:{0}}" 
-                                                                   Foreground="White" FontSize="8" FontWeight="Bold"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Grid>
-                                                    <UniformGrid Grid.Row="2" Columns="2">
-                                                        <ContentControl Content="{Binding Head}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                        <ContentControl Content="{Binding Legs}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                        <ContentControl Content="{Binding RightArm}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                        <ContentControl Content="{Binding LeftArm}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                    </UniformGrid>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                    <TextBlock Foreground="{StaticResource WarningBrush}" FontSize="10">
+                                                        <Run Text="ATK:"/><Run Text="{Binding TotalAttack, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" " Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <TextBlock Foreground="{StaticResource SuccessBrush}" FontSize="10">
+                                                        <Run Text="DEF:"/><Run Text="{Binding TotalDefense, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" " Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <TextBlock Foreground="#60a5fa" FontSize="10">
+                                                        <Run Text="SPD:"/><Run Text="{Binding Speed, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <Grid Margin="0,4,0,0">
+                                                    <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding MedaforceCharge, Mode=OneWay}"
+                                                                 Foreground="{StaticResource PurpleBrush}" Background="#333"/>
+                                                    <TextBlock Text="{Binding MedaforceCharge, StringFormat=MF:{0}, Mode=OneWay}" 
+                                                               Foreground="White" FontSize="7" FontWeight="Bold"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Grid>
-                                            </Grid>
+                                                <UniformGrid Columns="4" Margin="0,4,0,0">
+                                                    <ContentControl Content="{Binding Head}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                    <ContentControl Content="{Binding RightArm}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                    <ContentControl Content="{Binding LeftArm}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                    <ContentControl Content="{Binding Legs}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                </UniformGrid>
+                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -327,10 +332,26 @@
                     </Grid>
                 </Border>
                 
-                <TextBlock Grid.Column="1" Text="VS" FontSize="28" FontWeight="Black" 
-                           Foreground="{StaticResource AccentBrush}"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- Center: Battlefield -->
+                <Border Grid.Column="1" Style="{StaticResource CardBorder}" Margin="8,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="BATTLEFIELD" FontSize="14" FontWeight="Bold" 
+                                   Foreground="{StaticResource AccentBrush}" Margin="0,0,0,8"
+                                   HorizontalAlignment="Center"/>
+                        <controls:BattlefieldControl x:Name="Battlefield" Grid.Row="1"
+                            PlayerSquad="{Binding PlayerSquad}"
+                            EnemySquad="{Binding EnemySquad}"
+                            SelectedPlayerMech="{Binding SelectedPlayerMech}"
+                            SelectedTargetMech="{Binding SelectedTargetMech}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
                 
+                <!-- Right Panel: Enemy Squad Info -->
                 <Border Grid.Column="2" Style="{StaticResource CardBorder}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -343,56 +364,38 @@
                             <ItemsControl ItemsSource="{Binding EnemySquad}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#400a1a" CornerRadius="8" Padding="10" Margin="3"
+                                        <Border Background="#400a1a" CornerRadius="6" Padding="8" Margin="2"
                                                 BorderThickness="2" Cursor="Hand"
-                                                BorderBrush="{Binding IsOperational, Converter={x:Static local:BoolToDangerBorderConverter.Instance}}">
+                                                BorderBrush="{Binding IsOperational, Converter={x:Static local:BoolToDangerBorderConverter.Instance}}"
+                                                behaviors:MechAnimationBehavior.Animation="{Binding CurrentAnimation}"
+                                                behaviors:MechAnimationBehavior.IsEnemy="True">
                                             <Border.InputBindings>
                                                 <MouseBinding MouseAction="LeftClick" 
                                                               Command="{Binding DataContext.SelectTargetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               CommandParameter="{Binding}"/>
                                             </Border.InputBindings>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <!-- Pixel Sprite -->
-                                                <Border Grid.Column="0" Background="#220a0a" CornerRadius="4" Padding="4" Margin="0,0,10,0"
-                                                        Opacity="{Binding IsOperational, Converter={x:Static local:BoolToOpacityConverter.Instance}}">
-                                                    <controls:PixelSpriteControl Sprite="{Binding Sprite}" PixelScale="3" IsFlipped="{Binding IsFlipped}"
-                                                                                  IsDimmed="{Binding IsOperational, Converter={x:Static local:InverseBoolConverter.Instance}}"/>
-                                                </Border>
-                                                
-                                                <Grid Grid.Column="1">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                                                        <TextBlock Text=" | " Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                        <TextBlock Foreground="{StaticResource WarningBrush}" FontSize="12">
-                                                            <Run Text="ATK:"/><Run Text="{Binding TotalAttack, Mode=OneWay}"/>
-                                                        </TextBlock>
-                                                        <TextBlock Text=" " Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                        <TextBlock Foreground="{StaticResource SuccessBrush}" FontSize="12">
-                                                            <Run Text="DEF:"/><Run Text="{Binding TotalDefense, Mode=OneWay}"/>
-                                                        </TextBlock>
-                                                    </StackPanel>
-                                                    <Grid Grid.Row="1" Margin="0,5,0,3">
-                                                        <ProgressBar Height="8" Minimum="0" Maximum="100" Value="{Binding MedaforceCharge}"
-                                                                     Foreground="{StaticResource PurpleBrush}" Background="#333"/>
-                                                    </Grid>
-                                                    <UniformGrid Grid.Row="2" Columns="2">
-                                                        <ContentControl Content="{Binding Head}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                        <ContentControl Content="{Binding Legs}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                        <ContentControl Content="{Binding RightArm}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                        <ContentControl Content="{Binding LeftArm}" ContentTemplate="{StaticResource PartTemplate}"/>
-                                                    </UniformGrid>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                    <TextBlock Foreground="{StaticResource WarningBrush}" FontSize="10">
+                                                        <Run Text="ATK:"/><Run Text="{Binding TotalAttack, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" " Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <TextBlock Foreground="{StaticResource SuccessBrush}" FontSize="10">
+                                                        <Run Text="DEF:"/><Run Text="{Binding TotalDefense, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <Grid Margin="0,4,0,0">
+                                                    <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding MedaforceCharge, Mode=OneWay}"
+                                                                 Foreground="{StaticResource PurpleBrush}" Background="#333"/>
                                                 </Grid>
-                                            </Grid>
+                                                <UniformGrid Columns="4" Margin="0,4,0,0">
+                                                    <ContentControl Content="{Binding Head}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                    <ContentControl Content="{Binding RightArm}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                    <ContentControl Content="{Binding LeftArm}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                    <ContentControl Content="{Binding Legs}" ContentTemplate="{StaticResource PartMiniTemplate}"/>
+                                                </UniformGrid>
+                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>

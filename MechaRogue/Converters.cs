@@ -190,3 +190,27 @@ public class IndexToBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }
+
+/// <summary>
+/// Converts current/max durability to a width for the health bar.
+/// </summary>
+public class HealthBarWidthConverter : IMultiValueConverter
+{
+    public static readonly HealthBarWidthConverter Instance = new();
+    
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (values.Length >= 3 
+            && values[0] is int current 
+            && values[1] is int max 
+            && max > 0)
+        {
+            var maxWidth = values[2] is string s && double.TryParse(s, out var w) ? w : 40.0;
+            return Math.Max(0, (double)current / max * maxWidth);
+        }
+        return 0.0;
+    }
+    
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}

@@ -19,6 +19,17 @@ public enum GameScreen
 }
 
 /// <summary>
+/// Event args for attack animation requests.
+/// </summary>
+public class AttackAnimationEventArgs : EventArgs
+{
+    public required MechViewModel Attacker { get; init; }
+    public required MechViewModel Target { get; init; }
+    public bool IsCritical { get; init; }
+    public bool PartDestroyed { get; init; }
+}
+
+/// <summary>
 /// Main ViewModel for the battle screen.
 /// </summary>
 public partial class BattleViewModel : ObservableObject
@@ -27,6 +38,12 @@ public partial class BattleViewModel : ObservableObject
     private readonly SoundService _soundService = new();
     private readonly Random _rng = new();
     private readonly DispatcherTimer _autoBattleTimer;
+    
+    /// <summary>Event raised when an attack animation should play.</summary>
+    public event EventHandler<AttackAnimationEventArgs>? AttackAnimationRequested;
+    
+    /// <summary>Event raised when battlefield should refresh mechs.</summary>
+    public event EventHandler? BattlefieldRefreshRequested;
     
     [ObservableProperty]
     private GameScreen _currentScreen = GameScreen.Title;
@@ -430,6 +447,9 @@ public partial class BattleViewModel : ObservableObject
         AddLog($"=== Floor {CurrentFloor}/{MaxFloors} ===");
         AddLog($"Enemies appeared: {string.Join(", ", enemies.Select(e => e.Name))}");
         StatusMessage = "Your turn! Select an action.";
+        
+        // Notify battlefield to refresh
+        BattlefieldRefreshRequested?.Invoke(this, EventArgs.Empty);
     }
     
     [RelayCommand]
@@ -446,12 +466,16 @@ public partial class BattleViewModel : ObservableObject
             return;
         }
         
+        // Play attack animation
+        SelectedPlayerMech.PlayAnimation(MechAnimation.Attack);
+        
         _soundService.Play(SoundEffect.Attack);
         var result = _battleService.ExecuteAttack(attacker, attacker.RightArm, target);
         AddLog(result.Description);
         
-        if (result.PartDestroyed) _soundService.Play(SoundEffect.PartBreak);
-        if (result.IsCritical) _soundService.Play(SoundEffect.Critical);
+        // Play battlefield and damage animations
+        RaiseAttackAnimation(SelectedPlayerMech, SelectedTargetMech, result);
+        PlayDamageAnimation(SelectedTargetMech, result);
         
         RefreshAll();
         EndPlayerTurn();
@@ -471,12 +495,16 @@ public partial class BattleViewModel : ObservableObject
             return;
         }
         
+        // Play attack animation
+        SelectedPlayerMech.PlayAnimation(MechAnimation.Attack);
+        
         _soundService.Play(SoundEffect.Attack);
         var result = _battleService.ExecuteAttack(attacker, attacker.LeftArm, target);
         AddLog(result.Description);
         
-        if (result.PartDestroyed) _soundService.Play(SoundEffect.PartBreak);
-        if (result.IsCritical) _soundService.Play(SoundEffect.Critical);
+        // Play battlefield and damage animations
+        RaiseAttackAnimation(SelectedPlayerMech, SelectedTargetMech, result);
+        PlayDamageAnimation(SelectedTargetMech, result);
         
         RefreshAll();
         EndPlayerTurn();
@@ -504,15 +532,34 @@ public partial class BattleViewModel : ObservableObject
         
         attacker.MedaforceCharge -= attacker.Head.SpecialCost;
         
+        // Play attack animation
+        SelectedPlayerMech.PlayAnimation(MechAnimation.Attack);
+        
         _soundService.Play(SoundEffect.Special);
         var result = _battleService.ExecuteAttack(attacker, attacker.Head, target);
         AddLog($"{attacker.Name} uses {attacker.Head.SpecialAbility}!");
         AddLog(result.Description);
         
-        if (result.PartDestroyed) _soundService.Play(SoundEffect.PartBreak);
+        // Play battlefield and damage animations
+        RaiseAttackAnimation(SelectedPlayerMech, SelectedTargetMech, result);
+        PlayDamageAnimation(SelectedTargetMech, result);
         
         RefreshAll();
         EndPlayerTurn();
+    }
+    
+    /// <summary>Raises the attack animation event for the battlefield.</summary>
+    private void RaiseAttackAnimation(MechViewModel attacker, MechViewModel? target, ActionResult result)
+    {
+        if (target == null) return;
+        
+        AttackAnimationRequested?.Invoke(this, new AttackAnimationEventArgs
+        {
+            Attacker = attacker,
+            Target = target,
+            IsCritical = result.IsCritical,
+            PartDestroyed = result.PartDestroyed
+        });
     }
     
     [RelayCommand]
@@ -535,6 +582,7 @@ public partial class BattleViewModel : ObservableObject
         if (mech != null && mech.IsOperational)
         {
             SelectedPlayerMech = mech;
+            mech.PlayAnimation(MechAnimation.Selected);
             _soundService.Play(SoundEffect.Select);
         }
     }
@@ -545,6 +593,7 @@ public partial class BattleViewModel : ObservableObject
         if (target != null && target.IsOperational)
         {
             SelectedTargetMech = target;
+            target.PlayAnimation(MechAnimation.Selected);
             _soundService.Play(SoundEffect.Select);
         }
     }
@@ -609,9 +658,15 @@ public partial class BattleViewModel : ObservableObject
             
             if (attackPart != null)
             {
+                // Play attack and damage animations
+                enemyVm.PlayAnimation(MechAnimation.Attack);
+                
                 var result = _battleService.ExecuteAttack(enemy, attackPart, playerTarget.Model);
                 AddLog(result.Description);
-                if (result.PartDestroyed) _soundService.Play(SoundEffect.PartBreak);
+                
+                // Play battlefield and damage animations
+                RaiseAttackAnimation(enemyVm, playerTarget, result);
+                PlayDamageAnimation(playerTarget, result);
             }
         }
         
@@ -622,6 +677,32 @@ public partial class BattleViewModel : ObservableObject
         IsPlayerTurn = true;
         StatusMessage = "Your turn! Select an action.";
         SaveRunState();
+    }
+    
+    /// <summary>Plays appropriate damage animation based on attack result.</summary>
+    private void PlayDamageAnimation(MechViewModel? target, ActionResult result)
+    {
+        if (target == null) return;
+        
+        if (!target.IsOperational)
+        {
+            target.PlayAnimation(MechAnimation.Destroyed);
+            _soundService.Play(SoundEffect.PartBreak);
+        }
+        else if (result.PartDestroyed)
+        {
+            target.PlayAnimation(MechAnimation.PartBreak);
+            _soundService.Play(SoundEffect.PartBreak);
+        }
+        else if (result.IsCritical)
+        {
+            target.PlayAnimation(MechAnimation.Critical);
+            _soundService.Play(SoundEffect.Critical);
+        }
+        else
+        {
+            target.PlayAnimation(MechAnimation.Damage);
+        }
     }
     
     private bool CheckBattleEnd()
