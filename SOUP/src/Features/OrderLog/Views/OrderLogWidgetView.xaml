@@ -1533,10 +1533,10 @@
                     <Button Click="AddBlankOrder_Click" Grid.Column="0"
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
                             <Grid Width="26" Height="26" Margin="0,0,8,0">
                                 <Ellipse Fill="{DynamicResource AccentBrush}"/>
-                                <TextBlock Text="+" FontSize="18" FontWeight="Bold" 
+                                <TextBlock Text="+" FontSize="18" FontWeight="Bold" Margin="0,-2,0,0"
                                            VerticalAlignment="Center" HorizontalAlignment="Center"
                                            Foreground="{DynamicResource TextOnPrimaryBrush}"/>
                             </Grid>
@@ -1549,7 +1549,7 @@
                     <Button Click="AddBlankNote_Click" Grid.Column="2"
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource InverseBoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
                             <Grid Width="26" Height="26" Margin="0,0,8,0">
                                 <Ellipse Fill="{DynamicResource WarningBrush}"/>
                                 <TextBlock Text="📝" FontSize="13" 
@@ -1564,7 +1564,7 @@
                     <Button Click="AddBlankNote_Click" Grid.Column="0" Grid.ColumnSpan="3"
                             Visibility="{Binding NotesOnlyMode, Converter={StaticResource BoolToVis}}"
                             Style="{StaticResource ModernPillButtonStyle}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
                             <Grid Width="26" Height="26" Margin="0,0,8,0">
                                 <Ellipse Fill="{DynamicResource WarningBrush}"/>
                                 <TextBlock Text="📝" FontSize="13" 

@@ -4705,11 +4705,6 @@
             Gets whether the OrderLog module is enabled.
             </summary>
         </member>
-        <member name="P:SOUP.Services.ModuleConfiguration.FunStuffEnabled">
-            <summary>
-            Gets whether Fun Stuff (Easter eggs) are enabled.
-            </summary>
-        </member>
         <member name="P:SOUP.Services.ModuleConfiguration.InstalledVersion">
             <summary>
             Gets the installed version from the configuration.

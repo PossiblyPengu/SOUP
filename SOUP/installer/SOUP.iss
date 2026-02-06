@@ -87,7 +87,6 @@ Name: "modules\swiftlabel"; Description: "Swift Label - Quick label printing uti
 Name: "modules\orderlog"; Description: "Order Log - Order tracking and history"; Types: full
 ; Extras
 Name: "extras"; Description: "Extras"; Types: full
-Name: "extras\funstuff"; Description: "Fun Stuff - Easter eggs and hidden features"; Types: full; Flags: dontinheritcheck
 Name: "extras\sampledata"; Description: "Sample data files"; Types: full; Flags: dontinheritcheck
 Name: "extras\templates"; Description: "Excel/CSV templates"; Types: full; Flags: dontinheritcheck
 
@@ -110,7 +109,6 @@ Source: "modules\essentials.enabled"; DestDir: "{app}\modules"; Components: modu
 Source: "modules\expirewise.enabled"; DestDir: "{app}\modules"; Components: modules\expirewise; Flags: ignoreversion
 Source: "modules\swiftlabel.enabled"; DestDir: "{app}\modules"; Components: modules\swiftlabel; Flags: ignoreversion
 Source: "modules\orderlog.enabled"; DestDir: "{app}\modules"; Components: modules\orderlog; Flags: ignoreversion
-Source: "modules\funstuff.enabled"; DestDir: "{app}\modules"; Components: extras\funstuff; Flags: ignoreversion
 
 ; Sample data (optional)
 ; Source: "..\sample-data\*"; DestDir: "{app}\SampleData"; Components: extras\sampledata; Flags: ignoreversion recursesubdirs

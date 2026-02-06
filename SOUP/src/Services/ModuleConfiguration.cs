@@ -54,11 +54,6 @@ public class ModuleConfiguration
     public bool OrderLogEnabled { get; private set; } = true;
 
     /// <summary>
-    /// Gets whether Fun Stuff (Easter eggs) are enabled.
-    /// </summary>
-    public bool FunStuffEnabled { get; private set; } = true;
-
-    /// <summary>
     /// Gets the installed version from the configuration.
     /// </summary>
     public string? InstalledVersion { get; private set; }
@@ -142,17 +137,11 @@ public class ModuleConfiguration
 
             if (modulesProp.TryGetProperty("orderLog", out var ol))
                 OrderLogEnabled = ol.GetBoolean();
-
-            // Check both old and new key names for Easter egg
-            if (modulesProp.TryGetProperty("sapNukem", out var sn))
-                FunStuffEnabled = sn.GetBoolean();
-            else if (modulesProp.TryGetProperty("funStuff", out var fs))
-                FunStuffEnabled = fs.GetBoolean();
         }
 
-        Log.Information("Loaded module config (JSON): AB={AB}, EB={EB}, EW={EW}, SL={SL}, OL={OL}, Fun={Fun}",
+        Log.Information("Loaded module config (JSON): AB={AB}, EB={EB}, EW={EW}, SL={SL}, OL={OL}",
             AllocationBuddyEnabled, EssentialsBuddyEnabled, ExpireWiseEnabled,
-            SwiftLabelEnabled, OrderLogEnabled, FunStuffEnabled);
+            SwiftLabelEnabled, OrderLogEnabled);
     }
 
     /// <summary>
@@ -211,9 +200,6 @@ public class ModuleConfiguration
                             case "OrderLog":
                                 OrderLogEnabled = ParseBool(value, true);
                                 break;
-                            case "FunStuff":
-                                FunStuffEnabled = ParseBool(value, true);
-                                break;
                         }
                     }
                     else if (currentSection == "Info")
@@ -240,7 +226,6 @@ public class ModuleConfiguration
             ExpireWiseEnabled = true;
             SwiftLabelEnabled = true;
             OrderLogEnabled = true;
-            FunStuffEnabled = true;
         }
     }
 
@@ -289,7 +274,6 @@ public class ModuleConfiguration
                 $"ExpireWise={ExpireWiseEnabled.ToString().ToLowerInvariant()}",
                 $"SwiftLabel={SwiftLabelEnabled.ToString().ToLowerInvariant()}",
                 $"OrderLog={OrderLogEnabled.ToString().ToLowerInvariant()}",
-                $"FunStuff={FunStuffEnabled.ToString().ToLowerInvariant()}",
                 "",
                 "[Info]",
                 $"InstalledVersion={InstalledVersion ?? "unknown"}",
@@ -328,9 +312,6 @@ public class ModuleConfiguration
                 break;
             case "OrderLog":
                 OrderLogEnabled = enabled;
-                break;
-            case "FunStuff":
-                FunStuffEnabled = enabled;
                 break;
         }
     }

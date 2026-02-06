@@ -7,9 +7,9 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="Height" Value="44"/>
+        <Setter Property="Height" Value="48"/>
         <Setter Property="MinWidth" Value="130"/>
-        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="Padding" Value="12,10"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
