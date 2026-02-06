@@ -24,6 +24,7 @@
             
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <commonConverters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <commonConverters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
         <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
         <converters:StatusToCardBrushConverter x:Key="StatusToCardBrushConverter"/>
         <converters:ShowForOrdersConverter x:Key="ShowForOrdersConverter"/>
@@ -300,7 +301,7 @@
                                     Margin="0,0,8,0"
                                     VerticalAlignment="Center"
                                     ToolTip="This order is linked with other orders"
-                                    Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}">
+                                    Visibility="{Binding LinkedItemCount, Converter={StaticResource IntToVisibilityConverter}}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🔗" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding LinkedItemCount}"
@@ -1996,7 +1997,7 @@
                                     <!-- Content -->
                                     <StackPanel Grid.Row="2" Margin="16,14">
                                         <TextBlock Text="🔗" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   Visibility="{Binding LinkedGroupId, Converter={StaticResource LinkedGroupToVisibilityConverter}}"/>
+                                                   Visibility="{Binding LinkedItemCount, Converter={StaticResource IntToVisibilityConverter}}"/>
                                         <!-- Vendor/title moved into header; remove duplicate fields from body -->
 
                                         <!-- ORDER FIELDS (hidden for sticky notes) -->

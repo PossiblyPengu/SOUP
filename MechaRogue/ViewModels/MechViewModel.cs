@@ -11,10 +11,14 @@ namespace MechaRogue.ViewModels;
 public partial class MechViewModel : ObservableObject
 {
     private readonly Mech _mech;
+    private readonly bool _isEnemy;
+    private readonly int _floor;
     
-    public MechViewModel(Mech mech)
+    public MechViewModel(Mech mech, bool isEnemy = false, int floor = 1)
     {
         _mech = mech;
+        _isEnemy = isEnemy;
+        _floor = floor;
     }
     
     public Mech Model => _mech;
@@ -29,6 +33,14 @@ public partial class MechViewModel : ObservableObject
     public Part? RightArm => _mech.RightArm;
     public Part? LeftArm => _mech.LeftArm;
     public Part? Legs => _mech.Legs;
+    
+    /// <summary>Gets the pixel sprite for this mech.</summary>
+    public PixelSprite Sprite => _isEnemy 
+        ? MechSprites.GetEnemySprite(_mech.Name, _floor)
+        : MechSprites.GetPlayerSprite(_mech.Name);
+    
+    /// <summary>Whether to flip the sprite horizontally (enemies face left).</summary>
+    public bool IsFlipped => _isEnemy;
     
     public void Refresh()
     {

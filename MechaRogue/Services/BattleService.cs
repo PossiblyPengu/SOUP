@@ -157,21 +157,10 @@ public class BattleService
             };
             
             // Equip random parts appropriate for floor
-            mech.Head = PartCatalog.GetRandomDrop(floor, _rng);
-            while (mech.Head.Slot != PartSlot.Head)
-                mech.Head = PartCatalog.GetRandomDrop(floor, _rng);
-                
-            mech.RightArm = PartCatalog.GetRandomDrop(floor, _rng);
-            while (mech.RightArm.Slot != PartSlot.RightArm)
-                mech.RightArm = PartCatalog.GetRandomDrop(floor, _rng);
-                
-            mech.LeftArm = PartCatalog.GetRandomDrop(floor, _rng);
-            while (mech.LeftArm.Slot != PartSlot.LeftArm)
-                mech.LeftArm = PartCatalog.GetRandomDrop(floor, _rng);
-                
-            mech.Legs = PartCatalog.GetRandomDrop(floor, _rng);
-            while (mech.Legs.Slot != PartSlot.Legs)
-                mech.Legs = PartCatalog.GetRandomDrop(floor, _rng);
+            mech.EquipPart(PartCatalog.GetRandomDropBySlot(PartSlot.Head, floor, _rng));
+            mech.EquipPart(PartCatalog.GetRandomDropBySlot(PartSlot.RightArm, floor, _rng));
+            mech.EquipPart(PartCatalog.GetRandomDropBySlot(PartSlot.LeftArm, floor, _rng));
+            mech.EquipPart(PartCatalog.GetRandomDropBySlot(PartSlot.Legs, floor, _rng));
             
             squad.Add(mech);
         }
