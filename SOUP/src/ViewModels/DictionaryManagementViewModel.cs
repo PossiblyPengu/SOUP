@@ -1040,7 +1040,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             
             // Notify subscribers that dictionary data has changed
             if (imported > 0 || updated > 0)
-                DictionaryDataChanged?.Invoke(this, EventArgs.Empty);
+                DictionaryDataChanged?.Invoke(null, EventArgs.Empty);
         }
         catch (Exception ex)
         {
@@ -1183,7 +1183,7 @@ public partial class DictionaryManagementViewModel : ObservableObject, IDisposab
             
             // Notify subscribers that dictionary data has changed
             if (imported > 0 || updated > 0)
-                DictionaryDataChanged?.Invoke(this, EventArgs.Empty);
+                DictionaryDataChanged?.Invoke(null, EventArgs.Empty);
         }
         catch (Exception ex)
         {

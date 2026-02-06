@@ -3352,7 +3352,7 @@
     <!-- Card styles used by OrderLog views (centralized to avoid missing StaticResource at load) -->
     <sys:Double x:Key="CardWidth">320</sys:Double>
     <Thickness x:Key="CardMargin">0,0,16,16</Thickness>
-    <CornerRadius x:Key="CardCornerRadius">10</CornerRadius>
+    <!-- CardCornerRadius is defined in theme files (DarkTheme/LightTheme) -->
     <sys:Double x:Key="CardColorBarHeight">8</sys:Double>
     <Thickness x:Key="CardPadding">16,12,16,12</Thickness>
     <sys:Double x:Key="CardFontSize">13</sys:Double>
@@ -3360,7 +3360,7 @@
     <Style x:Key="CardBorderStyle" TargetType="Border">
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource CardCornerRadius}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
         <Setter Property="Width" Value="{StaticResource CardWidth}" />
         <Setter Property="Margin" Value="{StaticResource CardMargin}" />
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />

@@ -29,7 +29,7 @@
     <CornerRadius x:Key="AppLogoCornerRadius">12</CornerRadius>
     <CornerRadius x:Key="SplashIconCornerRadius">24</CornerRadius>
     <CornerRadius x:Key="BadgeCornerRadius">10</CornerRadius>
-    <CornerRadius x:Key="CardCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">8</CornerRadius>
 
     <!-- ============================= -->
     <!-- MODERN THEMED ICONS           -->

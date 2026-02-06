@@ -3,9 +3,10 @@
 
     <!-- Modern Pill Button Style -->
     <Style x:Key="ModernPillButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="Height" Value="44"/>
         <Setter Property="MinWidth" Value="130"/>
         <Setter Property="Padding" Value="20,10"/>
@@ -18,6 +19,8 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Border"
                             Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="22"
                             Padding="{TemplateBinding Padding}">
                         <Border.RenderTransform>
@@ -28,15 +31,16 @@
                         </Border.RenderTransformOrigin>
                         <Border.Effect>
                             <DropShadowEffect x:Name="Shadow"
-                                            Color="#20000000"
+                                            Color="#000000"
                                             BlurRadius="8"
-                                            ShadowDepth="2"
-                                            Opacity="0"/>
+                                            ShadowDepth="0"
+                                            Opacity="0.08"/>
                         </Border.Effect>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -48,7 +52,7 @@
                                                        To="1.02" Duration="0:0:0.15"/>
                                         <DoubleAnimation Storyboard.TargetName="Shadow"
                                                        Storyboard.TargetProperty="Opacity"
-                                                       To="0.3" Duration="0:0:0.15"/>
+                                                       To="0.15" Duration="0:0:0.15"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
@@ -63,7 +67,7 @@
                                                        To="1" Duration="0:0:0.15"/>
                                         <DoubleAnimation Storyboard.TargetName="Shadow"
                                                        Storyboard.TargetProperty="Opacity"
-                                                       To="0" Duration="0:0:0.15"/>
+                                                       To="0.08" Duration="0:0:0.15"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>

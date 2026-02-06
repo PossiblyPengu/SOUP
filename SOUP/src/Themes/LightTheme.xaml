@@ -32,7 +32,7 @@
     <CornerRadius x:Key="AppLogoCornerRadius">8</CornerRadius>
     <CornerRadius x:Key="SplashIconCornerRadius">12</CornerRadius>
     <CornerRadius x:Key="BadgeCornerRadius">4</CornerRadius>
-    <CornerRadius x:Key="CardCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="CardCornerRadius">8</CornerRadius>
 
     <!-- ============================= -->
     <!-- MODULE ICONS                  -->
@@ -56,36 +56,37 @@
     <!-- LIGHT THEME COLORS            -->
     <!-- ============================= -->
     <!-- Windows 11 WinUI 3 Light Theme Palette -->
+    <!-- Softened to reduce eye strain -->
     
     <!-- Solid Background Colors (Mica-like) -->
-    <Color x:Key="SolidBackgroundFillColorBase">#F3F3F3</Color>
-    <Color x:Key="SolidBackgroundFillColorSecondary">#EEEEEE</Color>
-    <Color x:Key="SolidBackgroundFillColorTertiary">#F9F9F9</Color>
-    <Color x:Key="SolidBackgroundFillColorQuarternary">#FFFFFF</Color>
+    <Color x:Key="SolidBackgroundFillColorBase">#EAEAEA</Color>
+    <Color x:Key="SolidBackgroundFillColorSecondary">#E5E5E5</Color>
+    <Color x:Key="SolidBackgroundFillColorTertiary">#F0F0F0</Color>
+    <Color x:Key="SolidBackgroundFillColorQuarternary">#F5F5F5</Color>
     
     <!-- Layer Colors (for elevated surfaces) -->
-    <Color x:Key="LayerFillColorDefault">#80FFFFFF</Color>
-    <Color x:Key="LayerFillColorAlt">#FFFFFF</Color>
-    <Color x:Key="LayerOnMicaBaseAltFillColorDefault">#B3FFFFFF</Color>
+    <Color x:Key="LayerFillColorDefault">#80FAFAFA</Color>
+    <Color x:Key="LayerFillColorAlt">#F8F8F8</Color>
+    <Color x:Key="LayerOnMicaBaseAltFillColorDefault">#B3F5F5F5</Color>
     
     <!-- Card/Surface Colors -->
-    <Color x:Key="CardBackgroundFillColorDefault">#B3FFFFFF</Color>
-    <Color x:Key="CardBackgroundFillColorSecondary">#80F6F6F6</Color>
+    <Color x:Key="CardBackgroundFillColorDefault">#B3F8F8F8</Color>
+    <Color x:Key="CardBackgroundFillColorSecondary">#80EFEFEF</Color>
     
     <!-- Neutral/Surface Colors (WinUI 3 standard) -->
-    <Color x:Key="BackgroundColor">#F3F3F3</Color>
-    <Color x:Key="SurfaceColor">#FAFAFA</Color>
-    <Color x:Key="SurfaceHoverColor">#F0F0F0</Color>
-    <Color x:Key="SurfaceActiveColor">#E5E5E5</Color>
+    <Color x:Key="BackgroundColor">#EAEAEA</Color>
+    <Color x:Key="SurfaceColor">#F2F2F2</Color>
+    <Color x:Key="SurfaceHoverColor">#E8E8E8</Color>
+    <Color x:Key="SurfaceActiveColor">#DEDEDE</Color>
     <Color x:Key="SurfaceStrokeColor">#0F000000</Color>
     
     <!-- Control Fill Colors -->
-    <Color x:Key="ControlFillColorDefault">#B3FFFFFF</Color>
-    <Color x:Key="ControlFillColorSecondary">#80F9F9F9</Color>
-    <Color x:Key="ControlFillColorTertiary">#4DF9F9F9</Color>
-    <Color x:Key="ControlFillColorDisabled">#4DF9F9F9</Color>
+    <Color x:Key="ControlFillColorDefault">#B3F8F8F8</Color>
+    <Color x:Key="ControlFillColorSecondary">#80F2F2F2</Color>
+    <Color x:Key="ControlFillColorTertiary">#4DF2F2F2</Color>
+    <Color x:Key="ControlFillColorDisabled">#4DF2F2F2</Color>
     <Color x:Key="ControlFillColorTransparent">#00FFFFFF</Color>
-    <Color x:Key="ControlFillColorInputActive">#FFFFFF</Color>
+    <Color x:Key="ControlFillColorInputActive">#FAFAFA</Color>
     
     <!-- Control Stroke Colors -->
     <Color x:Key="ControlStrokeColorDefault">#0F000000</Color>
@@ -139,9 +140,9 @@
     <Color x:Key="AccentLightColor">#CCE4F7</Color>
     
     <!-- Sidebar Colors -->
-    <Color x:Key="SidebarBackgroundColor">#F9F9F9</Color>
-    <Color x:Key="SidebarHoverColor">#F0F0F0</Color>
-    <Color x:Key="SidebarActiveColor">#E5F1FB</Color>
+    <Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
+    <Color x:Key="SidebarHoverColor">#E8E8E8</Color>
+    <Color x:Key="SidebarActiveColor">#DCE9F5</Color>
     
     <!-- System Status Colors (Windows 11 standard) -->
     <Color x:Key="SystemFillColorSuccess">#0F7B0F</Color>
