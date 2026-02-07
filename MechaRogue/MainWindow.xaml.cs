@@ -1,86 +1,44 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
-using MechaRogue.Controls;
 using MechaRogue.ViewModels;
 
 namespace MechaRogue;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window
 {
+    private readonly GameViewModel _vm;
+
     public MainWindow()
     {
         InitializeComponent();
-        
-        Loaded += OnLoaded;
-    }
-    
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        // Wire up battlefield events
-        if (Battlefield != null)
+        _vm = new GameViewModel();
+        DataContext = _vm;
+
+        // Auto-scroll battle log
+        _vm.BattleLog.CollectionChanged += (_, _) =>
         {
-            Battlefield.MechSelected += OnBattlefieldMechSelected;
-        }
-        
-        // Subscribe to attack events from ViewModel
-        if (DataContext is BattleViewModel vm)
+            if (BattleLogBox.Items.Count > 0)
+                BattleLogBox.ScrollIntoView(BattleLogBox.Items[^1]);
+        };
+
+        // Play battlefield animations on each resolved action
+        _vm.OnActionResolved += result => Dispatcher.Invoke(() =>
         {
-            vm.AttackAnimationRequested += OnAttackAnimationRequested;
-            vm.BattlefieldRefreshRequested += OnBattlefieldRefreshRequested;
-            
-            // Initial refresh
-            Battlefield?.RefreshMechs();
-        }
-    }
-    
-    private void OnBattlefieldRefreshRequested(object? sender, EventArgs e)
-    {
-        Battlefield?.RefreshMechs();
-    }
-    
-    private void OnBattlefieldMechSelected(object? sender, MechViewModel mech)
-    {
-        if (DataContext is not BattleViewModel vm) return;
-        
-        if (mech.IsEnemy)
+            BattleArena.PlayActionResult(result);
+            RefreshBindings();
+        });
+
+        // Redraw battlefield when screen changes (e.g. entering battle)
+        _vm.OnScreenChanged += screen => Dispatcher.Invoke(() =>
         {
-            vm.SelectTargetCommand.Execute(mech);
-        }
-        else
-        {
-            vm.SelectMechCommand.Execute(mech);
-        }
+            if (screen == "Battle")
+                BattleArena.RedrawScene();
+            RefreshBindings();
+        });
     }
-    
-    private void OnAttackAnimationRequested(object? sender, AttackAnimationEventArgs e)
+
+    private void RefreshBindings()
     {
-        Battlefield?.AnimateAttack(e.Attacker, e.Target, e.IsCritical, e.PartDestroyed);
-    }
-    
-    private void SpeedComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is BattleViewModel vm && sender is ComboBox combo)
-        {
-            vm.AutoBattleSpeed = combo.SelectedIndex switch
-            {
-                0 => 800,  // Slow
-                1 => 500,  // Normal  
-                2 => 200,  // Fast
-                3 => 50,   // Turbo
-                _ => 500
-            };
-        }
+        // Re-trigger binding updates for the deep model objects
+        DataContext = null;
+        DataContext = _vm;
     }
 }

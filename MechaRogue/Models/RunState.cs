@@ -1,34 +1,43 @@
 namespace MechaRogue.Models;
 
 /// <summary>
-/// Tracks the current state of a roguelite run.
+/// Represents a node on the roguelike run map.
+/// </summary>
+public enum NodeType
+{
+    Battle,
+    EliteBattle,
+    Shop,
+    Rest,
+    Event,
+    Boss
+}
+
+public class RunNode
+{
+    public int Id { get; init; }
+    public NodeType Type { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public int Depth { get; init; }           // floor level
+    public List<int> NextNodes { get; init; } = [];
+    public bool Visited { get; set; }
+    public bool IsCurrent { get; set; }
+}
+
+/// <summary>
+/// State for a roguelike run – persists across battles.
 /// </summary>
 public class RunState
 {
-    /// <summary>Current floor/battle number (1-based).</summary>
-    public int CurrentFloor { get; set; } = 1;
-    
-    /// <summary>Maximum floors before the boss.</summary>
-    public int MaxFloors { get; set; } = 7;
-    
-    /// <summary>Player's squad of Mechs.</summary>
-    public List<Mech> PlayerSquad { get; set; } = [];
-    
-    /// <summary>Spare parts in inventory.</summary>
-    public List<Part> Inventory { get; set; } = [];
-    
-    /// <summary>Currency earned this run.</summary>
-    public int Medals { get; set; }
-    
-    /// <summary>Whether the run is still active.</summary>
-    public bool IsActive { get; set; } = true;
-    
-    /// <summary>Whether the player won the run.</summary>
-    public bool Victory { get; set; }
-    
-    /// <summary>Total enemies defeated this run.</summary>
-    public int EnemiesDefeated { get; set; }
-    
-    /// <summary>Total damage dealt this run.</summary>
-    public int TotalDamageDealt { get; set; }
+    public int Floor { get; set; } = 1;
+    public int MaxFloors { get; set; } = 15;
+    public int Credits { get; set; } = 100;
+    public List<Medabot> Squad { get; set; } = [];    // player's team (up to 3)
+    public List<MedaPart> SpareParts { get; set; } = []; // inventory
+    public List<RunNode> Map { get; set; } = [];
+    public int CurrentNodeId { get; set; }
+    public int Wins { get; set; }
+    public int Losses { get; set; }
+    public bool IsGameOver => Squad.Count == 0 || Squad.All(m => m.IsKnockedOut);
+    public bool IsVictory => Floor > MaxFloors;
 }

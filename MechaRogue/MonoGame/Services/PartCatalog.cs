@@ -4,15 +4,12 @@ using MechaRogue.Models;
 
 /// <summary>
 /// Catalog of all Medaparts and pre-built Medabot templates.
-/// Inspired by classic Medabots part families (KBT, KWG, CAT, DOG, etc.)
 /// </summary>
 public static class PartCatalog
 {
     private static readonly Random _rng = new();
 
-    // ════════════════════════════════════════════════════════
-    //  HEAD PARTS
-    // ════════════════════════════════════════════════════════
+    // ═══════════════ HEAD PARTS ═══════════════
     public static MedaPart MissileHead => new()
     {
         Id = "HD-MISSILE", Name = "Missile Launcher", Slot = PartSlot.Head,
@@ -21,7 +18,6 @@ public static class PartCatalog
         MaxArmor = 25, Armor = 25, Power = 35, Accuracy = 90, Speed = 15,
         MaxUses = 3, RemainingUses = 3, Tier = 2
     };
-
     public static MedaPart RadarHead => new()
     {
         Id = "HD-RADAR", Name = "Radar Dish", Slot = PartSlot.Head,
@@ -30,7 +26,6 @@ public static class PartCatalog
         MaxArmor = 20, Armor = 20, Power = 0, Accuracy = 100, Speed = 25,
         MaxUses = 5, RemainingUses = 5, Tier = 1
     };
-
     public static MedaPart HornHead => new()
     {
         Id = "HD-HORN", Name = "Strike Horn", Slot = PartSlot.Head,
@@ -39,7 +34,6 @@ public static class PartCatalog
         MaxArmor = 30, Armor = 30, Power = 40, Accuracy = 75, Speed = 20,
         MaxUses = 2, RemainingUses = 2, Tier = 2
     };
-
     public static MedaPart AntennaHead => new()
     {
         Id = "HD-ANTENNA", Name = "Antenna", Slot = PartSlot.Head,
@@ -48,7 +42,6 @@ public static class PartCatalog
         MaxArmor = 18, Armor = 18, Power = 0, Accuracy = 85, Speed = 30,
         MaxUses = 4, RemainingUses = 4, Tier = 1
     };
-
     public static MedaPart HeavyHead => new()
     {
         Id = "HD-HEAVY", Name = "Armored Visor", Slot = PartSlot.Head,
@@ -57,7 +50,6 @@ public static class PartCatalog
         MaxArmor = 50, Armor = 50, Power = 0, Accuracy = 0, Speed = 10,
         MaxUses = 0, RemainingUses = 0, Tier = 1
     };
-
     public static MedaPart SniperHead => new()
     {
         Id = "HD-SNIPE", Name = "Scope Eye", Slot = PartSlot.Head,
@@ -67,9 +59,7 @@ public static class PartCatalog
         MaxUses = 2, RemainingUses = 2, Tier = 3
     };
 
-    // ════════════════════════════════════════════════════════
-    //  RIGHT ARM PARTS
-    // ════════════════════════════════════════════════════════
+    // ═══════════════ RIGHT ARM PARTS ═══════════════
     public static MedaPart Revolver => new()
     {
         Id = "RA-REVOLVER", Name = "Revolver", Slot = PartSlot.RightArm,
@@ -77,7 +67,6 @@ public static class PartCatalog
         Action = ActionType.Shooting, Skill = PartSkill.Rifle,
         MaxArmor = 25, Armor = 25, Power = 22, Accuracy = 82, Speed = 20, Tier = 1
     };
-
     public static MedaPart Submachine => new()
     {
         Id = "RA-SMG", Name = "Submachine Gun", Slot = PartSlot.RightArm,
@@ -85,7 +74,6 @@ public static class PartCatalog
         Action = ActionType.Shooting, Skill = PartSkill.Gatling,
         MaxArmor = 22, Armor = 22, Power = 28, Accuracy = 70, Speed = 22, Tier = 2
     };
-
     public static MedaPart SwordArm => new()
     {
         Id = "RA-SWORD", Name = "Chanbara Sword", Slot = PartSlot.RightArm,
@@ -93,7 +81,6 @@ public static class PartCatalog
         Action = ActionType.Melee, Skill = PartSkill.Sword,
         MaxArmor = 28, Armor = 28, Power = 30, Accuracy = 78, Speed = 25, Tier = 2
     };
-
     public static MedaPart HammerArm => new()
     {
         Id = "RA-HAMMER", Name = "Power Hammer", Slot = PartSlot.RightArm,
@@ -101,7 +88,6 @@ public static class PartCatalog
         Action = ActionType.Melee, Skill = PartSkill.Hammer,
         MaxArmor = 30, Armor = 30, Power = 40, Accuracy = 65, Speed = 12, Tier = 2
     };
-
     public static MedaPart LaserArm => new()
     {
         Id = "RA-LASER", Name = "Beam Cannon", Slot = PartSlot.RightArm,
@@ -110,9 +96,7 @@ public static class PartCatalog
         MaxArmor = 20, Armor = 20, Power = 35, Accuracy = 75, Speed = 18, Tier = 3
     };
 
-    // ════════════════════════════════════════════════════════
-    //  LEFT ARM PARTS
-    // ════════════════════════════════════════════════════════
+    // ═══════════════ LEFT ARM PARTS ═══════════════
     public static MedaPart Shield => new()
     {
         Id = "LA-SHIELD", Name = "Guard Shield", Slot = PartSlot.LeftArm,
@@ -120,7 +104,6 @@ public static class PartCatalog
         Action = ActionType.Support, Skill = PartSkill.Shield,
         MaxArmor = 35, Armor = 35, Power = 15, Accuracy = 100, Speed = 15, Tier = 1
     };
-
     public static MedaPart GrappleClaw => new()
     {
         Id = "LA-GRAPPLE", Name = "Grapple Claw", Slot = PartSlot.LeftArm,
@@ -128,7 +111,6 @@ public static class PartCatalog
         Action = ActionType.Melee, Skill = PartSkill.Grapple,
         MaxArmor = 28, Armor = 28, Power = 25, Accuracy = 85, Speed = 18, Tier = 2
     };
-
     public static MedaPart MissileArm => new()
     {
         Id = "LA-MISSILE", Name = "Arm Launcher", Slot = PartSlot.LeftArm,
@@ -136,7 +118,6 @@ public static class PartCatalog
         Action = ActionType.Shooting, Skill = PartSkill.Missile,
         MaxArmor = 22, Armor = 22, Power = 30, Accuracy = 80, Speed = 16, Tier = 2
     };
-
     public static MedaPart RepairArm => new()
     {
         Id = "LA-REPAIR", Name = "Repair Arm", Slot = PartSlot.LeftArm,
@@ -144,7 +125,6 @@ public static class PartCatalog
         Action = ActionType.Support, Skill = PartSkill.Heal,
         MaxArmor = 20, Armor = 20, Power = 25, Accuracy = 100, Speed = 20, Tier = 2
     };
-
     public static MedaPart SubSword => new()
     {
         Id = "LA-BLADE", Name = "Sub Blade", Slot = PartSlot.LeftArm,
@@ -153,9 +133,7 @@ public static class PartCatalog
         MaxArmor = 25, Armor = 25, Power = 24, Accuracy = 80, Speed = 22, Tier = 1
     };
 
-    // ════════════════════════════════════════════════════════
-    //  LEG PARTS
-    // ════════════════════════════════════════════════════════
+    // ═══════════════ LEG PARTS ═══════════════
     public static MedaPart BipedalLegs => new()
     {
         Id = "LG-BIPEDAL", Name = "Balanced Legs", Slot = PartSlot.Legs,
@@ -164,7 +142,6 @@ public static class PartCatalog
         MaxArmor = 30, Armor = 30, Speed = 22, Evasion = 12, Propulsion = 15,
         LegType = LegType.Bipedal, Tier = 1
     };
-
     public static MedaPart TankTreads => new()
     {
         Id = "LG-TANK", Name = "Tank Treads", Slot = PartSlot.Legs,
@@ -173,7 +150,6 @@ public static class PartCatalog
         MaxArmor = 50, Armor = 50, Speed = 10, Evasion = 3, Propulsion = 8,
         LegType = LegType.Tank, Tier = 2
     };
-
     public static MedaPart HoverPods => new()
     {
         Id = "LG-HOVER", Name = "Hover Pods", Slot = PartSlot.Legs,
@@ -182,7 +158,6 @@ public static class PartCatalog
         MaxArmor = 18, Armor = 18, Speed = 35, Evasion = 22, Propulsion = 25,
         LegType = LegType.Hover, Tier = 2
     };
-
     public static MedaPart FlightUnit => new()
     {
         Id = "LG-FLIGHT", Name = "Flight Wings", Slot = PartSlot.Legs,
@@ -191,7 +166,6 @@ public static class PartCatalog
         MaxArmor = 12, Armor = 12, Speed = 42, Evasion = 28, Propulsion = 30,
         LegType = LegType.Flight, Tier = 3
     };
-
     public static MedaPart MultiLegs => new()
     {
         Id = "LG-MULTI", Name = "Spider Legs", Slot = PartSlot.Legs,
@@ -201,119 +175,75 @@ public static class PartCatalog
         LegType = LegType.MultiLegged, Tier = 2
     };
 
-    // ════════════════════════════════════════════════════════
-    //  PRE-BUILT MEDABOT TEMPLATES
-    // ════════════════════════════════════════════════════════
-
-    /// <summary>Metabee-style: balanced shooter.</summary>
+    // ═══════════════ TEMPLATES ═══════════════
     public static Medabot MakeMetabee() => new()
     {
         Name = "Metabee", ModelId = "KBT-1",
         Medal = new Medal { Name = "Kabuto Medal", Type = MedalType.Kabuto },
-        Head = MissileHead.Clone(),
-        RightArm = Revolver.Clone(),
-        LeftArm = MissileArm.Clone(),
-        Legs = BipedalLegs.Clone()
+        Head = MissileHead.Clone(), RightArm = Revolver.Clone(),
+        LeftArm = MissileArm.Clone(), Legs = BipedalLegs.Clone()
     };
-
-    /// <summary>Rokusho-style: fast melee.</summary>
     public static Medabot MakeRokusho() => new()
     {
         Name = "Rokusho", ModelId = "KWG-1",
         Medal = new Medal { Name = "Kuwagata Medal", Type = MedalType.Kuwagata },
-        Head = HornHead.Clone(),
-        RightArm = SwordArm.Clone(),
-        LeftArm = SubSword.Clone(),
-        Legs = HoverPods.Clone()
+        Head = HornHead.Clone(), RightArm = SwordArm.Clone(),
+        LeftArm = SubSword.Clone(), Legs = HoverPods.Clone()
     };
-
-    /// <summary>Peppercat-style: fast melee/evasion.</summary>
     public static Medabot MakePeppercat() => new()
     {
         Name = "Peppercat", ModelId = "CAT-1",
         Medal = new Medal { Name = "Cat Medal", Type = MedalType.Cat },
-        Head = AntennaHead.Clone(),
-        RightArm = SwordArm.Clone(),
-        LeftArm = GrappleClaw.Clone(),
-        Legs = HoverPods.Clone()
+        Head = AntennaHead.Clone(), RightArm = SwordArm.Clone(),
+        LeftArm = GrappleClaw.Clone(), Legs = HoverPods.Clone()
     };
-
-    /// <summary>Totalizer-style: slow heavy tank.</summary>
     public static Medabot MakeTotalizer() => new()
     {
         Name = "Totalizer", ModelId = "TOT-1",
         Medal = new Medal { Name = "Tortoise Medal", Type = MedalType.Tortoise },
-        Head = HeavyHead.Clone(),
-        RightArm = LaserArm.Clone(),
-        LeftArm = Shield.Clone(),
-        Legs = TankTreads.Clone()
+        Head = HeavyHead.Clone(), RightArm = LaserArm.Clone(),
+        LeftArm = Shield.Clone(), Legs = TankTreads.Clone()
     };
-
-    /// <summary>Neutranurse-style: support healer.</summary>
     public static Medabot MakeNeutranurse() => new()
     {
         Name = "Neutranurse", ModelId = "NAS-1",
         Medal = new Medal { Name = "Angel Medal", Type = MedalType.Angel },
-        Head = RadarHead.Clone(),
-        RightArm = Revolver.Clone(),
-        LeftArm = RepairArm.Clone(),
-        Legs = BipedalLegs.Clone()
+        Head = RadarHead.Clone(), RightArm = Revolver.Clone(),
+        LeftArm = RepairArm.Clone(), Legs = BipedalLegs.Clone()
     };
-
-    /// <summary>Cyandog-style: shooter with wrong medal (weak!).</summary>
     public static Medabot MakeCyandog() => new()
     {
         Name = "Cyandog", ModelId = "DOG-0",
-        Medal = new Medal { Name = "Monkey Medal", Type = MedalType.Monkey }, // wrong!
-        Head = AntennaHead.Clone(),
-        RightArm = Revolver.Clone(),
-        LeftArm = MissileArm.Clone(),
-        Legs = BipedalLegs.Clone()
+        Medal = new Medal { Name = "Monkey Medal", Type = MedalType.Monkey },
+        Head = AntennaHead.Clone(), RightArm = Revolver.Clone(),
+        LeftArm = MissileArm.Clone(), Legs = BipedalLegs.Clone()
     };
-
-    /// <summary>Sumilidon-style: powerful melee.</summary>
     public static Medabot MakeSumilidon() => new()
     {
         Name = "Sumilidon", ModelId = "STG-0",
         Medal = new Medal { Name = "Bear Medal", Type = MedalType.Bear },
-        Head = HornHead.Clone(),
-        RightArm = SwordArm.Clone(),
-        LeftArm = GrappleClaw.Clone(),
-        Legs = MultiLegs.Clone()
+        Head = HornHead.Clone(), RightArm = SwordArm.Clone(),
+        LeftArm = GrappleClaw.Clone(), Legs = MultiLegs.Clone()
     };
-
-    /// <summary>Arcbeetle-style: elite boss unit.</summary>
     public static Medabot MakeArcbeetle() => new()
     {
         Name = "Arcbeetle", ModelId = "KBT-4",
         Medal = new Medal { Name = "Dragon Medal", Type = MedalType.Dragon, Level = 5 },
-        Head = SniperHead.Clone(),
-        RightArm = LaserArm.Clone(),
-        LeftArm = MissileArm.Clone(),
-        Legs = FlightUnit.Clone()
+        Head = SniperHead.Clone(), RightArm = LaserArm.Clone(),
+        LeftArm = MissileArm.Clone(), Legs = FlightUnit.Clone()
     };
 
-    // ════════════════════════════════════════════════════════
-    //  RANDOM GENERATION
-    // ════════════════════════════════════════════════════════
-
+    // ═══════════════ RANDOM GENERATION ═══════════════
     private static readonly Func<Medabot>[] _templates =
-    [
-        MakeMetabee, MakeRokusho, MakePeppercat, MakeTotalizer,
-        MakeNeutranurse, MakeCyandog, MakeSumilidon
-    ];
+        [MakeMetabee, MakeRokusho, MakePeppercat, MakeTotalizer, MakeNeutranurse, MakeCyandog, MakeSumilidon];
 
-    private static readonly Func<Medabot>[] _bossTemplates =
-    [
-        MakeArcbeetle, MakeSumilidon
-    ];
+    private static readonly Func<Medabot>[] _bossTemplates = [MakeArcbeetle, MakeSumilidon];
 
     public static Medabot RandomEnemy(int floor)
     {
         var bot = _templates[_rng.Next(_templates.Length)]();
         bot.IsPlayerOwned = false;
         bot.IsLeader = true;
-        // Scale stats with floor
         ScaleForFloor(bot, floor);
         return bot;
     }
@@ -323,7 +253,7 @@ public static class PartCatalog
         var bot = _bossTemplates[_rng.Next(_bossTemplates.Length)]();
         bot.IsPlayerOwned = false;
         bot.IsLeader = true;
-        bot.Name = "★ " + bot.Name;
+        bot.Name = "* " + bot.Name;
         ScaleForFloor(bot, floor, isBoss: true);
         return bot;
     }
@@ -349,8 +279,6 @@ public static class PartCatalog
             Shield, GrappleClaw, MissileArm, RepairArm, SubSword,
             BipedalLegs, TankTreads, HoverPods, FlightUnit, MultiLegs
         };
-
-        // Higher floors bias toward higher tier parts
         var candidates = allParts.Where(p => p.Tier <= 1 + floor / 4).ToArray();
         if (candidates.Length == 0) candidates = allParts;
         return candidates[_rng.Next(candidates.Length)].Clone();
@@ -360,15 +288,12 @@ public static class PartCatalog
     {
         double scale = 1.0 + (floor - 1) * 0.12;
         if (isBoss) scale *= 1.4;
-
         foreach (var part in bot.AllParts)
         {
             part.MaxArmor = (int)(part.MaxArmor * scale);
             part.Armor = part.MaxArmor;
             part.Power = (int)(part.Power * scale);
         }
-
-        // Scale medal level
         bot.Medal.Level = Math.Max(1, floor / 3 + (isBoss ? 2 : 0));
     }
 

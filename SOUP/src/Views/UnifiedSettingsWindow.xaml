@@ -98,7 +98,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Margin" Value="8,1"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -106,7 +106,7 @@
                         <Border x:Name="Border"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="{DynamicResource SmallCornerRadius}"
-                                Padding="14,12">
+                                Padding="12,9">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -121,6 +121,14 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Sidebar Category Label Style -->
+        <Style x:Key="SidebarCategory" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}"/>
+            <Setter Property="Margin" Value="20,14,0,6"/>
         </Style>
     </Window.Resources>
 
@@ -197,9 +205,8 @@
                         </Grid.RowDefinitions>
 
                         <!-- Sidebar Header -->
-                        <StackPanel Grid.Row="0" Margin="16,20,16,16">
-                            <TextBlock Text="SETTINGS" FontSize="10" FontWeight="Bold" 
-                                       Foreground="{DynamicResource TextDisabledBrush}" Margin="8,0,0,12"/>
+                        <StackPanel Grid.Row="0" Margin="16,16,16,4">
+                            <TextBlock Text="GENERAL" Style="{StaticResource SidebarCategory}"/>
                         </StackPanel>
 
                         <!-- Navigation Items -->
@@ -207,77 +214,62 @@
                             <RadioButton x:Name="TabApplication" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
                                          IsChecked="True" Checked="OnTabChanged">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="Application" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="General settings" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
+                                    <TextBlock Text="⚙️" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Application" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
+
+                            <!-- Modules -->
+                            <TextBlock Text="MODULES" Style="{StaticResource SidebarCategory}"/>
                             
                             <RadioButton x:Name="TabAllocation" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
                                          Checked="OnTabChanged">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="AllocationBuddy" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Distribution settings" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
+                                    <TextBlock Text="📊" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="AllocationBuddy" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
                             
                             <RadioButton x:Name="TabEssentials" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
                                          Checked="OnTabChanged">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📋" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="EssentialsBuddy" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Stock thresholds" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
+                                    <TextBlock Text="📋" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="EssentialsBuddy" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
                             
                             <RadioButton x:Name="TabExpireWise" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
                                          Checked="OnTabChanged">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📦" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="ExpireWise" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Expiration tracking" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </RadioButton>
-                            
-                            <RadioButton x:Name="TabDictionary" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
-                                         Checked="OnTabChanged">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🗄️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="Database" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Items &amp; stores" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </RadioButton>
-                            
-                            <RadioButton x:Name="TabExternalData" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
-                                         Checked="OnTabChanged">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="☁️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="External Data" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="MySQL &amp; BC sync" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
+                                    <TextBlock Text="📦" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="ExpireWise" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
                             
                             <RadioButton x:Name="TabOrderLog" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
                                          Checked="OnTabChanged">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📝" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="Order Log" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Widget settings" FontSize="10" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    </StackPanel>
+                                    <TextBlock Text="📝" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Order Log" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Data -->
+                            <TextBlock Text="DATA" Style="{StaticResource SidebarCategory}"/>
+                            
+                            <RadioButton x:Name="TabDictionary" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🗄️" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Database" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            
+                            <RadioButton x:Name="TabExternalData" GroupName="SettingsTabs" Style="{StaticResource SidebarNavItem}" 
+                                         Checked="OnTabChanged">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="☁️" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="External Data" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
                         </StackPanel>
@@ -321,6 +313,12 @@
                         <ScrollViewer x:Name="PanelApplication" VerticalScrollBarVisibility="Auto">
                             <StackPanel DataContext="{Binding ApplicationSettings}">
 
+                            <!-- Page Title -->
+                            <TextBlock Text="Application" FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                            <TextBlock Text="General app settings, startup behavior, and system tray options"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
+
                             <!-- Appearance Section -->
                             <Border Style="{StaticResource SettingsCard}">
                                 <StackPanel>
@@ -352,7 +350,7 @@
                                               SelectedValuePath="Value"
                                               DisplayMemberPath="DisplayName"
                                               Style="{StaticResource SettingsComboBox}"
-                                              Width="250"
+                                              MaxWidth="300"
                                               HorizontalAlignment="Left"/>
                                     <TextBlock Text="Which module to open when the application starts"
                                                Style="{StaticResource HelperText}"
@@ -464,6 +462,12 @@
                         <ScrollViewer x:Name="PanelAllocation" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                             <StackPanel DataContext="{Binding AllocationBuddySettings}">
 
+                            <!-- Page Title -->
+                            <TextBlock Text="AllocationBuddy" FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Distribution settings and clipboard options"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
+
                             <!-- Behavior Section -->
                             <Border Style="{StaticResource SettingsCard}">
                                 <StackPanel>
@@ -514,6 +518,12 @@
                         <!-- EssentialsBuddy Panel -->
                         <ScrollViewer x:Name="PanelEssentials" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                             <StackPanel DataContext="{Binding EssentialsBuddySettings}">
+
+                            <!-- Page Title -->
+                            <TextBlock Text="EssentialsBuddy" FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Stock level thresholds and default filters"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
 
                             <!-- Stock Thresholds Section -->
                             <Border Style="{StaticResource SettingsCard}">
@@ -591,6 +601,12 @@
                     <ScrollViewer x:Name="PanelExpireWise" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                         <StackPanel DataContext="{Binding ExpireWiseSettings}">
 
+                        <!-- Page Title -->
+                        <TextBlock Text="ExpireWise" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Expiration tracking thresholds and display options"
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
+
                         <!-- Alert Thresholds Section -->
                         <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
@@ -633,7 +649,7 @@
                         <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="🎨" FontSize="18" Margin="0,0,8,0"/>
+                                    <TextBlock Text="🎨" FontSize="16" Margin="0,0,10,0"/>
                                     <TextBlock Text="Display Options" Style="{StaticResource SectionTitle}"/>
                                 </StackPanel>
 
@@ -667,7 +683,7 @@
                         <Border Style="{StaticResource SettingsCard}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                    <TextBlock Text="🗃️" FontSize="18" Margin="0,0,8,0"/>
+                                    <TextBlock Text="🗃️" FontSize="16" Margin="0,0,10,0"/>
                                     <TextBlock Text="Data Management" Style="{StaticResource SectionTitle}"/>
                                 </StackPanel>
 
@@ -731,7 +747,7 @@
                             <Border Grid.Row="0" Style="{StaticResource SettingsCard}" Margin="0,0,0,16"
                                     DataContext="{Binding ApplicationSettings}">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                         <TextBlock Text="💾" FontSize="16" Margin="0,0,10,0"/>
                                         <TextBlock Text="Data Backup" Style="{StaticResource SectionTitle}"/>
                                     </StackPanel>

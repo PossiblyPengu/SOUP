@@ -9,7 +9,7 @@
 ## 📊 Codebase Statistics
 
 | Metric | Value |
-|--------|-------|
+| ------ | ----- |
 | Source Files (`.cs` + `.xaml`) | 204 |
 | C# Lines of Code | ~43,000 |
 | XAML Lines of Code | ~22,000 |
@@ -22,19 +22,21 @@
 ## ⚠️ Build Warnings (12 Unique)
 
 ### Nullability Warnings (CS8601/CS8619)
+
 | File | Line | Issue |
-|------|------|-------|
-| `Features/OrderLog/Models/OrderTemplate.cs` | 30-32 | 3x possible null reference assignment |
-| `Features/OrderLog/Services/UndoRedoService.cs` | 399, 416 | Dictionary nullability mismatch |
-| `Features/OrderLog/Services/OrderLogExportService.cs` | 241-252 | 6x possible null reference assignment |
+| ---- | ---- | ----- |
+| `Features/OrderLog/Models/OrderTemplate.cs` | 30-32 | Null ref |
+| `Features/OrderLog/Services/UndoRedoService.cs` | 399, 416 | Null |
+| `Features/OrderLog/Services/OrderLogExportService.cs` | 241-252 | Null |
 
 ### Analyzer Warnings
-| File | Line | Code | Issue |
-|------|------|------|-------|
-| `Features/OrderLog/Views/OrderTemplateEditorDialog.xaml.cs` | 157 | MA0026 | TODO comment in production code |
-| `Features/OrderLog/Views/OrderLogWidgetView.xaml.cs` | 2663 | MA0134 | Unobserved async call |
 
-**Recommendation:** Fix nullability warnings to improve null-safety; address the unobserved async call.
+| File | Line | Code | Issue |
+| ---- | ---- | ---- | ----- |
+| `...OrderTemplateEditorDialog.xaml.cs` | 157 | MA0026 | TODO |
+| `...OrderLogWidgetView.xaml.cs` | 2663 | MA0134 | Async |
+
+**Recommendation:** Fix nullability warnings; address unobserved async.
 
 ---
 
@@ -43,11 +45,11 @@
 **Total actionable TODOs found:** 4 (excluding Log.Debug statements)
 
 | File | Line | Content |
-|------|------|---------|
-| `Features/ExpireWise/Helpers/KeyboardShortcutManager.cs` | 117 | `// Ctrl+T: Go to today's month (TODO: Implement TodayCommand)` |
-| `Features/OrderLog/Views/OrderTemplateEditorDialog.xaml.cs` | 157 | `// TODO: Open color picker dialog (OrderColorPickerWindow)` |
-| `Features/OrderLog/Views/OrderLogWidgetView.xaml.cs` | 2640 | Jump dialog not yet fully implemented |
-| `Features/OrderLog/Views/OrderLogWidgetView.xaml.cs` | 2649 | Keyboard help not yet implemented |
+| ---- | ---- | ------- |
+| `...KeyboardShortcutManager.cs` | 117 | Ctrl+T: Go to today |
+| `...OrderTemplateEditorDialog.xaml.cs` | 157 | Color picker dialog |
+| `...OrderLogWidgetView.xaml.cs` | 2640 | Jump dialog |
+| `...OrderLogWidgetView.xaml.cs` | 2649 | Keyboard help |
 
 **Recommendation:** Convert remaining TODOs to GitHub issues or implement them.
 
@@ -58,36 +60,39 @@
 These files exceed 1000 lines and should be considered for refactoring:
 
 | File | Lines | Concern |
-|------|-------|---------|
-| `ViewModels/ExpireWiseViewModel.cs` | 2,928 | Very large - consider splitting into partial classes or services |
-| `Features/OrderLog/Views/OrderLogWidgetView.xaml.cs` | 2,729 | Large code-behind - extract more to ViewModel/behaviors |
-| `ViewModels/AllocationBuddyRPGViewModel.cs` | 2,272 | Large ViewModel - consider service extraction |
-| `Features/OrderLog/ViewModels/OrderLogViewModel.cs` | 2,219 | Large - already has services but could extract more |
-| `Features/OrderLog/Behaviors/OrderLogFluidDragBehavior.cs` | 1,390 | Complex drag behavior - acceptable for specialized code |
-| `ViewModels/EssentialsBuddyViewModel.cs` | 1,280 | Consider service extraction |
-| `ViewModels/DictionaryManagementViewModel.cs` | 1,258 | Consider service extraction |
-| `Behaviors/ListBoxDragDropBehavior.cs` | 1,016 | Complex drag/drop - acceptable |
+| ---- | ----- | ------- |
+| `ViewModels/ExpireWiseViewModel.cs` | 2,928 | Very large |
+| `...OrderLogWidgetView.xaml.cs` | 2,729 | Large code-behind |
+| `ViewModels/AllocationBuddyRPGViewModel.cs` | 2,272 | Large ViewModel |
+| `...OrderLogViewModel.cs` | 2,219 | Large |
+| `...OrderLogFluidDragBehavior.cs` | 1,390 | Complex (acceptable) |
+| `ViewModels/EssentialsBuddyViewModel.cs` | 1,280 | Refactor |
+| `ViewModels/DictionaryManagementViewModel.cs` | 1,258 | Refactor |
+| `Behaviors/ListBoxDragDropBehavior.cs` | 1,016 | Complex (ok) |
 
-**Recommendation:** Prioritize refactoring `ExpireWiseViewModel.cs` and `OrderLogWidgetView.xaml.cs`.
+**Recommendation:** Prioritize refactoring `ExpireWiseViewModel.cs` and
+`OrderLogWidgetView.xaml.cs`.
 
 ---
 
 ## 🧪 Test Coverage
 
 | Project | Status |
-|---------|--------|
+| ------- | ------ |
 | `ExpireWise.Tests` | Present (~4 test files) |
 | `Infrastructure.Tests` | Present (~3 test files) |
 | **Total Test Lines** | ~765 |
 | **Coverage Estimate** | Low (~1.8% by line count) |
 
 **Key untested areas:**
+
 - ViewModels (ExpireWise, OrderLog, AllocationBuddy, EssentialsBuddy)
 - Services (SpotifyService, ThemeService, DialogService)
 - Behaviors (drag/drop, animations)
 - Most OrderLog functionality
 
-**Recommendation:** Add unit tests for critical ViewModels and Services. Focus on:
+**Recommendation:** Add unit tests for critical ViewModels/Services:
+
 1. `OrderLogViewModel` business logic
 2. `ExpireWiseViewModel` timeline/filtering logic
 3. Repository operations
@@ -98,27 +103,30 @@ These files exceed 1000 lines and should be considered for refactoring:
 ## 🔒 Security Assessment
 
 ### ✅ Good Practices
-- **Credentials encrypted:** `ExternalConnectionConfig.cs` uses DPAPI encryption for MySQL passwords and BC client secrets
+
+- **Credentials encrypted:** DPAPI encryption for passwords/secrets
 - **SecureString usage:** Passwords held in `SecureString` in memory
-- **No hardcoded secrets:** Connection strings built from encrypted config
+- **No hardcoded secrets:** Connection strings built from config
 
 ### ⚠️ Areas to Monitor
+
 | Pattern | Files | Notes |
-|---------|-------|-------|
-| `Process.Start` | Multiple | Legitimate uses for opening folders/URLs |
-| Reflection/Invoke | ~30 occurrences | Used for WPF binding, animations, keyboard hooks |
-| ConnectionString building | 3 files | All use proper parameterization |
+| ------- | ----- | ----- |
+| `Process.Start` | Multiple | Legitimate uses |
+| Reflection/Invoke | ~30 | WPF binding/hooks |
+| ConnectionString | 3 files | Parameterized |
 
 ### Recommendations
-1. Ensure external config file (`external_config.json`) has appropriate ACLs
-2. Consider adding certificate pinning for Business Central API calls
+
+1. Ensure external config file has appropriate ACLs
+2. Consider certificate pinning for Business Central API calls
 3. Add audit logging for sensitive operations
 
 ---
 
 ## 📁 Architecture Overview
 
-```
+```text
 SOUP/src/
 ├── Core/              # Entities, interfaces, common types
 ├── Data/              # Database contexts (DictionaryDbContext)
@@ -136,12 +144,13 @@ SOUP/src/
 ```
 
 ### Module Breakdown
+
 | Module | Purpose | Complexity |
-|--------|---------|------------|
-| **OrderLog** | Order tracking widget (AppBar docked) | High - complex drag/drop, animations |
-| **ExpireWise** | Expiration date tracking | High - timeline view, analytics |
-| **AllocationBuddy** | Inventory allocation (RPG themed) | Medium - parser heavy |
-| **EssentialsBuddy** | Essential items management | Medium |
+| ------ | ------- | ---------- |
+| **OrderLog** | Order tracking widget | High |
+| **ExpireWise** | Expiration tracking | High |
+| **AllocationBuddy** | Inventory allocation | Medium |
+| **EssentialsBuddy** | Essential items | Medium |
 | **SwiftLabel** | Label printing | Low |
 
 ---
@@ -149,26 +158,29 @@ SOUP/src/
 ## 🎯 Prioritized Recommendations
 
 ### High Priority
-1. **Fix nullability warnings** - 12 warnings in OrderLog services/models
+
+1. **Fix nullability warnings** - 12 warnings in OrderLog
 2. **Add tests for OrderLog** - Critical business logic untested
 3. **Refactor ExpireWiseViewModel** - 2,928 lines is too large
 
 ### Medium Priority
-4. **Implement remaining TODOs** - Color picker dialog, keyboard help
-5. **Add tests for Import/Export** - Data integrity is critical
-6. **Extract services from large ViewModels** - Improve maintainability
+
+1. **Implement remaining TODOs** - Color picker, keyboard help
+2. **Add tests for Import/Export** - Data integrity is critical
+3. **Extract services from large ViewModels** - Improve maintainability
 
 ### Low Priority
-7. **Improve test coverage** - Target 30%+ coverage
-8. **Add CI/CD integration** - Run `analyze.ps1` in pipeline
-9. **Document architecture** - Update README with module overview
+
+1. **Improve test coverage** - Target 30%+ coverage
+2. **Add CI/CD integration** - Run `analyze.ps1` in pipeline
+3. **Document architecture** - Update README with module overview
 
 ---
 
 ## 📈 Trends Since Last Audit (2026-01-20)
 
 | Metric | Previous | Current | Change |
-|--------|----------|---------|--------|
+| ------ | -------- | ------- | ------ |
 | Warnings | ~24 | 12 unique | 📉 Improved |
 | TODOs | 26 | 4 actionable | 📉 Improved |
 | Test Coverage | Minimal | Low | ↔️ Same |
@@ -202,28 +214,39 @@ dotnet build src/SOUP.csproj
 <details>
 <summary>Previous Audit (2026-01-20)</summary>
 
-**Summary**
+### Summary
+
 - **Repo:** d:/CODE/Cshp (SOUP)
 - **Audit date:** 2026-01-20
 
-**Environment used**
-- Portable .NET SDK: d:/CODE/important files/dotnet-sdk-10.0.101-win-x64 (SDK 10.0.101)
+### Environment
 
-**Actions performed**
-- Built solution using the portable SDK. Initial build failed due to locked files in `src/obj` (file-in-use). After cleaning `bin`/`obj` folders under `SOUP/src` the build succeeded.
-- Ran the top-level unused-fields script `scripts/evaluate_unused_fields.ps1`. It wrote a detailed report to `SOUP/src/unused_private_fields_report.txt`.
-- Searched the repository for `TODO`, `FIXME`, and `HACK` markers (26 matches found). The script `SOUP/scripts/analyze.ps1` already contains a step to check for these.
-- Ran `dotnet test` across the solution; no test failures reported (no test projects found or no tests executed).
+- Portable .NET SDK: d:/CODE/important files/dotnet-sdk-10.0.101
 
-**Key outputs / locations**
-- Build: succeeded after cleaning; built binaries at `SOUP/src/bin/Debug/net10.0-windows10.0.19041.0/win-x64`
-- Unused-fields report: SOUP/src/unused_private_fields_report.txt
-- TODO/FIXME search: matches found; refer to `SOUP/scripts/analyze.ps1` for the script that aggregates them.
+### Actions performed
 
-**Findings & recommendations**
-- Locked file errors during build suggest an external process (IDE, file indexer, or antivirus) held files under `src/obj`. If CI/build agents see this, ensure clean build workspaces or run a pre-build clean step.
-- The unused-fields report lists many private fields that appear unused; review the report and vet removals carefully (the repository contains dedicated vetting CSVs under `SOUP/src/vetted_unused_private_fields_*.csv`). Consider automating safe removals after review.
-- The repository contains scripts (`SOUP/scripts/analyze.ps1`) for checks — consider adding them to CI to run on pull requests.
-- TODO/FIXME occurrences: triage each marker and either resolve, convert to an issue, or add context. The `analyze.ps1` script can be extended to fail CI when a threshold is exceeded.
+- Built solution. Initial build failed due to locked files in
+  `src/obj`. After cleaning `bin`/`obj` folders the build succeeded.
+- Ran unused-fields script. Wrote report to
+  `SOUP/src/unused_private_fields_report.txt`.
+- Searched for `TODO`, `FIXME`, and `HACK` markers (26 matches).
+  Script `SOUP/scripts/analyze.ps1` contains check step.
+- Ran `dotnet test`; no failures (no test projects found).
+
+### Key outputs
+
+- Build: succeeded; binaries at `SOUP/src/bin/Debug/.../win-x64`
+- Unused-fields report: `SOUP/src/unused_private_fields_report.txt`
+- TODO/FIXME search: refer to `SOUP/scripts/analyze.ps1`
+
+### Findings
+
+- Locked file errors suggest external process held `src/obj` files.
+  For CI, ensure clean workspaces or run pre-build clean step.
+- Unused-fields report lists many unused fields; review carefully.
+  Repository contains vetting CSVs. Consider automating removals.
+- Repository has check scripts - add to CI for pull requests.
+- TODO/FIXME occurrences: triage and resolve or convert to issues.
+  Extend `analyze.ps1` to fail CI when threshold exceeded.
 
 </details>

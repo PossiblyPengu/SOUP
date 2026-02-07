@@ -6,16 +6,10 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-        
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
         
@@ -40,29 +34,27 @@
 
     <Grid>
         <!-- Main content (faded when locked) -->
-        <ScrollViewer x:Name="ContentScrollViewer" VerticalScrollBarVisibility="Auto" Padding="20">
-            <StackPanel MaxWidth="600" x:Name="ContentPanel">
-            <!-- Header -->
-            <TextBlock Text="External Data Connections"
-                       FontSize="20"
-                       FontWeight="Bold"
-                       Foreground="{DynamicResource TextPrimaryBrush}"
-                       Margin="0,0,0,8"/>
-            <TextBlock Text="Configure connections to sync item and store dictionaries from MySQL and Business Central"
-                       FontSize="12"
-                       Foreground="{DynamicResource TextSecondaryBrush}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,24"/>
+        <ScrollViewer x:Name="ContentScrollViewer" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ContentPanel">
+
+            <!-- Page Title -->
+            <TextBlock Text="External Data" FontSize="20" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+            <TextBlock Text="Configure connections to sync dictionaries from MySQL and Business Central"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
 
             <!-- MySQL Configuration -->
             <Border Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
+                    CornerRadius="{DynamicResource SmallCornerRadius}"
                     Padding="20"
                     Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="🗄️ MySQL Database" Style="{StaticResource SectionHeader}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="🗄️" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="MySQL Database" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
                     
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -140,11 +132,14 @@
             <Border Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
+                    CornerRadius="{DynamicResource SmallCornerRadius}"
                     Padding="20"
                     Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="☁️ Business Central" Style="{StaticResource SectionHeader}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="☁️" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="Business Central" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
                     
                     <TextBlock Text="Tenant ID" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding Config.BcTenantId, UpdateSourceTrigger=PropertyChanged}"
@@ -222,11 +217,14 @@
             <Border Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
+                    CornerRadius="{DynamicResource SmallCornerRadius}"
                     Padding="20"
                     Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="🔄 Sync Dictionaries" Style="{StaticResource SectionHeader}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="🔄" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="Sync Dictionaries" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
                     
                     <TextBlock Text="{Binding LastSyncDisplay}"
                                FontSize="12"
@@ -287,13 +285,14 @@
                 </StackPanel>
             </Border>
 
-            <!-- Save Button -->
-            <Button Content="Save Configuration"
+            <!-- Save Connection Settings -->
+            <Button Content="💾  Save Configuration"
                     Command="{Binding SaveConfigCommand}"
-                    Style="{DynamicResource SuccessButtonStyle}"
+                    Style="{DynamicResource PrimaryButtonStyle}"
                     HorizontalAlignment="Left"
-                    Padding="24,12"
-                    FontSize="14"/>
+                    Padding="20,10"
+                    Margin="0,0,0,16"/>
+
             </StackPanel>
         </ScrollViewer>
         
