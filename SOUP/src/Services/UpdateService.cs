@@ -34,7 +34,11 @@ public sealed class UpdateService : IDisposable
     public UpdateService(ILogger<UpdateService>? logger = null)
     {
         _logger = logger;
-        _httpClient = new();
+        var handler = new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+        };
+        _httpClient = new(handler);
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "SOUP-Updater");
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
         _httpClient.Timeout = TimeSpan.FromSeconds(15);
@@ -48,7 +52,14 @@ public sealed class UpdateService : IDisposable
         try
         {
             _schedulerCts = new CancellationTokenSource();
-            _schedulerTimer = new Timer(async _ => await RunScheduledCheckAsync(), null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
+            _schedulerTimer = new Timer(_ =>
+            {
+                _ = Task.Run(async () =>
+                {
+                    try { await RunScheduledCheckAsync(); }
+                    catch (Exception ex) { _logger?.LogError(ex, "Scheduled update check failed"); }
+                });
+            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(30));
         }
         catch (Exception ex)
         {

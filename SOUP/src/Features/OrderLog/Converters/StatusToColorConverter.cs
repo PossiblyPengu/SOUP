@@ -38,7 +38,7 @@ public class StatusToColorConverter : IValueConverter
     private static Brush? _warningBrush;
     private static Brush? _successBrush;
     private static Brush? _tertiaryBrush;
-    private static bool _cacheInitialized;
+    private static volatile bool _cacheInitialized;
 
     private static void EnsureCacheInitialized()
     {

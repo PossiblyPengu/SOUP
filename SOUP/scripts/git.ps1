@@ -19,7 +19,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$rootDir = Split-Path -Parent $PSScriptRoot
 Push-Location $rootDir
 
 function Show-Help {
@@ -101,11 +101,13 @@ try {
         "stash" {
             Write-Host "Stashing changes..." -ForegroundColor Yellow
             git stash push -m "Auto-stash $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+            if ($LASTEXITCODE -ne 0) { Write-Host "Stash failed!" -ForegroundColor Red; exit $LASTEXITCODE }
             Write-Host "Done!" -ForegroundColor Green
         }
         "unstash" {
             Write-Host "Popping last stash..." -ForegroundColor Yellow
             git stash pop
+            if ($LASTEXITCODE -ne 0) { Write-Host "Stash pop failed!" -ForegroundColor Red; exit $LASTEXITCODE }
             Write-Host "Done!" -ForegroundColor Green
         }
         "help" {

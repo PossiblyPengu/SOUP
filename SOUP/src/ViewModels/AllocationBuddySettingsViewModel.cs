@@ -92,6 +92,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "AllocationBuddy: Failed to load stores from dictionary");
             // Last resort - empty collection
             Stores = new ObservableCollection<StoreEntry>();
             StatusMessage = $"Error: Could not load stores ({ex.Message})";
@@ -150,6 +151,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "AllocationBuddy: Failed to load settings");
             StatusMessage = $"Error loading settings: {ex.Message}";
         }
     }
@@ -181,6 +183,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "AllocationBuddy: Failed to save settings");
             StatusMessage = $"Error saving settings: {ex.Message}";
         }
     }
@@ -194,6 +197,7 @@ public partial class AllocationBuddySettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "AllocationBuddy: Failed to save stores");
             StatusMessage = $"Error saving stores: {ex.Message}";
         }
     }

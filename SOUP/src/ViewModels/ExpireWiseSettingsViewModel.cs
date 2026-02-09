@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using SOUP.Core.Entities.Settings;
 using SOUP.Core.Interfaces;
 using SOUP.Infrastructure.Services;
@@ -98,6 +99,7 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "ExpireWise: Failed to load settings");
             StatusMessage = $"Error loading settings: {ex.Message}";
         }
     }
@@ -126,6 +128,7 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "ExpireWise: Failed to save settings");
             StatusMessage = $"Error saving settings: {ex.Message}";
         }
     }
@@ -183,6 +186,7 @@ public partial class ExpireWiseSettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "ExpireWise: Failed to clear all data");
             StatusMessage = $"Error clearing data: {ex.Message}";
             MessageBox.Show(
                 $"Failed to clear data: {ex.Message}",

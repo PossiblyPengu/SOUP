@@ -1,16 +1,18 @@
 # Cleanup generated artifacts and test files (irreversible)
+$rootDir = Split-Path -Parent $PSScriptRoot
+
 $paths = @(
- 'D:\CODE\Cshp\SOUP\publish',
- 'D:\CODE\Cshp\SOUP\publish-framework',
- 'D:\CODE\Cshp\SOUP\publish-portable',
- 'D:\CODE\Cshp\SOUP\src\bin\Release',
- 'D:\CODE\Cshp\SOUP\src\unused_private_fields.txt',
- 'D:\CODE\Cshp\SOUP\src\unused_private_fields_all.txt',
- 'D:\CODE\Cshp\SOUP\src\unused_private_fields_candidates.txt',
- 'D:\CODE\Cshp\SOUP\src\unused_private_fields_report.txt',
- 'D:\CODE\Cshp\SOUP\src\vetted_unused_private_fields_full.csv',
- 'D:\CODE\Cshp\SOUP\src\vetted_unused_private_fields_top30.csv',
- 'D:\CODE\Cshp\test_files'
+    (Join-Path $rootDir 'publish'),
+    (Join-Path $rootDir 'publish-framework'),
+    (Join-Path $rootDir 'publish-portable'),
+    (Join-Path $rootDir 'src\bin\Release'),
+    (Join-Path $rootDir 'src\unused_private_fields.txt'),
+    (Join-Path $rootDir 'src\unused_private_fields_all.txt'),
+    (Join-Path $rootDir 'src\unused_private_fields_candidates.txt'),
+    (Join-Path $rootDir 'src\unused_private_fields_report.txt'),
+    (Join-Path $rootDir 'src\vetted_unused_private_fields_full.csv'),
+    (Join-Path $rootDir 'src\vetted_unused_private_fields_top30.csv'),
+    'D:\CODE\Cshp\test_files'
 )
 foreach ($p in $paths) {
     if (Test-Path $p) {
@@ -22,5 +24,5 @@ foreach ($p in $paths) {
     }
 }
 
-Write-Output "\nCleanup finished. Remaining paths status:"
-foreach ($p in $paths) { Write-Output "$p -> " + (Test-Path $p) }
+Write-Output "`nCleanup finished. Remaining paths status:"
+foreach ($p in $paths) { Write-Output "$p -> $(Test-Path $p)" }

@@ -6,45 +6,20 @@
 #   .\scripts\build.ps1 -Release           # Release build
 #   .\scripts\build.ps1 -Clean             # Clean before building
 #   .\scripts\build.ps1 -Restore           # Restore packages before building
+#   .\scripts\build.ps1 -DetailedOutput    # Show detailed build output
 # ============================================================================
 
 param(
     [switch]$Release,
     [switch]$Clean,
     [switch]$Restore,
-    [switch]$Verbose
+    [switch]$DetailedOutput
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot\_common.ps1"
 
-# Setup local .NET SDK environment (prefer any installed .NET 10 SDK in the known folder)
-$localSdkRoot = "D:\CODE\important files"
-$localSDKPath = $null
-if (Test-Path $localSdkRoot) {
-    $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -like 'dotnet-sdk-10*' } |
-        Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
-
-    if (-not $localSDKPath) {
-        $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -like 'dotnet-sdk*' } |
-            Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
-    }
-}
-
-if ($localSDKPath -and (Test-Path $localSDKPath)) {
-    $env:DOTNET_ROOT = $localSDKPath
-    $env:PATH = "$localSDKPath;$env:PATH"
-}
-
-# Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$srcDir = Join-Path $rootDir "src"
-$projectFile = Join-Path $srcDir "SOUP.csproj"
 $configuration = if ($Release) { "Release" } else { "Debug" }
-
-# Find dotnet (check environment variable, then fallback to system dotnet)
-$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
@@ -79,7 +54,7 @@ if ($Restore) {
 # Build
 Write-Host "[Build] Building $configuration..." -ForegroundColor Yellow
 
-$verbosity = if ($Verbose) { "normal" } else { "minimal" }
+$verbosity = if ($DetailedOutput) { "normal" } else { "minimal" }
 
 # Check if restore is needed (assets file missing)
 $assetsFile = Join-Path $srcDir "obj\project.assets.json"
@@ -108,5 +83,5 @@ Write-Host "  Build Succeeded!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$outputDir = Join-Path $srcDir "bin\$configuration\net10.0-windows"
+$outputDir = Join-Path $srcDir "bin\$configuration"
 Write-Host "Output: $outputDir" -ForegroundColor White

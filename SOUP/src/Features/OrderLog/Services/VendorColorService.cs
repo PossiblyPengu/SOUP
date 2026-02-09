@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SOUP.Core;
+using SOUP.Helpers;
 
 namespace SOUP.Features.OrderLog.Services;
 
@@ -50,7 +51,10 @@ public class VendorColorService
             if (!File.Exists(_mappingsFilePath))
             {
                 _logger?.LogInformation("Vendor color mappings file not found, starting with empty map");
-                _vendorColorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                lock (_lock)
+                {
+                    _vendorColorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
                 return;
             }
 
@@ -58,7 +62,10 @@ public class VendorColorService
             if (string.IsNullOrWhiteSpace(json))
             {
                 _logger?.LogWarning("Vendor color mappings file is empty");
-                _vendorColorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                lock (_lock)
+                {
+                    _vendorColorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
                 return;
             }
 
@@ -87,7 +94,10 @@ public class VendorColorService
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to load vendor color mappings");
-            _vendorColorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            lock (_lock)
+            {
+                _vendorColorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
         }
     }
 
@@ -105,10 +115,16 @@ public class VendorColorService
                 Directory.CreateDirectory(directory);
             }
 
+            Dictionary<string, string> snapshot;
+            lock (_lock)
+            {
+                snapshot = new Dictionary<string, string>(_vendorColorMap, StringComparer.OrdinalIgnoreCase);
+            }
+
             var collection = new VendorColorMappingCollection
             {
                 Version = 1,
-                Mappings = _vendorColorMap
+                Mappings = snapshot
             };
 
             var options = new JsonSerializerOptions
@@ -158,7 +174,7 @@ public class VendorColorService
             _vendorColorMap[normalizedVendor] = assignedColor;
 
             // Save asynchronously (fire and forget)
-            _ = SaveMappingsAsync();
+            SaveMappingsAsync().SafeFireAndForget("SaveVendorColorMappings");
 
             _logger?.LogDebug("Auto-assigned color {Color} to vendor '{Vendor}'", assignedColor, normalizedVendor);
             return assignedColor;

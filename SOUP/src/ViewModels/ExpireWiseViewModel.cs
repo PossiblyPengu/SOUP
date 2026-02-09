@@ -1317,17 +1317,27 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
         if (_settings?.ShowToastNotifications == false)
             return;
 
-        StatusMessage = $"✓ {message}";
+        var msg = $"✓ {message}";
+        StatusMessage = msg;
 
-        // Auto-clear status message after 3 seconds
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-        timer.Tick += (s, e) =>
-        {
-            if (StatusMessage == $"✓ {message}")
-                StatusMessage = string.Empty;
-            timer.Stop();
-        };
-        timer.Start();
+        // Reuse a single timer to avoid accumulating timers on rapid-fire operations
+        _toastTimer?.Stop();
+        _toastTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+        // Detach previous handler to avoid stacking
+        _toastTimer.Tick -= OnToastTimerTick;
+        _toastTimerMessage = msg;
+        _toastTimer.Tick += OnToastTimerTick;
+        _toastTimer.Start();
+    }
+
+    private DispatcherTimer? _toastTimer;
+    private string? _toastTimerMessage;
+
+    private void OnToastTimerTick(object? sender, EventArgs e)
+    {
+        if (StatusMessage == _toastTimerMessage)
+            StatusMessage = string.Empty;
+        _toastTimer?.Stop();
     }
 
     [RelayCommand]
@@ -2746,6 +2756,13 @@ public partial class ExpireWiseViewModel : ObservableObject, IDisposable
             }
             _searchDebounceTimer?.Dispose();
             _searchDebounceTimer = null;
+            _skuLookupDebounceTimer?.Dispose();
+            _skuLookupDebounceTimer = null;
+
+            _toastTimer?.Stop();
+            _toastTimer = null;
+
+            PropertyChanged -= OnQuickAddSkuChanged;
         }
         _disposed = true;
     }

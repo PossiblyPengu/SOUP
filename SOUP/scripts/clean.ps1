@@ -7,15 +7,8 @@
 
 $ErrorActionPreference = "Stop"
 
-# Setup local .NET SDK environment
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
-if (Test-Path $localSDKPath) {
-    $env:DOTNET_ROOT = $localSDKPath
-    $env:PATH = "$localSDKPath;$env:PATH"
-}
-
 # Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$rootDir = Split-Path -Parent $PSScriptRoot
 $srcDir = Join-Path $rootDir "src"
 
 Write-Host ""
@@ -34,7 +27,7 @@ if ($soupProcesses) {
 
 # Also kill any dotnet processes that might be holding locks (e.g., hot reload)
 $dotnetProcesses = Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Where-Object {
-    $_.MainWindowTitle -like "*SOUP*" -or $_.CommandLine -like "*SOUP*"
+    $_.MainWindowTitle -like "*SOUP*"
 }
 if ($dotnetProcesses) {
     Write-Host "Stopping dotnet processes..." -ForegroundColor Yellow

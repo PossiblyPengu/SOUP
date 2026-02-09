@@ -6,7 +6,7 @@
 #   .\scripts\publish.ps1 -Framework       # Publish framework-dependent only
 #   .\scripts\publish.ps1 -Portable        # Publish self-contained only
 #   .\scripts\publish.ps1 -Installer       # Publish and create installer
-#   .\scripts\publish.ps1 -Release         # Publish, tag, and push to GitHub
+#   .\scripts\publish.ps1 -Release         # (Deprecated: use release.ps1 instead)
 #   .\scripts\publish.ps1 -BumpMajor       # Bump major version (1.0.0 -> 2.0.0)
 #   .\scripts\publish.ps1 -BumpMinor       # Bump minor version (1.0.0 -> 1.1.0)
 #   .\scripts\publish.ps1 -BumpPatch       # Bump patch version (1.0.0 -> 1.0.1)
@@ -27,36 +27,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot\_common.ps1"
 
-# Setup local .NET SDK environment (prefer any installed .NET 10 SDK in the known folder)
-$localSdkRoot = "D:\CODE\important files"
-$localSDKPath = $null
-if (Test-Path $localSdkRoot) {
-    $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -like 'dotnet-sdk-10*' } |
-        Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
-
-    if (-not $localSDKPath) {
-        $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -like 'dotnet-sdk*' } |
-            Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
-    }
-}
-
-if ($localSDKPath -and (Test-Path $localSDKPath)) {
-    $env:DOTNET_ROOT = $localSDKPath
-    $env:PATH = "$localSDKPath;$env:PATH"
-}
-
-# Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$srcDir = Join-Path $rootDir "src"
-$projectFile = Join-Path $srcDir "SOUP.csproj"
 $publishFrameworkDir = Join-Path $rootDir "publish-framework"
 $publishPortableDir = Join-Path $rootDir "publish-portable"
-
-# Find dotnet (check environment variable, then fallback to system dotnet)
-$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 # Default to both if neither specified
 if (-not $Framework -and -not $Portable -and -not $Installer -and -not $Release) {
@@ -317,115 +291,17 @@ if ($Installer) {
     }
 }
 
-# Create GitHub release
+# Create GitHub release (delegated to release.ps1)
 if ($Release) {
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "  Creating GitHub Release" -ForegroundColor Cyan
-    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Yellow
+    Write-Host "  Use release.ps1 for full releases" -ForegroundColor Yellow
+    Write-Host "========================================" -ForegroundColor Yellow
     Write-Host ""
-    
-    $tagName = "v$version"
-    
-    # Check if we're in a git repository
-    $gitDir = Join-Path $rootDir ".git"
-    if (-not (Test-Path $gitDir)) {
-        Write-Host "ERROR: Not a git repository!" -ForegroundColor Red
-        exit 1
-    }
-    
-    # Check for uncommitted changes - offer to commit them
-    $gitStatus = git -C $rootDir status --porcelain
-    if ($gitStatus) {
-        Write-Host "You have uncommitted changes:" -ForegroundColor Yellow
-        Write-Host $gitStatus -ForegroundColor Gray
-        Write-Host ""
-        
-        $commitChoice = Read-Host "Would you like to commit these changes? (Y/n/abort)"
-        if ($commitChoice -eq 'abort' -or $commitChoice -eq 'a') {
-            Write-Host "Aborted." -ForegroundColor Yellow
-            exit 0
-        }
-        elseif ($commitChoice -ne 'n' -and $commitChoice -ne 'N') {
-            # Stage all changes
-            Write-Host "Staging changes..." -ForegroundColor Yellow
-            git -C $rootDir add -A
-            
-            # Get commit message
-            $defaultMessage = "Release v$version"
-            $commitMessage = Read-Host "Commit message [$defaultMessage]"
-            if ([string]::IsNullOrWhiteSpace($commitMessage)) {
-                $commitMessage = $defaultMessage
-            }
-            
-            # Commit
-            Write-Host "Committing..." -ForegroundColor Yellow
-            git -C $rootDir commit -m $commitMessage
-            
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "ERROR: Failed to commit!" -ForegroundColor Red
-                exit 1
-            }
-            
-            # Push
-            Write-Host "Pushing to origin..." -ForegroundColor Yellow
-            git -C $rootDir push
-            
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "ERROR: Failed to push! You may need to pull first." -ForegroundColor Red
-                exit 1
-            }
-            
-            Write-Host "Changes committed and pushed." -ForegroundColor Green
-            Write-Host ""
-        }
-    }
-    
-    # Check if tag already exists
-    $existingTag = git -C $rootDir tag -l $tagName
-    if ($existingTag) {
-        Write-Host "WARNING: Tag $tagName already exists!" -ForegroundColor Yellow
-        $confirm = Read-Host "Delete and recreate? (y/N)"
-        if ($confirm -eq 'y' -or $confirm -eq 'Y') {
-            Write-Host "Deleting existing tag..." -ForegroundColor Yellow
-            git -C $rootDir tag -d $tagName
-            git -C $rootDir push origin --delete $tagName 2>$null
-        } else {
-            Write-Host "Aborted." -ForegroundColor Yellow
-            exit 0
-        }
-    }
-    
-    # Run security check before release
-    Write-Host "Running security check..." -ForegroundColor Yellow
-    $securityScript = Join-Path $rootDir "scripts\security-check.ps1"
-    if (Test-Path $securityScript) {
-        & $securityScript
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "ERROR: Security check failed! Fix issues before releasing." -ForegroundColor Red
-            exit 1
-        }
-    }
-    
-    # Create and push tag
-    Write-Host "Creating tag $tagName..." -ForegroundColor Yellow
-    git -C $rootDir tag -a $tagName -m "Release $tagName"
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Failed to create tag!" -ForegroundColor Red
-        exit 1
-    }
-    
-    Write-Host "Pushing tag to origin..." -ForegroundColor Yellow
-    git -C $rootDir push origin $tagName
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Failed to push tag!" -ForegroundColor Red
-        exit 1
-    }
-    
-    Write-Host ""
-    Write-Host "✅ Tag $tagName pushed to GitHub!" -ForegroundColor Green
-    Write-Host "GitHub Actions will now build and create the release." -ForegroundColor White
-    Write-Host "Check: https://github.com/YOUR_USERNAME/SOUP/actions" -ForegroundColor Cyan
+    Write-Host "The -Release flag is deprecated here." -ForegroundColor Yellow
+    Write-Host "Run instead:  .\scripts\release.ps1 -Patch" -ForegroundColor Cyan
+    Write-Host "  release.ps1 handles:" -ForegroundColor Gray
+    Write-Host "    - Version bump + changelog" -ForegroundColor Gray
+    Write-Host "    - Clean/build/publish" -ForegroundColor Gray
+    Write-Host "    - Scoped git commit + tag + push" -ForegroundColor Gray
 }

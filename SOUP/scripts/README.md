@@ -18,9 +18,11 @@ Quick and easy build scripts for the SOUP project.
 
 | Script | Description |
 |--------|-------------|
+| `_common.ps1` | Shared SDK setup + path variables (dot-sourced) |
 | `dev.ps1` | Quick commands (build, run, widget, watch, clean, etc.) |
 | `build.ps1` | Full build with options |
 | `run.ps1` | Run the application (launcher) |
+| `run-module.ps1` | Unified module launcher (used by `run-*.ps1` wrappers) |
 | `run-widget.ps1` | Run OrderLog widget (standalone) |
 | `run-expirewise.ps1` | Run ExpireWise module directly |
 | `run-orderlog.ps1` | Run OrderLog module directly |
@@ -30,11 +32,13 @@ Quick and easy build scripts for the SOUP project.
 | `watch.ps1` | Hot reload development |
 | `clean.ps1` | Clean build artifacts |
 | `publish.ps1` | Publish for distribution |
-| `release.ps1` | Full release workflow |
+| `release.ps1` | Full release workflow (version + build + git) |
 | `test.ps1` | Run unit tests |
 | `analyze.ps1` | Code quality checks |
 | `git.ps1` | Git helpers |
 | `tools.ps1` | Run project tools |
+| `security-check.ps1` | Scan for potential secrets before committing |
+| `serve-updates.ps1` | Local HTTP server for update testing |
 
 ## Detailed Usage
 

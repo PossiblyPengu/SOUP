@@ -5,27 +5,17 @@
 #   .\scripts\test.ps1                     # Run all tests
 #   .\scripts\test.ps1 -Filter "OrderLog"  # Run tests matching filter
 #   .\scripts\test.ps1 -Coverage           # Run with code coverage
-#   .\scripts\test.ps1 -Verbose            # Verbose output
+#   .\scripts\test.ps1 -DetailedOutput     # Verbose output
 # ============================================================================
 
 param(
     [string]$Filter,
     [switch]$Coverage,
-    [switch]$Verbose
+    [switch]$DetailedOutput
 )
 
 $ErrorActionPreference = "Stop"
-
-# Setup local .NET SDK environment
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
-if (Test-Path $localSDKPath) {
-    $env:DOTNET_ROOT = $localSDKPath
-    $env:PATH = "$localSDKPath;$env:PATH"
-}
-
-# Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
+. "$PSScriptRoot\_common.ps1"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
@@ -50,7 +40,7 @@ if ($Filter) {
     Write-Host "Filter: $Filter" -ForegroundColor Yellow
 }
 
-if ($Verbose) {
+if ($DetailedOutput) {
     $testArgs += "--verbosity"
     $testArgs += "detailed"
 }

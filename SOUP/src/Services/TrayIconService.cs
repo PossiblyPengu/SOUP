@@ -58,25 +58,25 @@ public sealed class TrayIconService : IDisposable
         _settingsService = settingsService;
         _settingsService.SettingsChanged += OnSettingsChanged;
 
-        // Load initial settings synchronously
-        LoadSettings();
+        // Load initial settings on a thread-pool thread to avoid blocking the UI
+        _ = LoadSettingsAsync();
     }
 
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
     {
         if (e.AppName == "Application")
         {
-            LoadSettings();
+            _ = LoadSettingsAsync();
             UpdateTrayIconVisibility();
         }
     }
 
-    private void LoadSettings()
+    private async Task LoadSettingsAsync()
     {
         try
         {
-            var settings = _settingsService.LoadSettingsAsync<ApplicationSettings>("Application")
-                .GetAwaiter().GetResult();
+            var settings = await _settingsService.LoadSettingsAsync<ApplicationSettings>("Application")
+                .ConfigureAwait(false);
 
             CloseToTray = settings.CloseToTray;
             ShowTrayIcon = settings.ShowTrayIcon;

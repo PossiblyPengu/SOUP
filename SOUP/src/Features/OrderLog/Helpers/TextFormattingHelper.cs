@@ -318,7 +318,14 @@ public static class TextFormattingHelper
             order.NoteContent = GetDocumentXaml(rtb);
             if (view.DataContext is OrderLogViewModel vm)
             {
-                await vm.SaveAsync();
+                try
+                {
+                    await vm.SaveAsync();
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Warning(ex, "Failed to save note content");
+                }
             }
         }
     }

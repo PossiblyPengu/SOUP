@@ -27,20 +27,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-
-# Optional local SDK root: set `LOCAL_DOTNET_ROOT` environment variable if you need a custom SDK location.
-# The previous hardcoded path was removed to avoid leaking local machine directories.
-$envLocalSdk = $env:LOCAL_DOTNET_ROOT
-if ($envLocalSdk -and (Test-Path $envLocalSdk)) {
-    Write-Host "Using LOCAL_DOTNET_ROOT: $envLocalSdk" -ForegroundColor Gray
-    $env:DOTNET_ROOT = $envLocalSdk
-    $env:PATH = "$envLocalSdk;$env:PATH"
-}
-
-# Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$srcDir = Join-Path $rootDir "src"
-$csprojFile = Join-Path $rootDir "src\SOUP.csproj"
+. "$PSScriptRoot\_common.ps1"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
@@ -49,7 +36,7 @@ Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
 # Get current version from csproj
-$csprojContent = Get-Content $csprojFile -Raw
+$csprojContent = Get-Content $projectFile -Raw
 # Match version with optional prerelease suffix (e.g., 5.0.1, 5.0.1-beta, 5.0.1-beta.1)
 if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Version>') {
     $majorNum = [int]$matches[1]
@@ -117,7 +104,6 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
                 if ($inputVer -match '^\d+\.\d+\.\d+(-[A-Za-z0-9\.-]+)?$') { $newVersion = $inputVer } else { Write-Host "Invalid version format" -ForegroundColor Red; exit 1 }
             }
             "q" { exit 0 }
-            "Q" { exit 0 }
             default { Write-Host "Invalid choice" -ForegroundColor Red; exit 1 }
         }
     }
@@ -153,7 +139,18 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
     if ($DryRun) {
         Write-Host ""
         Write-Host "DRY RUN - No changes will be made" -ForegroundColor Yellow
-        Write-Host "  Would update: $currentVersion -> $newVersion" -ForegroundColor Gray
+        Write-Host "  Version:  $currentVersion -> $newVersion" -ForegroundColor Gray
+        Write-Host "  Tag:      $tagName" -ForegroundColor Gray
+        Write-Host "  Files:    src\SOUP.csproj, src\Core\AppVersion.cs" -ForegroundColor Gray
+        if ($releaseNotes.Count -gt 0) {
+            Write-Host "  Notes:" -ForegroundColor Gray
+            $releaseNotes | ForEach-Object { Write-Host "    - $_" -ForegroundColor Gray }
+        }
+        if (-not $SkipGit) {
+            Write-Host "  Git:      commit + tag + push to origin" -ForegroundColor Gray
+        } else {
+            Write-Host "  Git:      skipped" -ForegroundColor Gray
+        }
         exit 0
     }
     
@@ -161,6 +158,8 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
     $originalCsprojContent = $csprojContent
     $appVersionFile = Join-Path $srcDir "Core\AppVersion.cs"
     $appVersionFileExists = Test-Path $appVersionFile
+    # Track which files we modify for scoped git add
+    $modifiedFiles = @($projectFile)
     if ($appVersionFileExists) {
         $originalAppVersionContent = Get-Content $appVersionFile -Raw
     } else {
@@ -170,7 +169,7 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
     function Restore-OriginalFiles {
         if ($null -ne $originalCsprojContent) {
             Write-Host "Restoring original csproj content..." -ForegroundColor Yellow
-            Set-Content $csprojFile $originalCsprojContent -NoNewline
+            Set-Content $projectFile $originalCsprojContent -NoNewline
         }
         if ($appVersionFileExists -and $null -ne $originalAppVersionContent) {
             Write-Host "Restoring original AppVersion.cs..." -ForegroundColor Yellow
@@ -193,10 +192,9 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
         $csprojContent = $csprojContent -replace '<Version>\d+\.\d+\.\d+(-[A-Za-z0-9\.-]+)?</Version>', "<Version>$newVersion</Version>"
         $csprojContent = $csprojContent -replace '<AssemblyVersion>\d+\.\d+\.\d+\.\d+</AssemblyVersion>', "<AssemblyVersion>$numericVersion.0</AssemblyVersion>"
         $csprojContent = $csprojContent -replace '<FileVersion>\d+\.\d+\.\d+\.\d+</FileVersion>', "<FileVersion>$numericVersion.0</FileVersion>"
-        Set-Content $csprojFile $csprojContent -NoNewline
+        Set-Content $projectFile $csprojContent -NoNewline
         
         # Update AppVersion.cs
-        $appVersionFile = Join-Path $srcDir "Core\AppVersion.cs"
         if (Test-Path $appVersionFile) {
             $appVersionContent = Get-Content $appVersionFile -Raw
             $versionPattern = 'public const string Version = "[^"]+";'
@@ -207,8 +205,11 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
             
             # Add changelog entry if we have release notes
             if ($releaseNotes.Count -gt 0) {
-                # Build the changelog entry
-                $changelogLines = ($releaseNotes | ForEach-Object { "            `"$_`"" }) -join ",`n"
+                # Build the changelog entry (escape double quotes in notes for valid C#)
+                $changelogLines = ($releaseNotes | ForEach-Object { 
+                    $escaped = $_ -replace '"', '\"'
+                    "            `"$escaped`""
+                }) -join ",`n"
                 # Determine a friendly release title based on bump intent
                 $releaseTitle = 
                     if ($Major -or ($Bump -and $Bump.ToLower() -eq 'major')) { "Major Release" }
@@ -221,8 +222,8 @@ if ($csprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(-[A-Za-z0-9\.-]+)?</Vers
 $changelogLines
         }),
 "@
-                # Insert after "new List<ChangelogEntry>" opening
-                $changelogInsertPattern = '(public static IReadOnlyList<ChangelogEntry> Changelog \{ get; \} = new List<ChangelogEntry>\s*\{)\s*\n'
+                # Insert after "new List<ChangelogEntry>" opening brace
+                $changelogInsertPattern = '(new List<ChangelogEntry>\s*\{)\s*\r?\n'
                 if ($appVersionContent -match $changelogInsertPattern) {
                     $appVersionContent = $appVersionContent -replace $changelogInsertPattern, "`$1`n$newChangelogEntry`n"
                     Write-Host "  Added changelog entry" -ForegroundColor Green
@@ -230,10 +231,11 @@ $changelogLines
             }
             
             Set-Content $appVersionFile $appVersionContent -NoNewline
+            $modifiedFiles += $appVersionFile
         }
         
         Write-Host "  Updated to v$newVersion" -ForegroundColor Green
-            $versionUpdated = $true
+        $versionUpdated = $true
     }
 } else {
     Write-Host "Could not parse version from csproj" -ForegroundColor Red
@@ -243,7 +245,10 @@ $changelogLines
 # Build and Publish
 Write-Host ""
 Write-Host "[Build] Building release..." -ForegroundColor Yellow
-& "$rootDir\scripts\clean.ps1" -All 2>$null
+& "$rootDir\scripts\clean.ps1"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "  Warning: Clean had issues, continuing..." -ForegroundColor Yellow
+}
 & "$rootDir\scripts\build.ps1" -Release -Clean -Restore
 
 if ($LASTEXITCODE -ne 0) {
@@ -264,16 +269,33 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Verify publish output exists
+$publishPortableDir = Join-Path $rootDir 'publish-portable'
+if (-not (Test-Path $publishPortableDir)) {
+    Write-Host ""
+    Write-Host "ERROR: Publish output not found at $publishPortableDir" -ForegroundColor Red
+    if ($versionUpdated) { Restore-OriginalFiles }
+    exit 1
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  Build Complete" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
-Write-Host "  Portable: $(Join-Path $rootDir 'publish-portable')" -ForegroundColor Cyan
+Write-Host "  Portable: $publishPortableDir" -ForegroundColor Cyan
 Write-Host ""
 
 # Git operations
 if (-not $SkipGit) {
     Write-Host "[Git] Committing and tagging..." -ForegroundColor Yellow
+    
+    # Validate working tree state
+    $dirtyFiles = git -C $rootDir status --porcelain -- ':!src/SOUP.csproj' ':!src/Core/AppVersion.cs'
+    if ($dirtyFiles) {
+        Write-Host "  Warning: Uncommitted changes detected outside release files:" -ForegroundColor Yellow
+        $dirtyFiles | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow }
+        Write-Host "  These will be included in the release commit." -ForegroundColor Yellow
+    }
     
     # Create release notes body for GitHub
     $notesBody = ""
@@ -281,15 +303,20 @@ if (-not $SkipGit) {
         $notesBody = ($releaseNotes | ForEach-Object { "- $_" }) -join "`n"
     }
     
-    git -C $rootDir add -A
-    
-    # Commit with notes in message if provided
-    if ($releaseNotes.Count -gt 0) {
-        $commitMsg = "Release v$newVersion`n`n$notesBody"
-        git -C $rootDir commit -m $commitMsg
-    } else {
-        git -C $rootDir commit -m "Release v$newVersion"
+    # Stage only the files we modified (plus any other tracked changes)
+    foreach ($f in $modifiedFiles) {
+        git -C $rootDir add $f
     }
+    
+    # Write commit message to temp file to preserve newlines reliably
+    $commitMsgFile = Join-Path $env:TEMP "soup-release-commit-msg.txt"
+    if ($releaseNotes.Count -gt 0) {
+        "Release v$newVersion`n`n$notesBody" | Set-Content $commitMsgFile -Encoding utf8
+    } else {
+        "Release v$newVersion" | Set-Content $commitMsgFile -Encoding utf8
+    }
+    git -C $rootDir commit -F $commitMsgFile
+    Remove-Item $commitMsgFile -ErrorAction SilentlyContinue
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  Nothing to commit" -ForegroundColor Yellow
@@ -307,15 +334,31 @@ if (-not $SkipGit) {
 
     # Use --set-upstream so new local branches get an upstream set on first push
     git -C $rootDir push --set-upstream origin $pushBranch
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Git push failed!" -ForegroundColor Red
+        exit 1
+    }
     
     Write-Host "  Creating tag $tagName..." -ForegroundColor Gray
+    $tagMsgFile = Join-Path $env:TEMP "soup-release-tag-msg.txt"
     if ($releaseNotes.Count -gt 0) {
-        $tagMsg = "Release $tagName`n`n$notesBody"
-        git -C $rootDir tag -a $tagName -m $tagMsg
+        "Release $tagName`n`n$notesBody" | Set-Content $tagMsgFile -Encoding utf8
     } else {
-        git -C $rootDir tag -a $tagName -m "Release $tagName"
+        "Release $tagName" | Set-Content $tagMsgFile -Encoding utf8
     }
+    git -C $rootDir tag -a $tagName -F $tagMsgFile
+    Remove-Item $tagMsgFile -ErrorAction SilentlyContinue
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Git tag creation failed!" -ForegroundColor Red
+        exit 1
+    }
+    
     git -C $rootDir push origin $tagName
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Git tag push failed!" -ForegroundColor Red
+        exit 1
+    }
     
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using SOUP.Core.Entities.Settings;
 using SOUP.Infrastructure.Services;
 
@@ -81,6 +82,7 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "EssentialsBuddy: Failed to load settings");
             StatusMessage = $"Error loading settings: {ex.Message}";
         }
     }
@@ -110,6 +112,7 @@ public partial class EssentialsBuddySettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "EssentialsBuddy: Failed to save settings");
             StatusMessage = $"Error saving settings: {ex.Message}";
         }
     }

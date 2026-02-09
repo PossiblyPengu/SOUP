@@ -900,7 +900,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
 
             // Auto-archive is async, but for paste we'll fire-and-forget
-            _ = AutoArchiveIfNeededAsync();
+            AutoArchiveIfNeededAsync().SafeFireAndForget("AutoArchiveAfterImport");
 
             PopulateFromEntries(parseResult.Value);
             MarkAsModified();
@@ -948,7 +948,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
             }
 
             // Auto-archive is async, but for paste we'll fire-and-forget
-            _ = AutoArchiveIfNeededAsync();
+            AutoArchiveIfNeededAsync().SafeFireAndForget("AutoArchiveAfterPaste");
 
             PopulateFromEntries(result.Value);
             MarkAsModified();
@@ -1361,7 +1361,7 @@ public partial class AllocationBuddyRPGViewModel : ObservableObject, IDisposable
         // Clear search text and refresh view
         SearchText = string.Empty;
         OnPropertyChanged(nameof(SearchText));
-        _ = RefreshAsync();
+        RefreshAsync().SafeFireAndForget("ClearSearchRefresh");
     }
 
     private void UndoDeactivate()

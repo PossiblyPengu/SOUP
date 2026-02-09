@@ -50,7 +50,11 @@ public sealed class GroupStateStore : IDisposable
     {
         try
         {
-            var json = JsonSerializer.Serialize(_states, new JsonSerializerOptions { WriteIndented = true });
+            string json;
+            lock (_lock)
+            {
+                json = JsonSerializer.Serialize(_states, new JsonSerializerOptions { WriteIndented = true });
+            }
             File.WriteAllText(_path, json);
         }
         catch (Exception ex)
@@ -62,7 +66,10 @@ public sealed class GroupStateStore : IDisposable
     public bool Get(string? name, bool defaultValue = true)
     {
         if (string.IsNullOrEmpty(name)) return defaultValue;
-        return _states.TryGetValue(name, out var value) ? value : defaultValue;
+        lock (_lock)
+        {
+            return _states.TryGetValue(name, out var value) ? value : defaultValue;
+        }
     }
 
     public void Set(string? name, bool value)

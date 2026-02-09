@@ -16,10 +16,10 @@ namespace SOUP.Services;
 /// Service for controlling Spotify playback using Windows Media Session API for metadata
 /// and global media keys for control.
 /// </summary>
-public class SpotifyService : INotifyPropertyChanged
+public class SpotifyService : INotifyPropertyChanged, IDisposable
 {
-    private static SpotifyService? _instance;
-    public static SpotifyService Instance => _instance ??= new SpotifyService();
+    private static readonly Lazy<SpotifyService> _instance = new(() => new SpotifyService());
+    public static SpotifyService Instance => _instance.Value;
 
     // Windows API for sending key events
     [DllImport("user32.dll", SetLastError = true)]
@@ -31,6 +31,33 @@ public class SpotifyService : INotifyPropertyChanged
     private const byte VK_MEDIA_PREV_TRACK = 0xB1;
     private const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
     private const uint KEYEVENTF_KEYUP = 0x0002;
+
+    // Pre-compiled regex patterns for extracting/removing featured artists from titles
+#pragma warning disable MA0023 // Capture groups are intentional — used by ExtractFeaturedArtists
+    private static readonly System.Text.RegularExpressions.Regex[] FeatExtractPatterns =
+    [
+        new(@"\(feat\.?\s+(.+?)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\(ft\.?\s+(.+?)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\(with\s+(.+?)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\[feat\.?\s+(.+?)\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\[ft\.?\s+(.+?)\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\[with\s+(.+?)\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s+-\s+feat\.?\s+(.+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s+-\s+ft\.?\s+(.+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+    ];
+#pragma warning restore MA0023
+
+    private static readonly System.Text.RegularExpressions.Regex[] FeatRemovePatterns =
+    [
+        new(@"\s*\(feat\.?\s+.+?\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*\(ft\.?\s+.+?\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*\(with\s+.+?\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*\[feat\.?\s+.+?\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*\[ft\.?\s+.+?\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*\[with\s+.+?\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*-\s+feat\.?\s+.+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+        new(@"\s*-\s+ft\.?\s+.+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled),
+    ];
 
     private string _trackTitle = "Not Playing";
     private string _artistName = "";
@@ -98,6 +125,8 @@ public class SpotifyService : INotifyPropertyChanged
             _currentSession.MediaPropertiesChanged -= OnMediaPropertiesChanged;
             _currentSession.PlaybackInfoChanged -= OnPlaybackInfoChanged;
         }
+
+        GC.SuppressFinalize(this);
 
         Log.Information("SpotifyService disposed");
     }
@@ -325,7 +354,7 @@ public class SpotifyService : INotifyPropertyChanged
     {
         try
         {
-            var memoryStream = new MemoryStream();
+            using var memoryStream = new MemoryStream();
             var inputStream = stream.AsStreamForRead();
             await inputStream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
@@ -480,23 +509,9 @@ public class SpotifyService : INotifyPropertyChanged
         if (string.IsNullOrEmpty(title))
             return null;
 
-        // Common patterns: (feat. X), (ft. X), (with X), [feat. X], [ft. X]
-        var patterns = new[]
+        foreach (var regex in FeatExtractPatterns)
         {
-            @"\(feat\.?\s+(.+?)\)",   // (feat. Artist) or (feat Artist)
-            @"\(ft\.?\s+(.+?)\)",     // (ft. Artist) or (ft Artist)  
-            @"\(with\s+(.+?)\)",      // (with Artist)
-            @"\[feat\.?\s+(.+?)\]",   // [feat. Artist]
-            @"\[ft\.?\s+(.+?)\]",     // [ft. Artist]
-            @"\[with\s+(.+?)\]",      // [with Artist]
-            @"\s+-\s+feat\.?\s+(.+)$", // - feat. Artist at end
-            @"\s+-\s+ft\.?\s+(.+)$",   // - ft. Artist at end
-        };
-
-        foreach (var pattern in patterns)
-        {
-            var match = System.Text.RegularExpressions.Regex.Match(
-                title, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var match = regex.Match(title);
             if (match.Success && match.Groups.Count > 1)
             {
                 return match.Groups[1].Value.Trim();
@@ -514,24 +529,10 @@ public class SpotifyService : INotifyPropertyChanged
         if (string.IsNullOrEmpty(title))
             return "";
 
-        // Same patterns as above, but replace with empty
-        var patterns = new[]
-        {
-            @"\s*\(feat\.?\s+.+?\)",
-            @"\s*\(ft\.?\s+.+?\)",
-            @"\s*\(with\s+.+?\)",
-            @"\s*\[feat\.?\s+.+?\]",
-            @"\s*\[ft\.?\s+.+?\]",
-            @"\s*\[with\s+.+?\]",
-            @"\s*-\s+feat\.?\s+.+$",
-            @"\s*-\s+ft\.?\s+.+$",
-        };
-
         string result = title;
-        foreach (var pattern in patterns)
+        foreach (var regex in FeatRemovePatterns)
         {
-            result = System.Text.RegularExpressions.Regex.Replace(
-                result, pattern, "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            result = regex.Replace(result, "");
         }
 
         return result.Trim();

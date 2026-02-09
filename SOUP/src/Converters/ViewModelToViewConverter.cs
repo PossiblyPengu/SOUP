@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Data;
 using SOUP.Features.OrderLog.ViewModels;
@@ -14,6 +15,7 @@ namespace SOUP.Converters;
 
 /// <summary>
 /// Converts a ViewModel instance to its corresponding View using convention-based mapping.
+/// Views are cached per ViewModel instance so navigation doesn't recreate the visual tree.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -32,19 +34,22 @@ namespace SOUP.Converters;
 /// </remarks>
 public class ViewModelToViewConverter : IValueConverter
 {
+    private static readonly ConditionalWeakTable<object, FrameworkElement> _viewCache = new();
+
     /// <inheritdoc/>
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value switch
+        if (value is null) return null;
+
+        return _viewCache.GetValue(value, vm => vm switch
         {
-            AllocationBuddyRPGViewModel vm => new AllocationBuddyRPGView { DataContext = vm },
-            EssentialsBuddyViewModel vm => new EssentialsBuddyView { DataContext = vm },
-            ExpireWiseViewModel vm => new ExpireWiseView { DataContext = vm },
-            SwiftLabelViewModel vm => new SwiftLabelView { DataContext = vm },
-            OrderLogViewModel vm => new SOUP.Features.OrderLog.Views.OrderLogSettingsView { DataContext = vm },
-            null => null,
-            _ => throw new ArgumentException($"Unknown ViewModel type: {value.GetType().Name}")
-        };
+            AllocationBuddyRPGViewModel => new AllocationBuddyRPGView { DataContext = vm },
+            EssentialsBuddyViewModel => new EssentialsBuddyView { DataContext = vm },
+            ExpireWiseViewModel => new ExpireWiseView { DataContext = vm },
+            SwiftLabelViewModel => new SwiftLabelView { DataContext = vm },
+            OrderLogViewModel => new OrderLogSettingsView { DataContext = vm },
+            _ => throw new ArgumentException($"Unknown ViewModel type: {vm.GetType().Name}")
+        });
     }
 
     /// <inheritdoc/>

@@ -21,19 +21,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-
-# Setup local .NET SDK environment
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
-if (Test-Path $localSDKPath) {
-    $env:DOTNET_ROOT = $localSDKPath
-    $env:PATH = "$localSDKPath;$env:PATH"
-}
-
-# Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$srcDir = Join-Path $rootDir "src"
-$projectFile = Join-Path $srcDir "SOUP.csproj"
-$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
+. "$PSScriptRoot\_common.ps1"
 
 function Show-Header($title) {
     Write-Host ""
@@ -62,14 +50,17 @@ switch ($Command) {
     "build" {
         Show-Header "Building (Debug)"
         & $dotnetPath build $projectFile --configuration Debug --no-restore
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "run" {
         Show-Header "Running SOUP"
         & $dotnetPath run --project $projectFile --configuration Debug
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "widget" {
         Show-Header "Running Widget Mode"
         & $dotnetPath run --project $projectFile --configuration Debug -- --widget
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "watch" {
         Show-Header "Hot Reload Mode"
@@ -90,18 +81,22 @@ switch ($Command) {
         if (Test-Path $binDir) { Remove-Item -Path $binDir -Recurse -Force }
         if (Test-Path $objDir) { Remove-Item -Path $objDir -Recurse -Force }
         & $dotnetPath build $projectFile --configuration Debug
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "restore" {
         Show-Header "Restoring Packages"
         & $dotnetPath restore $projectFile
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "check" {
         Show-Header "Building with Warnings as Errors"
         & $dotnetPath build $projectFile --configuration Debug -warnaserror
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "format" {
         Show-Header "Formatting Code"
         & $dotnetPath format $projectFile
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "info" {
         Show-Header "Project Info"

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using SOUP.Services;
 
 namespace SOUP.ViewModels;
@@ -146,6 +147,7 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "UnifiedSettings: Failed to save all settings");
             StatusMessage = $"Error saving settings: {ex.Message}";
         }
     }
@@ -171,6 +173,7 @@ public partial class UnifiedSettingsViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "UnifiedSettings: Failed to reset all settings");
             StatusMessage = $"Error resetting settings: {ex.Message}";
         }
     }

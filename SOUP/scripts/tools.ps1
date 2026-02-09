@@ -15,22 +15,13 @@ param(
     [string]$Command = "list",
     
     [Parameter(Position=1, ValueFromRemainingArguments)]
-    [string[]]$Args
+    [string[]]$ToolArgs
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot\_common.ps1"
 
-# Setup local .NET SDK environment
-$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
-if (Test-Path $localSDKPath) {
-    $env:DOTNET_ROOT = $localSDKPath
-    $env:PATH = "$localSDKPath;$env:PATH"
-}
-
-# Configuration
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $toolsDir = Join-Path $rootDir "tools"
-$dotnetPath = if ($env:DOTNET_PATH -and (Test-Path $env:DOTNET_PATH)) { $env:DOTNET_PATH } else { "dotnet" }
 
 $tools = @{
     "import-dict"   = @{ Name = "ImportDictionary"; Desc = "Import dictionary data from Excel" }
@@ -84,6 +75,7 @@ function Run-Tool($toolKey, $toolArgs) {
     } else {
         & $dotnetPath run --project $projectPath
     }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
 function Build-AllTools {
@@ -112,7 +104,7 @@ switch ($Command) {
     "list" { Show-Tools }
     "help" { Show-Tools }
     "build" { Build-AllTools }
-    "import-dict" { Run-Tool "import-dict" $Args }
-    "inspect-excel" { Run-Tool "inspect-excel" $Args }
-    "inspect-db" { Run-Tool "inspect-db" $Args }
+    "import-dict" { Run-Tool "import-dict" $ToolArgs }
+    "inspect-excel" { Run-Tool "inspect-excel" $ToolArgs }
+    "inspect-db" { Run-Tool "inspect-db" $ToolArgs }
 }

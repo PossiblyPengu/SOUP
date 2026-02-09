@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SOUP.Features.OrderLog.Constants;
 using SOUP.Features.OrderLog.Models;
+using SOUP.Helpers;
 using SOUP.Features.OrderLog.Services;
 using SOUP.Infrastructure.Services;
 using SOUP.Services;
@@ -504,7 +505,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             UseIndependentTheme = UseIndependentTheme,
             WidgetIsDarkMode = WidgetIsDarkMode
         };
-        _ = _settingsService.SaveSettingsAsync("OrderLogWidget", settings);
+        _settingsService.SaveSettingsAsync("OrderLogWidget", settings).SafeFireAndForget("SaveWidgetSettings");
     }
 
     private void OnTimerTick(object? sender, EventArgs e)
@@ -2322,6 +2323,14 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
                 _undoTimer.Stop();
                 _undoTimer.Tick -= OnUndoTimerTick;
             }
+
+            _undoCountdownTimer?.Stop();
+            _statusClearTimer?.Stop();
+
+            _saveDebounceCts?.Cancel();
+            _saveDebounceCts?.Dispose();
+
+            _undoRedoStack.StackChanged -= OnUndoRedoStackChanged;
 
             _itemIds.Clear();
             _archivedItemIds.Clear();

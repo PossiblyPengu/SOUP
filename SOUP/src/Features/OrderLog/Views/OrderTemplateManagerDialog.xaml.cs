@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using Serilog;
 using SOUP.Features.OrderLog.Models;
 using SOUP.Features.OrderLog.Services;
 
@@ -36,6 +37,7 @@ public partial class OrderTemplateManagerDialog : Window
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to load templates");
             MessageBox.Show(
                 $"Failed to load templates: {ex.Message}",
                 "Error",
@@ -80,6 +82,7 @@ public partial class OrderTemplateManagerDialog : Window
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to create template");
             MessageBox.Show(
                 $"Failed to create template: {ex.Message}",
                 "Error",
@@ -105,6 +108,7 @@ public partial class OrderTemplateManagerDialog : Window
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to update template");
             MessageBox.Show(
                 $"Failed to update template: {ex.Message}",
                 "Error",
@@ -139,6 +143,7 @@ public partial class OrderTemplateManagerDialog : Window
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to duplicate template");
             MessageBox.Show(
                 $"Failed to duplicate template: {ex.Message}",
                 "Error",
@@ -168,6 +173,7 @@ public partial class OrderTemplateManagerDialog : Window
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to delete template");
             MessageBox.Show(
                 $"Failed to delete template: {ex.Message}",
                 "Error",

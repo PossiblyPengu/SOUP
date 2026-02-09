@@ -13,7 +13,7 @@ Write-Host "  SOUP Security Check" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$rootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$rootDir = Split-Path -Parent $PSScriptRoot
 $srcDir = Join-Path $rootDir "src"
 
 # Patterns that might indicate secrets (case-insensitive)
@@ -42,13 +42,6 @@ $secretPatterns = @(
     '-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'
 )
 
-# Files to exclude from scanning
-$excludePatterns = @(
-    '*.dll', '*.exe', '*.pdb', '*.xml',
-    'bin/*', 'obj/*', 'publish/*',
-    '.git/*', 'node_modules/*'
-)
-
 $issues = @()
 $filesChecked = 0
 
@@ -64,11 +57,11 @@ foreach ($file in $files) {
     $relativePath = $file.FullName.Substring($rootDir.Length + 1)
     
     try {
-        $content = Get-Content -Path $file.FullName -Raw -ErrorAction SilentlyContinue
-        if (-not $content) { continue }
+        $lines = Get-Content -Path $file.FullName -ErrorAction SilentlyContinue
+        if (-not $lines) { continue }
         
         $lineNum = 0
-        foreach ($line in (Get-Content -Path $file.FullName)) {
+        foreach ($line in $lines) {
             $lineNum++
             
             foreach ($pattern in $secretPatterns) {
