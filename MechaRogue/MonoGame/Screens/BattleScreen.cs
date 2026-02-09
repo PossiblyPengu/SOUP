@@ -433,10 +433,11 @@ public class BattleScreen : GameScreen
 
     private float GetAnimDelay(ActionResult result)
     {
-        if (result.IsMedaforce) return 0.9f;
-        if (result.TargetKnockedOut) return 0.8f;
-        if (result.UsingPart?.Action == ActionType.Melee) return 0.65f;
-        if (!result.Hit) return 0.3f;
+        if (result.IsMedaforce) return 1.0f;
+        if (result.TargetKnockedOut) return 0.9f;
+        if (result.UsingPart?.Action == ActionType.Melee) return 0.55f;  // multi-phase dash handles timing
+        if (result.UsingPart?.Action == ActionType.Shooting) return 0.50f; // time for projectile travel
+        if (!result.Hit) return 0.30f;
         return 0.45f;
     }
 

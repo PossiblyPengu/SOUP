@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "SOUP (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "SOUP: Build (Debug)",
+            "program": "${workspaceFolder}/SOUP/src/bin/Debug/net10.0-windows/SOUP.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/SOUP/src/bin/Debug/net10.0-windows",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "serverReadyAction": {
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "{0}",
+                "action": "openExternally"
+            }
+        },
+        {
+            "name": "SOUP (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "SOUP: Build (Debug)",
+            "program": "${workspaceFolder}/SOUP/src/bin/Release/net10.0-windows/SOUP.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/SOUP/src/bin/Release/net10.0-windows",
+            "stopAtEntry": false,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": ".NET Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

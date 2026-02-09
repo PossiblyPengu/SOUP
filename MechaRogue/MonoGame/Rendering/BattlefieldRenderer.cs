@@ -43,14 +43,25 @@ public class BattlefieldRenderer
     private readonly Dictionary<string, Texture2D> _squadTexCache = [];
     private readonly HashSet<string> _squadTexKeys = [];
 
-    // Melee dash animation — tracks the specific bot dashing
+    // Melee dash animation — 3-phase: run-to [0–0.35], strike [0.35–0.50], run-back [0.50–0.85]
     private float _meleeProgress = -1;
     private bool _meleeIsPlayer;
     private Medabot? _dashingBot;
+    private const float MeleePhaseRunTo = 0.35f;
+    private const float MeleePhaseStrike = 0.50f;
+    private const float MeleePhaseRunBack = 0.85f;
 
     // Track attacker/target bots for animation positioning
     private Medabot? _animAttacker;
     private Medabot? _animTarget;
+
+    // Visible projectile travel (0→1 lerp from attacker to target)
+    private float _projectileProgress = -1;
+    private Medabot? _projectileFrom;
+    private Medabot? _projectileTo;
+
+    // Hit flash overlays
+    private readonly List<HitFlash> _hitFlashes = [];
 
     public BattlefieldRenderer(GraphicsDevice gd, DrawHelper draw, PixelFont font)
     {
@@ -75,36 +86,51 @@ public class BattlefieldRenderer
     /// </summary>
     public void Update(float deltaSeconds)
     {
-        _breatheTimer += deltaSeconds * 2f;
-        _readyPulse += deltaSeconds * 4f;
+        _breatheTimer += deltaSeconds * 2.5f;
+        _readyPulse += deltaSeconds * 5f;
 
         // Screen shake decay
         if (_shakeTimer > 0)
         {
             _shakeTimer -= deltaSeconds;
-            _shakeX = (float)(_rng.NextDouble() * 6 - 3) * (_shakeTimer / 0.3f);
-            _shakeY = (float)(_rng.NextDouble() * 4 - 2) * (_shakeTimer / 0.3f);
+            float intensity = _shakeTimer / 0.3f;
+            _shakeX = (float)(_rng.NextDouble() * 8 - 4) * intensity;
+            _shakeY = (float)(_rng.NextDouble() * 6 - 3) * intensity;
         }
         else
         {
             _shakeX = _shakeY = 0;
         }
 
-        // Melee dash
+        // Melee dash (multi-phase, snappy like GBA)
         if (_meleeProgress >= 0)
         {
-            _meleeProgress += deltaSeconds * 4f;
+            _meleeProgress += deltaSeconds * 2.8f;
             if (_meleeProgress > 1f) _meleeProgress = -1;
         }
 
-        // Particles
+        // Projectile travel
+        if (_projectileProgress >= 0)
+        {
+            _projectileProgress += deltaSeconds * 3.5f;
+            if (_projectileProgress > 1f) _projectileProgress = -1;
+        }
+
+        // Hit flashes
+        for (int i = _hitFlashes.Count - 1; i >= 0; i--)
+        {
+            _hitFlashes[i].Life -= deltaSeconds;
+            if (_hitFlashes[i].Life <= 0) _hitFlashes.RemoveAt(i);
+        }
+
+        // Particles (per-particle gravity)
         for (int i = _particles.Count - 1; i >= 0; i--)
         {
             var p = _particles[i];
             p.Life -= deltaSeconds;
             p.X += p.VX * deltaSeconds;
             p.Y += p.VY * deltaSeconds;
-            p.VY += 120 * deltaSeconds; // gravity
+            p.VY += p.Gravity * deltaSeconds;
             if (p.Life <= 0) _particles.RemoveAt(i);
         }
 
@@ -113,7 +139,7 @@ public class BattlefieldRenderer
         {
             var d = _popups[i];
             d.Life -= deltaSeconds;
-            d.Y -= 30 * deltaSeconds;
+            d.Y -= 35 * deltaSeconds;
             if (d.Life <= 0) _popups.RemoveAt(i);
         }
     }
@@ -324,7 +350,7 @@ public class BattlefieldRenderer
         _dashingBot = null;
     }
 
-    /// <summary>Trigger a melee dash for a specific bot (3v3 version).</summary>
+    /// <summary>Trigger a melee dash for a specific bot (3v3 — multi-phase: run-to → strike → run-back).</summary>
     public void TriggerMeleeDash(Medabot attacker, Medabot target)
     {
         _meleeIsPlayer = attacker.IsPlayerOwned;
@@ -332,6 +358,16 @@ public class BattlefieldRenderer
         _dashingBot = attacker;
         _animAttacker = attacker;
         _animTarget = target;
+    }
+
+    /// <summary>Fire a visible projectile from attacker to target.</summary>
+    public void SpawnProjectileAt(Medabot attacker, Medabot target)
+    {
+        _animAttacker = attacker;
+        _animTarget = target;
+        _projectileFrom = attacker;
+        _projectileTo = target;
+        _projectileProgress = 0;
     }
 
     public void SpawnImpact(int sceneWidth, bool onPlayer)
@@ -480,62 +516,49 @@ public class BattlefieldRenderer
         return (int)pos.Y - sprH / 2;
     }
 
-    /// <summary>Spawn projectile from attacker towards target (squad-aware).</summary>
-    public void SpawnProjectileAt(Medabot attacker, Medabot target)
-    {
-        _animAttacker = attacker;
-        _animTarget = target;
-        int sx = BotCenterX(attacker);
-        int tx = BotCenterX(target);
-        int sy = BotCenterY(attacker);
-        float dir = tx > sx ? 1 : -1;
-
-        for (int i = 0; i < 4; i++)
-        {
-            _particles.Add(new Particle
-            {
-                X = sx + dir * 20,
-                Y = sy + _rng.Next(-5, 5),
-                VX = dir * (350 + i * 50),
-                VY = (_rng.NextSingle() - 0.5f) * 30,
-                Size = 4,
-                Color = Color.Lerp(Color.Cyan, Color.White, _rng.NextSingle()),
-                Life = 0.4f + i * 0.05f,
-                MaxLife = 0.6f
-            });
-        }
-    }
-
-    /// <summary>Spawn impact effect at a specific bot's position.</summary>
+    /// <summary>GBA hit sparks — white flash overlay + white/yellow burst at target.</summary>
     public void SpawnImpactAt(Medabot target)
     {
         int x = BotCenterX(target);
         int y = BotCenterY(target);
-        for (int i = 0; i < 12; i++)
+
+        // White flash on target sprite
+        _hitFlashes.Add(new HitFlash { Bot = target, Life = 0.12f, MaxLife = 0.12f });
+
+        // Spark burst (GBA-style: mostly white/yellow with some orange)
+        for (int i = 0; i < 16; i++)
         {
+            float angle = _rng.NextSingle() * MathF.Tau;
+            float speed = 60 + _rng.NextSingle() * 140;
             _particles.Add(new Particle
             {
-                X = x + _rng.Next(-15, 15),
-                Y = y + _rng.Next(-10, 10),
-                VX = (_rng.NextSingle() - 0.5f) * 200,
-                VY = (_rng.NextSingle() - 0.8f) * 150,
-                Size = 3 + _rng.Next(4),
-                Color = Color.Lerp(Color.Yellow, Color.OrangeRed, _rng.NextSingle()),
-                Life = 0.3f + _rng.NextSingle() * 0.3f,
-                MaxLife = 0.6f
+                X = x + _rng.Next(-8, 8), Y = y + _rng.Next(-8, 8),
+                VX = MathF.Cos(angle) * speed,
+                VY = MathF.Sin(angle) * speed,
+                Size = 2 + _rng.Next(3),
+                Color = _rng.NextSingle() < 0.6f ? Color.White : Color.Lerp(Color.Yellow, Color.OrangeRed, _rng.NextSingle()),
+                Life = 0.15f + _rng.NextSingle() * 0.15f,
+                MaxLife = 0.3f,
+                Gravity = 0
             });
         }
+        TriggerScreenShake(0.12f);
     }
 
-    /// <summary>Spawn explosion at a specific bot's position.</summary>
+    /// <summary>KO explosion — parts fly off, big boom, GBA-style.</summary>
     public void SpawnExplosionAt(Medabot target)
     {
         int x = BotCenterX(target);
         int y = BotCenterY(target);
-        for (int i = 0; i < 20; i++)
+
+        // White flash
+        _hitFlashes.Add(new HitFlash { Bot = target, Life = 0.2f, MaxLife = 0.2f });
+
+        // Explosion burst (orange/red/yellow)
+        for (int i = 0; i < 28; i++)
         {
             float angle = _rng.NextSingle() * MathF.Tau;
-            float speed = 80 + _rng.NextSingle() * 150;
+            float speed = 60 + _rng.NextSingle() * 180;
             _particles.Add(new Particle
             {
                 X = x, Y = y,
@@ -543,53 +566,84 @@ public class BattlefieldRenderer
                 VY = MathF.Sin(angle) * speed,
                 Size = 3 + _rng.Next(5),
                 Color = Color.Lerp(Color.Orange, Color.Red, _rng.NextSingle()),
-                Life = 0.4f + _rng.NextSingle() * 0.4f,
-                MaxLife = 0.8f
+                Life = 0.3f + _rng.NextSingle() * 0.4f,
+                MaxLife = 0.7f,
+                Gravity = 80
             });
         }
+
+        // Flying parts (gray/silver rectangles launching upward)
+        for (int i = 0; i < 5; i++)
+        {
+            _particles.Add(new Particle
+            {
+                X = x + _rng.Next(-12, 12), Y = y + _rng.Next(-8, 8),
+                VX = (_rng.NextSingle() - 0.5f) * 250,
+                VY = -120 - _rng.NextSingle() * 180,
+                Size = 5 + _rng.Next(4),
+                Color = Color.Lerp(new Color(0x80, 0x88, 0x90), new Color(0xC0, 0xC0, 0xD0), _rng.NextSingle()),
+                Life = 0.5f + _rng.NextSingle() * 0.5f,
+                MaxLife = 1.0f,
+                Gravity = 300
+            });
+        }
+
         TriggerScreenShake(0.4f);
     }
 
-    /// <summary>Spawn Medaforce from a specific attacker.</summary>
+    /// <summary>Medaforce: blue/white energy burst + launches beam projectile at target.</summary>
     public void SpawnMedaforceAt(Medabot attacker)
     {
         int cx = BotCenterX(attacker);
         int y = BotCenterY(attacker);
-        for (int i = 0; i < 30; i++)
+
+        // Blue/white energy explosion
+        for (int i = 0; i < 35; i++)
         {
             float angle = _rng.NextSingle() * MathF.Tau;
-            float speed = 50 + _rng.NextSingle() * 200;
+            float speed = 40 + _rng.NextSingle() * 220;
             _particles.Add(new Particle
             {
                 X = cx, Y = y,
                 VX = MathF.Cos(angle) * speed,
-                VY = MathF.Sin(angle) * speed - 50,
+                VY = MathF.Sin(angle) * speed - 40,
                 Size = 4 + _rng.Next(5),
-                Color = Color.Lerp(new Color(0x80, 0x80, 0xFF), Color.White, _rng.NextSingle()),
-                Life = 0.6f + _rng.NextSingle() * 0.4f,
-                MaxLife = 1.0f
+                Color = Color.Lerp(new Color(0x60, 0x80, 0xFF), Color.White, _rng.NextSingle()),
+                Life = 0.5f + _rng.NextSingle() * 0.5f,
+                MaxLife = 1.0f,
+                Gravity = -20 // float upward
             });
         }
+
+        // Launch beam projectile toward target if we have one
+        if (_animTarget != null)
+        {
+            _projectileFrom = attacker;
+            _projectileTo = _animTarget;
+            _projectileProgress = 0;
+        }
+
         TriggerScreenShake(0.5f);
     }
 
-    /// <summary>Spawn heal particles on a specific bot.</summary>
+    /// <summary>Green heal particles rising from target.</summary>
     public void SpawnHealAt(Medabot target)
     {
         int x = BotCenterX(target);
         int baseY = BotCenterY(target);
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 14; i++)
         {
             _particles.Add(new Particle
             {
-                X = x + _rng.Next(-20, 20),
-                Y = baseY + _rng.Next(-10, 20),
-                VX = (_rng.NextSingle() - 0.5f) * 20,
-                VY = -40 - _rng.NextSingle() * 60,
+                X = x + _rng.Next(-18, 18),
+                Y = baseY + _rng.Next(0, 20),
+                VX = (_rng.NextSingle() - 0.5f) * 15,
+                VY = -50 - _rng.NextSingle() * 70,
                 Size = 3 + _rng.Next(3),
-                Color = Color.Lerp(new Color(0x40, 0xFF, 0x40), Color.White, _rng.NextSingle() * 0.5f),
-                Life = 0.6f + _rng.NextSingle() * 0.4f,
-                MaxLife = 1.0f
+                Color = Color.Lerp(new Color(0x40, 0xFF, 0x40), Color.White, _rng.NextSingle() * 0.4f),
+                Life = 0.5f + _rng.NextSingle() * 0.4f,
+                MaxLife = 0.9f,
+                Gravity = -30
             });
         }
     }
@@ -698,25 +752,63 @@ public class BattlefieldRenderer
             float drawX = pos.X - sprW / 2 + offset.X;
             float drawY = pos.Y - sprH + breatheOffset * ds + offset.Y;
 
-            // ── Melee dash toward target ──
-            if (_meleeProgress >= 0 && _dashingBot == bot)
+            // ── Multi-phase melee dash (run-to → strike-hold → run-back → settle) ──
+            if (_meleeProgress >= 0 && _dashingBot == bot && _animTarget != null)
             {
-                float dashT = _meleeProgress < 0.5f ? _meleeProgress * 2 : (1 - _meleeProgress) * 2;
-                float targetX = _animTarget != null ? BotCenterX(_animTarget) : centerX;
-                float targetY = _animTarget != null
-                    ? GetSquadPositionForBot(_animTarget, sceneWidth, sceneHeight).Y
-                    : pos.Y;
-                drawX += (targetX - pos.X) * 0.65f * dashT;
-                drawY += (targetY - pos.Y) * 0.35f * dashT;
+                var targetPos = GetSquadPositionForBot(_animTarget, sceneWidth, sceneHeight);
+                // Offset so the attacker stops next to target, not overlapping
+                float targetDrawX = targetPos.X - (isPlayer ? sprW : -sprW);
+                float targetDrawY = targetPos.Y;
+
+                if (_meleeProgress < MeleePhaseRunTo)
+                {
+                    // Phase 1: Run TO target (smoothstep ease)
+                    float t = _meleeProgress / MeleePhaseRunTo;
+                    float ease = t * t * (3 - 2 * t);
+                    drawX += (targetDrawX - pos.X) * ease;
+                    drawY += (targetDrawY - pos.Y) * 0.3f * ease;
+                }
+                else if (_meleeProgress < MeleePhaseStrike)
+                {
+                    // Phase 2: Strike hold (at target)
+                    drawX += (targetDrawX - pos.X);
+                    drawY += (targetDrawY - pos.Y) * 0.3f;
+                }
+                else if (_meleeProgress < MeleePhaseRunBack)
+                {
+                    // Phase 3: Run BACK to home
+                    float t = (_meleeProgress - MeleePhaseStrike) / (MeleePhaseRunBack - MeleePhaseStrike);
+                    float ease = t * t * (3 - 2 * t);
+                    float atTargetDX = targetDrawX - pos.X;
+                    float atTargetDY = (targetDrawY - pos.Y) * 0.3f;
+                    drawX += atTargetDX * (1 - ease);
+                    drawY += atTargetDY * (1 - ease);
+                }
+                // Phase 4: Settle (already at home, no offset needed)
             }
 
             var tex = GetOrCreateSquadTexture(bot);
             if (tex != null)
             {
-                float alpha = bot.IsKnockedOut ? 0.3f : 1.0f;
+                float alpha = bot.IsKnockedOut ? 0.25f : 1.0f;
                 var effects = isPlayer ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+                // Check for hit flash (rapid white/normal toggle)
+                bool flashing = false;
+                foreach (var hf in _hitFlashes)
+                {
+                    if (hf.Bot == bot) { flashing = ((int)(hf.Life * 40)) % 2 == 0; break; }
+                }
+
                 sb.Draw(tex, new Rectangle((int)drawX, (int)drawY, sprW, sprH),
                     null, Color.White * alpha, 0, Vector2.Zero, effects, 0);
+
+                // White overlay flash (additive-style brightening)
+                if (flashing && !bot.IsKnockedOut)
+                {
+                    sb.Draw(tex, new Rectangle((int)drawX, (int)drawY, sprW, sprH),
+                        null, Color.White * 0.6f, 0, Vector2.Zero, effects, 0);
+                }
             }
 
             // ── Name plate + charge gauge ──
@@ -750,20 +842,28 @@ public class BattlefieldRenderer
             }
         }
 
+        // ── Visible projectile ──
+        if (_projectileProgress >= 0 && _projectileFrom != null && _projectileTo != null)
+        {
+            DrawProjectile(sb, offset);
+        }
+
         // ── Particles ──
         foreach (var p in _particles)
         {
+            float a = Math.Clamp(p.Life / p.MaxLife, 0, 1);
             _draw.FillRect(sb, new Rectangle((int)(p.X + offset.X), (int)(p.Y + offset.Y),
-                (int)p.Size, (int)p.Size), p.Color * Math.Clamp(p.Life / p.MaxLife, 0, 1));
+                (int)p.Size, (int)p.Size), p.Color * a);
         }
 
         // ── Damage popups ──
         foreach (var d in _popups)
         {
             float alpha = Math.Clamp(d.Life / d.MaxLife, 0, 1);
+            float popScale = d.Life > d.MaxLife * 0.8f ? 2.5f : 2f;
             _font.DrawStringWithShadow(sb, d.Text,
-                new Vector2(d.X + offset.X - _font.MeasureString(d.Text, 2).X / 2, d.Y + offset.Y),
-                d.Color * alpha, 2);
+                new Vector2(d.X + offset.X - _font.MeasureString(d.Text, (int)popScale).X / 2, d.Y + offset.Y),
+                d.Color * alpha, (int)popScale);
         }
     }
 
@@ -780,15 +880,19 @@ public class BattlefieldRenderer
         int groundH = sceneHeight - horizonY;
         if (groundH <= 0) return;
 
-        // Arena tile colors — earthy battle arena
-        var tileA = new Color(0x5A, 0x98, 0x44); // lighter green
-        var tileB = new Color(0x48, 0x82, 0x38); // darker green
-        var gridColor = new Color(0x60, 0xA8, 0x50);
-        var edgeColor = new Color(0x2A, 0x5E, 0x22);
+        // Arena tile colors — earthy robattle arena (GBA-style tan/brown)
+        var tileA = new Color(0xC0, 0xA8, 0x78); // light tan
+        var tileB = new Color(0xA8, 0x90, 0x68); // darker tan
+        var gridColor = new Color(0x90, 0x78, 0x58);
+        var edgeColor = new Color(0x68, 0x50, 0x38);
 
         // Horizon haze
         _draw.FillGradientV(sb, new Rectangle(0, horizonY - 2, sceneWidth, 8),
-            new Color(0x78, 0xB0, 0x70) * 0.5f, new Color(0x4A, 0x92, 0x3E) * 0.3f);
+            new Color(0xA0, 0xC8, 0x90) * 0.4f, new Color(0xC0, 0xA8, 0x78) * 0.3f);
+
+        // Fill outside arena with grass
+        var grassOutside = new Color(0x48, 0x88, 0x3A);
+        _draw.FillRect(sb, new Rectangle(0, horizonY, sceneWidth, groundH), grassOutside);
 
         int numCols = 12; // vertical divisions across arena
         float prevWorldZ = -1;
@@ -897,6 +1001,54 @@ public class BattlefieldRenderer
             (int)(y - ph + offset.Y), pw, ph), pylonColor);
         _draw.FillRect(sb, new Rectangle((int)(x - pw / 2 + offset.X),
             (int)(y - ph + offset.Y), pw, (int)(4 * scale)), pylonTop);
+    }
+
+    /// <summary>
+    /// Draw a visible bullet/beam traveling from attacker to target.
+    /// Bright core + cyan trail, plus tiny spark particles.
+    /// </summary>
+    private void DrawProjectile(SpriteBatch sb, Vector2 offset)
+    {
+        if (_projectileFrom == null || _projectileTo == null) return;
+
+        float fromX = BotCenterX(_projectileFrom);
+        float fromY = BotCenterY(_projectileFrom);
+        float toX = BotCenterX(_projectileTo);
+        float toY = BotCenterY(_projectileTo);
+
+        float t = Math.Clamp(_projectileProgress, 0, 1);
+
+        // Bullet position
+        float bx = fromX + (toX - fromX) * t;
+        float by = fromY + (toY - fromY) * t;
+
+        // Main bullet (bright core)
+        _draw.FillRect(sb, new Rectangle((int)(bx - 3 + offset.X), (int)(by - 2 + offset.Y), 6, 4), Color.White);
+        _draw.FillRect(sb, new Rectangle((int)(bx - 4 + offset.X), (int)(by - 1 + offset.Y), 8, 2), Color.Cyan);
+
+        // Trail (fading behind)
+        for (int i = 1; i <= 4; i++)
+        {
+            float tt = Math.Clamp(t - i * 0.03f, 0, 1);
+            float tx = fromX + (toX - fromX) * tt;
+            float ty = fromY + (toY - fromY) * tt;
+            float alpha = 0.6f - i * 0.12f;
+            _draw.FillRect(sb, new Rectangle((int)(tx - 2 + offset.X), (int)(ty - 1 + offset.Y), 4, 2),
+                Color.Cyan * alpha);
+        }
+
+        // Trail sparks
+        if (_rng.NextSingle() < 0.4f)
+        {
+            _particles.Add(new Particle
+            {
+                X = bx + _rng.Next(-3, 3), Y = by + _rng.Next(-3, 3),
+                VX = (_rng.NextSingle() - 0.5f) * 40,
+                VY = (_rng.NextSingle() - 0.5f) * 40,
+                Size = 2, Color = Color.White * 0.7f,
+                Life = 0.08f, MaxLife = 0.08f, Gravity = 0
+            });
+        }
     }
 
     /// <summary>Draw an elliptical shadow beneath a bot.</summary>
@@ -1015,7 +1167,7 @@ public class BattlefieldRenderer
 
     private class Particle
     {
-        public float X, Y, VX, VY, Size, Life, MaxLife;
+        public float X, Y, VX, VY, Size, Life, MaxLife, Gravity;
         public Color Color;
     }
 
@@ -1024,5 +1176,11 @@ public class BattlefieldRenderer
         public float X, Y, Life, MaxLife;
         public string Text = "";
         public Color Color;
+    }
+
+    private class HitFlash
+    {
+        public Medabot Bot = null!;
+        public float Life, MaxLife;
     }
 }

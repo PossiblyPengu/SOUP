@@ -11,7 +11,6 @@ public class OrderLogWidgetSettings
     public bool NotesOnlyMode { get; set; } = false;
     public bool SortByStatus { get; set; } = true; // Always true - status headers always visible
     public bool SortStatusDescending { get; set; } = false;
-    public bool AutoColorByVendor { get; set; } = true; // Auto-assign colors based on vendor name
 
     // Status group expand/collapse state
     public bool NotReadyGroupExpanded { get; set; } = true;

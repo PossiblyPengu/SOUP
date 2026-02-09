@@ -1,5 +1,74 @@
 {
     "files.readonlyInclude": {
         "{**/.c4z/.extsrcs/*.PROTSYM.cbl,**/.c4z/.extsrcs/*.PROTSYM.listing}": true
+    },
+    
+    // ============================================
+    // C# Development Settings
+    // ============================================
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.style": "explicit",
+            "source.unusedSymbols.fixAll": "explicit"
+        }
+    },
+    
+    // ============================================
+    // XAML Settings
+    // ============================================
+    "[xaml]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp",
+        "editor.formatOnSave": true
+    },
+    
+    // ============================================
+    // Editor Settings
+    // ============================================
+    "editor.rulers": [
+        100,
+        120
+    ],
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    
+    // ============================================
+    // Omnisharp (C# Language Service)
+    // ============================================
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.organizeImportsOnFormat": true,
+    "omnisharp.defaultLaunchSolution": "SOUP/SOUP.sln",
+    
+    // ============================================
+    // .NET Specific
+    // ============================================
+    "dotnet.defaultSolutionOrFolder": "SOUP",
+    "dotnet.preferCSharpExtension": true,
+    
+    // ============================================
+    // File Association
+    // ============================================
+    "files.associations": {
+        "*.xaml": "xaml",
+        "*.props": "xml",
+        "*.targets": "xml"
+    },
+    
+    // ============================================
+    // Search/Files Exclusion
+    // ============================================
+    "files.exclude": {
+        "**/.git": false,
+        "**/bin": true,
+        "**/obj": true,
+        "**/.vs": true,
+        "**/node_modules": true
+    },
+    "search.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/.vs": true
     }
 }
