@@ -32,6 +32,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     private readonly OrderSearchService _searchService;
     private readonly OrderBulkOperationsService _bulkOperationsService;
     private readonly OrderLogClipboardService _clipboardService;
+    private readonly VendorColorService _vendorColorService;
     private readonly UndoRedoStack _undoRedoStack;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
@@ -57,13 +58,13 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     public ObservableCollection<OrderItemGroup> DisplayItems { get; } = new();
     public ObservableCollection<OrderItemGroup> DisplayArchivedItems { get; } = new();
     private Task? _archivedRefreshTask;
-
+    
 
     // Grouping helper service (extracted to simplify VM)
     private readonly OrderGroupingService _groupingService;
 
     public OrderGroupingService.OrderLogSortMode SortModeEnum { get; private set; } = OrderGroupingService.OrderLogSortMode.Status;
-
+    
     public OrderGroupingService.OrderLogSortMode ArchivedSortModeEnum { get; private set; } = OrderGroupingService.OrderLogSortMode.CreatedAt;
 
     [ObservableProperty]
@@ -176,6 +177,10 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _isMultiSelectMode = false;
 
+    // Vendor auto-coloring feature
+    [ObservableProperty]
+    private bool _autoColorByVendor = true;
+
     // Navigation properties for enhanced navigation
     [ObservableProperty]
     private OrderItem? _currentNavigationItem = null;
@@ -240,6 +245,11 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
     partial void OnNoteCategoryFilterChanged(NoteCategory? value)
     {
         RefreshDisplayItems();
+    }
+
+    partial void OnAutoColorByVendorChanged(bool value)
+    {
+        SaveWidgetSettings();
     }
 
     [ObservableProperty]
@@ -393,6 +403,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _searchService = new OrderSearchService();
         _bulkOperationsService = new OrderBulkOperationsService();
         _clipboardService = new OrderLogClipboardService(null);
+        _vendorColorService = new VendorColorService(null);
         _undoRedoStack = new UndoRedoStack(maxHistorySize: 50);
 
         _timer = new() { Interval = TimeSpan.FromSeconds(TimerIntervalSeconds) };
@@ -485,6 +496,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             NotesOnlyMode = NotesOnlyMode,
             SortByStatus = SortByStatus,
             SortStatusDescending = SortStatusDescending,
+            AutoColorByVendor = AutoColorByVendor,
             NotReadyGroupExpanded = NotReadyGroupExpanded,
             OnDeckGroupExpanded = OnDeckGroupExpanded,
             InProgressGroupExpanded = InProgressGroupExpanded,
@@ -554,6 +566,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             // Sorting preferences
             SortByStatus = s.SortByStatus;
             SortStatusDescending = s.SortStatusDescending;
+            // Vendor auto-coloring
+            AutoColorByVendor = s.AutoColorByVendor;
             // Status group expand/collapse state
             NotReadyGroupExpanded = s.NotReadyGroupExpanded;
             OnDeckGroupExpanded = s.OnDeckGroupExpanded;
@@ -562,7 +576,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             // Independent theme settings
             UseIndependentTheme = s.UseIndependentTheme;
             WidgetIsDarkMode = s.WidgetIsDarkMode;
-
+            
             // Apply font size to resources
             if (Application.Current != null)
             {
@@ -574,6 +588,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             _logger?.LogWarning(ex, "Failed to load widget settings, using defaults");
         }
 
+        // Templates removed: skip loading templates
+        await _vendorColorService.LoadMappingsAsync();
         await LoadAsync();
     }
 
@@ -655,15 +671,15 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         // Check for items that should be archived:
         // 1. Status is Done (completed)
         // 2. PreviousStatus is set (meaning they were archived at some point)
-        var itemsToRepair = Items.Where(i =>
-            i.Status == OrderItem.OrderStatus.Done ||
+        var itemsToRepair = Items.Where(i => 
+            i.Status == OrderItem.OrderStatus.Done || 
             i.PreviousStatus != null).ToList();
-
+        
         // Log diagnostic info
         var totalActive = Items.Count;
         var totalArchived = ArchivedItems.Count;
         _logger?.LogInformation(
-            "Repair diagnostic: Active={Active}, Archived={Archived}, ToRepair={ToRepair}",
+            "Repair diagnostic: Active={Active}, Archived={Archived}, ToRepair={ToRepair}", 
             totalActive, totalArchived, itemsToRepair.Count);
 
         if (itemsToRepair.Count == 0)
@@ -712,8 +728,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
         RefreshArchivedDisplayItems();
         await SaveAsync();
-        StatusMessage = itemsToArchive.Count == 1
-            ? "Archived item"
+        StatusMessage = itemsToArchive.Count == 1 
+            ? "Archived item" 
             : $"Archived {itemsToArchive.Count} linked items";
     }
 
@@ -744,8 +760,8 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         RefreshDisplayItems();
         RefreshArchivedDisplayItems();
         await SaveAsync();
-        StatusMessage = itemsToUnarchive.Count == 1
-            ? "Unarchived item"
+        StatusMessage = itemsToUnarchive.Count == 1 
+            ? "Unarchived item" 
             : $"Unarchived {itemsToUnarchive.Count} linked items";
     }
 
@@ -772,7 +788,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ArchivedSortModeEnum));
         RefreshArchivedDisplayItems();
     }
-
+    
     [RelayCommand]
     public async Task MoveUpAsync(OrderItem? item)
     {
@@ -1026,12 +1042,19 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
             return false;
         }
 
+        // Apply auto-coloring if enabled and vendor name is set
+        var colorToUse = _newNoteColorHex;
+        if (AutoColorByVendor && !string.IsNullOrWhiteSpace(NewNoteVendorName))
+        {
+            colorToUse = _vendorColorService.GetColorForVendor(NewNoteVendorName.Trim());
+        }
+
         var order = new OrderItem
         {
             VendorName = NewNoteVendorName.Trim(),
             TransferNumbers = NewNoteTransferNumbers?.Trim() ?? string.Empty,
             WhsShipmentNumbers = NewNoteWhsShipmentNumbers?.Trim() ?? string.Empty,
-            ColorHex = _newNoteColorHex,
+            ColorHex = colorToUse,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -1632,7 +1655,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (itemsToCopy.Count == 0)
         {
             StatusMessage = "No items selected to copy";
-            return;
+                return;
         }
 
         _clipboardService.CopyToClipboard(itemsToCopy);
@@ -1649,13 +1672,22 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (!_clipboardService.TryPasteFromClipboard(out var pastedItems))
         {
             StatusMessage = "Clipboard does not contain valid order data";
-            return;
+                return;
         }
 
         if (pastedItems.Count == 0)
         {
             StatusMessage = "No items to paste";
-            return;
+                return;
+        }
+
+        // Apply auto-coloring to pasted items if enabled
+        if (AutoColorByVendor)
+        {
+            foreach (var item in pastedItems.Where(i => i.NoteType == NoteType.Order && !string.IsNullOrWhiteSpace(i.VendorName)))
+            {
+                item.ColorHex = _vendorColorService.GetColorForVendor(item.VendorName!);
+            }
         }
 
         // Determine insertion index: after selected item or at top
@@ -1690,10 +1722,19 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (itemsToDuplicate.Count == 0)
         {
             StatusMessage = "No items selected to duplicate";
-            return;
+                return;
         }
 
         var duplicatedItems = _clipboardService.CloneItems(itemsToDuplicate);
+
+        // Apply auto-coloring to duplicated items if enabled
+        if (AutoColorByVendor)
+        {
+            foreach (var item in duplicatedItems.Where(i => i.NoteType == NoteType.Order && !string.IsNullOrWhiteSpace(i.VendorName)))
+            {
+                item.ColorHex = _vendorColorService.GetColorForVendor(item.VendorName!);
+            }
+        }
 
         // Determine insertion index: after selected item or at top
         int insertIndex = 0;
@@ -1714,7 +1755,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         _logger?.LogInformation("Duplicated {Count} items", duplicatedItems.Count);
     }
 
-
+    
 
     public async Task MoveOrderAsync(OrderItem dropped, OrderItem? target)
     {
@@ -1792,7 +1833,7 @@ public partial class OrderLogViewModel : ObservableObject, IDisposable
         if (newIndex < 0 || newIndex >= collection.Count) return;
 
         collection.Move(currentIndex, newIndex);
-
+        
         // Only refresh display items for orders, not sticky notes
         if (item.NoteType != NoteType.StickyNote)
         {

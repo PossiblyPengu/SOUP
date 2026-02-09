@@ -22,22 +22,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Setup local .NET SDK environment (prefer .NET 10, fallback to any SDK)
-$localSdkRoot = "D:\CODE\important files"
-$localSDKPath = $null
-if (Test-Path $localSdkRoot) {
-    $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -like 'dotnet-sdk-10*' } |
-        Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
-
-    if (-not $localSDKPath) {
-        $localSDKPath = Get-ChildItem -Path $localSdkRoot -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -like 'dotnet-sdk*' } |
-            Select-Object -First 1 -ExpandProperty FullName -ErrorAction SilentlyContinue
-    }
-}
-
-if ($localSDKPath -and (Test-Path $localSDKPath)) {
+# Setup local .NET SDK environment
+$localSDKPath = "D:\CODE\important files\dotnet-sdk-9.0.306-win-x64"
+if (Test-Path $localSDKPath) {
     $env:DOTNET_ROOT = $localSDKPath
     $env:PATH = "$localSDKPath;$env:PATH"
 }
